@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace K911\Swoole\Client;
 
 use Assert\Assertion;
+use K911\Swoole\Server\Config\Socket;
 use Swoole\Coroutine;
 use Swoole\Coroutine\Http\Client;
 
@@ -198,5 +199,15 @@ final class HttpClient
                 'downloadOffset' => $client->downloadOffset,
             ],
         ];
+    }
+
+    public static function fromSocket(Socket $socket, array $options = []): self
+    {
+        return self::fromDomain(
+            $socket->host(),
+            $socket->port(),
+            $socket->ssl(),
+            $options
+        );
     }
 }

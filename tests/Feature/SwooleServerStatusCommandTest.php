@@ -35,7 +35,6 @@ final class SwooleServerStatusCommandTest extends ServerTestCase
 
         /** @var ServerStatusCommand $command */
         $command = $application->find('swoole:server:status');
-        $command->enableTestMode();
         $commandTester = new CommandTester($command);
 
         $this->goAndWait(function () use ($command, $commandTester): void {
@@ -50,7 +49,8 @@ final class SwooleServerStatusCommandTest extends ServerTestCase
                 '--api-port' => '9998',
             ]);
 
-            $this->assertStringContainsString('Fetched status and metrics', $commandTester->getDisplay());
+            $this->assertStringContainsString('Fetched status', $commandTester->getDisplay());
+            $this->assertStringContainsString('Fetched metrics', $commandTester->getDisplay());
             $this->assertStringContainsString('Listener[0] Host', $commandTester->getDisplay());
             $this->assertStringContainsString('Requests', $commandTester->getDisplay());
 
