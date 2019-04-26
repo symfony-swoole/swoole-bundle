@@ -1,5 +1,5 @@
 {
-    "name": "k911/swoole-bundle",
+    "name": "pixelfederation/swoole-bundle",
     "type": "library",
     "description": "Swoole Symfony Bundle",
     "keywords": [
@@ -11,11 +11,15 @@
         "Server"
     ],
     "license": "MIT",
-    "homepage": "https://github.com/k911/swoole-bundle",
+    "homepage": "https://github.com/pixelfederation/swoole-bundle",
     "authors": [{
         "name": "Konrad Obal",
         "email": "konrad.obal@gmail.com",
         "homepage": "https://github.com/k911"
+    }, {
+        "name": "Martin Fris",
+        "email": "mfris@pixelfederation.com",
+        "homepage": "https://github.com/rastusik"
     }],
     "require": {
         "php": "^7.2 <7.4",
