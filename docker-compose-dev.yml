@@ -56,6 +56,8 @@ services:
   app-nginx:
     container_name: app-nginx
     image: nginx:latest
+    depends_on:
+      - cli-non-debug-dev
     links:
       - cli-non-debug-dev
     ports:
@@ -73,6 +75,6 @@ services:
       MYSQL_PASSWORD: Password1
       MYSQL_DATABASE: swoole
     ports:
-      - 8802:3306
+      - 33006:3306
     volumes:
       - mariadb_data_volume:/var/lib/mysql

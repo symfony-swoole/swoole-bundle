@@ -27,10 +27,10 @@
         "beberlei/assert": "^3.0",
         "symfony/config": "^4.2",
         "symfony/console": "^4.2",
-        "symfony/process": "^4.2",
         "symfony/dependency-injection": "^4.2",
         "symfony/http-foundation": "^4.2",
-        "symfony/http-kernel": "^4.2"
+        "symfony/http-kernel": "^4.2",
+        "symfony/process": "^4.2"
     },
     "require-dev": {
         "doctrine/annotations": "^1.6",

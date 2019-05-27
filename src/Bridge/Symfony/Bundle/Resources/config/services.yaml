@@ -1,21 +1,23 @@
+parameters:
+  swoole_bundle.channel_logger: false
+
 services:
   _defaults:
     autowire: false
     autoconfigure: false
     public: false
 
+  K911\Swoole\Bridge\Symfony\HttpFoundation\RequestFactoryInterface: '@K911\Swoole\Bridge\Symfony\HttpFoundation\RequestFactory'
+  K911\Swoole\Bridge\Symfony\HttpFoundation\ResponseProcessorInterface: '@K911\Swoole\Bridge\Symfony\HttpFoundation\ResponseProcessor'
+  K911\Swoole\Server\RequestHandler\RequestHandlerInterface: '@K911\Swoole\Bridge\Symfony\HttpKernel\HttpKernelRequestHandler'
+  K911\Swoole\Server\Config\WorkerEstimatorInterface: '@K911\Swoole\Server\Config\WorkerEstimator'
+
   K911\Swoole\Component\AtomicCounter:
     factory: ['K911\Swoole\Component\AtomicCounter', fromZero]
 
   K911\Swoole\Bridge\Symfony\HttpFoundation\SetRequestRuntimeConfiguration:
     tags:
-      - { name: 'swoole_bundle.bootable_service' }
-
-  K911\Swoole\Bridge\Symfony\HttpFoundation\RequestFactoryInterface: '@K911\Swoole\Bridge\Symfony\HttpFoundation\RequestFactory'
-
-  K911\Swoole\Bridge\Symfony\HttpFoundation\ResponseProcessorInterface: '@K911\Swoole\Bridge\Symfony\HttpFoundation\ResponseProcessor'
-
-  K911\Swoole\Server\RequestHandler\RequestHandlerInterface: '@K911\Swoole\Bridge\Symfony\HttpKernel\HttpKernelRequestHandler'
+    - { name: 'swoole_bundle.bootable_service' }
 
   K911\Swoole\Bridge\Symfony\HttpKernel\HttpKernelRequestHandler:
     arguments:
@@ -88,6 +90,7 @@ services:
 
   K911\Swoole\Server\HttpServerConfiguration:
     arguments:
+      $workerEstimator: '@K911\Swoole\Server\Config\WorkerEstimator'
       $sockets: ~ # will be provided by the extension
       $runningMode: ~ # will be provided by the extension
       $settings: ~ # will be provided by the extension
@@ -176,3 +179,23 @@ services:
     arguments: [!tagged 'swoole_bundle.app_terminator']
     tags:
       - {name: kernel.event_listener, event: kernel.terminate, method: terminate, priority: -1000000}
+
+  K911\Swoole\Bridge\Symfony\Logging\ChannelFactory:
+    arguments:
+      $workerEstimator: '@K911\Swoole\Server\Config\WorkerEstimatorInterface'
+      $workerCount: null
+
+  swoole_bundle.logging_channel:
+    class: Swoole\Coroutine\Channel
+    factory: K911\Swoole\Bridge\Symfony\Logging\ChannelFactory:newInstance
+
+  K911\Swoole\Bridge\Symfony\Logging\ChannelLogger:
+    arguments:
+      - '@swoole_bundle.logging_channel'
+
+  K911\Swoole\Bridge\Symfony\Logging\MasterLogger:
+    arguments:
+      $channel: '@swoole_bundle.logging_channel'
+      $logger: ~ # will be defined by the compiler pass
+
+  K911\Swoole\Server\Config\WorkerEstimator:

@@ -35,6 +35,10 @@ final class Configuration implements ConfigurationInterface
 
         $rootNode
             ->children()
+                ->enumNode('mode')
+                    ->values(['transparent', 'strict'])
+                    ->defaultValue('strict')
+                ->end()
                 ->arrayNode('http_server')
                     ->addDefaultsIfNotSet()
                     ->children()
@@ -148,6 +152,9 @@ final class Configuration implements ConfigurationInterface
                                 ->end()
                                 ->booleanNode('entity_manager_handler')
                                     ->defaultNull()
+                                ->end()
+                                ->booleanNode('channel_logger')
+                                    ->defaultFalse()
                                 ->end()
                             ->end()
                         ->end() // drivers

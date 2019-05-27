@@ -60,6 +60,11 @@ swoole:
             
             # see: \K911\Swoole\Bridge\Symfony\HttpFoundation\CloudFrontRequestFactory
             cloudfront_proto_header_handler: true
+            
+            # see: \K911\Swoole\Bridge\Symfony\Bundle\Logging\*
+            # this helps with loggers that are unable tu run in multiple coroutines/processes 
+            # like e.g. ZMQ logger
+            channel_logger: true
         
         # swoole http server settings
         # see https://www.swoole.co.uk/docs/modules/swoole-server/configuration

@@ -7,6 +7,7 @@ namespace K911\Swoole\Server;
 use Assert\Assertion;
 use K911\Swoole\Server\Config\Socket;
 use K911\Swoole\Server\Config\Sockets;
+use K911\Swoole\Server\Config\WorkerEstimator;
 
 final class HttpServerConfiguration
 {
@@ -15,6 +16,7 @@ final class HttpServerConfiguration
      *
      * @see https://github.com/swoole/swoole-docs/blob/master/modules/swoole-server/configuration.md
      * @see https://github.com/swoole/swoole-docs/blob/master/modules/swoole-http-server/configuration.md
+     * @const array<string, string>
      */
     private const SWOOLE_HTTP_SERVER_CONFIGURATION = [
         'reactor_count' => 'reactor_num',
@@ -28,12 +30,18 @@ final class HttpServerConfiguration
         'buffer_output_size' => 'buffer_output_size',
     ];
 
+    /**
+     * @const array<string, bool>
+     */
     private const SWOOLE_SERVE_STATIC = [
         'off' => false,
         'advanced' => false,
         'default' => true,
     ];
 
+    /**
+     * @const array<string, int>
+     */
     private const SWOOLE_LOG_LEVELS = [
         'debug' => SWOOLE_LOG_DEBUG,
         'trace' => SWOOLE_LOG_TRACE,
@@ -43,24 +51,46 @@ final class HttpServerConfiguration
         'error' => SWOOLE_LOG_ERROR,
     ];
 
+    /**
+     * @var WorkerEstimator
+     */
+    private $workerEstimator;
+
+    /**
+     * @var Sockets Sockets
+     */
     private $sockets;
+
+    /**
+     * @var string
+     */
     private $runningMode;
+
+    /**
+     * @var array
+     */
     private $settings;
 
     /**
-     * @param Sockets $sockets
-     * @param string  $runningMode
-     * @param array   $settings    settings available:
-     *                             - reactor_count (default: number of cpu cores)
-     *                             - worker_count (default: 2 * number of cpu cores)
-     *                             - serve_static_files (default: false)
-     *                             - public_dir (default: '%kernel.root_dir%/public')
-     *                             - buffer_output_size (default: '2097152' unit in byte (2MB))
+     * @param WorkerEstimator $workerEstimator
+     * @param Sockets         $sockets
+     * @param string          $runningMode
+     * @param array           $settings settings available:
+     *                                  - reactor_count (default: number of cpu cores)
+     *                                  - worker_count (default: 2 * number of cpu cores)
+     *                                  - serve_static_files (default: false)
+     *                                  - public_dir (default: '%kernel.root_dir%/public')
+     *                                  - buffer_output_size (default: '2097152' unit in byte (2MB))
      *
      * @throws \Assert\AssertionFailedException
      */
-    public function __construct(Sockets $sockets, string $runningMode = 'process', array $settings = [])
-    {
+    public function __construct(
+        WorkerEstimator $workerEstimator,
+        Sockets $sockets,
+        string $runningMode = 'process',
+        array $settings = []
+    ) {
+        $this->workerEstimator = $workerEstimator;
         $this->sockets = $sockets;
 
         $this->changeRunningMode($runningMode);
@@ -150,14 +180,13 @@ final class HttpServerConfiguration
     private function initializeSettings(array $init): void
     {
         $this->settings = [];
-        $cpuCores = swoole_cpu_num();
 
         if (!isset($init['reactor_count'])) {
-            $init['reactor_count'] = $cpuCores;
+            $init['reactor_count'] = $this->workerEstimator->getDefaultReactorCount();
         }
 
         if (!isset($init['worker_count'])) {
-            $init['worker_count'] = 2 * $cpuCores;
+            $init['worker_count'] = $this->workerEstimator->getDefaultWorkerCount();
         }
 
         $this->setSettings($init);

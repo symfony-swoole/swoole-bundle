@@ -8,6 +8,16 @@ swoole:
   http_server:
     port: '%env(int:PORT)%'
     host: '%env(HOST)%'
-    static: 'auto'
     trusted_hosts: '%env(TRUSTED_HOSTS)%'
     trusted_proxies: '%env(TRUSTED_PROXIES)%'
+    hmr: 'auto'
+    static:
+      strategy: 'advanced'
+      public_dir: '%kernel.project_dir%/public'
+    services:
+      debug_handler: true
+      trust_all_proxies_handler: true
+      channel_logger: true
+    settings:
+      worker_count: 4
+      reactor_count: 2
