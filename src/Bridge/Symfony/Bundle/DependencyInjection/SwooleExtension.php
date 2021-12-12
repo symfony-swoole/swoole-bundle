@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace K911\Swoole\Bridge\Symfony\Bundle\DependencyInjection;
 
+use K911\Swoole\Bridge\Symfony\Container\StabilityChecker;
 use K911\Swoole\Bridge\Symfony\ErrorHandler\ErrorResponder;
 use K911\Swoole\Bridge\Symfony\ErrorHandler\ExceptionHandlerFactory;
 use K911\Swoole\Bridge\Symfony\ErrorHandler\SymfonyExceptionHandler;
@@ -11,8 +12,9 @@ use K911\Swoole\Bridge\Symfony\ErrorHandler\ThrowableHandlerFactory;
 use K911\Swoole\Bridge\Symfony\HttpFoundation\CloudFrontRequestFactory;
 use K911\Swoole\Bridge\Symfony\HttpFoundation\RequestFactoryInterface;
 use K911\Swoole\Bridge\Symfony\HttpFoundation\TrustAllProxiesRequestHandler;
-use K911\Swoole\Bridge\Symfony\Messenger\SwooleServerTaskTransportFactory;
-use K911\Swoole\Bridge\Symfony\Messenger\SwooleServerTaskTransportHandler;
+use K911\Swoole\Bridge\Symfony\HttpKernel\CoroutineKernelPool;
+use K911\Swoole\Bridge\Symfony\HttpKernel\KernelPoolInterface;
+use K911\Swoole\Bridge\Symfony\HttpKernel\ServiceResettingHttpKernelRequestHandler;
 use K911\Swoole\Bridge\Tideways\Apm\Apm;
 use K911\Swoole\Bridge\Tideways\Apm\RequestDataProvider;
 use K911\Swoole\Bridge\Tideways\Apm\RequestProfiler;
@@ -22,7 +24,6 @@ use K911\Swoole\Bridge\Upscale\Blackfire\WithProfiler;
 use K911\Swoole\Server\Config\Socket;
 use K911\Swoole\Server\Config\Sockets;
 use K911\Swoole\Server\Configurator\ConfiguratorInterface;
-use K911\Swoole\Server\HttpServer;
 use K911\Swoole\Server\HttpServerConfiguration;
 use K911\Swoole\Server\Middleware\MiddlewareInjector;
 use K911\Swoole\Server\RequestHandler\AdvancedStaticFilesServer;
@@ -33,7 +34,6 @@ use K911\Swoole\Server\RequestHandler\RequestHandlerInterface;
 use K911\Swoole\Server\Runtime\BootableInterface;
 use K911\Swoole\Server\Runtime\HMR\HotModuleReloaderInterface;
 use K911\Swoole\Server\Runtime\HMR\InotifyHMR;
-use K911\Swoole\Server\TaskHandler\TaskHandlerInterface;
 use K911\Swoole\Server\WorkerHandler\HMRWorkerStartHandler;
 use K911\Swoole\Server\WorkerHandler\WorkerStartHandlerInterface;
 use Symfony\Component\Config\FileLocator;
@@ -44,10 +44,9 @@ use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\ErrorHandler\ErrorHandler;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
-use Symfony\Component\Messenger\MessageBusInterface;
-use Symfony\Component\Messenger\Transport\TransportFactoryInterface;
 use Tideways\Profiler as TidewaysProfiler;
 use Upscale\Swoole\Blackfire\Profiler as BlackfireProfiler;
+use ZEngine\Core;
 
 final class SwooleExtension extends Extension implements PrependExtensionInterface
 {
@@ -80,10 +79,6 @@ final class SwooleExtension extends Extension implements PrependExtensionInterfa
         $config = $this->processConfiguration($configuration, $configs);
 
         $this->registerHttpServer($config['http_server'], $container);
-
-        if (\interface_exists(TransportFactoryInterface::class)) {
-            $this->registerSwooleServerTransportConfiguration($container);
-        }
     }
 
     /**
@@ -167,20 +162,6 @@ final class SwooleExtension extends Extension implements PrependExtensionInterfa
         ;
     }
 
-    private function registerSwooleServerTransportConfiguration(ContainerBuilder $container): void
-    {
-        $container->register(SwooleServerTaskTransportFactory::class)
-            ->addTag('messenger.transport_factory')
-            ->addArgument(new Reference(HttpServer::class))
-        ;
-
-        $container->register(SwooleServerTaskTransportHandler::class)
-            ->addArgument(new Reference(MessageBusInterface::class))
-            ->addArgument(new Reference(SwooleServerTaskTransportHandler::class.'.inner'))
-            ->setDecoratedService(TaskHandlerInterface::class, null, -10)
-        ;
-    }
-
     private function registerHttpServerConfiguration(array $config, ContainerBuilder $container): void
     {
         [
@@ -190,6 +171,7 @@ final class SwooleExtension extends Extension implements PrependExtensionInterfa
             'host' => $host,
             'port' => $port,
             'running_mode' => $runningMode,
+            'coroutines_support' => $coroutineSettings,
             'socket_type' => $socketType,
             'ssl_enabled' => $sslEnabled,
             'settings' => $settings,
@@ -215,6 +197,43 @@ final class SwooleExtension extends Extension implements PrependExtensionInterfa
 
         if ('auto' === $settings['log_level']) {
             $settings['log_level'] = $this->isDebug($container) ? 'debug' : 'notice';
+        }
+
+        if (isset($coroutineSettings['enabled']) && $coroutineSettings['enabled']) {
+            $settings['enable_coroutine'] = true;
+            $settings['hook_flags'] = \SWOOLE_HOOK_ALL;
+
+            if (!class_exists(Core::class)) {
+                throw new RuntimeException('Please install lisachenko/z-engine to use coroutines');
+            }
+
+            $container->setParameter(ContainerConstants::PARAM_COROUTINES_ENABLED, true);
+
+            if (isset($coroutineSettings['stateful_services']) && is_array($coroutineSettings['stateful_services'])) {
+                $container->setParameter(
+                    ContainerConstants::PARAM_COROUTINES_STATEFUL_SERVICES,
+                    $coroutineSettings['stateful_services']
+                );
+            }
+
+            if (isset($coroutineSettings['compile_processors']) && is_array($coroutineSettings['compile_processors'])) {
+                $container->setParameter(
+                    ContainerConstants::PARAM_COROUTINES_COMPILE_PROCESSORS,
+                    $coroutineSettings['compile_processors']
+                );
+            }
+
+            $container->registerForAutoconfiguration(StabilityChecker::class)
+                ->addTag(ContainerConstants::TAG_STABILITY_CHECKER)
+            ;
+            $coroutineKernelHandler = $container->findDefinition(ServiceResettingHttpKernelRequestHandler::class);
+            $coroutineKernelHandler->setArgument(
+                '$decorated',
+                new Reference(ServiceResettingHttpKernelRequestHandler::class.'.inner')
+            );
+            $coroutineKernelHandler->setDecoratedService(RequestHandlerInterface::class, null, -1000);
+
+            $container->setAlias(KernelPoolInterface::class, CoroutineKernelPool::class);
         }
 
         if ('auto' === $hmr) {

@@ -33,19 +33,26 @@ class CoverageBundle extends Bundle
 {
     public function build(ContainerBuilder $container): void
     {
-        $container->autowire(PHP::class);
+        $container->autowire(PHP::class)
+            ->setShared(false)
+        ;
         $container->register(Filter::class);
         $container->register(Driver::class)
+            ->setShared(false)
             ->setFactory([Driver::class, 'forLineCoverage'])
             ->setArgument('$filter', new Reference(Filter::class))
         ;
         $container->register(CodeCoverage::class)
+            ->setShared(false)
             ->setArguments([
                 '$driver' => new Reference(Driver::class),
                 '$filter' => new Reference(Filter::class),
             ])
         ;
-        $container->autowire(CodeCoverageManager::class);
+        $container->autowire(CodeCoverageManager::class)
+            ->setShared(false)
+            ->addTag('kernel.reset', ['method' => 'reset'])
+        ;
 
         $this->registerSingleProcessCoverageFlow($container);
         $this->registerServerCoverageFlow($container);

@@ -175,11 +175,11 @@ final class HttpServer
     {
         Process::kill($masterPid, $this->signalTerminate);
 
-        $start = $now = \microtime(true);
+        $start = $now = microtime(true);
         $max = $start + $timeoutSeconds;
         while ($this->isRunningInBackground() && $now < $max) {
-            $now = \microtime(true);
-            \usleep(1000);
+            $now = microtime(true);
+            usleep(1000);
         }
 
         if ($this->isRunningInBackground()) {

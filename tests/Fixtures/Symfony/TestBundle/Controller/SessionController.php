@@ -20,7 +20,7 @@ final class SessionController
     public function index(SessionInterface $session): JsonResponse
     {
         if (!$session->has('luckyNumber')) {
-            $session->set('luckyNumber', \random_int(1, 1000000));
+            $session->set('luckyNumber', random_int(1, 1000000));
         }
 
         $metadata = $session->getMetadataBag();

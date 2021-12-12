@@ -4,6 +4,7 @@ x-env-aliases:
     PHP_TAG: "${PHP_VERSION:-7.4}-cli-alpine${ALPINE_VERSION:-3.16}"
     PHP_API_VERSION: "${PHP_API_VERSION:-20190902}"
     COMPOSER_ARGS: "${COMPOSER_ARGS:-install}"
+    COMPOSER_AUTH: "${COMPOSER_AUTH:-}"
     SWOOLE_VERSION: "${SWOOLE_VERSION:-4.10.0}"
     COMPOSER_TAG: "${COMPOSER_TAG:-2.3.10}"
     XDEBUG_TAG: "${XDEBUG_TAG:-3.1.6}"
@@ -35,6 +36,8 @@ services:
       target: cli
       args:
         <<: *DEFAULT_BUILD_ARGS
+    environment:
+      DATABASE_HOST: 'db'
     ports:
       - 9501:9501
 
@@ -45,6 +48,8 @@ services:
       target: Composer
       args:
         <<: *DEFAULT_BUILD_ARGS
+    environment:
+      DATABASE_HOST: 'db'
 
   coverage-xdebug:
     image: "${REGISTRY:-docker.io}/${NAMESPACE:-pixelfederation}/${IMAGE:-swoole-bundle}-coverage-xdebug:${TAG:-local}"
@@ -53,6 +58,8 @@ services:
       target: CoverageXdebug
       args:
         <<: *DEFAULT_BUILD_ARGS
+    environment:
+      DATABASE_HOST: 'db'
     volumes:
       - coverage:/usr/src/app/cov
 
@@ -63,6 +70,8 @@ services:
       target: CoveragePcov
       args:
         <<: *DEFAULT_BUILD_ARGS
+    environment:
+      DATABASE_HOST: 'db'
     volumes:
       - coverage:/usr/src/app/cov
 
@@ -77,6 +86,8 @@ services:
       target: CoverageXdebug
       args:
         <<: *DEFAULT_BUILD_ARGS
+    environment:
+      DATABASE_HOST: 'db'
     volumes:
       - coverage:/usr/src/app/cov
 
@@ -98,3 +109,14 @@ services:
     working_dir: /usr/src/app
     volumes:
       - coverage:/usr/src/app/cov
+
+  db:
+    container_name: swoole-bundle-db
+    image: mysql:8
+    ports:
+      - 3306:3306
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_USER: user
+      MYSQL_PASSWORD: pass
+      MYSQL_DATABASE: db

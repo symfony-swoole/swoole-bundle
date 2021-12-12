@@ -204,6 +204,7 @@ abstract class AbstractServerStartCommand extends Command
             ['env', $this->parameterBag->get('kernel.environment')],
             ['debug', \var_export($this->parameterBag->get('kernel.debug'), true)],
             ['running_mode', $serverConfiguration->getRunningMode()],
+            ['coroutines', $serverConfiguration->getCoroutinesEnabled() ? 'enabled' : 'disabled'],
             ['worker_count', $serverConfiguration->getWorkerCount()],
             ['reactor_count', $serverConfiguration->getReactorCount()],
             ['worker_max_request', $serverConfiguration->getMaxRequest()],

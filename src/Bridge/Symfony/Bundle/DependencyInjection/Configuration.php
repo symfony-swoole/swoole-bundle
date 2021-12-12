@@ -83,7 +83,7 @@ final class Configuration implements ConfigurationInterface
                         ->arrayNode('api')
                             ->addDefaultsIfNotSet()
                             ->beforeNormalization()
-                                ->ifTrue(fn ($v): bool => \is_string($v) || \is_bool($v) || \is_numeric($v) || null === $v)
+                                ->ifTrue(fn ($v): bool => \is_string($v) || \is_bool($v) || is_numeric($v) || null === $v)
                                 ->then(function ($v): array {
                                     return [
                                         'enabled' => (bool) $v,
@@ -135,11 +135,11 @@ final class Configuration implements ConfigurationInterface
                                             $validValues = [];
 
                                             foreach ((array) $mimeTypes as $extension => $mimeType) {
-                                                $extension = \trim((string) $extension);
-                                                $mimeType = \trim((string) $mimeType);
+                                                $extension = trim((string) $extension);
+                                                $mimeType = trim((string) $mimeType);
 
                                                 if ('' === $extension || '' === $mimeType) {
-                                                    throw new InvalidTypeException(\sprintf('Invalid mime type %s for file extension %s.', $mimeType, $extension));
+                                                    throw new InvalidTypeException(sprintf('Invalid mime type %s for file extension %s.', $mimeType, $extension));
                                                 }
 
                                                 $validValues[$extension] = $mimeType;
@@ -151,6 +151,38 @@ final class Configuration implements ConfigurationInterface
                                 ->end() // end mime types
                             ->end()
                         ->end() // end static
+                        ->arrayNode('coroutines_support')
+                            ->addDefaultsIfNotSet()
+                            ->children()
+                                ->booleanNode('enabled')
+                                    ->defaultFalse()
+                                ->end()
+                                ->arrayNode('stateful_services')
+                                    ->scalarPrototype()
+                                        ->beforeNormalization()
+                                            ->ifString()
+                                            ->then(fn (string $v): string => trim($v))
+                                        ->end()
+                                    ->end()
+                                ->end()
+                                ->arrayNode('compile_processors')
+                                    ->arrayPrototype()
+                                        ->beforeNormalization()
+                                            ->ifString()
+                                            ->then(fn (string $v): array => ['class' => $v])
+                                        ->end()
+                                        ->children()
+                                            ->scalarNode('class')
+                                                ->cannotBeEmpty()
+                                            ->end()
+                                            ->integerNode('priority')
+                                                ->defaultValue(0)
+                                            ->end()
+                                        ->end()
+                                    ->end()
+                                ->end()
+                            ->end()
+                        ->end() // end coroutines_support
                         ->arrayNode('exception_handler')
                             ->addDefaultsIfNotSet()
                             ->beforeNormalization()
@@ -252,8 +284,7 @@ final class Configuration implements ConfigurationInterface
                                 ->scalarNode('task_worker_count')
                                     ->defaultNull()
                                 ->end()
-                                ->integerNode('worker_max_request')
-                                    ->min(0)
+                                ->scalarNode('worker_max_request')
                                     ->defaultValue(0)
                                 ->end()
                                 ->scalarNode('worker_max_request_grace')

@@ -1,5 +1,5 @@
 ARG PHP_TAG="7.4-cli-alpine3.16"
-ARG COMPOSER_TAG="2.2.9"
+ARG COMPOSER_TAG="2.3.10"
 
 FROM php:$PHP_TAG as ext-builder
 RUN apk add --no-cache linux-headers
@@ -16,6 +16,21 @@ RUN docker-php-ext-install pcntl
 FROM ext-builder as ext-intl
 RUN apk add --no-cache icu-dev && \
     docker-php-ext-install intl
+
+FROM ext-builder as ext-apcu
+RUN pecl install apcu && \
+    docker-php-ext-enable apcu && \
+    echo "apc.enabled=1" >> /usr/local/etc/php/conf.d/docker-php-ext-apcu.ini && \
+    echo "apc.enable_cli=1" >> /usr/local/etc/php/conf.d/docker-php-ext-apcu.ini
+
+FROM ext-builder as ext-mysql
+RUN docker-php-ext-install pdo_mysql && \
+    docker-php-ext-install pdo_mysql
+
+FROM ext-builder as ext-ffi
+RUN apk add --no-cache libffi-dev unzip \
+    && docker-php-ext-configure ffi --with-ffi \
+    && docker-php-ext-install ffi
 
 FROM ext-builder as ext-xdebug
 ARG XDEBUG_TAG="3.1.6"
@@ -45,7 +60,7 @@ WORKDIR /usr/src/app
 RUN addgroup -g 1000 -S runner && \
     adduser -u 1000 -S app -G runner && \
     chown app:runner /usr/src/app
-RUN apk add --no-cache libstdc++ icu lsof
+RUN apk add --no-cache libstdc++ icu lsof libffi
 # php -i | grep 'PHP API' | sed -e 's/PHP API => //'
 ARG PHP_API_VERSION="20190902"
 COPY --from=ext-openswoole /usr/local/lib/php/extensions/no-debug-non-zts-${PHP_API_VERSION}/openswoole.so /usr/local/lib/php/extensions/no-debug-non-zts-${PHP_API_VERSION}/openswoole.so
@@ -56,6 +71,12 @@ COPY --from=ext-pcntl /usr/local/lib/php/extensions/no-debug-non-zts-${PHP_API_V
 COPY --from=ext-pcntl /usr/local/etc/php/conf.d/docker-php-ext-pcntl.ini /usr/local/etc/php/conf.d/docker-php-ext-pcntl.ini
 COPY --from=ext-intl /usr/local/lib/php/extensions/no-debug-non-zts-${PHP_API_VERSION}/intl.so /usr/local/lib/php/extensions/no-debug-non-zts-${PHP_API_VERSION}/intl.so
 COPY --from=ext-intl /usr/local/etc/php/conf.d/docker-php-ext-intl.ini /usr/local/etc/php/conf.d/docker-php-ext-intl.ini
+COPY --from=ext-apcu /usr/local/lib/php/extensions/no-debug-non-zts-${PHP_API_VERSION}/apcu.so /usr/local/lib/php/extensions/no-debug-non-zts-${PHP_API_VERSION}/apcu.so
+COPY --from=ext-apcu /usr/local/etc/php/conf.d/docker-php-ext-apcu.ini /usr/local/etc/php/conf.d/docker-php-ext-apcu.ini
+COPY --from=ext-mysql /usr/local/lib/php/extensions/no-debug-non-zts-${PHP_API_VERSION}/pdo_mysql.so /usr/local/lib/php/extensions/no-debug-non-zts-${PHP_API_VERSION}/pdo_mysql.so
+COPY --from=ext-mysql /usr/local/etc/php/conf.d/docker-php-ext-pdo_mysql.ini /usr/local/etc/php/conf.d/docker-php-ext-pdo_mysql.ini
+COPY --from=ext-ffi /usr/local/lib/php/extensions/no-debug-non-zts-${PHP_API_VERSION}/ffi.so /usr/local/lib/php/extensions/no-debug-non-zts-${PHP_API_VERSION}/ffi.so
+COPY --from=ext-ffi /usr/local/etc/php/conf.d/docker-php-ext-ffi.ini /usr/local/etc/php/conf.d/docker-php-ext-ffi.ini
 
 FROM composer:${COMPOSER_TAG} AS composer-bin
 FROM base as app-installer
@@ -64,6 +85,7 @@ COPY --chown=app:runner --from=composer-bin /usr/bin/composer /usr/local/bin/com
 COPY composer.json composer.lock ./
 RUN composer validate
 ARG COMPOSER_ARGS="install"
+ARG COMPOSER_AUTH
 RUN composer ${COMPOSER_ARGS} --prefer-dist --no-progress --no-autoloader --ansi
 COPY . ./
 RUN composer dump-autoload --classmap-authoritative --ansi

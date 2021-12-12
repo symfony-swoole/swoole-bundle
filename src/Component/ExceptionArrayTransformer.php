@@ -58,7 +58,7 @@ final class ExceptionArrayTransformer
             'message' => $exception->getMessage(),
             'file' => $exception->getFile(),
             'line' => $exception->getLine(),
-            'trace' => \array_map(function (array $trace): array {
+            'trace' => array_map(function (array $trace): array {
                 $trace['args'] = \array_key_exists('args', $trace) ? $this->transformTraceArgs($trace['args']) : null;
 
                 return $trace;
@@ -68,6 +68,6 @@ final class ExceptionArrayTransformer
 
     private function transformTraceArgs(array $args): array
     {
-        return \array_map(fn ($arg): string => \is_object($arg) ? \get_class($arg) : \gettype($arg), $args);
+        return array_map(fn ($arg): string => \is_object($arg) ? \get_class($arg) : \gettype($arg), $args);
     }
 }

@@ -64,7 +64,7 @@ final class SwooleTableStorage implements StorageInterface
         );
 
         $this->sharedMemory->set($key, [
-            self::TABLE_COLUMN_EXPIRES_AT => \time() + $ttl,
+            self::TABLE_COLUMN_EXPIRES_AT => time() + $ttl,
             self::TABLE_COLUMN_DATA => $data,
         ]);
     }
@@ -85,7 +85,7 @@ final class SwooleTableStorage implements StorageInterface
         foreach ($this->sharedMemory as $key => $row) {
             /** @var int $expiresAt */
             $expiresAt = $row[self::TABLE_COLUMN_EXPIRES_AT];
-            if (\time() >= $expiresAt) {
+            if (time() >= $expiresAt) {
                 $this->sharedMemory->del($key);
             }
         }
@@ -111,7 +111,7 @@ final class SwooleTableStorage implements StorageInterface
         /** @var string $data */
         $data = $row[self::TABLE_COLUMN_DATA];
 
-        if (\time() >= $expiresAt) {
+        if (time() >= $expiresAt) {
             if (null !== $expired) {
                 $expired($key, $data);
             }

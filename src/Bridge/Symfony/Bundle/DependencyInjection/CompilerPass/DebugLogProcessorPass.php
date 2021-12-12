@@ -34,7 +34,7 @@ final class DebugLogProcessorPass implements CompilerPassInterface
 
     public static function configureLogger(object $logger): void
     {
-        if (!\method_exists($logger, 'removeDebugLogger')) {
+        if (!method_exists($logger, 'removeDebugLogger')) {
             return;
         }
 
@@ -44,7 +44,7 @@ final class DebugLogProcessorPass implements CompilerPassInterface
 
         if (\PHP_SAPI === 'cli') {
             foreach ($_SERVER['argv'] as $arg) {
-                if (false !== \mb_strpos($arg, 'swoole:server:')) {
+                if (false !== mb_strpos($arg, 'swoole:server:')) {
                     return;
                 }
             }

@@ -55,8 +55,8 @@ class StreamedResponseProcessorTest extends TestCase
 
         $remainingContentLength = $expectedContentLength;
         while ($remainingContentLength > 0) {
-            $bufferedContentLength = \min($this->bufferSize, $remainingContentLength);
-            $this->swooleResponse->write(\str_repeat('A', $bufferedContentLength))->shouldBeCalled();
+            $bufferedContentLength = min($this->bufferSize, $remainingContentLength);
+            $this->swooleResponse->write(str_repeat('A', $bufferedContentLength))->shouldBeCalled();
             $remainingContentLength -= $bufferedContentLength;
         }
         $this->swooleResponse->end()->shouldBeCalled();

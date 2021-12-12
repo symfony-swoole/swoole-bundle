@@ -12,8 +12,8 @@ final class CreateFileMessageHandler
 {
     public function __invoke(CreateFileMessage $message): void
     {
-        $filePath = ServerTestCase::FIXTURE_RESOURCES_DIR.\DIRECTORY_SEPARATOR.\ltrim($message->fileName(), '\\/');
-        $result = \file_put_contents($filePath, $message->content());
+        $filePath = ServerTestCase::FIXTURE_RESOURCES_DIR.\DIRECTORY_SEPARATOR.ltrim($message->fileName(), '\\/');
+        $result = file_put_contents($filePath, $message->content());
         Assertion::true(false !== $result, 'Could not create test file.');
     }
 }

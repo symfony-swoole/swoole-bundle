@@ -14,6 +14,6 @@ final class UnsupportedContentTypeException extends \InvalidArgumentException
      */
     public static function forContentType(string $contentType, array $allowed): self
     {
-        return new self(\sprintf('Content-Type "%s" is not supported. Only "%s" are supported.', $contentType, \implode(', ', $allowed)));
+        return new self(sprintf('Content-Type "%s" is not supported. Only "%s" are supported.', $contentType, implode(', ', $allowed)));
     }
 }

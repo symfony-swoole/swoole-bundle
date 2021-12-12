@@ -25,7 +25,7 @@ final class StreamedResponseProcessor implements ResponseProcessorInterface
     {
         Assertion::isInstanceOf($httpFoundationResponse, StreamedResponse::class);
 
-        \ob_start(static function (string $payload) use ($swooleResponse) {
+        ob_start(static function (string $payload) use ($swooleResponse) {
             if ('' !== $payload) {
                 $swooleResponse->write($payload);
             }
@@ -33,7 +33,7 @@ final class StreamedResponseProcessor implements ResponseProcessorInterface
             return '';
         }, $this->bufferOutputSize);
         $httpFoundationResponse->sendContent();
-        \ob_end_clean();
+        ob_end_clean();
         $swooleResponse->end();
     }
 }

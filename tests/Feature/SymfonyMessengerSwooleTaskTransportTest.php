@@ -38,7 +38,7 @@ final class SymfonyMessengerSwooleTaskTransportTest extends ServerTestCase
 
             $response = $client->send('/message/dispatch', 'POST', [
                 'Content-Type' => 'application/x-www-form-urlencoded',
-            ], \http_build_query([
+            ], http_build_query([
                 'fileName' => $testFile,
                 'content' => $testFileContent,
             ]))['response'];
@@ -52,7 +52,7 @@ final class SymfonyMessengerSwooleTaskTransportTest extends ServerTestCase
         $serverRun->stop();
 
         self::assertFileExists($testFilePath);
-        self::assertSame($testFileContent, \file_get_contents($testFilePath));
+        self::assertSame($testFileContent, file_get_contents($testFilePath));
     }
 
     private function generateNotExistingCustomTestFile(): string

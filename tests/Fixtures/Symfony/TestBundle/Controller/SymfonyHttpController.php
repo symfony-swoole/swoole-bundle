@@ -34,7 +34,7 @@ final class SymfonyHttpController
     {
         $response = new StreamedResponse(function () use ($currentRequest): void {
             $response = ['requestUri' => $currentRequest->getRequestUri()];
-            echo \json_encode($response);
+            echo json_encode($response);
         });
         $response->headers->set('Content-Type', 'application/json');
 

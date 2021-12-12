@@ -51,11 +51,11 @@ final class ServerStartCommand extends AbstractServerStartCommand
     {
         $pidFile = $serverConfiguration->getPidFile();
 
-        if (!\touch($pidFile)) {
+        if (!touch($pidFile)) {
             throw PidFileNotAccessibleException::forFile($pidFile);
         }
 
-        if (!\is_writable($pidFile)) {
+        if (!is_writable($pidFile)) {
             throw CouldNotCreatePidFileException::forPath($pidFile);
         }
 
@@ -79,7 +79,7 @@ final class ServerStartCommand extends AbstractServerStartCommand
      */
     private function closeConsoleOutput(ConsoleOutput $output): void
     {
-        \fclose($output->getStream());
+        fclose($output->getStream());
 
         /** @var StreamOutput $streamOutput */
         $streamOutput = $output->getErrorOutput();
@@ -90,6 +90,6 @@ final class ServerStartCommand extends AbstractServerStartCommand
     private function closeStreamOutput(StreamOutput $output): void
     {
         $output->setVerbosity(\PHP_INT_MIN);
-        \fclose($output->getStream());
+        fclose($output->getStream());
     }
 }

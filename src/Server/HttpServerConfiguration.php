@@ -28,6 +28,8 @@ class HttpServerConfiguration
     private const SWOOLE_HTTP_SERVER_CONFIG_PACKAGE_MAX_LENGTH = 'package_max_length';
     private const SWOOLE_HTTP_SERVER_CONFIG_WORKER_MAX_REQUEST = 'worker_max_request';
     private const SWOOLE_HTTP_SERVER_CONFIG_WORKER_MAX_REQUEST_GRACE = 'worker_max_request_grace';
+    private const SWOOLE_HTTP_SERVER_CONFIG_ENABLE_COROUTINE = 'enable_coroutine';
+    private const SWOOLE_HTTP_SERVER_CONFIG_COROUTINE_HOOK_FLAGS = 'hook_flags';
 
     /**
      * @todo add more
@@ -49,6 +51,8 @@ class HttpServerConfiguration
         self::SWOOLE_HTTP_SERVER_CONFIG_TASK_WORKER_COUNT => 'task_worker_num',
         self::SWOOLE_HTTP_SERVER_CONFIG_WORKER_MAX_REQUEST => 'max_request',
         self::SWOOLE_HTTP_SERVER_CONFIG_WORKER_MAX_REQUEST_GRACE => 'max_request_grace',
+        self::SWOOLE_HTTP_SERVER_CONFIG_ENABLE_COROUTINE => 'enable_coroutine',
+        self::SWOOLE_HTTP_SERVER_CONFIG_COROUTINE_HOOK_FLAGS => 'hook_flags',
     ];
 
     private const SWOOLE_SERVE_STATIC = [
@@ -163,6 +167,12 @@ class HttpServerConfiguration
         return $this->runningMode;
     }
 
+    public function getCoroutinesEnabled(): bool
+    {
+        return isset($this->settings[self::SWOOLE_HTTP_SERVER_CONFIG_ENABLE_COROUTINE])
+            && $this->settings[self::SWOOLE_HTTP_SERVER_CONFIG_ENABLE_COROUTINE];
+    }
+
     /**
      * @throws \Assert\AssertionFailedException
      */
@@ -171,7 +181,7 @@ class HttpServerConfiguration
         Assertion::true($this->existsPidFile(), 'Could not get pid file. It does not exists or server is not running in background.');
 
         /** @var string $contents */
-        $contents = \file_get_contents($this->getPidFile());
+        $contents = file_get_contents($this->getPidFile());
         Assertion::numeric($contents, 'Contents in pid file is not an integer or it is empty');
 
         return (int) $contents;
@@ -179,7 +189,7 @@ class HttpServerConfiguration
 
     public function existsPidFile(): bool
     {
-        return $this->hasPidFile() && \file_exists($this->getPidFile());
+        return $this->hasPidFile() && file_exists($this->getPidFile());
     }
 
     /**
@@ -222,7 +232,7 @@ class HttpServerConfiguration
      */
     public function getPublicDir(): string
     {
-        Assertion::true($this->hasPublicDir(), \sprintf('Setting "%s" is not set or empty.', self::SWOOLE_HTTP_SERVER_CONFIG_PUBLIC_DIR));
+        Assertion::true($this->hasPublicDir(), sprintf('Setting "%s" is not set or empty.', self::SWOOLE_HTTP_SERVER_CONFIG_PUBLIC_DIR));
 
         return $this->settings[self::SWOOLE_HTTP_SERVER_CONFIG_PUBLIC_DIR];
     }
@@ -244,8 +254,8 @@ class HttpServerConfiguration
         $swooleSettings = [];
         foreach ($this->settings as $key => $setting) {
             $swooleSettingKey = self::SWOOLE_HTTP_SERVER_CONFIGURATION[$key];
-            $swooleGetter = \sprintf('getSwoole%s', \str_replace('_', '', $swooleSettingKey));
-            if (\method_exists($this, $swooleGetter)) {
+            $swooleGetter = sprintf('getSwoole%s', str_replace('_', '', $swooleSettingKey));
+            if (method_exists($this, $swooleGetter)) {
                 $setting = $this->{$swooleGetter}();
             }
 
@@ -322,7 +332,7 @@ class HttpServerConfiguration
     private function initializeSettings(array $init): void
     {
         $this->settings = [];
-        $cpuCores = \swoole_cpu_num();
+        $cpuCores = swoole_cpu_num();
 
         if (!isset($init[self::SWOOLE_HTTP_SERVER_CONFIG_REACTOR_COUNT])) {
             $init[self::SWOOLE_HTTP_SERVER_CONFIG_REACTOR_COUNT] = $cpuCores;
@@ -368,7 +378,7 @@ class HttpServerConfiguration
 
         switch ($key) {
             case self::SWOOLE_HTTP_SERVER_CONFIG_SERVE_STATIC:
-                Assertion::inArray($value, \array_keys(self::SWOOLE_SERVE_STATIC));
+                Assertion::inArray($value, array_keys(self::SWOOLE_SERVE_STATIC));
 
                 break;
             case self::SWOOLE_HTTP_SERVER_CONFIG_DAEMONIZE:
@@ -380,34 +390,43 @@ class HttpServerConfiguration
 
                 break;
             case self::SWOOLE_HTTP_SERVER_CONFIG_LOG_LEVEL:
-                Assertion::inArray($value, \array_keys(self::SWOOLE_LOG_LEVELS));
+                Assertion::inArray($value, array_keys(self::SWOOLE_LOG_LEVELS));
 
                 break;
             case self::SWOOLE_HTTP_SERVER_CONFIG_PACKAGE_MAX_LENGTH:
-                Assertion::integer($value, \sprintf('Setting "%s" must be an integer.', $key));
+                Assertion::integer($value, sprintf('Setting "%s" must be an integer.', $key));
                 Assertion::greaterThan($value, 0, 'Package max length value cannot be negative or zero, "%s" provided.');
 
                 break;
             case self::SWOOLE_HTTP_SERVER_CONFIG_BUFFER_OUTPUT_SIZE:
-                Assertion::integer($value, \sprintf('Setting "%s" must be an integer.', $key));
+                Assertion::integer($value, sprintf('Setting "%s" must be an integer.', $key));
                 Assertion::greaterThan($value, 0, 'Buffer output size value cannot be negative or zero, "%s" provided.');
 
                 break;
             case self::SWOOLE_HTTP_SERVER_CONFIG_TASK_WORKER_COUNT:
             case self::SWOOLE_HTTP_SERVER_CONFIG_REACTOR_COUNT:
             case self::SWOOLE_HTTP_SERVER_CONFIG_WORKER_COUNT:
-                Assertion::integer($value, \sprintf('Setting "%s" must be an integer.', $key));
+                Assertion::integer($value, sprintf('Setting "%s" must be an integer.', $key));
                 Assertion::greaterThan($value, 0, 'Count value cannot be negative, "%s" provided.');
 
                 break;
             case self::SWOOLE_HTTP_SERVER_CONFIG_WORKER_MAX_REQUEST:
-                Assertion::integer($value, \sprintf('Setting "%s" must be an integer.', $key));
+                Assertion::integer($value, sprintf('Setting "%s" must be an integer.', $key));
                 Assertion::greaterOrEqualThan($value, 0, 'Value cannot be negative, "%s" provided.');
 
                 break;
             case self::SWOOLE_HTTP_SERVER_CONFIG_WORKER_MAX_REQUEST_GRACE:
-                Assertion::nullOrInteger($value, \sprintf('Setting "%s" must be an integer or null.', $key));
+                Assertion::nullOrInteger($value, sprintf('Setting "%s" must be an integer or null.', $key));
                 Assertion::nullOrGreaterOrEqualThan($value, 0, 'Value cannot be negative, "%s" provided.');
+
+                break;
+            case self::SWOOLE_HTTP_SERVER_CONFIG_ENABLE_COROUTINE:
+                Assertion::boolean($value, sprintf('Setting "%s" must be a boolean.', $key));
+
+                break;
+            case self::SWOOLE_HTTP_SERVER_CONFIG_COROUTINE_HOOK_FLAGS:
+                Assertion::integer($value, sprintf('Setting "%s" must be a positive integer.', $key));
+                Assertion::greaterOrEqualThan($value, 0, sprintf('Setting "%s" must be a positive integer.', $key));
 
                 break;
             default:

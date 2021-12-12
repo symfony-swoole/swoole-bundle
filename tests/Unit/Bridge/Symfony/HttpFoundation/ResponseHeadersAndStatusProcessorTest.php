@@ -53,7 +53,7 @@ class ResponseHeadersAndStatusProcessorTest extends TestCase
         $swooleResponse = $this->swooleResponse->reveal();
         $this->swooleResponse->status(200)->shouldBeCalled();
         foreach ($symfonyResponse->headers->allPreserveCaseWithoutCookies() as $name => $values) {
-            $this->swooleResponse->header($name, \implode(', ', $values))->shouldBeCalled();
+            $this->swooleResponse->header($name, implode(', ', $values))->shouldBeCalled();
         }
         $this->responseProcessor->process($symfonyResponse, $swooleResponse);
     }

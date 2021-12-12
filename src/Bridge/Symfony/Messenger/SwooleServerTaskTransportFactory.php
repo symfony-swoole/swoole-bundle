@@ -31,6 +31,6 @@ final class SwooleServerTaskTransportFactory implements TransportFactoryInterfac
      */
     public function supports(string $dsn, array $options): bool
     {
-        return 0 === \mb_strpos($dsn, 'swoole://task');
+        return 0 === mb_strpos($dsn, 'swoole://task');
     }
 }

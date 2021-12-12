@@ -15,7 +15,7 @@ services:
     resource: '../../TestBundle/*'
     # you can exclude directories or files
     # but if a service is unused, it's removed anyway
-    exclude: '../../TestBundle/{Message,Test,Controller}'
+    exclude: '../../TestBundle/{Message,Test,Controller,Migrations}'
 
   # controllers are imported separately to make sure they
   # have the tag that allows actions to type-hint services
@@ -24,3 +24,27 @@ services:
     # without this the HMR tests break, might be a bug in HMR
     exclude: '../../TestBundle/Controller/ReplacedContentTestController.php'
     tags: ['controller.service_arguments']
+
+  Ramsey\Uuid\UuidFactoryInterface: '@Ramsey\Uuid\UuidFactory'
+
+  Ramsey\Uuid\UuidFactory:
+
+  K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Service\DummyService: '@K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Service\DefaultDummyService'
+
+  K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Service\DefaultDummyService:
+    arguments:
+      $entityManager: '@doctrine.orm.default_entity_manager'
+      $uuidFactory: '@Ramsey\Uuid\UuidFactoryInterface'
+      $factory: '@K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Service\RepositoryFactory'
+    tags: [{ name: 'swoole_bundle.decorated_stateful_service' }]
+
+  K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Service\DecorationTestDummyService:
+    decorates: 'K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Service\DefaultDummyService'
+    arguments:
+      $decorated: '@.inner'
+
+  K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Service\RepositoryFactory:
+    tags:
+      - name: 'swoole_bundle.unmanaged_factory'
+        factoryMethod: 'newInstance'
+        returnType: 'K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Service\InMemoryRepository'
