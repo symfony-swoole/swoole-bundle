@@ -7,8 +7,9 @@ namespace K911\Swoole\Tests\Fixtures\Symfony\CoverageBundle\Coverage;
 use SebastianBergmann\CodeCoverage\CodeCoverage;
 use SebastianBergmann\CodeCoverage\Report\PHP;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
+use Symfony\Contracts\Service\ResetInterface;
 
-final class CodeCoverageManager
+class CodeCoverageManager implements ResetInterface
 {
     /**
      * @var string
@@ -67,6 +68,10 @@ final class CodeCoverageManager
 
     public function stop(): void
     {
+        if (!$this->started) {
+            return;
+        }
+
         if (!$this->enabled || $this->finished) {
             return;
         }
@@ -91,6 +96,12 @@ final class CodeCoverageManager
         if ($this->started) {
             $this->started = false;
         }
+    }
+
+    public function reset()
+    {
+        $this->started = false;
+        $this->finished = false;
     }
 
     private function initalizeCodeCoverage(ParameterBagInterface $parameterBag, CodeCoverage $codeCoverage): void

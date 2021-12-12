@@ -8,6 +8,7 @@ use K911\Swoole\Bridge\Tideways\Apm\Apm;
 use K911\Swoole\Bridge\Tideways\Apm\WithApm;
 use K911\Swoole\Client\HttpClient;
 use K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Test\ServerTestCase;
+use Tideways\Profiler;
 
 final class TidewaysProfilerRegisteredTest extends ServerTestCase
 {
@@ -29,6 +30,17 @@ final class TidewaysProfilerRegisteredTest extends ServerTestCase
     public function testProfilerStartStop(): void
     {
         $this->markTestSkippedIfXdebugEnabled();
+
+        if (\class_exists(Profiler::class)) {
+            $rc = new \ReflectionClass(Profiler::class);
+
+            if ($rc->isInternal()) {
+                $this->markTestSkipped(
+                    'This test shouldn\'t run with Tideways extension enabled (which should not be in CI environment)'
+                );
+            }
+        }
+
         $clearCache = $this->createConsoleProcess([
             'cache:clear',
         ], ['APP_ENV' => 'tideways']);

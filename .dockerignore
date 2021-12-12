@@ -11,3 +11,4 @@ tests/**/.phpunit.result.cache
 !phpstan.tests.neon
 !phpunit.xml
 !.php-cs-fixer.dist.php
+!/hack

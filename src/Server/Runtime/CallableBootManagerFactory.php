@@ -24,7 +24,7 @@ final class CallableBootManagerFactory
                 ->filter(function ($bootable) use ($isAlreadyRegistered): bool {
                     Assertion::isInstanceOf($bootable, BootableInterface::class);
 
-                    return $isAlreadyRegistered(\spl_object_id($bootable));
+                    return $isAlreadyRegistered(spl_object_id($bootable));
                 })
                 ->map(fn (BootableInterface $bootable): callable => [$bootable, 'boot'])
         );

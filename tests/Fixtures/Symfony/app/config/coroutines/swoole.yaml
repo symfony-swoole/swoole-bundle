@@ -1,0 +1,13 @@
+parameters:
+    env(WORKER_COUNT): 1
+    env(REACTOR_COUNT): 1
+
+swoole:
+    http_server:
+        coroutines_support:
+            enabled: true
+            stateful_services:
+                - K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Service\ShouldBeProxified
+            compile_processors:
+                -   class: K911\Swoole\Tests\Fixtures\Symfony\TestBundle\DependencyInjection\CompilerPass\SleepingCounterCompileProcessor
+                    priority: 10

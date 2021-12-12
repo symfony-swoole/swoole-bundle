@@ -24,6 +24,7 @@
     # config/packages/messenger.yaml
     framework:
         messenger:
+            enabled: true
             transports:
                 swoole: swoole://task
             routing:

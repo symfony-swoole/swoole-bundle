@@ -6,6 +6,7 @@ parameters:
 
         # Internal error: Expected to find an ancestor with class name Swoole\Timer on Swoole\Server, but none was found.
         - src/Server/WorkerHandler/HMRWorkerStartHandler.php
+        - hack
     ignoreErrors:
         # Put false positives here
         - '#PHPDoc tag @var for variable \$row contains unresolvable type#'

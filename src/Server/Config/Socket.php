@@ -66,7 +66,7 @@ final class Socket
 
     public function addressPort(): string
     {
-        return \sprintf('%s:%d', $this->host, $this->port);
+        return sprintf('%s:%d', $this->host, $this->port);
     }
 
     public function host(): string
@@ -87,7 +87,7 @@ final class Socket
             if (!\defined('SWOOLE_SSL')) {
                 throw new \InvalidArgumentException(self::CONSTANT_SWOOLE_SSL_IS_NOT_DEFINED_ERROR_MESSAGE);
             }
-            $resolvedSocketType |= \SWOOLE_SSL;
+            $resolvedSocketType |= SWOOLE_SSL;
         }
 
         return $resolvedSocketType;
@@ -122,15 +122,15 @@ final class Socket
      */
     private static function splitAddressPort(string $addressPort): array
     {
-        $pos = \mb_strrpos($addressPort, ':');
+        $pos = mb_strrpos($addressPort, ':');
 
         if (false !== $pos) {
-            $host = \mb_substr($addressPort, 0, $pos);
+            $host = mb_substr($addressPort, 0, $pos);
             if ('*' === $host) {
                 $host = '0.0.0.0';
             }
-            $port = \mb_substr($addressPort, $pos + 1);
-        } elseif (\ctype_digit($addressPort)) {
+            $port = mb_substr($addressPort, $pos + 1);
+        } elseif (ctype_digit($addressPort)) {
             $host = '127.0.0.1';
             $port = $addressPort;
         } else {

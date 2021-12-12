@@ -24,7 +24,7 @@ final class CodeCoverageTaskHandler implements TaskHandlerInterface
      */
     public function handle(Server $server, int $taskId, int $fromId, $data): void
     {
-        $testName = \sprintf('test_task_%d_%d_%s', $taskId, $fromId, \bin2hex(\random_bytes(4)));
+        $testName = sprintf('test_task_%d_%d_%s', $taskId, $fromId, bin2hex(random_bytes(4)));
         $this->codeCoverageManager->start($testName);
 
         $this->decorated->handle($server, $taskId, $fromId, $data);

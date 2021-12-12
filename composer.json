@@ -1,5 +1,5 @@
 {
-    "name": "k911/swoole-bundle",
+    "name": "pixelfederation/swoole-bundle",
     "type": "library",
     "description": "Swoole Symfony Bundle",
     "keywords": [
@@ -11,7 +11,7 @@
         "Server"
     ],
     "license": "MIT",
-    "homepage": "https://github.com/k911/swoole-bundle",
+    "homepage": "https://github.com/pixelfederation/swoole-bundle",
     "authors": [
         {
             "name": "Konrad Obal",
@@ -29,16 +29,22 @@
         "ext-json": "*",
         "ext-openswoole": "^4.10.0",
         "beberlei/assert": "^3.3",
+        "laminas/laminas-code": "^4.1",
+        "symfony/cache": "^5.4|^6.0",
         "symfony/config": "^5.4|^6.0",
         "symfony/console": "^5.4|^6.0",
         "symfony/dependency-injection": "^5.4|^6.0",
+        "symfony/filesystem": "^5.4|^6.0",
         "symfony/http-foundation": "^5.4|^6.0",
         "symfony/http-kernel": "^5.4|^6.0",
         "symfony/process": "^5.4|^6.0",
         "symfony/proxy-manager-bridge": "^5.4|^6.0"
     },
     "require-dev": {
+        "ext-ffi": "^7.4|^8.0",
         "doctrine/annotations": "^1.13",
+        "doctrine/doctrine-bundle": "^2.7",
+        "doctrine/doctrine-migrations-bundle": "^3.1",
         "doctrine/orm": "^2.11",
         "friendsofphp/php-cs-fixer": "^3.7",
         "jangregor/phpstan-prophecy": "^1.0",
@@ -51,6 +57,9 @@
         "phpunit/php-code-coverage": "^9.1.0",
         "phpunit/phpcov": "^8.0",
         "phpunit/phpunit": "^9.5",
+        "pixelfederation/doctrine-resettable-em-bundle": "^6.1",
+        "pixelfederation/openswoole-blackfire": "^1.0",
+        "pixelfederation/z-engine": "~7.4|~8.0|~8.1",
         "ramsey/uuid": "^4.1",
         "swoole/ide-helper": "^4.8",
         "symfony/debug-pack": "^1.0",
@@ -64,8 +73,7 @@
         "symfony/twig-bundle": "^5.4|^6.0",
         "symfony/var-dumper": "^5.4|^6.0",
         "symfony/yaml": "^5.4|^6.0",
-        "tideways/ext-tideways-stubs": "^5.5",
-        "upscale/swoole-blackfire": "^3.1"
+        "tideways/ext-tideways-stubs": "^5.5"
     },
     "suggest": {
         "ext-inotify": "To enable HMR",
@@ -73,11 +81,13 @@
         "symfony/messenger": "For using Symfony Messenger Swoole Task Transport.",
         "upscale/swoole-blackfire": "To enable Blackfire profiling",
         "pixelfederation/doctrine-resettable-em-bundle": "To be able to recover Doctrine Entity Managers from errors",
-        "symfony/error-handler": "To use Symfony Error Handler"
+        "symfony/error-handler": "To use Symfony Error Handler",
+        "lisachenko/z-engine": "To be able to use coroutines."
     },
     "autoload": {
         "files": [
-            "src/functions_include.php"
+            "src/functions_include.php",
+            "hack/ValueGenerator.php"
         ],
         "psr-4": {
             "K911\\Swoole\\": "src"
@@ -145,7 +155,7 @@
         "process-timeout": 1200,
         "sort-packages": true,
         "platform": {
-            "ext-swoole": "4.5.10"
+            "ext-openswoole": "4.10.00"
         },
         "allow-plugins": {
             "phpstan/extension-installer": true

@@ -4,9 +4,13 @@ declare(strict_types=1);
 
 namespace K911\Swoole\Tests\Fixtures\Symfony;
 
+use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
+use Doctrine\Bundle\MigrationsBundle\DoctrineMigrationsBundle;
 use K911\Swoole\Bridge\Symfony\Bundle\SwooleBundle;
+use K911\Swoole\Bridge\Symfony\Kernel\CoroutinesSupportingKernel;
 use K911\Swoole\Tests\Fixtures\Symfony\CoverageBundle\CoverageBundle;
 use K911\Swoole\Tests\Fixtures\Symfony\TestBundle\TestBundle;
+use PixelFederation\DoctrineResettableEmBundle\PixelFederationDoctrineResettableEmBundle;
 use Symfony\Bundle\FrameworkBundle\FrameworkBundle;
 use Symfony\Bundle\FrameworkBundle\Kernel\MicroKernelTrait;
 use Symfony\Bundle\MonologBundle\MonologBundle;
@@ -23,6 +27,7 @@ use Symfony\Component\Routing\Loader\Configurator\RoutingConfigurator;
 class TestAppKernel extends Kernel
 {
     use MicroKernelTrait;
+    use CoroutinesSupportingKernel;
 
     private const CONFIG_EXTENSIONS = '.{php,xml,yaml,yml}';
 
@@ -81,6 +86,9 @@ class TestAppKernel extends Kernel
         yield new MonologBundle();
         yield new SwooleBundle();
         yield new TestBundle();
+        yield new DoctrineBundle();
+        yield new DoctrineMigrationsBundle();
+        yield new PixelFederationDoctrineResettableEmBundle();
 
         if ($this->coverageEnabled) {
             yield new CoverageBundle();

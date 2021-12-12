@@ -7,3 +7,5 @@ clover.xml
 *.tmp
 mutagen.yml.lock
 tests/Fixtures/Symfony/app/data/*
+docker-compose.override.yml
+Dockerfile.override

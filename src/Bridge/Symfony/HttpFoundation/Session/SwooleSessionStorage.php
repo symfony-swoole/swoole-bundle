@@ -213,7 +213,7 @@ final class SwooleSessionStorage implements SessionStorageInterface
         $this->sessionLifetimeSeconds = $lifetimeSeconds;
 
         if (!headers_sent() && null !== ini_get('session.cookie_lifetime') && $lifetimeSeconds !== (int) ini_get('session.cookie_lifetime')) {
-            ini_set('session.cookie_lifetime', (string) $lifetimeSeconds);
+            \ini_set('session.cookie_lifetime', (string) $lifetimeSeconds);
         }
     }
 

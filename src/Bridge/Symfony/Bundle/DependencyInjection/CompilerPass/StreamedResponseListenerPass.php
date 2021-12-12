@@ -19,7 +19,7 @@ final class StreamedResponseListenerPass implements CompilerPassInterface
     {
         $oldListenerDefinition = null;
         $definitionId = 'streamed_response_listener';
-        $oldDefinitionId = \sprintf('%s.original', $definitionId);
+        $oldDefinitionId = sprintf('%s.original', $definitionId);
 
         if ($container->hasDefinition('streamed_response_listener')) {
             $oldListenerDefinition = $container->getDefinition('streamed_response_listener');

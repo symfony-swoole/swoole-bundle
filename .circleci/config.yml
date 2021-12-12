@@ -58,14 +58,15 @@ aliases:
             DOCKER_PASSWORD="$DOCKER_HUB_TOKEN"
             docker-registry-login
       - run:
-          name: Enable Docker Buidx
+          name: Enable Docker Buildx
           environment:
             DOCKER_BUILDX_CONTEXT_CREATE: "1"
             DOCKER_BUILDX_BUILDER_CREATE: "1"
           command: docker-use-buildx
       - run:
           name: Docker Buildx Bake all required images
-          command: docker buildx bake --progress=plain $SERVICES
+          command:
+            docker buildx bake --progress=plain $SERVICES
 
   # Filters
   - &filter-run-on-local-branches
@@ -94,13 +95,6 @@ aliases:
           name: Run static anlaysis
           command: composer static-analyse-tests
 
-  - &job-composer-code-style-lowest
-    working_directory: /usr/src/app
-    steps:
-      - run:
-          name: Run code style checks
-          command: composer cs-analyse
-
   - &job-composer-unit-tests
     working_directory: /usr/src/app
     steps:
@@ -115,9 +109,34 @@ aliases:
       - store_artifacts:
           path: phpunit
 
+  - &mysql-for-feature-tests
+    image: cimg/mysql:8.0
+    auth:
+      username: $DOCKER_HUB_USERNAME
+      password: $DOCKER_HUB_TOKEN
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: db
+      MYSQL_USER: user
+      MYSQL_PASSWORD: pass
+
+  - &mysql-for-feature-tests-wait-for-init
+    run:
+      # Our primary container isn't MYSQL so run a sleep command until it's ready.
+      name: Waiting for MySQL to be ready
+      command: |
+        for i in `seq 1 30`;
+        do
+          nc -z $DATABASE_HOST 3306 && echo Success && exit 0
+          echo -n .
+          sleep 1
+        done
+        echo Failed waiting for MySQL && exit 1
+
   - &job-composer-feature-tests
     working_directory: /usr/src/app
     steps:
+      - *mysql-for-feature-tests-wait-for-init
       - run:
           name: Prepare dir for test results
           command: mkdir -p phpunit
@@ -159,16 +178,25 @@ jobs:
     <<: *job-composer-feature-tests
     docker:
       - image: docker.io/pixelfederation/swoole-bundle-composer:7.4-lowest-$CIRCLE_SHA1
+        environment:
+          DATABASE_HOST: '127.0.0.1'
+      - *mysql-for-feature-tests
 
   swoole-bundle-composer-80-latest-feature-tests:
     <<: *job-composer-feature-tests
     docker:
       - image: docker.io/pixelfederation/swoole-bundle-composer:8.0-latest-$CIRCLE_SHA1
+        environment:
+          DATABASE_HOST: '127.0.0.1'
+      - *mysql-for-feature-tests
 
   swoole-bundle-composer-81-latest-feature-tests:
     <<: *job-composer-feature-tests
     docker:
       - image: docker.io/pixelfederation/swoole-bundle-composer:8.1-latest-$CIRCLE_SHA1
+        environment:
+          DATABASE_HOST: '127.0.0.1'
+      - *mysql-for-feature-tests
 
   swoole-bundle-74-code-coverage:
     executor: pixelfederation-docker-client
@@ -178,6 +206,7 @@ jobs:
       IMAGE: swoole-bundle
       PHP_VERSION: 7.4
       CC_TEST_REPORTER_ID: 77af0c58a2646fe49fb7df502c38a56560e074fbc8b3086f2d33032b44c885a8
+      DATABASE_HOST: 127.0.0.1
     steps:
       - checkout
       - *docker-remote-version
@@ -186,6 +215,7 @@ jobs:
           command: |-
             TAG="$PHP_VERSION-${BUILD_TYPE:-std}-$CIRCLE_SHA1"
             echo "export TAG='$TAG'" >> $BASH_ENV
+            echo $TAG
       - run:
           name: Print env
           command: env
@@ -193,19 +223,31 @@ jobs:
           name: Print docker info
           command: docker info
       - run:
+          name: Login to Docker Hub
+          command: >-
+            DOCKER_REGISTRY="docker.io"
+            DOCKER_USERNAME="$DOCKER_HUB_USERNAME"
+            DOCKER_PASSWORD="$DOCKER_HUB_TOKEN"
+            docker-registry-login
+      - run:
           name: Pull required docker images
-          command: docker-compose pull composer coverage-pcov coverage-xdebug merge-code-coverage
+          command: docker-compose pull composer coverage-pcov coverage-xdebug merge-code-coverage db
+      - run:
+          name: Run MySql database
+          command: docker-compose up -d db
       - run:
           name: Prepare CodeClimate Code Coverage reporter
           command: |-
             wget -O cc-test-reporter https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64
             chmod +x ./cc-test-reporter
             ./cc-test-reporter before-build
+          when: always
       - run:
           name: Prepare coverage results volume
           command: |-
             docker-compose up -d coverage-volume-helper
             docker-compose exec coverage-volume-helper chown 1000:1000 cov
+          when: always
       - run:
           name: Run unit tests with coverage (pcov)
           command: docker-compose run --rm coverage-pcov
@@ -324,8 +366,7 @@ jobs:
           command: composer validate
       - run:
           name: Check if there are any out of date dependencies
-          command: composer outdated --locked
-
+          command: echo $COMPOSER_AUTH && composer outdated --locked
   shellcheck:
     docker:
       - image: koalaman/shellcheck-alpine:stable
@@ -390,6 +431,7 @@ workflows:
           requires:
             - docker-buildx-bake-74-lowest
       - swoole-bundle-74-code-coverage:
+          context: swoole-bundle-dockerhub
           requires:
             - docker-buildx-bake-74
       - docker-buildx-bake-80-latest:

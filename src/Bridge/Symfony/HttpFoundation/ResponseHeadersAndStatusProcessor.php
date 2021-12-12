@@ -25,7 +25,7 @@ final class ResponseHeadersAndStatusProcessor implements ResponseProcessorInterf
     public function process(HttpFoundationResponse $httpFoundationResponse, SwooleResponse $swooleResponse): void
     {
         foreach ($httpFoundationResponse->headers->allPreserveCaseWithoutCookies() as $name => $values) {
-            $swooleResponse->header($name, \implode(', ', $values));
+            $swooleResponse->header($name, implode(', ', $values));
         }
 
         foreach ($httpFoundationResponse->headers->getCookies() as $cookie) {
