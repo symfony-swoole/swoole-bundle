@@ -6,6 +6,7 @@ namespace K911\Swoole;
 
 use Closure;
 use OutOfRangeException;
+use UnexpectedValueException;
 
 /**
  * Replaces object property with provided value.
@@ -93,6 +94,11 @@ function decode_string_as_set(?string $stringSet, string $separator = ',', array
     }
 
     $stringSet = \str_replace($stripChars, '', $stringSet);
+    $separator = \trim($separator);
+
+    if ('' === $separator) {
+        throw new UnexpectedValueException(\sprintf('Invalid separator: \'%s\'.', $separator));
+    }
 
     /** @var string[] $set */
     $set = \explode($separator, $stringSet);

@@ -25,6 +25,8 @@ use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 
 abstract class AbstractServerStartCommand extends Command
 {
+    use ParametersHelperTrait;
+
     /**
      * @var ParameterBagInterface
      */
@@ -239,7 +241,8 @@ abstract class AbstractServerStartCommand extends Command
      */
     private function getDefaultPublicDir(): string
     {
-        return $this->serverConfiguration->hasPublicDir() ? $this->serverConfiguration->getPublicDir() : $this->parameterBag->get('kernel.project_dir').'/public';
+        return $this->serverConfiguration->hasPublicDir() ? $this->serverConfiguration->getPublicDir() :
+            $this->getProjectDirectory().'/public';
     }
 
     private function ensureXdebugDisabled(SymfonyStyle $io): void

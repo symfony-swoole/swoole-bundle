@@ -41,7 +41,8 @@ final class SetSessionCookieEventListener implements EventSubscriberInterface
 
         $sessionName = $this->sessionStorage->getName();
         if ($cookies->has($sessionName)) {
-            $this->sessionStorage->setId($cookies->get($sessionName));
+            $sessionId = (string) $cookies->get($sessionName);
+            $this->sessionStorage->setId($sessionId);
         }
     }
 

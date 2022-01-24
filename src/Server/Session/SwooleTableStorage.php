@@ -102,7 +102,7 @@ final class SwooleTableStorage implements StorageInterface
             return null;
         }
 
-        /** @var Table\Row $row */
+        /** @var array{expires_at: int, data: string}&Table\Row $row */
         $row = $this->sharedMemory->get($key);
 
         /** @var int $expiresAt */

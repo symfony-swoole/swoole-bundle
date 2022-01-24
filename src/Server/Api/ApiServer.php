@@ -28,9 +28,19 @@ final class ApiServer implements ApiServerInterface
      */
     public function metrics(): array
     {
+        $metrics = $this->server->metrics();
+
+        if (!isset($metrics['request_count'])) {
+            $metrics['request_count'] = 0;
+        }
+
+        if (!isset($metrics['tasking_num'])) {
+            $metrics['tasking_num'] = 0;
+        }
+
         return [
             'date' => (new \DateTimeImmutable('now'))->format(\DATE_ATOM),
-            'server' => $this->server->metrics(),
+            'server' => $metrics,
         ];
     }
 

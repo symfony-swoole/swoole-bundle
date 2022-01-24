@@ -8,3 +8,4 @@ parameters:
         - src/Server/WorkerHandler/HMRWorkerStartHandler.php
     ignoreErrors:
         # Put false positives here
+        - '#PHPDoc tag @var for variable \$row contains unresolvable type#'

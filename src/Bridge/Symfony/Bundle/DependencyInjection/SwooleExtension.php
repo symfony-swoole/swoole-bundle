@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace K911\Swoole\Bridge\Symfony\Bundle\DependencyInjection;
 
-use Doctrine\ORM\EntityManagerInterface;
-use K911\Swoole\Bridge\Doctrine\ORM\EntityManagerHandler;
 use K911\Swoole\Bridge\Symfony\ErrorHandler\ErrorResponder;
 use K911\Swoole\Bridge\Symfony\ErrorHandler\ExceptionHandlerFactory;
 use K911\Swoole\Bridge\Symfony\ErrorHandler\SymfonyExceptionHandler;
@@ -292,18 +290,6 @@ final class SwooleExtension extends Extension implements PrependExtensionInterfa
             ;
         }
 
-        if ($config['entity_manager_handler'] || (
-            null === $config['entity_manager_handler'] && $this->isDoctrineEntityManagerConfigured($container)
-        )) {
-            $container->register(EntityManagerHandler::class)
-                ->addArgument(new Reference(EntityManagerHandler::class.'.inner'))
-                ->setAutowired(true)
-                ->setAutoconfigured(true)
-                ->setPublic(false)
-                ->setDecoratedService(RequestHandlerInterface::class, null, -20)
-            ;
-        }
-
         if ($config['session_cookie_event_listener']) {
             $container->register(SetSessionCookieEventListener::class)
                 ->setAutowired(true)
@@ -375,13 +361,6 @@ final class SwooleExtension extends Extension implements PrependExtensionInterfa
         $fullBundleName = \ucfirst($bundleNameOnly).'Bundle';
 
         return isset($bundles[$fullBundleName]);
-    }
-
-    private function isDoctrineEntityManagerConfigured(ContainerBuilder $container): bool
-    {
-        return \interface_exists(EntityManagerInterface::class) &&
-            $this->isBundleLoaded($container, 'doctrine') &&
-            $container->has(EntityManagerInterface::class);
     }
 
     private function isProd(ContainerBuilder $container): bool
