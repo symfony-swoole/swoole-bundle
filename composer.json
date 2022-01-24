@@ -12,11 +12,18 @@
     ],
     "license": "MIT",
     "homepage": "https://github.com/k911/swoole-bundle",
-    "authors": [{
-        "name": "Konrad Obal",
-        "email": "konrad.obal@gmail.com",
-        "homepage": "https://github.com/k911"
-    }],
+    "authors": [
+        {
+            "name": "Konrad Obal",
+            "email": "konrad.obal@gmail.com",
+            "homepage": "https://github.com/k911"
+        },
+        {
+            "name": "Martin Fris",
+            "email": "mfris@pixelfederation.com",
+            "homepage": "https://github.com/Rastusik"
+        }
+    ],
     "require": {
         "php": "^7.4|^8.0",
         "ext-json": "*",
