@@ -5,14 +5,14 @@
 [![Open Source Love](https://badges.frapsoft.com/os/v1/open-source.svg?v=103)](https://github.com/ellerbrock/open-source-badges/)
 [![MIT Licence](https://badges.frapsoft.com/os/mit/mit.svg?v=103)](https://opensource.org/licenses/mit-license.php)
 
-Symfony integration with [Swoole](https://www.swoole.co.uk/) to speed up your applications.
+Symfony integration with [Open Swoole](https://openswoole.com/) to speed up your applications.
 
 ---
 
 ## Build Matrix
 
-| CI Job  | Branch [`master`](https://github.com/pixelfederation/swoole-bundle/tree/develop)                                                                       | Branch [`develop`](https://github.com/pixelfederation/swoole-bundle/tree/master)                                                                         |
-| ------- | ------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| CI Job  | Branch [`master`](https://github.com/pixelfederation/swoole-bundle/tree/master)                                                                                   | Branch [`develop`](https://github.com/pixelfederation/swoole-bundle/tree/develop)                                                                                   |
+| ------- |-------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | Circle  | [![CircleCI](https://circleci.com/gh/pixelfederation/swoole-bundle/tree/master.svg?style=svg)](https://circleci.com/gh/pixelfederation/swoole-bundle/tree/master) | [![CircleCI](https://circleci.com/gh/pixelfederation/swoole-bundle/tree/develop.svg?style=svg)](https://circleci.com/gh/pixelfederation/swoole-bundle/tree/develop) |
 | CodeCov | [![codecov](https://codecov.io/gh/pixelfederation/swoole-bundle/branch/master/graph/badge.svg)](https://codecov.io/gh/pixelfederation/swoole-bundle)              | [![codecov](https://codecov.io/gh/pixelfederation/swoole-bundle/branch/develop/graph/badge.svg)](https://codecov.io/gh/pixelfederation/swoole-bundle)               |
 | Travis  | [![Build Status](https://travis-ci.org/pixelfederation/swoole-bundle.svg?branch=master)](https://travis-ci.org/pixelfederation/swoole-bundle)                     | [![Build Status](https://travis-ci.org/pixelfederation/swoole-bundle.svg?branch=develop)](https://travis-ci.org/pixelfederation/swoole-bundle)                      |
@@ -27,13 +27,13 @@ Symfony integration with [Swoole](https://www.swoole.co.uk/) to speed up your ap
   - [Requirements](#requirements)
     - [Current version](#current-version)
     - [Future versions](#future-versions)
-    - [Swoole](#swoole)
+    - [Open Swoole](#open-swoole)
       - [Version check](#version-check)
       - [Installation](#installation)
 
 ## Quick start guide
 
-1. Make sure you have installed proper Swoole PHP Extension and pass other [requirements](#requirements).
+1. Make sure you have installed proper Open Swoole PHP Extension and pass other [requirements](#requirements).
 
 2. (optional) Create a new symfony project
 
@@ -99,23 +99,23 @@ Symfony integration with [Swoole](https://www.swoole.co.uk/) to speed up your ap
 ### Current version
 
 -   PHP version `>= 7.4`
--   Swoole PHP Extension `>= 4.5.10`
--   Symfony `>= 4.4.0`
+-   Open Swoole PHP Extension `>= 4.10.0`
+-   Symfony `>= 5.4.0`
 
 ### Future versions
 
 -   PHP version `>= 8.0`
--   Swoole PHP Extension `>= 4.6`
--   Symfony `>= 5.0`
+-   Swoole PHP Extension `>= 4.10.0`
+-   Symfony `>= 5.4`
 
 Additional requirements to enable specific features:
 
 -   [Inotify PHP Extension](https://pecl.php.net/package/inotify) `^2.0.0` to use Hot Module Reload (HMR)
     -   When using PHP 8, inotify version `^3.0.0` is required
 
-### Swoole
+### Open Swoole
 
-Bundle requires [Swoole PHP Extension](https://github.com/swoole/swoole-src) version `4.5.10` or higher. Active bug fixes are provided only for the latest version.
+Bundle requires [Open Swoole PHP Extension](https://github.com/openswoole/swoole-src) version `4.10.0` or higher. Active bug fixes are provided only for the latest version.
 
 #### Version check
 
@@ -124,9 +124,9 @@ To check your installed version you can run the following command:
 ```sh
 php -r "echo swoole_version() . \PHP_EOL;"
 
-# 4.4.7
+# 4.10.0
 ```
 
 #### Installation
 
-Official GitHub repository [swoole/swoole-src](https://github.com/swoole/swoole-src#%EF%B8%8F-installation) contains comprehensive installation guide. The recommended approach is to install it [from source](https://github.com/swoole/swoole-src#3-install-from-source-recommended).
+Official GitHub repository [openswoole/swoole-src](https://github.com/openswoole/swoole-src#installation) contains comprehensive installation guide. The recommended approach is to install it [from source](https://github.com/openswoole/swoole-src#2-compile-from-source).
