@@ -1,3 +1,12 @@
+# [0.11.0](https://github.com/pixelfederation/swoole-bundle/compare/v0.10.0...v0.11.0) (2022-03-20)
+
+[Full changelog](https://github.com/pixelfederation/swoole-bundle/compare/v0.10.0...v0.11.0)
+
+### Features
+
+* **http-kernel:** remove debug http request handler ([#516](https://github.com/pixelfederation/swoole-bundle/issues/516)) ([da33c81](https://github.com/pixelfederation/swoole-bundle/commit/da33c81116a2d3033785985d65c592e2eb071f40))
+* **openswoole:** openswoole support (4.10.0) instead of swoole ([ac7ab0a](https://github.com/pixelfederation/swoole-bundle/commit/ac7ab0a252e3bd8bf10b5b85f3833e707e74360a))
+
 # [0.10.0](https://github.com/k911/swoole-bundle/compare/v0.9.0...v0.10.0) (2021-05-05)
 
 [Full changelog](https://github.com/k911/swoole-bundle/compare/v0.9.0...v0.10.0)
