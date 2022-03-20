@@ -16,7 +16,7 @@ final class CallableBootManagerFactory
             $result = !isset($objectRegistry[$id]);
             $objectRegistry[$id] = true;
 
-            return $result;
+            return $result; /* @phpstan-ignore-line */
         };
 
         return new CallableBootManager(

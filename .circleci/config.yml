@@ -31,7 +31,7 @@ aliases:
             echo "export TAG='$TAG'" >> $BASH_ENV
 
             if [ "latest" = "$SWOOLE_VERSION" ]; then
-              LATEST_SWOOLE_VERSION="$(wget -q -O /dev/stdout https://api.github.com/repos/swoole/swoole-src/releases/latest | grep '"tag_name":' | sed -E 's/.*"v([^"]+)".*/\1/')"
+              LATEST_SWOOLE_VERSION="$(wget -q -O /dev/stdout https://api.github.com/repos/openswoole/swoole-src/releases/latest | grep '"tag_name":' | sed -E 's/.*"v([^"]+)".*/\1/')"
               echo "LATEST_SWOOLE_VERSION=$LATEST_SWOOLE_VERSION"
               echo "export SWOOLE_VERSION='$LATEST_SWOOLE_VERSION'" >> $BASH_ENV
             fi;
@@ -85,6 +85,13 @@ aliases:
           name: Run static anlaysis
           command: composer static-analyse-tests
 
+  - &job-composer-code-style-lowest
+    working_directory: /usr/src/app
+    steps:
+      - run:
+          name: Run code style checks
+          command: composer cs-analyse
+
   - &job-composer-unit-tests
     working_directory: /usr/src/app
     steps:
@@ -120,16 +127,9 @@ jobs:
       - image: docker.io/pixelfederation/swoole-bundle-composer:7.4-std-$CIRCLE_SHA1
 
   swoole-bundle-composer-74-lowest-code-style:
-    <<: *job-composer-code-style
+    <<: *job-composer-code-style-lowest
     docker:
       - image: docker.io/pixelfederation/swoole-bundle-composer:7.4-lowest-$CIRCLE_SHA1
-
-  swoole-bundle-composer-80-latest-code-style:
-    <<: *job-composer-code-style
-    environment:
-      PHP_CS_FIXER_IGNORE_ENV: "1"
-    docker:
-      - image: docker.io/pixelfederation/swoole-bundle-composer:8.0-latest-$CIRCLE_SHA1
 
   swoole-bundle-composer-74-unit-tests:
     <<: *job-composer-unit-tests
@@ -255,7 +255,7 @@ jobs:
       PHP_VERSION: "7.4"
       PHP_API_VERSION: "20190902"
       COMPOSER_ARGS: update --prefer-lowest
-      SWOOLE_VERSION: "4.5.11"
+      SWOOLE_VERSION: "4.10.0"
       REGISTRY: docker.io
       NAMESPACE: pixelfederation
       IMAGE: swoole-bundle
@@ -370,9 +370,6 @@ workflows:
           context: swoole-bundle-dockerhub
           requires:
             - docker-buildx-bake-74
-      - swoole-bundle-composer-80-latest-code-style:
-          requires:
-            - docker-buildx-bake-80-latest
       - swoole-bundle-composer-80-latest-unit-tests:
           requires:
             - docker-buildx-bake-80-latest
@@ -429,9 +426,6 @@ workflows:
           context: swoole-bundle-dockerhub
           requires:
             - docker-buildx-bake-74
-      - swoole-bundle-composer-80-latest-code-style:
-          requires:
-            - docker-buildx-bake-80-latest
       - swoole-bundle-composer-80-latest-unit-tests:
           requires:
             - docker-buildx-bake-80-latest
@@ -479,9 +473,6 @@ workflows:
           context: swoole-bundle-dockerhub
           requires:
             - docker-buildx-bake-74
-      - swoole-bundle-composer-80-latest-code-style:
-          requires:
-            - docker-buildx-bake-80-latest
       - swoole-bundle-composer-80-latest-unit-tests:
           requires:
             - docker-buildx-bake-80-latest
@@ -498,7 +489,6 @@ workflows:
             - swoole-bundle-composer-74-lowest-code-style
             - swoole-bundle-composer-74-unit-tests
             - swoole-bundle-composer-74-code-style
-            - swoole-bundle-composer-80-latest-code-style
             - swoole-bundle-composer-80-latest-unit-tests
             - swoole-bundle-composer-80-latest-feature-tests
       - releaser:

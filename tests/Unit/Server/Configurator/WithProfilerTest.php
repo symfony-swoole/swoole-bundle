@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace K911\Swoole\Tests\Unit\Server\Configurator;
 
 use K911\Swoole\Bridge\Upscale\Blackfire\WithProfiler;
-use K911\Swoole\Tests\Unit\Server\SwooleHttpServerDummy;
 use PHPUnit\Framework\TestCase;
 use Prophecy\Prophecy\ObjectProphecy;
+use Swoole\Http\Server;
 use Upscale\Swoole\Blackfire\Profiler;
 
 /**
@@ -39,7 +39,7 @@ class WithProfilerTest extends TestCase
 
     public function testProfiler(): void
     {
-        $swooleServer = new SwooleHttpServerDummy();
+        $swooleServer = $this->createMock(Server::class);
 
         $this->configurationProphecy
             ->instrument($swooleServer)

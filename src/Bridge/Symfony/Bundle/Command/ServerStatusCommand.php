@@ -131,8 +131,8 @@ final class ServerStatusCommand extends Command
         $server = $metrics['server'];
         $runningSeconds = $date->getTimestamp() - $server['start_time'];
 
-        $idleWorkers = $server['idle_worker_num'];
-        $workers = $server['worker_num'];
+        $idleWorkers = $server['workers_idle'];
+        $workers = $server['workers_total'];
         $activeWorkers = $workers - $idleWorkers;
 
         $io->table([
@@ -140,9 +140,9 @@ final class ServerStatusCommand extends Command
         ], [
             ['Requests', $server['request_count'], '1'],
             ['Up time', $runningSeconds, 'Seconds'],
-            ['Active connections', $server['connection_num'], '1'],
-            ['Accepted connections', $server['accept_count'], '1'],
-            ['Closed connections', $server['close_count'], '1'],
+            ['Active connections', $server['connections_active'], '1'],
+            ['Accepted connections', $server['connections_accepted'], '1'],
+            ['Closed connections', $server['connections_closed'], '1'],
             ['All workers', $workers, '1'],
             ['Active workers', $activeWorkers, '1'],
             ['Idle workers', $idleWorkers, '1'],

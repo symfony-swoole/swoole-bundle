@@ -23,6 +23,8 @@ class ServerTestCase extends KernelTestCase
 
     protected function tearDown(): void
     {
+        parent::tearDown();
+
         // Make sure everything is stopped
         $this->killAllProcessesListeningOnPort(9999);
         \sleep(self::coverageEnabled() ? 3 : 1);

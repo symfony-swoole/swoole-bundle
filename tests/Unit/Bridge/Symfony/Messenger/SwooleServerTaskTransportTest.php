@@ -12,7 +12,7 @@ use K911\Swoole\Server\Config\Socket;
 use K911\Swoole\Server\Config\Sockets;
 use K911\Swoole\Server\HttpServer;
 use K911\Swoole\Server\HttpServerConfiguration;
-use PHPStan\Testing\TestCase;
+use PHPUnit\Framework\TestCase;
 use Symfony\Component\Messenger\Envelope;
 
 class SwooleServerTaskTransportTest extends TestCase

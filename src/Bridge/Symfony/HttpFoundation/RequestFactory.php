@@ -22,8 +22,9 @@ final class RequestFactory implements RequestFactoryInterface
         }
 
         $queryString = $server['QUERY_STRING'] ?? '';
-        $server['REQUEST_URI'] = $server['REQUEST_URI'] ?? '';
+        $server['REQUEST_URI'] ??= '';
         $server['REQUEST_URI'] .= '' !== $queryString ? '?'.$queryString : '';
+        $rawContent = $request->rawContent();
 
         return new HttpFoundationRequest(
             $request->get ?? [],
@@ -32,7 +33,7 @@ final class RequestFactory implements RequestFactoryInterface
             $request->cookie ?? [],
             $request->files ?? [],
             $server,
-            $request->rawContent()
+            false === $rawContent ? '' : $rawContent
         );
     }
 }

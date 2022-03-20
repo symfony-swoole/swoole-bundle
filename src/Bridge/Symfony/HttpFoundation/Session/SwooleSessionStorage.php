@@ -267,7 +267,7 @@ final class SwooleSessionStorage implements SessionStorageInterface
     {
         foreach ($this->allBags() as $bag) {
             $key = $bag->getStorageKey();
-            $data[$key] = $data[$key] ?? [];
+            $data[$key] ??= [];
             $bag->initialize($data[$key]);
         }
     }

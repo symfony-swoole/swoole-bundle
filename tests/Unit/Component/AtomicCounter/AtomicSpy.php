@@ -15,8 +15,10 @@ final class AtomicSpy extends Atomic
         parent::__construct(0);
     }
 
-    public function add($value = null): void
+    public function add($value = null): int
     {
         $this->incremented = 1 === $value;
+
+        return $this->incremented ? 1 : 0;
     }
 }

@@ -17,8 +17,6 @@ final class HttpServerFactory
     ];
 
     /**
-     * @param Socket ...$additional
-     *
      * @see https://github.com/swoole/swoole-docs/blob/master/modules/swoole-server/methods/construct.md#parameter
      * @see https://github.com/swoole/swoole-docs/blob/master/modules/swoole-server/methods/addListener.md#prototype
      */

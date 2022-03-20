@@ -64,12 +64,12 @@ final class HttpClient implements \Serializable
     }
 
     /**
-     * @param int   $timeout seconds
-     * @param float $step    microseconds
+     * @param int $timeout seconds
+     * @param int $step    microseconds
      *
      * @return bool Success
      */
-    public function connect(int $timeout = 3, float $step = 0.1): bool
+    public function connect(int $timeout = 3, int $step = 1): bool
     {
         $start = \microtime(true);
         $max = $start + $timeout;
@@ -143,7 +143,9 @@ final class HttpClient implements \Serializable
     private static function makeSwooleClient(string $host, int $port = 443, bool $ssl = true, array $options = []): Client
     {
         $client = new Client(
-            $host, $port, $ssl
+            $host,
+            $port,
+            $ssl
         );
 
         if (!empty($options)) {

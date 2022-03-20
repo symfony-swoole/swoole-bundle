@@ -1,7 +1,7 @@
 /vendor
 /cov
 swoole.pid
-.php_cs.cache
 clover.xml
 **/.phpunit.result.cache
+.php-cs-fixer.cache
 *.tmp

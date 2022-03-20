@@ -1,5 +1,5 @@
 ARG PHP_TAG="7.4-cli-alpine3.13"
-ARG COMPOSER_TAG="2.0.11"
+ARG COMPOSER_TAG="2.2.9"
 
 FROM php:$PHP_TAG as ext-builder
 RUN docker-php-source extract && \
@@ -20,17 +20,17 @@ FROM ext-builder as ext-xdebug
 RUN pecl install xdebug && \
     docker-php-ext-enable xdebug
 
-FROM ext-builder as ext-swoole
+FROM ext-builder as ext-openswoole
 RUN apk add --no-cache git
-ARG SWOOLE_VERSION="4.5.11"
+ARG SWOOLE_VERSION="4.10.0"
 RUN if $(echo "$SWOOLE_VERSION" | grep -qE '^[4-9]\.[0-9]+\.[0-9]+$'); then SWOOLE_GIT_REF="v$SWOOLE_VERSION"; else SWOOLE_GIT_REF="$SWOOLE_VERSION"; fi && \
-    git clone https://github.com/swoole/swoole-src.git --branch "$SWOOLE_GIT_REF" --depth 1 && \
+    git clone https://github.com/openswoole/swoole-src.git --branch "$SWOOLE_GIT_REF" --depth 1 && \
     cd swoole-src && \
     phpize && \
     ./configure && \
     make && \
     make install && \
-    docker-php-ext-enable swoole
+    docker-php-ext-enable openswoole
 
 FROM ext-builder as ext-pcov
 RUN pecl install pcov && \
@@ -46,8 +46,8 @@ RUN addgroup -g 1000 -S runner && \
 RUN apk add --no-cache libstdc++ icu lsof
 # php -i | grep 'PHP API' | sed -e 's/PHP API => //'
 ARG PHP_API_VERSION="20190902"
-COPY --from=ext-swoole /usr/local/lib/php/extensions/no-debug-non-zts-${PHP_API_VERSION}/swoole.so /usr/local/lib/php/extensions/no-debug-non-zts-${PHP_API_VERSION}/swoole.so
-COPY --from=ext-swoole /usr/local/etc/php/conf.d/docker-php-ext-swoole.ini /usr/local/etc/php/conf.d/docker-php-ext-swoole.ini
+COPY --from=ext-openswoole /usr/local/lib/php/extensions/no-debug-non-zts-${PHP_API_VERSION}/openswoole.so /usr/local/lib/php/extensions/no-debug-non-zts-${PHP_API_VERSION}/openswoole.so
+COPY --from=ext-openswoole /usr/local/etc/php/conf.d/docker-php-ext-openswoole.ini /usr/local/etc/php/conf.d/docker-php-ext-openswoole.ini
 COPY --from=ext-inotify /usr/local/lib/php/extensions/no-debug-non-zts-${PHP_API_VERSION}/inotify.so /usr/local/lib/php/extensions/no-debug-non-zts-${PHP_API_VERSION}/inotify.so
 COPY --from=ext-inotify /usr/local/etc/php/conf.d/docker-php-ext-inotify.ini /usr/local/etc/php/conf.d/docker-php-ext-inotify.ini
 COPY --from=ext-pcntl /usr/local/lib/php/extensions/no-debug-non-zts-${PHP_API_VERSION}/pcntl.so /usr/local/lib/php/extensions/no-debug-non-zts-${PHP_API_VERSION}/pcntl.so

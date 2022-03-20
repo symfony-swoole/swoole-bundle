@@ -1,13 +1,15 @@
 parameters:
     inferPrivatePropertyTypeFromConstructor: true
     checkMissingIterableValueType: false
-    excludes_analyse:
+    excludePaths:
         - tests/Fixtures/Symfony/app/var
         - tests/Fixtures/Symfony/app/TestAppKernel
 
         # Internal error: Expected to find an ancestor with class name Swoole\Timer on Swoole\Server, but none was found.
         - tests/Unit/Server/SwooleHttpServerDummy.php
         - tests/Unit/Server/SwooleServerMock.php
+        - tests/Unit/Server/Php8/SwooleServerMock.php
+        - tests/Unit/Server/SwooleHttpServerMock.php
     ignoreErrors:
         # Put false positives here
 
