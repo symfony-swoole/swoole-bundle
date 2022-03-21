@@ -1,3 +1,11 @@
+## [0.11.1](https://github.com/pixelfederation/swoole-bundle/compare/v0.11.0...v0.11.1) (2022-03-20)
+
+[Full changelog](https://github.com/pixelfederation/swoole-bundle/compare/v0.11.0...v0.11.1)
+
+### Miscellaneous
+
+* Minor fixes
+
 # [0.11.0](https://github.com/pixelfederation/swoole-bundle/compare/v0.10.0...v0.11.0) (2022-03-20)
 
 [Full changelog](https://github.com/pixelfederation/swoole-bundle/compare/v0.10.0...v0.11.0)
