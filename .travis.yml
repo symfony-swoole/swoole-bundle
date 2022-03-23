@@ -9,7 +9,7 @@ cache:
 env:
   global:
     - COMPOSER_ARGS=install
-    - SWOOLE_VERSION=4.5.11
+    - OPENSWOOLE_VERSION=4.10.0
 
 matrix:
   include:
@@ -19,13 +19,13 @@ matrix:
         - PHP_CS_FIXER_IGNORE_ENV=1
     - php: "8.0"
       env:
-        - SWOOLE_LATEST=1
+        - OPENSWOOLE_LATEST=1
         - COMPOSER_ARGS='update --ignore-platform-reqs'
   fast_finish: true
   allow_failures:
     - php: "8.0"
       env:
-        - SWOOLE_LATEST=1
+        - OPENSWOOLE_LATEST=1
         - COMPOSER_ARGS='update --ignore-platform-reqs'
 
 before_script:
@@ -37,10 +37,10 @@ before_install:
   - pecl update-channels
   - ci-pecl-install inotify
   - >-
-      if [[ "$SWOOLE_LATEST" = "1" ]]; then
-        ci-pecl-install swoole;
+      if [[ "$OPENSWOOLE_LATEST" = "1" ]]; then
+        ci-pecl-install openswoole;
       else
-        ci-pecl-install swoole-$SWOOLE_VERSION swoole skip-update;
+        ci-pecl-install openswoole-$OPENSWOOLE_VERSION openswoole skip-update;
       fi
   - php -r "echo swoole_version().PHP_EOL;"
 
