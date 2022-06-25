@@ -46,7 +46,7 @@ Symfony integration with [Open Swoole](https://openswoole.com/) to speed up your
 3. Install bundle in your Symfony application
 
     ```bash
-    composer require k911/swoole-bundle
+    composer require pixelfederation/swoole-bundle
     ```
 
 4. Edit `config/bundles.php`
