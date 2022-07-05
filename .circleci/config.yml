@@ -277,7 +277,7 @@ jobs:
     environment:
       PHP_VERSION: "8.0"
       PHP_API_VERSION: "20200930"
-      COMPOSER_ARGS: update --ignore-platform-reqs
+      COMPOSER_ARGS: update
       SWOOLE_VERSION: latest
       REGISTRY: docker.io
       NAMESPACE: pixelfederation
