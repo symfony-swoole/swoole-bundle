@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace K911\Swoole\Bridge\Symfony\HttpFoundation\Session;
 
+use K911\Swoole\Bridge\Symfony\Event\SessionResetEvent;
 use K911\Swoole\Server\Session\StorageInterface;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\Cookie;
+use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
-use Symfony\Component\HttpFoundation\Session\Storage\SessionStorageInterface;
 use Symfony\Component\HttpKernel\Event\FinishRequestEvent;
 use Symfony\Component\HttpKernel\Event\KernelEvent;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
@@ -18,66 +21,80 @@ use Symfony\Component\HttpKernel\KernelEvents;
 /**
  * Sets the session in the request.
  */
-final class SetSessionCookieEventListener implements EventSubscriberInterface
+final class SessionCookieEventListener implements EventSubscriberInterface
 {
-    private $sessionStorage;
-    private $sessionCookieParameters;
-    private $swooleStorage;
+    private RequestStack $requestStack;
 
-    public function __construct(SessionStorageInterface $sessionStorage, StorageInterface $swooleStorage, array $sessionOptions = [])
-    {
-        $this->sessionStorage = $sessionStorage;
+    private StorageInterface $swooleStorage;
+
+    private array $sessionCookieParameters;
+
+    private EventDispatcherInterface $dispatcher;
+
+    public function __construct(
+        RequestStack $requestStack,
+        EventDispatcherInterface $dispatcher,
+        StorageInterface $swooleStorage,
+        array $sessionOptions = []
+    ) {
+        $this->requestStack = $requestStack;
         $this->swooleStorage = $swooleStorage;
+        $this->dispatcher = $dispatcher;
         $this->sessionCookieParameters = $this->mergeCookieParams($sessionOptions);
-    }
-
-    public function onKernelRequest(RequestEvent $event): void
-    {
-        if (!$event->isMasterRequest()) {
-            return;
-        }
-
-        $cookies = $event->getRequest()->cookies;
-
-        $sessionName = $this->sessionStorage->getName();
-        if ($cookies->has($sessionName)) {
-            $sessionId = (string) $cookies->get($sessionName);
-            $this->sessionStorage->setId($sessionId);
-        }
-    }
-
-    public function onKernelResponse(ResponseEvent $event): void
-    {
-        if (!$event->isMasterRequest() || !$this->isSessionRelated($event)) {
-            return;
-        }
-
-        $session = $event->getRequest()->getSession();
-        if (!$session instanceof SessionInterface || !$session->isStarted()) {
-            return;
-        }
-
-        $responseHeaderBag = $event->getResponse()->headers;
-        foreach ($responseHeaderBag->getCookies() as $cookie) {
-            if ($this->isSessionCookie($cookie, $session->getName())) {
-                return;
-            }
-        }
-
-        $responseHeaderBag->setCookie($this->makeSessionCookie($session));
     }
 
     public function onFinishRequest(FinishRequestEvent $event): void
     {
-        if (!$event->isMasterRequest() || !$this->isSessionRelated($event)) {
+        if (!$event->isMainRequest() || !$this->isSessionRelated($event)) {
             return;
         }
 
-        if ($this->sessionStorage instanceof SwooleSessionStorage && $this->sessionStorage->isStarted()) {
-            $this->sessionStorage->reset();
+        if ($this->session()->isStarted()) {
+            $this->dispatcher->dispatch(
+                new SessionResetEvent($this->session()->getId()),
+                SessionResetEvent::NAME
+            );
         }
 
         $this->swooleStorage->garbageCollect();
+    }
+
+    public function onKernelRequest(RequestEvent $event): void
+    {
+        if (!$event->isMainRequest() || !$this->isSessionRelated($event)) {
+            return;
+        }
+
+        $cookies = $event->getRequest()->cookies;
+        $sessionName = $this->session()->getName();
+
+        if (!$cookies->has($sessionName)) {
+            return;
+        }
+
+        $sessionId = (string) $cookies->get($sessionName);
+        $this->session()->setId($sessionId);
+    }
+
+    public function onKernelResponse(ResponseEvent $event): void
+    {
+        if (!$event->isMainRequest() || !$this->isSessionRelated($event)) {
+            return;
+        }
+
+        $session = $event->getRequest()->getSession();
+        if (!$session->isStarted()) {
+            return;
+        }
+
+        $responseHeaderBag = $event->getResponse()->headers;
+        $cookie = $this->findSessionCookie($responseHeaderBag, $session->getName());
+
+        if (null !== $cookie) {
+            return;
+        }
+
+        $responseHeaderBag->setCookie($this->makeSessionCookie($session));
     }
 
     public static function getSubscribedEvents(): array
@@ -87,6 +104,17 @@ final class SetSessionCookieEventListener implements EventSubscriberInterface
             KernelEvents::RESPONSE => ['onKernelResponse', -128],
             KernelEvents::FINISH_REQUEST => ['onFinishRequest', -128],
         ];
+    }
+
+    private function findSessionCookie(ResponseHeaderBag $headers, string $sessionName): ?Cookie
+    {
+        foreach ($headers->getCookies() as $cookie) {
+            if ($this->isSessionCookie($cookie, $sessionName)) {
+                return $cookie;
+            }
+        }
+
+        return null;
     }
 
     private function isSessionCookie(Cookie $cookie, string $sessionName): bool
@@ -126,5 +154,10 @@ final class SetSessionCookieEventListener implements EventSubscriberInterface
     private function isSessionRelated(KernelEvent $event): bool
     {
         return $event->getRequest()->hasSession();
+    }
+
+    private function session(): SessionInterface
+    {
+        return $this->requestStack->getSession();
     }
 }

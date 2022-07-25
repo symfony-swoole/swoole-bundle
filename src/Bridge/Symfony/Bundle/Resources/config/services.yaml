@@ -56,6 +56,8 @@ services:
 
     K911\Swoole\Bridge\Symfony\HttpKernel\HttpKernelRequestHandler:
 
+    K911\Swoole\Bridge\Symfony\HttpFoundation\Session\SwooleSessionStorageFactory:
+
     K911\Swoole\Server\RequestHandler\LimitedRequestHandler:
 
     K911\Swoole\Server\LifecycleHandler\SigIntHandler:
@@ -154,6 +156,9 @@ services:
 
     swoole_bundle.session.table_storage:
         alias: K911\Swoole\Bridge\Symfony\HttpFoundation\Session\SwooleSessionStorage
+
+    swoole_bundle.session.table_storage_factory:
+        alias: K911\Swoole\Bridge\Symfony\HttpFoundation\Session\SwooleSessionStorageFactory
 
     swoole_bundle.server.http_server.configurator.with_request_handler:
         class: K911\Swoole\Server\Configurator\WithRequestHandler

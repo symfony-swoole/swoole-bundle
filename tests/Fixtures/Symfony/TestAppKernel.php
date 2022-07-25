@@ -17,6 +17,7 @@ use Symfony\Bundle\WebProfilerBundle\WebProfilerBundle;
 use Symfony\Component\Config\Loader\LoaderInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\HttpKernel\Kernel;
 use Symfony\Component\Routing\Loader\Configurator\RoutingConfigurator;
@@ -100,7 +101,10 @@ class TestAppKernel extends Kernel
         return __DIR__.'/app';
     }
 
-    public function handle(Request $request, $type = HttpKernelInterface::MASTER_REQUEST, $catch = true)
+    /**
+     * {@inheritDoc}
+     */
+    public function handle(Request $request, int $type = HttpKernelInterface::MAIN_REQUEST, bool $catch = true): Response
     {
         // Use CacheKernel if available.
         if (null !== $this->cacheKernel) {
@@ -114,6 +118,14 @@ class TestAppKernel extends Kernel
         }
 
         return parent::handle($request, $type, $catch);
+    }
+
+    /**
+     * This should always return bool, but we need to coerce it depending on the Symfony version in use.
+     */
+    public function isDebug(): bool
+    {
+        return (bool) $this->debug;
     }
 
     /**

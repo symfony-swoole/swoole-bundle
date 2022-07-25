@@ -8,7 +8,7 @@ use K911\Swoole\Client\HttpClient;
 use K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Test\ServerTestCase;
 use Swoole\Coroutine;
 
-final class SymfonySessionSwooleSessionStorageTest extends ServerTestCase
+final class SymfonySessionSwooleSessionIdStorageTest extends ServerTestCase
 {
     protected function setUp(): void
     {
@@ -173,7 +173,6 @@ final class SymfonySessionSwooleSessionStorageTest extends ServerTestCase
             $response1 = $client->send('/session/1')['response'];
             $this->assertSame(200, $response1['statusCode']);
             $this->assertArrayHasKey('SWOOLESSID', $response1['cookies']);
-
             $sessionId1 = $response1['cookies']['SWOOLESSID'];
             $setCookieHeader1 = $response1['headers']['set-cookie'];
             $body1 = $response1['body'];
@@ -185,6 +184,9 @@ final class SymfonySessionSwooleSessionStorageTest extends ServerTestCase
             $this->assertArrayHasKey('SWOOLESSID', $response2['cookies']);
 
             $sessionId2 = $response2['cookies']['SWOOLESSID'];
+
+            $this->assertNotNull($response2['headers']['set-cookie']);
+
             $setCookieHeader2 = $response2['headers']['set-cookie'];
             $body2 = $response2['body'];
 

@@ -1,4 +1,4 @@
-ARG PHP_TAG="7.4-cli-alpine3.13"
+ARG PHP_TAG="7.4-cli-alpine3.16"
 ARG COMPOSER_TAG="2.2.9"
 
 FROM php:$PHP_TAG as ext-builder

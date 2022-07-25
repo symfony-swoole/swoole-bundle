@@ -20,13 +20,28 @@ matrix:
     - php: "8.0"
       env:
         - OPENSWOOLE_LATEST=1
-        - COMPOSER_ARGS='update --ignore-platform-reqs'
+        - COMPOSER_ARGS='update'
+        - NO_ANALYSE=1
+    - php: "8.1"
+      env:
+        - PHP_CS_FIXER_IGNORE_ENV=1
+    - php: "8.1"
+      env:
+        - OPENSWOOLE_LATEST=1
+        - COMPOSER_ARGS='update'
+        - NO_ANALYSE=1
   fast_finish: true
   allow_failures:
     - php: "8.0"
       env:
         - OPENSWOOLE_LATEST=1
-        - COMPOSER_ARGS='update --ignore-platform-reqs'
+        - COMPOSER_ARGS='update'
+        - NO_ANALYSE=1
+    - php: "8.1"
+      env:
+        - OPENSWOOLE_LATEST=1
+        - COMPOSER_ARGS='update'
+        - NO_ANALYSE=1
 
 before_script:
   - phpenv config-rm xdebug.ini
@@ -50,6 +65,9 @@ install:
   - composer $COMPOSER_ARGS
 
 script:
-  - composer analyse
+  - >-
+      if [[ "NO_ANALYSE" != "1" ]]; then
+        composer analyse
+      fi
   - composer unit-tests
   - composer feature-tests

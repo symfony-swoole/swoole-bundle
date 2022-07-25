@@ -26,9 +26,9 @@ final class SwooleServerReloadViaApiClientTest extends ServerTestCase
     public function testStartRequestApiToReloadCallStop(): void
     {
         static::bootKernel();
-        $sockets = static::$container->get(Sockets::class);
+        $sockets = static::getContainer()->get(Sockets::class);
         $sockets->changeApiSocket(new Socket('0.0.0.0', 9998));
-        $apiClient = static::$container->get(ApiServerClientFactory::class)
+        $apiClient = static::getContainer()->get(ApiServerClientFactory::class)
             ->newClient()
         ;
 
@@ -80,7 +80,7 @@ final class SwooleServerReloadViaApiClientTest extends ServerTestCase
     public function testStartRequestApiToReloadCallStopUsingApiEnv(): void
     {
         static::bootKernel(['environment' => 'api']);
-        $apiClient = static::$container->get(ApiServerClientFactory::class)
+        $apiClient = static::getContainer()->get(ApiServerClientFactory::class)
             ->newClient()
         ;
 

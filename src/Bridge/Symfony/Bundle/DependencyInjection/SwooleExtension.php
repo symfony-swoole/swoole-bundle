@@ -10,7 +10,6 @@ use K911\Swoole\Bridge\Symfony\ErrorHandler\SymfonyExceptionHandler;
 use K911\Swoole\Bridge\Symfony\ErrorHandler\ThrowableHandlerFactory;
 use K911\Swoole\Bridge\Symfony\HttpFoundation\CloudFrontRequestFactory;
 use K911\Swoole\Bridge\Symfony\HttpFoundation\RequestFactoryInterface;
-use K911\Swoole\Bridge\Symfony\HttpFoundation\Session\SetSessionCookieEventListener;
 use K911\Swoole\Bridge\Symfony\HttpFoundation\TrustAllProxiesRequestHandler;
 use K911\Swoole\Bridge\Symfony\Messenger\SwooleServerTaskTransportFactory;
 use K911\Swoole\Bridge\Symfony\Messenger\SwooleServerTaskTransportHandler;
@@ -287,14 +286,6 @@ final class SwooleExtension extends Extension implements PrependExtensionInterfa
                 ->addArgument(new Reference(TrustAllProxiesRequestHandler::class.'.inner'))
                 ->addTag('swoole_bundle.bootable_service')
                 ->setDecoratedService(RequestHandlerInterface::class, null, -10)
-            ;
-        }
-
-        if ($config['session_cookie_event_listener']) {
-            $container->register(SetSessionCookieEventListener::class)
-                ->setAutowired(true)
-                ->setAutoconfigured(true)
-                ->setPublic(false)
             ;
         }
 

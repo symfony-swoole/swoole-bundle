@@ -17,7 +17,7 @@ use Swoole\Coroutine\Http\Client;
  *
  * @internal Class API is not stable, nor it is guaranteed to exists in next releases, use at own risk
  */
-final class HttpClient implements \Serializable
+final class HttpClient
 {
     private const SUPPORTED_HTTP_METHODS = [
         Http::METHOD_GET,
@@ -46,6 +46,21 @@ final class HttpClient implements \Serializable
     public function __construct(Client $client)
     {
         $this->client = $client;
+    }
+
+    public function __serialize(): array
+    {
+        return [
+            'host' => $this->client->host,
+            'port' => $this->client->port,
+            'ssl' => $this->client->ssl,
+            'options' => $this->client->setting,
+        ];
+    }
+
+    public function __unserialize(array $spec): void
+    {
+        $this->client = self::makeSwooleClient($spec['host'], $spec['port'], $spec['ssl'], $spec['options']);
     }
 
     public static function fromSocket(Socket $socket, array $options = []): self
@@ -114,30 +129,6 @@ final class HttpClient implements \Serializable
         $this->client->execute($path);
 
         return $this->resolveResponse($this->client, $timeout);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function serialize(): string
-    {
-        return \json_encode([
-            'host' => $this->client->host,
-            'port' => $this->client->port,
-            'ssl' => $this->client->ssl,
-            'options' => $this->client->setting,
-        ], \JSON_THROW_ON_ERROR);
-    }
-
-    /**
-     * {@inheritdoc}
-     *
-     * @param string $serialized
-     */
-    public function unserialize($serialized): void
-    {
-        $spec = \json_decode($serialized, true, 512, \JSON_THROW_ON_ERROR);
-        $this->client = self::makeSwooleClient($spec['host'], $spec['port'], $spec['ssl'], $spec['options']);
     }
 
     private static function makeSwooleClient(string $host, int $port = 443, bool $ssl = true, array $options = []): Client

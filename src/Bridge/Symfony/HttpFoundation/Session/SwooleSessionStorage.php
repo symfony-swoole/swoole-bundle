@@ -16,45 +16,24 @@ final class SwooleSessionStorage implements SessionStorageInterface
 {
     public const DEFAULT_SESSION_NAME = 'SWOOLESSID';
 
-    /**
-     * @var StorageInterface
-     */
-    private $storage;
+    private StorageInterface $storage;
 
-    /**
-     * @var string
-     */
-    private $name;
+    private string $name;
 
-    /**
-     * @var string
-     */
-    private $currentId;
+    private string $currentId;
 
     /**
      * @var SessionBagInterface[]
      */
-    private $bags;
+    private array $bags;
 
-    /**
-     * @var array
-     */
-    private $data;
+    private array $data;
 
-    /**
-     * @var MetadataBag
-     */
-    private $metadataBag;
+    private MetadataBag $metadataBag;
 
-    /**
-     * @var bool
-     */
-    private $started;
+    private bool $started;
 
-    /**
-     * @var int
-     */
-    private $sessionLifetimeSeconds;
+    private int $sessionLifetimeSeconds;
 
     public function __construct(StorageInterface $storage, string $name = self::DEFAULT_SESSION_NAME, int $lifetimeSeconds = 86400, MetadataBag $metadataBag = null)
     {
@@ -97,11 +76,16 @@ final class SwooleSessionStorage implements SessionStorageInterface
      * {@inheritdoc}
      *
      * @throws \Exception
+     * @SuppressWarnings(PHPMD.BooleanArgumentFlag)
      */
-    public function regenerate($destroy = false, $lifetime = null): bool
+    public function regenerate(bool $destroy = false, int $lifetime = null): bool
     {
         if ($destroy) {
             $this->storage->delete($this->currentId);
+        }
+
+        if (null !== $lifetime && $lifetime != ini_get('session.cookie_lifetime')) {
+            ini_set('session.cookie_lifetime', (string) $lifetime);
         }
 
         $this->getMetadataBag()->stampNew($lifetime ?? $this->sessionLifetimeSeconds);
@@ -163,11 +147,9 @@ final class SwooleSessionStorage implements SessionStorageInterface
     }
 
     /**
-     * @param string $id
-     *
      * @throws \Exception
      */
-    public function setId($id): void
+    public function setId(string $id): void
     {
         if ($this->started) {
             throw new LogicException('Cannot set session ID after the session has started.');
@@ -176,10 +158,7 @@ final class SwooleSessionStorage implements SessionStorageInterface
         $this->currentId = \preg_match('/^[a-f0-9]{63}$/', $id) ? $id : $this->generateId();
     }
 
-    /**
-     * @return string
-     */
-    public function getName()
+    public function getName(): string
     {
         return $this->name;
     }
@@ -193,11 +172,9 @@ final class SwooleSessionStorage implements SessionStorageInterface
     }
 
     /**
-     * @param string $name
-     *
      * @throws \Assert\AssertionFailedException
      */
-    public function getBag($name): SessionBagInterface
+    public function getBag(string $name): SessionBagInterface
     {
         if (!isset($this->bags[$name])) {
             throw new \InvalidArgumentException(\sprintf('The SessionBagInterface `%s` is not registered.', $name));
@@ -233,7 +210,10 @@ final class SwooleSessionStorage implements SessionStorageInterface
     private function setLifetimeSeconds(int $lifetimeSeconds): void
     {
         $this->sessionLifetimeSeconds = $lifetimeSeconds;
-        \ini_set('session.cookie_lifetime', (string) $lifetimeSeconds);
+
+        if (null !== ini_get('session.cookie_lifetime') && $lifetimeSeconds !== (int) ini_get('session.cookie_lifetime')) {
+            @ini_set('session.cookie_lifetime', (string) $lifetimeSeconds);
+        }
     }
 
     /**

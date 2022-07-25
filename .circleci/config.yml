@@ -4,7 +4,7 @@ orbs:
 executors:
   pixelfederation-docker-client:
     docker:
-      - image: pixelfederation/docker-client:20.10.5-compose
+      - image: pixelfederation/docker-client:20.10.17-compose
     working_directory: ~/workdir
 
   pixelfederation-release-version:
@@ -17,7 +17,7 @@ aliases:
   - &docker-remote-version
     setup_remote_docker:
       # https://circleci.com/docs/2.0/building-docker-images/#docker-version
-      version: 20.10.2
+      version: 20.10.14
 
   - &docker-bake
     executor: pixelfederation-docker-client
@@ -41,6 +41,9 @@ aliases:
       - run:
           name: Print docker info
           command: docker info
+      - run:
+          name: Docker pass initialization
+          command: docker-use-pass
       - run:
           name: Login to Docker Hub
           command: >-
@@ -146,6 +149,11 @@ jobs:
     docker:
       - image: docker.io/pixelfederation/swoole-bundle-composer:8.0-latest-$CIRCLE_SHA1
 
+  swoole-bundle-composer-81-latest-unit-tests:
+    <<: *job-composer-unit-tests
+    docker:
+      - image: docker.io/pixelfederation/swoole-bundle-composer:8.1-latest-$CIRCLE_SHA1
+
   swoole-bundle-composer-74-lowest-feature-tests:
     <<: *job-composer-feature-tests
     docker:
@@ -155,6 +163,11 @@ jobs:
     <<: *job-composer-feature-tests
     docker:
       - image: docker.io/pixelfederation/swoole-bundle-composer:8.0-latest-$CIRCLE_SHA1
+
+  swoole-bundle-composer-81-latest-feature-tests:
+    <<: *job-composer-feature-tests
+    docker:
+      - image: docker.io/pixelfederation/swoole-bundle-composer:8.1-latest-$CIRCLE_SHA1
 
   swoole-bundle-74-code-coverage:
     executor: pixelfederation-docker-client
@@ -285,6 +298,19 @@ jobs:
       SERVICES: composer
       BUILD_TYPE: latest
 
+  docker-buildx-bake-81-latest:
+    <<: *docker-bake
+    environment:
+      PHP_VERSION: "8.1"
+      PHP_API_VERSION: "20210902"
+      COMPOSER_ARGS: update
+      SWOOLE_VERSION: latest
+      REGISTRY: docker.io
+      NAMESPACE: pixelfederation
+      IMAGE: swoole-bundle
+      SERVICES: composer
+      BUILD_TYPE: latest
+
   check-composer-config:
     docker:
       - image: composer:2
@@ -376,6 +402,16 @@ workflows:
       - swoole-bundle-composer-80-latest-feature-tests:
           requires:
             - docker-buildx-bake-80-latest
+      - docker-buildx-bake-81-latest:
+          context: swoole-bundle-dockerhub
+          requires:
+            - docker-buildx-bake-74
+      - swoole-bundle-composer-81-latest-unit-tests:
+          requires:
+            - docker-buildx-bake-81-latest
+      - swoole-bundle-composer-81-latest-feature-tests:
+          requires:
+            - docker-buildx-bake-81-latest
 
   pull-request-checks-untrusted:
     when:
@@ -432,6 +468,16 @@ workflows:
       - swoole-bundle-composer-80-latest-feature-tests:
           requires:
             - docker-buildx-bake-80-latest
+      - docker-buildx-bake-81-latest:
+          context: swoole-bundle-dockerhub
+          requires:
+            - docker-buildx-bake-74
+      - swoole-bundle-composer-81-latest-unit-tests:
+          requires:
+            - docker-buildx-bake-81-latest
+      - swoole-bundle-composer-81-latest-feature-tests:
+          requires:
+            - docker-buildx-bake-81-latest
 
   release:
     when:
@@ -479,6 +525,16 @@ workflows:
       - swoole-bundle-composer-80-latest-feature-tests:
           requires:
             - docker-buildx-bake-80-latest
+      - docker-buildx-bake-81-latest:
+          context: swoole-bundle-dockerhub
+          requires:
+            - docker-buildx-bake-74
+      - swoole-bundle-composer-81-latest-unit-tests:
+          requires:
+            - docker-buildx-bake-81-latest
+      - swoole-bundle-composer-81-latest-feature-tests:
+          requires:
+            - docker-buildx-bake-81-latest
       - approve-release:
           type: approval
           requires:
@@ -491,6 +547,8 @@ workflows:
             - swoole-bundle-composer-74-code-style
             - swoole-bundle-composer-80-latest-unit-tests
             - swoole-bundle-composer-80-latest-feature-tests
+            - swoole-bundle-composer-81-latest-unit-tests
+            - swoole-bundle-composer-81-latest-feature-tests
       - releaser:
           context: swoole-bundle-github
           requires:

@@ -77,7 +77,7 @@ final class SwooleCommandsRegisteredTest extends ServerTestCase
 
     public function testSwooleCommandsRegisteredWithCacheClearAppEnvSession(): void
     {
-        $kernel = static::createKernel(['environment' => 'session']);
+        $kernel = static::createKernel(['environment' => 'session_factory']);
         $application = new Application($kernel);
 
         $cacheClear = $application->find('cache:clear');
