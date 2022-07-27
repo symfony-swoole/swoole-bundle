@@ -1,3 +1,17 @@
+# [0.12.0](https://github.com/pixelfederation/swoole-bundle/compare/v0.11.1...v0.12.0) (2022-07-27)
+
+[Full changelog](https://github.com/pixelfederation/swoole-bundle/compare/v0.11.1...v0.12.0)
+
+### Bug Fixes
+
+* **readme:** fixed the composer install reference ([12a24d6](https://github.com/pixelfederation/swoole-bundle/commit/12a24d6a0a326d86ba14a6c42268a229bf58eed4))
+
+
+### Features
+
+* **docker-compose:** added releaser bot ([9cf4876](https://github.com/pixelfederation/swoole-bundle/commit/9cf4876147c7d125825e66061c5f63d62f099df3))
+* **platform:** added integrations for PHP 8.1 + added support for Symfony 6 ([368f99e](https://github.com/pixelfederation/swoole-bundle/commit/368f99e002c3b6c7de1f43d85ac7f4e043845565))
+
 ## [0.11.1](https://github.com/pixelfederation/swoole-bundle/compare/v0.11.0...v0.11.1) (2022-03-20)
 
 [Full changelog](https://github.com/pixelfederation/swoole-bundle/compare/v0.11.0...v0.11.1)
