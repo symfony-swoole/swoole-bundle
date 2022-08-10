@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "13c6c91c29c8eae88c9bb4f5a66c8a24",
+    "content-hash": "db56c825190070c1c07f70447d7bd38b",
     "packages": [
         {
             "name": "beberlei/assert",
@@ -8400,6 +8400,60 @@
                 "source": "https://github.com/upscalesoftware/swoole-blackfire/tree/3.1.0"
             },
             "time": "2020-12-09T01:17:15+00:00"
+        },
+        {
+            "name": "upscale/swoole-newrelic",
+            "version": "1.5.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/upscalesoftware/swoole-newrelic.git",
+                "reference": "2175d8d5b95b5f728ad449a38c9e029dac23a9fe"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/upscalesoftware/swoole-newrelic/zipball/2175d8d5b95b5f728ad449a38c9e029dac23a9fe",
+                "reference": "2175d8d5b95b5f728ad449a38c9e029dac23a9fe",
+                "shasum": ""
+            },
+            "require": {
+                "ext-newrelic": ">=3.0.5.95",
+                "ext-swoole": "^4.0",
+                "php": ">=7.1",
+                "upscale/swoole-reflection": "^1.3"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Upscale\\Swoole\\Newrelic\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "Apache-2.0"
+            ],
+            "authors": [
+                {
+                    "name": "Upscale Software Team",
+                    "email": "info@upscalesoftware.com"
+                }
+            ],
+            "description": "New Relic APM monitoring of Swoole web-server",
+            "homepage": "https://github.com/upscalesoftware/swoole-newrelic",
+            "keywords": [
+                "RUM",
+                "apm",
+                "browser",
+                "integration",
+                "monitoring",
+                "new relic",
+                "newrelic",
+                "swoole"
+            ],
+            "support": {
+                "issues": "https://github.com/upscalesoftware/swoole-newrelic/issues",
+                "source": "https://github.com/upscalesoftware/swoole-newrelic/tree/1.5.0"
+            },
+            "time": "2020-12-09T00:59:57+00:00"
         },
         {
             "name": "upscale/swoole-reflection",

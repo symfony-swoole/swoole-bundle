@@ -14,6 +14,7 @@ use K911\Swoole\Bridge\Symfony\HttpFoundation\TrustAllProxiesRequestHandler;
 use K911\Swoole\Bridge\Symfony\Messenger\SwooleServerTaskTransportFactory;
 use K911\Swoole\Bridge\Symfony\Messenger\SwooleServerTaskTransportHandler;
 use K911\Swoole\Bridge\Upscale\Blackfire\WithProfiler;
+use K911\Swoole\Bridge\Upscale\Newrelic\WithApm;
 use K911\Swoole\Server\Config\Socket;
 use K911\Swoole\Server\Config\Sockets;
 use K911\Swoole\Server\Configurator\ConfiguratorInterface;
@@ -43,6 +44,7 @@ use Symfony\Component\HttpKernel\DependencyInjection\Extension;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Messenger\Transport\TransportFactoryInterface;
 use Upscale\Swoole\Blackfire\Profiler;
+use Upscale\Swoole\Newrelic\Apm;
 
 final class SwooleExtension extends Extension implements PrependExtensionInterface
 {
@@ -305,6 +307,24 @@ final class SwooleExtension extends Extension implements PrependExtensionInterfa
             $def->addArgument(new Reference(WithProfiler::class));
             $def = $container->getDefinition('swoole_bundle.server.http_server.configurator.for_server_start_command');
             $def->addArgument(new Reference(WithProfiler::class));
+        }
+
+        if ($config['newrelic_apm'] || (null === $config['newrelic_apm'] && \class_exists(Apm::class))) {
+            $container->register(Profiler::class)
+                ->setClass(Profiler::class)
+            ;
+
+            $container->register(WithApm::class)
+                ->setClass(WithApm::class)
+                ->setAutowired(false)
+                ->setAutoconfigured(false)
+                ->setPublic(false)
+//                ->addArgument(new Reference(Profiler::class))
+            ;
+            $def = $container->getDefinition('swoole_bundle.server.http_server.configurator.for_server_run_command');
+            $def->addArgument(new Reference(WithApm::class));
+            $def = $container->getDefinition('swoole_bundle.server.http_server.configurator.for_server_start_command');
+            $def->addArgument(new Reference(WithApm::class));
         }
     }
 

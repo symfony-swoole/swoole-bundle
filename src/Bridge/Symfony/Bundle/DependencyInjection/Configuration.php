@@ -205,6 +205,9 @@ final class Configuration implements ConfigurationInterface
                                 ->booleanNode('blackfire_profiler')
                                     ->defaultNull()
                                 ->end()
+                                ->booleanNode('newrelic_apm')
+                                    ->defaultNull()
+                                ->end()
                             ->end()
                         ->end() // drivers
                         ->arrayNode('settings')

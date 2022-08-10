@@ -42,7 +42,7 @@ class TwigController
     public function indexAction(): Response
     {
         $this->logger->error('Profiler logging test.');
-
+sleep(1);
         return new Response($this->environment->render('base.html.twig'));
     }
 }

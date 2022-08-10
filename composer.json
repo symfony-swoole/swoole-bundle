@@ -64,7 +64,8 @@
         "symfony/twig-bundle": "^5.4|^6.0",
         "symfony/var-dumper": "^5.4|^6.0",
         "symfony/yaml": "^5.4|^6.0",
-        "upscale/swoole-blackfire": "^3.1"
+        "upscale/swoole-blackfire": "^3.1",
+        "upscale/swoole-newrelic": "^1.5"
     },
     "suggest": {
         "ext-inotify": "To enable HMR",
