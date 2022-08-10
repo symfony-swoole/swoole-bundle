@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "13c6c91c29c8eae88c9bb4f5a66c8a24",
+    "content-hash": "c8ae15696f26398abe45f23f961db3e3",
     "packages": [
         {
             "name": "beberlei/assert",
@@ -8271,6 +8271,32 @@
                 }
             ],
             "time": "2021-07-28T10:34:58+00:00"
+        },
+        {
+            "name": "tideways/ext-tideways-stubs",
+            "version": "v5.5.6",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/tideways/ext-tideways-stubs.git",
+                "reference": "3ffd34f54256b566c53472c659b87e1b8fd4bd07"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/tideways/ext-tideways-stubs/zipball/3ffd34f54256b566c53472c659b87e1b8fd4bd07",
+                "reference": "3ffd34f54256b566c53472c659b87e1b8fd4bd07",
+                "shasum": ""
+            },
+            "type": "library",
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-2-Clause"
+            ],
+            "description": "IDE stubs for Tideways Profiler PHP extension",
+            "support": {
+                "issues": "https://github.com/tideways/ext-tideways-stubs/issues",
+                "source": "https://github.com/tideways/ext-tideways-stubs/tree/v5.5.6"
+            },
+            "time": "2022-08-09T11:01:01+00:00"
         },
         {
             "name": "twig/twig",

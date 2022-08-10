@@ -64,6 +64,7 @@
         "symfony/twig-bundle": "^5.4|^6.0",
         "symfony/var-dumper": "^5.4|^6.0",
         "symfony/yaml": "^5.4|^6.0",
+        "tideways/ext-tideways-stubs": "^5.5",
         "upscale/swoole-blackfire": "^3.1"
     },
     "suggest": {
@@ -85,7 +86,10 @@
     "autoload-dev": {
         "psr-4": {
             "K911\\Swoole\\Tests\\": "tests"
-        }
+        },
+        "files": [
+            "tests/Bridge/Tideways/TidewaysMock.php"
+        ]
     },
     "scripts": {
         "console": [

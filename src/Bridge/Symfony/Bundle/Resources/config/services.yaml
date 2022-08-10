@@ -9,6 +9,8 @@ services:
 
     K911\Swoole\Component\ExceptionArrayTransformer:
 
+    K911\Swoole\Server\Middleware\MiddlewareInjector:
+
     K911\Swoole\Server\RequestHandler\ExceptionHandler\ProductionExceptionHandler:
 
     K911\Swoole\Server\RequestHandler\ExceptionHandler\JsonExceptionHandler:

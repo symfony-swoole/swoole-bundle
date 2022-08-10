@@ -13,12 +13,18 @@ use K911\Swoole\Bridge\Symfony\HttpFoundation\RequestFactoryInterface;
 use K911\Swoole\Bridge\Symfony\HttpFoundation\TrustAllProxiesRequestHandler;
 use K911\Swoole\Bridge\Symfony\Messenger\SwooleServerTaskTransportFactory;
 use K911\Swoole\Bridge\Symfony\Messenger\SwooleServerTaskTransportHandler;
+use K911\Swoole\Bridge\Tideways\Apm\Apm;
+use K911\Swoole\Bridge\Tideways\Apm\RequestDataProvider;
+use K911\Swoole\Bridge\Tideways\Apm\RequestProfiler;
+use K911\Swoole\Bridge\Tideways\Apm\TidewaysMiddlewareFactory;
+use K911\Swoole\Bridge\Tideways\Apm\WithApm;
 use K911\Swoole\Bridge\Upscale\Blackfire\WithProfiler;
 use K911\Swoole\Server\Config\Socket;
 use K911\Swoole\Server\Config\Sockets;
 use K911\Swoole\Server\Configurator\ConfiguratorInterface;
 use K911\Swoole\Server\HttpServer;
 use K911\Swoole\Server\HttpServerConfiguration;
+use K911\Swoole\Server\Middleware\MiddlewareInjector;
 use K911\Swoole\Server\RequestHandler\AdvancedStaticFilesServer;
 use K911\Swoole\Server\RequestHandler\ExceptionHandler\ExceptionHandlerInterface;
 use K911\Swoole\Server\RequestHandler\ExceptionHandler\JsonExceptionHandler;
@@ -42,7 +48,8 @@ use Symfony\Component\ErrorHandler\ErrorHandler;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Messenger\Transport\TransportFactoryInterface;
-use Upscale\Swoole\Blackfire\Profiler;
+use Tideways\Profiler as TidewaysProfiler;
+use Upscale\Swoole\Blackfire\Profiler as BlackfireProfiler;
 
 final class SwooleExtension extends Extension implements PrependExtensionInterface
 {
@@ -289,9 +296,9 @@ final class SwooleExtension extends Extension implements PrependExtensionInterfa
             ;
         }
 
-        if ($config['blackfire_profiler'] || (null === $config['blackfire_profiler'] && \class_exists(Profiler::class))) {
-            $container->register(Profiler::class)
-                ->setClass(Profiler::class)
+        if ($config['blackfire_profiler'] || (null === $config['blackfire_profiler'] && \class_exists(BlackfireProfiler::class))) {
+            $container->register(BlackfireProfiler::class)
+                ->setClass(BlackfireProfiler::class)
             ;
 
             $container->register(WithProfiler::class)
@@ -299,12 +306,60 @@ final class SwooleExtension extends Extension implements PrependExtensionInterfa
                 ->setAutowired(false)
                 ->setAutoconfigured(false)
                 ->setPublic(false)
-                ->addArgument(new Reference(Profiler::class))
+                ->addArgument(new Reference(BlackfireProfiler::class))
             ;
             $def = $container->getDefinition('swoole_bundle.server.http_server.configurator.for_server_run_command');
             $def->addArgument(new Reference(WithProfiler::class));
             $def = $container->getDefinition('swoole_bundle.server.http_server.configurator.for_server_start_command');
             $def->addArgument(new Reference(WithProfiler::class));
+        }
+
+        if ($config['tideways_apm']['enabled'] && \class_exists(TidewaysProfiler::class)) {
+            $container->register(RequestDataProvider::class)
+                ->setClass(RequestDataProvider::class)
+                ->setAutowired(false)
+                ->setAutoconfigured(false)
+                ->setPublic(false)
+                ->setArgument('$requestFactory', new Reference(RequestFactoryInterface::class))
+            ;
+
+            $container->register(RequestProfiler::class)
+                ->setClass(RequestProfiler::class)
+                ->setAutowired(false)
+                ->setAutoconfigured(false)
+                ->setPublic(false)
+                ->setArgument('$dataProvider', new Reference(RequestDataProvider::class))
+                ->setArgument('$serviceName', $config['tideways_apm']['service_name'])
+            ;
+
+            $container->register(TidewaysMiddlewareFactory::class)
+                ->setClass(TidewaysMiddlewareFactory::class)
+                ->setAutowired(false)
+                ->setAutoconfigured(false)
+                ->setPublic(false)
+                ->setArgument('$profiler', new Reference(RequestProfiler::class))
+            ;
+
+            $container->register(Apm::class)
+                ->setClass(Apm::class)
+                ->setAutowired(false)
+                ->setAutoconfigured(false)
+                ->setPublic(false)
+                ->setArgument('$injector', new Reference(MiddlewareInjector::class))
+                ->setArgument('$middlewareFactory', new Reference(TidewaysMiddlewareFactory::class))
+            ;
+
+            $container->register(WithApm::class)
+                ->setClass(WithApm::class)
+                ->setAutowired(false)
+                ->setAutoconfigured(false)
+                ->setPublic(false)
+                ->setArgument('$apm', new Reference(Apm::class))
+            ;
+            $def = $container->getDefinition('swoole_bundle.server.http_server.configurator.for_server_run_command');
+            $def->addArgument(new Reference(WithApm::class));
+            $def = $container->getDefinition('swoole_bundle.server.http_server.configurator.for_server_start_command');
+            $def->addArgument(new Reference(WithApm::class));
         }
     }
 

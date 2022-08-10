@@ -75,6 +75,10 @@ swoole:
             # see: \K911\Swoole\Bridge\Upscale\Blackfire\WithProfiler
             blackfire_profiler: false
 
+            # see: \K911\Swoole\Bridge\Tideways\Apm\WithApm
+            tideways_apm:
+                enabled: true
+                service_name: 'app_name' # service name for Tideways APM UI
 
         # swoole http server settings
         # see https://www.swoole.co.uk/docs/modules/swoole-server/configuration
