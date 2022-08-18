@@ -9,7 +9,7 @@ executors:
 
   pixelfederation-release-version:
     docker:
-      - image: docker.io/pixelfederation/release-version-script:0.3.4
+      - image: docker.io/pixelfederation/release-version-script:0.3.6
     working_directory: /usr/src/app
 
 aliases:
