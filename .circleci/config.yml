@@ -9,7 +9,7 @@ executors:
 
   pixelfederation-release-version:
     docker:
-      - image: docker.io/pixelfederation/release-version-script:0.3.6
+      - image: docker.io/pixelfederation/release-version-script:0.3.7
     working_directory: /usr/src/app
 
 aliases:
@@ -238,6 +238,7 @@ jobs:
       DEBUG: "0"
       DRY_RUN: "1"
       GH_TOKEN: "xxx"
+      GH_REPOSITORY: "pixelfederation/swoole-bundle"
     steps:
       - checkout
       - run:
@@ -256,6 +257,7 @@ jobs:
       DEBUG: "1"
       DRY_RUN: "0"
       GH_RELEASE_DRAFT: "false"
+      GH_REPOSITORY: "pixelfederation/swoole-bundle"
     steps:
       - checkout
       - run:
