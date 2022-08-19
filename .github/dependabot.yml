@@ -9,6 +9,7 @@ updates:
     directory: "/"
     schedule:
       interval: "daily"
+    target-branch: "develop"
     ignore:
       - dependency-name: "*"
         update-types: [ "version-update:semver-major" ]
