@@ -1,3 +1,12 @@
+## [0.13.1](https://github.com/pixelfederation/swoole-bundle/compare/v0.13.0...v0.13.1) (2022-08-19)
+
+[Full changelog](https://github.com/pixelfederation/swoole-bundle/compare/v0.13.0...v0.13.1)
+
+### Bug Fixes
+
+* **ci:** added github repository to circle ci as parameter to be able to use unified releaser script ([71a5280](https://github.com/pixelfederation/swoole-bundle/commit/71a528096ed9452f588e54a931c951c5172a274c))
+* **dependabot:** target branch changed to develop ([920efa4](https://github.com/pixelfederation/swoole-bundle/commit/920efa41fe3253b65fcca294a4527569339af335))
+
 # [0.13.0](https://github.com/pixelfederation/swoole-bundle/compare/v0.12.0...v0.13.0) (2022-08-16)
 
 [Full changelog](https://github.com/pixelfederation/swoole-bundle/compare/v0.12.0...v0.13.0)
