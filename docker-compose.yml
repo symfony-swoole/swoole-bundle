@@ -28,6 +28,7 @@ services:
 
   cli:
     image: "${REGISTRY:-docker.io}/${NAMESPACE:-pixelfederation}/${IMAGE:-swoole-bundle}-cli:${TAG:-local}"
+    container_name: swoole-bundle-cli
     build:
       context: .
       target: cli

@@ -1,0 +1,13 @@
+sync:
+  defaults:
+    ignore:
+      vcs: true
+      paths:
+        - .DS_Store # macOS files
+        - .idea
+    permissions:
+      defaultFileMode: 644
+      defaultDirectoryMode: 755
+  swoolebundle:
+    alpha: "."
+    beta: "docker://app@swoole-bundle-cli/usr/src/app"
