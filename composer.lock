@@ -6348,16 +6348,16 @@
         },
         {
             "name": "swoole/ide-helper",
-            "version": "4.8.8",
+            "version": "4.8.11",
             "source": {
                 "type": "git",
                 "url": "https://github.com/swoole/ide-helper.git",
-                "reference": "dd87843a5040831f9ad40b68fb57879b7342ef61"
+                "reference": "edcf955501271b1fd5d77efef31027b1e08f4a85"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/swoole/ide-helper/zipball/dd87843a5040831f9ad40b68fb57879b7342ef61",
-                "reference": "dd87843a5040831f9ad40b68fb57879b7342ef61",
+                "url": "https://api.github.com/repos/swoole/ide-helper/zipball/edcf955501271b1fd5d77efef31027b1e08f4a85",
+                "reference": "edcf955501271b1fd5d77efef31027b1e08f4a85",
                 "shasum": ""
             },
             "type": "library",
@@ -6374,7 +6374,7 @@
             "description": "IDE help files for Swoole.",
             "support": {
                 "issues": "https://github.com/swoole/ide-helper/issues",
-                "source": "https://github.com/swoole/ide-helper/tree/4.8.8"
+                "source": "https://github.com/swoole/ide-helper/tree/4.8.11"
             },
             "funding": [
                 {
@@ -6386,7 +6386,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2022-03-17T18:24:39+00:00"
+            "time": "2022-07-09T06:20:31+00:00"
         },
         {
             "name": "symfony/amqp-messenger",
