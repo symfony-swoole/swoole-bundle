@@ -45,6 +45,7 @@ final class RequestProfiler
         $referenceId = $this->dataProvider->getReferenceId($request);
 
         Profiler::start(['service' => $this->serviceName, 'developer_session' => $developerSession]);
+        Profiler::markAsWebTransaction();
         Profiler::setCustomVariable('http.host', $request->getHttpHost());
         Profiler::setCustomVariable('http.method', $request->getMethod());
         Profiler::setCustomVariable('http.url', $request->getPathInfo());

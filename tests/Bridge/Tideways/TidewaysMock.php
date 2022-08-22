@@ -158,6 +158,10 @@ namespace Tideways {
         public static function markPageCacheMiss(): void
         {
         }
+
+        public static function markAsWebTransaction(): void
+        {
+        }
     }
 }
 
