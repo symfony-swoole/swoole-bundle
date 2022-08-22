@@ -6,7 +6,9 @@ namespace K911\Swoole\Bridge\Symfony\Bundle\Command;
 
 use K911\Swoole\Bridge\Symfony\Bundle\Exception\CouldNotCreatePidFileException;
 use K911\Swoole\Bridge\Symfony\Bundle\Exception\PidFileNotAccessibleException;
+
 use function K911\Swoole\get_object_property;
+
 use K911\Swoole\Server\HttpServer;
 use K911\Swoole\Server\HttpServerConfiguration;
 use Symfony\Component\Console\Input\InputInterface;

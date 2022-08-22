@@ -36,8 +36,7 @@ return $config->setRules([
         'multiline_whitespace_before_semicolons' => ['strategy' => 'new_line_for_chained_calls'],
         'no_blank_lines_after_class_opening' => true,
         'blank_line_before_statement' => true,
-        'class_reference_name_casing' => false,
-        'blank_line_between_import_groups' => false,
+        'class_reference_name_casing' => false
     ])
     ->setRiskyAllowed(false)
     ->setFinder($finder);
