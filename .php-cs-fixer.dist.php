@@ -37,6 +37,7 @@ return $config->setRules([
         'no_blank_lines_after_class_opening' => true,
         'blank_line_before_statement' => true,
         'class_reference_name_casing' => false,
+        'blank_line_between_import_groups' => false,
     ])
     ->setRiskyAllowed(false)
     ->setFinder($finder);
