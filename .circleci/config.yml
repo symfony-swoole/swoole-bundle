@@ -129,11 +129,6 @@ jobs:
     docker:
       - image: docker.io/pixelfederation/swoole-bundle-composer:7.4-std-$CIRCLE_SHA1
 
-  swoole-bundle-composer-74-lowest-code-style:
-    <<: *job-composer-code-style-lowest
-    docker:
-      - image: docker.io/pixelfederation/swoole-bundle-composer:7.4-lowest-$CIRCLE_SHA1
-
   swoole-bundle-composer-74-unit-tests:
     <<: *job-composer-unit-tests
     docker:
@@ -382,9 +377,6 @@ workflows:
           context: swoole-bundle-dockerhub
           requires:
             - docker-buildx-bake-74
-      - swoole-bundle-composer-74-lowest-code-style:
-          requires:
-            - docker-buildx-bake-74-lowest
       - swoole-bundle-composer-74-lowest-unit-tests:
           requires:
             - docker-buildx-bake-74-lowest
@@ -448,9 +440,6 @@ workflows:
           context: swoole-bundle-dockerhub
           requires:
             - docker-buildx-bake-74
-      - swoole-bundle-composer-74-lowest-code-style:
-          requires:
-            - docker-buildx-bake-74-lowest
       - swoole-bundle-composer-74-lowest-unit-tests:
           requires:
             - docker-buildx-bake-74-lowest
@@ -505,9 +494,6 @@ workflows:
           context: swoole-bundle-dockerhub
           requires:
             - docker-buildx-bake-74
-      - swoole-bundle-composer-74-lowest-code-style:
-          requires:
-            - docker-buildx-bake-74-lowest
       - swoole-bundle-composer-74-lowest-unit-tests:
           requires:
             - docker-buildx-bake-74-lowest
@@ -544,7 +530,6 @@ workflows:
             - swoole-bundle-74-code-coverage
             - swoole-bundle-composer-74-lowest-feature-tests
             - swoole-bundle-composer-74-lowest-unit-tests
-            - swoole-bundle-composer-74-lowest-code-style
             - swoole-bundle-composer-74-unit-tests
             - swoole-bundle-composer-74-code-style
             - swoole-bundle-composer-80-latest-unit-tests
