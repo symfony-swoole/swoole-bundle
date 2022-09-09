@@ -76,6 +76,7 @@ final class SwooleSessionStorage implements SessionStorageInterface
      * {@inheritdoc}
      *
      * @throws \Exception
+     *
      * @SuppressWarnings(PHPMD.BooleanArgumentFlag)
      */
     public function regenerate(bool $destroy = false, int $lifetime = null): bool
