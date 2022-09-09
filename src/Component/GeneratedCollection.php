@@ -9,6 +9,7 @@ use IteratorAggregate;
 
 /**
  * @template T
+ *
  * @implements IteratorAggregate<T>
  */
 final class GeneratedCollection implements IteratorAggregate

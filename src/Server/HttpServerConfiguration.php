@@ -10,6 +10,7 @@ use K911\Swoole\Server\Config\Sockets;
 
 /**
  * @todo Create interface and split this class
+ *
  * @final
  */
 class HttpServerConfiguration

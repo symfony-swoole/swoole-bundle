@@ -11,8 +11,6 @@ final class UnsupportedContentTypeException extends \InvalidArgumentException
 {
     /**
      * @param string[] $allowed
-     *
-     * @return UnsupportedContentTypeException
      */
     public static function forContentType(string $contentType, array $allowed): self
     {

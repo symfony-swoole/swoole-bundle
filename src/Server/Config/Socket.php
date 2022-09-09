@@ -57,8 +57,6 @@ final class Socket
 
     /**
      * @throws \Assert\AssertionFailedException
-     *
-     * @return Socket
      */
     public static function fromAddressPort(string $addressPort = '127.0.0.1:9501', string $socketType = 'tcp', bool $enableSsl = false): self
     {

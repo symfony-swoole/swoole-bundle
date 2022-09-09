@@ -11,8 +11,6 @@ final class UnsupportedHttpMethodException extends \InvalidArgumentException
 {
     /**
      * @param string[] $allowed
-     *
-     * @return UnsupportedHttpMethodException
      */
     public static function forMethod(string $method, array $allowed): self
     {
