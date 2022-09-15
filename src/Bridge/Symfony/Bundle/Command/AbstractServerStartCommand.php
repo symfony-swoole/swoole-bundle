@@ -99,6 +99,7 @@ abstract class AbstractServerStartCommand extends Command
         $io = new SymfonyStyle($input, $output);
 
         $this->ensureXdebugDisabled($io);
+        $this->overrideDefaultSignalHandlers();
         $this->prepareServerConfiguration($this->serverConfiguration, $input);
 
         if ($this->server->isRunning()) {
@@ -314,5 +315,15 @@ abstract class AbstractServerStartCommand extends Command
         }
 
         return $set;
+    }
+
+    private function overrideDefaultSignalHandlers(): void
+    {
+        $signalRegistry = $this->getApplication()->getSignalRegistry();
+
+        foreach ([\SIGINT, \SIGTERM] as $signal) {
+            // add next handler so the default exit call won't be called
+            $signalRegistry->register($signal, function ($signal, $hasNext) {});
+        }
     }
 }
