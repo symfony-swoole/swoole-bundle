@@ -16,7 +16,7 @@ final class SymfonyProfilerTest extends ServerTestCase
         $this->markTestSkippedIfXdebugEnabled();
     }
 
-    public function testAdvancedStaticFilesServerWithAutoRegistration(): void
+    public function testProfilerIsEnabled(): void
     {
         $serverRun = $this->createConsoleProcess([
             'swoole:server:run',

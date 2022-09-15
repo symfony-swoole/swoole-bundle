@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace K911\Swoole\Bridge\Symfony\HttpFoundation\Session;
 
-use K911\Swoole\Bridge\Symfony\Event\SessionResetEvent;
+use K911\Swoole\Bridge\Symfony\Event\RequestWithSessionFinishedEvent;
 use K911\Swoole\Server\Session\StorageInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
@@ -51,8 +51,8 @@ final class SessionCookieEventListener implements EventSubscriberInterface
 
         if ($this->session()->isStarted()) {
             $this->dispatcher->dispatch(
-                new SessionResetEvent($this->session()->getId()),
-                SessionResetEvent::NAME
+                new RequestWithSessionFinishedEvent($this->session()->getId()),
+                RequestWithSessionFinishedEvent::NAME
             );
         }
 

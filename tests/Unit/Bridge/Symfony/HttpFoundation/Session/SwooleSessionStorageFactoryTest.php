@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace K911\Swoole\Tests\Unit\Bridge\Symfony\HttpFoundation\Session;
 
-use K911\Swoole\Bridge\Symfony\Event\SessionResetEvent;
+use K911\Swoole\Bridge\Symfony\Event\RequestWithSessionFinishedEvent;
 use K911\Swoole\Bridge\Symfony\HttpFoundation\Session\SwooleSessionStorage;
 use K911\Swoole\Bridge\Symfony\HttpFoundation\Session\SwooleSessionStorageFactory;
 use K911\Swoole\Server\Session\StorageInterface;
@@ -43,7 +43,7 @@ final class SwooleSessionStorageFactoryTest extends TestCase
         $dispatcher = $this->prophesize(EventDispatcherInterface::class);
 
         $dispatcher->addListener()
-            ->withArguments([SessionResetEvent::NAME, Argument::type('closure')])
+            ->withArguments([RequestWithSessionFinishedEvent::NAME, Argument::type('closure')])
             ->shouldBeCalled()
         ;
 

@@ -6,9 +6,9 @@ namespace K911\Swoole\Bridge\Symfony\Event;
 
 use Symfony\Contracts\EventDispatcher\Event;
 
-final class SessionResetEvent extends Event
+final class RequestWithSessionFinishedEvent extends Event
 {
-    public const NAME = 'SWOOLE.SESSION.STORAGE_RESET';
+    public const NAME = 'swoole_bundle.request.with.session.finished';
 
     private string $sessionId;
 

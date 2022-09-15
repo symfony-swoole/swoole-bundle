@@ -82,11 +82,17 @@ services:
 
     K911\Swoole\Server\HttpServer:
 
-    K911\Swoole\Server\WorkerHandler\WorkerStartHandlerInterface:
-        class: K911\Swoole\Server\WorkerHandler\NoOpWorkerStartHandler
+    K911\Swoole\Server\WorkerHandler\WorkerStartHandlerInterface: '@K911\Swoole\Bridge\Symfony\Bundle\EventDispatcher\EventDispatchingWorkerStartHandler'
 
-    K911\Swoole\Server\LifecycleHandler\ServerStartHandlerInterface:
-        class: K911\Swoole\Server\LifecycleHandler\NoOpServerStartHandler
+    K911\Swoole\Server\LifecycleHandler\ServerStartHandlerInterface: '@K911\Swoole\Bridge\Symfony\Bundle\EventDispatcher\EventDispatchingServerStartHandler'
+
+    K911\Swoole\Bridge\Symfony\Bundle\EventDispatcher\EventDispatchingWorkerStartHandler:
+        arguments:
+            $eventDispatcher: '@event_dispatcher'
+
+    K911\Swoole\Bridge\Symfony\Bundle\EventDispatcher\EventDispatchingServerStartHandler:
+        arguments:
+            $eventDispatcher: '@event_dispatcher'
 
     K911\Swoole\Server\LifecycleHandler\ServerShutdownHandlerInterface:
         class: K911\Swoole\Server\LifecycleHandler\NoOpServerShutdownHandler
