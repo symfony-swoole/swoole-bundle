@@ -22,6 +22,7 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\SignalRegistry\SignalRegistry;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 
@@ -319,6 +320,10 @@ abstract class AbstractServerStartCommand extends Command
 
     private function overrideDefaultSignalHandlers(): void
     {
+        if (!SignalRegistry::isSupported()) {
+            return;
+        }
+
         $signalRegistry = $this->getApplication()->getSignalRegistry();
 
         foreach ([\SIGINT, \SIGTERM] as $signal) {

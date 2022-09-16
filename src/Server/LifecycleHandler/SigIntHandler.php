@@ -24,7 +24,10 @@ final class SigIntHandler implements ServerStartHandlerInterface
     public function handle(Server $server): void
     {
         // 2 => SIGINT
-        Process::signal($this->signalInterrupt, [$server, 'shutdown']);
+        Process::signal($this->signalInterrupt, function () use ($server) {
+            $server->stop();
+            $server->shutdown();
+        });
 
         if ($this->decorated instanceof ServerStartHandlerInterface) {
             $this->decorated->handle($server);
