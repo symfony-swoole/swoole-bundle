@@ -8,6 +8,7 @@ use function K911\Swoole\decode_string_as_set;
 
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
+use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\Config\Definition\Exception\InvalidTypeException;
 
 final class Configuration implements ConfigurationInterface
@@ -151,38 +152,6 @@ final class Configuration implements ConfigurationInterface
                                 ->end() // end mime types
                             ->end()
                         ->end() // end static
-                        ->arrayNode('coroutines_support')
-                            ->addDefaultsIfNotSet()
-                            ->children()
-                                ->booleanNode('enabled')
-                                    ->defaultFalse()
-                                ->end()
-                                ->arrayNode('stateful_services')
-                                    ->scalarPrototype()
-                                        ->beforeNormalization()
-                                            ->ifString()
-                                            ->then(fn (string $v): string => trim($v))
-                                        ->end()
-                                    ->end()
-                                ->end()
-                                ->arrayNode('compile_processors')
-                                    ->arrayPrototype()
-                                        ->beforeNormalization()
-                                            ->ifString()
-                                            ->then(fn (string $v): array => ['class' => $v])
-                                        ->end()
-                                        ->children()
-                                            ->scalarNode('class')
-                                                ->cannotBeEmpty()
-                                            ->end()
-                                            ->integerNode('priority')
-                                                ->defaultValue(0)
-                                            ->end()
-                                        ->end()
-                                    ->end()
-                                ->end()
-                            ->end()
-                        ->end() // end coroutines_support
                         ->arrayNode('exception_handler')
                             ->addDefaultsIfNotSet()
                             ->beforeNormalization()
@@ -281,9 +250,6 @@ final class Configuration implements ConfigurationInterface
                                 ->scalarNode('reactor_count')
                                     ->defaultValue(1)
                                 ->end()
-                                ->scalarNode('task_worker_count')
-                                    ->defaultNull()
-                                ->end()
                                 ->scalarNode('worker_max_request')
                                     ->defaultValue(0)
                                 ->end()
@@ -294,6 +260,79 @@ final class Configuration implements ConfigurationInterface
                         ->end() // settings
                     ->end()
                 ->end() // server
+                ->arrayNode('task_worker')
+                    ->children()
+                        ->arrayNode('services')
+                            ->addDefaultsIfNotSet()
+                            ->children()
+                                ->booleanNode('reset_handler')
+                                    ->defaultTrue()
+                                    ->treatNullLike(false)
+                                ->end()
+                            ->end()
+                        ->end()
+                        ->arrayNode('settings')
+                            ->addDefaultsIfNotSet()
+                            ->children()
+                                ->scalarNode('worker_count')
+                                    ->defaultNull()
+                                ->end()
+                            ->end()
+                        ->end()
+                    ->end()
+                ->end() // task_worker
+                ->arrayNode('platform')
+                    ->children()
+                        ->arrayNode('coroutines')
+                            ->addDefaultsIfNotSet()
+                            ->children()
+                                ->booleanNode('enabled')
+                                    ->defaultFalse()
+                                ->end()
+                                ->scalarNode('max_coroutines')
+                                    ->defaultNull()
+                                    ->validate()
+                                        ->always(function (?int $max): ?int {
+                                            if (null === $max) {
+                                                return $max;
+                                            }
+
+                                            if ($max < 1 || $max > 100000) {
+                                                throw new InvalidConfigurationException(sprintf('Max coroutines has invalid value: %d.', $max));
+                                            }
+
+                                            return $max;
+                                        })
+                                    ->end()
+                                ->end()
+                                ->arrayNode('stateful_services')
+                                    ->scalarPrototype()
+                                    ->beforeNormalization()
+                                        ->ifString()
+                                            ->then(fn (string $v): string => trim($v))
+                                        ->end()
+                                    ->end()
+                                ->end()
+                                ->arrayNode('compile_processors')
+                                    ->arrayPrototype()
+                                        ->beforeNormalization()
+                                            ->ifString()
+                                                ->then(fn (string $v): array => ['class' => $v])
+                                            ->end()
+                                        ->children()
+                                            ->scalarNode('class')
+                                                ->cannotBeEmpty()
+                                            ->end()
+                                            ->integerNode('priority')
+                                                ->defaultValue(0)
+                                            ->end()
+                                        ->end()
+                                    ->end()
+                                ->end()
+                            ->end()
+                        ->end() // end coroutines
+                    ->end()
+                ->end() // platform
             ->end()
         ;
 

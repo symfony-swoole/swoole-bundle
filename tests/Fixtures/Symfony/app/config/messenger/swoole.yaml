@@ -1,25 +1,25 @@
 framework:
-    messenger:
-        enabled: true
-        transports:
-            swoole: swoole://task
-        routing:
-            'K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Message\CreateFileMessage': swoole
+  messenger:
+    enabled: true
+    transports:
+      swoole: swoole://task
+    routing:
+      'K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Message\CreateFileMessage': swoole
 swoole:
-    http_server:
-        settings:
-            task_worker_count: auto
+  task_worker:
+    settings:
+      worker_count: auto
 
 services:
-    _defaults:
-        autowire: true
-        autoconfigure: true
-        public: false
+  _defaults:
+    autowire: true
+    autoconfigure: true
+    public: false
 
-    'K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Controller\TaskController':
-        tags:
-            - controller.service_arguments
+  'K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Controller\TaskController':
+    tags:
+      - controller.service_arguments
 
-    'K911\Swoole\Tests\Fixtures\Symfony\TestBundle\MessageHandler\CreateFileMessageHandler':
-        tags:
-            - messenger.message_handler
+  'K911\Swoole\Tests\Fixtures\Symfony\TestBundle\MessageHandler\CreateFileMessageHandler':
+    tags:
+      - messenger.message_handler

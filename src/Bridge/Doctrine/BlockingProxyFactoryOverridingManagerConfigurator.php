@@ -7,15 +7,12 @@ namespace K911\Swoole\Bridge\Doctrine;
 use Doctrine\Bundle\DoctrineBundle\ManagerConfigurator;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
-use ReflectionClass;
-use ReflectionProperty;
-use UnexpectedValueException;
 
 final class BlockingProxyFactoryOverridingManagerConfigurator
 {
     private ManagerConfigurator $wrapped;
 
-    private static ?ReflectionProperty $emProxyFactoryPropRefl = null;
+    private static ?\ReflectionProperty $emProxyFactoryPropRefl = null;
 
     public function __construct(ManagerConfigurator $wrapped)
     {
@@ -25,7 +22,7 @@ final class BlockingProxyFactoryOverridingManagerConfigurator
     public function configure(EntityManagerInterface $entityManager): void
     {
         if (!$entityManager instanceof EntityManager) {
-            throw new UnexpectedValueException(sprintf('%s needed, got %s.', EntityManager::class, get_class($entityManager)));
+            throw new \UnexpectedValueException(sprintf('%s needed, got %s.', EntityManager::class, get_class($entityManager)));
         }
 
         $this->replaceProxyFactory($entityManager);
@@ -39,10 +36,10 @@ final class BlockingProxyFactoryOverridingManagerConfigurator
         $proxyFactoryProp->setValue($entityManager, $proxyFactory);
     }
 
-    private function getEmProxyFactoryReflectionProperty(): ReflectionProperty
+    private function getEmProxyFactoryReflectionProperty(): \ReflectionProperty
     {
         if (null === self::$emProxyFactoryPropRefl) {
-            $emReflClass = new ReflectionClass(EntityManager::class);
+            $emReflClass = new \ReflectionClass(EntityManager::class);
             self::$emProxyFactoryPropRefl = $emReflClass->getProperty('proxyFactory');
             self::$emProxyFactoryPropRefl->setAccessible(true);
         }

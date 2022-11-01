@@ -21,15 +21,15 @@ final class SwooleServerTaskTransportHandler implements TaskHandlerInterface
         $this->decorated = $decorated;
     }
 
-    public function handle(Server $server, int $taskId, int $fromId, $data): void
+    public function handle(Server $server, Server\Task $task): void
     {
-        Assertion::isInstanceOf($data, Envelope::class);
+        Assertion::isInstanceOf($task->data, Envelope::class);
         /* @var $data Envelope */
-
+        $data = $task->data;
         $this->bus->dispatch($data);
 
         if ($this->decorated instanceof TaskHandlerInterface) {
-            $this->decorated->handle($server, $taskId, $fromId, $data);
+            $this->decorated->handle($server, $task);
         }
     }
 }

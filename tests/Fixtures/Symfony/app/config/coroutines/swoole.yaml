@@ -1,13 +1,38 @@
 parameters:
-    env(WORKER_COUNT): 1
-    env(REACTOR_COUNT): 1
+  env(WORKER_COUNT): 1
+  env(TASK_WORKER_COUNT): 1
+  env(REACTOR_COUNT): 1
 
 swoole:
-    http_server:
-        coroutines_support:
-            enabled: true
-            stateful_services:
-                - K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Service\ShouldBeProxified
-            compile_processors:
-                -   class: K911\Swoole\Tests\Fixtures\Symfony\TestBundle\DependencyInjection\CompilerPass\SleepingCounterCompileProcessor
-                    priority: 10
+  task_worker:
+    settings:
+      worker_count: '%env(int:TASK_WORKER_COUNT)%'
+    services:
+      reset_handler: true # default is true anyway
+  platform:
+    coroutines:
+      enabled: true
+      max_coroutines: 100
+      stateful_services:
+        - K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Service\ShouldBeProxified
+      compile_processors:
+        - class: K911\Swoole\Tests\Fixtures\Symfony\TestBundle\DependencyInjection\CompilerPass\SleepingCounterCompileProcessor
+          priority: 10
+
+services:
+  _defaults:
+    autowire: true
+    autoconfigure: true
+    public: false
+
+  K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Controller\CoroutinesTaskController:
+    tags:
+      - controller.service_arguments
+
+  K911\Swoole\Tests\Fixtures\Symfony\TestBundle\MessageHandler\SleepAndAppendHandler:
+    tags:
+      - messenger.message_handler
+
+  K911\Swoole\Tests\Fixtures\Symfony\TestBundle\MessageHandler\RunDummyHandler:
+    tags:
+      - messenger.message_handler

@@ -8,8 +8,5 @@ use Swoole\Server;
 
 interface TaskHandlerInterface
 {
-    /**
-     * @param mixed $data
-     */
-    public function handle(Server $server, int $taskId, int $fromId, $data): void;
+    public function handle(Server $server, Server\Task $task): void;
 }

@@ -12,7 +12,6 @@ use ProxyManager\Factory\AccessInterceptorValueHolderFactory;
 use ProxyManager\Proxy\AccessInterceptorInterface;
 use ProxyManager\Proxy\AccessInterceptorValueHolderInterface;
 use ProxyManager\Proxy\ValueHolderInterface;
-use RuntimeException;
 
 final class UnmanagedFactoryInstantiator
 {
@@ -69,12 +68,12 @@ final class UnmanagedFactoryInstantiator
         $instantiator = $this->instantiator;
 
         if (empty($factoryMethods)) {
-            throw new RuntimeException(sprintf('Factory methods missing for class %s', get_class($instance)));
+            throw new \RuntimeException(sprintf('Factory methods missing for class %s', get_class($instance)));
         }
 
         foreach ($factoryMethods as $factoryMethod) {
             if (!method_exists($instance, $factoryMethod)) {
-                throw new RuntimeException(sprintf('Missing method %s in class %s', $factoryMethod, get_class($instance)));
+                throw new \RuntimeException(sprintf('Missing method %s in class %s', $factoryMethod, get_class($instance)));
             }
 
             $lockingKey = sprintf('%s::%s', get_class($instance), $factoryMethod);

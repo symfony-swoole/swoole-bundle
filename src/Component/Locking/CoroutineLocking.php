@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace K911\Swoole\Component\Locking;
 
-use Co;
-
 final class CoroutineLocking implements Locking
 {
     private Store $store;
@@ -17,7 +15,7 @@ final class CoroutineLocking implements Locking
 
     public function acquire(string $key): Lock
     {
-        $cid = Co::getCid();
+        $cid = \Co::getCid();
 
         // wait 0.01 ms if the container is already resolving the requested service
         // coroutine hook for usleep should switch context to other coroutine, while waiting

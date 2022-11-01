@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace K911\Swoole\Bridge\Symfony\Container\ServicePool;
 
-use Co;
 use K911\Swoole\Bridge\Symfony\Container\StabilityChecker;
 use Symfony\Component\DependencyInjection\Container;
 
@@ -78,7 +77,7 @@ final class DiServicePool implements ServicePool
 
     private function getCoroutineId(): int
     {
-        return Co::getCid();
+        return \Co::getCid();
     }
 
     private function isServiceStable(object $service): bool

@@ -1,4 +1,13 @@
 framework:
-    cache:
-        app: cache.adapter.array
-        system: cache.adapter.array
+  cache:
+    app: cache.adapter.array
+    system: cache.adapter.array
+
+  messenger:
+    enabled: true
+    reset_on_message: true # do not forget this or an equivalent! :)
+    transports:
+      swoole: swoole://task
+    routing:
+      'K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Message\SleepAndAppend': swoole
+      'K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Message\RunDummy': swoole

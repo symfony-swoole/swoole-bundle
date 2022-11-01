@@ -4,17 +4,13 @@ declare(strict_types=1);
 
 namespace K911\Swoole\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices;
 
-use ArrayIterator;
 use IteratorAggregate;
 use K911\Swoole\Bridge\Symfony\Bundle\DependencyInjection\ContainerConstants;
-use RuntimeException;
-use Traversable;
-use UnexpectedValueException;
 
 /**
  * @template-implements IteratorAggregate<string, array<array<string, mixed>>>
  */
-final class Tags implements IteratorAggregate
+final class Tags implements \IteratorAggregate
 {
     /**
      * @var class-string
@@ -74,18 +70,18 @@ final class Tags implements IteratorAggregate
         $ufTags = $this->findUnmanagedFactoryTags();
 
         if (null === $ufTags) {
-            throw new RuntimeException(sprintf('No unmanaged factory tags exist for class %s', $this->serviceClass));
+            throw new \RuntimeException(sprintf('No unmanaged factory tags exist for class %s', $this->serviceClass));
         }
 
         return $ufTags;
     }
 
     /**
-     * @return Traversable<string, array<array<string, mixed>>>
+     * @return \Traversable<string, array<array<string, mixed>>>
      */
-    public function getIterator(): Traversable
+    public function getIterator(): \Traversable
     {
-        return new ArrayIterator($this->tags);
+        return new \ArrayIterator($this->tags);
     }
 
     /**
@@ -104,7 +100,7 @@ final class Tags implements IteratorAggregate
         $found = $this->findByName($name);
 
         if (empty($found)) {
-            throw new UnexpectedValueException(sprintf('Found 0 tags of name %s, at least 1 was expected.', $name));
+            throw new \UnexpectedValueException(sprintf('Found 0 tags of name %s, at least 1 was expected.', $name));
         }
 
         return $found;

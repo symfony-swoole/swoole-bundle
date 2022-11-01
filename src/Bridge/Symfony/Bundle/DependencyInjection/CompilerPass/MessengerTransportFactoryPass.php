@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace K911\Swoole\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass;
 
+use K911\Swoole\Bridge\Symfony\Bundle\DependencyInjection\ContainerConstants;
+use K911\Swoole\Bridge\Symfony\Container\CoWrapper;
+use K911\Swoole\Bridge\Symfony\Messenger\ContextReleasingTransportHandler;
 use K911\Swoole\Bridge\Symfony\Messenger\SwooleServerTaskTransportFactory;
 use K911\Swoole\Bridge\Symfony\Messenger\SwooleServerTaskTransportHandler;
 use K911\Swoole\Server\HttpServer;
@@ -32,5 +35,16 @@ final class MessengerTransportFactoryPass implements CompilerPassInterface
         $transportHandler->setArgument('$decorated', new Reference(SwooleServerTaskTransportHandler::class.'.inner'));
         $transportHandler->setDecoratedService(TaskHandlerInterface::class, null, -10);
         $container->setDefinition(SwooleServerTaskTransportHandler::class, $transportHandler);
+
+        if (false === (bool) $container->getParameter(ContainerConstants::PARAM_COROUTINES_ENABLED)) {
+            return;
+        }
+
+        $svcResettingHandler = new Definition(ContextReleasingTransportHandler::class);
+        $svcResettingHandler->setArgument('$decorated', new Reference(ContextReleasingTransportHandler::class.'.inner'));
+        $svcResettingHandler->setArgument('$coWrapper', new Reference(CoWrapper::class));
+        // this decorator has to be on top, so it can reset coroutine context after coroutine is finished
+        $svcResettingHandler->setDecoratedService(TaskHandlerInterface::class, null, -10000);
+        $container->setDefinition(ContextReleasingTransportHandler::class, $svcResettingHandler);
     }
 }

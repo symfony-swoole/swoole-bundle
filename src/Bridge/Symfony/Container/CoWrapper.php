@@ -9,12 +9,9 @@ use K911\Swoole\Bridge\Symfony\Container\ServicePool\ServicePoolContainer;
 
 final class CoWrapper
 {
-    private $servicePoolContainer;
+    private ServicePoolContainer $servicePoolContainer;
 
-    /**
-     * @var self
-     */
-    private static $instance;
+    private static ?self $instance;
 
     public function __construct(ServicePoolContainer $servicePoolContainer)
     {
@@ -24,8 +21,8 @@ final class CoWrapper
 
     public function defer(): void
     {
-        Co::defer(function (): void {
-            $this->servicePoolContainer->releaseForCoroutine(Co::getCid());
+        \Co::defer(function (): void {
+            $this->servicePoolContainer->releaseForCoroutine(\Co::getCid());
         });
     }
 
