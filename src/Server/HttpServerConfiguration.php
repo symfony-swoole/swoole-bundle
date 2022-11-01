@@ -29,6 +29,9 @@ class HttpServerConfiguration
     private const SWOOLE_HTTP_SERVER_CONFIG_WORKER_MAX_REQUEST = 'worker_max_request';
     private const SWOOLE_HTTP_SERVER_CONFIG_WORKER_MAX_REQUEST_GRACE = 'worker_max_request_grace';
     private const SWOOLE_HTTP_SERVER_CONFIG_ENABLE_COROUTINE = 'enable_coroutine';
+    private const SWOOLE_HTTP_SERVER_CONFIG_MAX_COROUTINE = 'max_coroutine';
+    private const SWOOLE_HTTP_SERVER_CONFIG_TASK_ENABLE_COROUTINE = 'task_enable_coroutine';
+    private const SWOOLE_HTTP_SERVER_CONFIG_TASK_USE_OBJECT = 'task_use_object';
     private const SWOOLE_HTTP_SERVER_CONFIG_COROUTINE_HOOK_FLAGS = 'hook_flags';
 
     /**
@@ -52,6 +55,9 @@ class HttpServerConfiguration
         self::SWOOLE_HTTP_SERVER_CONFIG_WORKER_MAX_REQUEST => 'max_request',
         self::SWOOLE_HTTP_SERVER_CONFIG_WORKER_MAX_REQUEST_GRACE => 'max_request_grace',
         self::SWOOLE_HTTP_SERVER_CONFIG_ENABLE_COROUTINE => 'enable_coroutine',
+        self::SWOOLE_HTTP_SERVER_CONFIG_TASK_ENABLE_COROUTINE => 'task_enable_coroutine',
+        self::SWOOLE_HTTP_SERVER_CONFIG_MAX_COROUTINE => 'max_coroutine',
+        self::SWOOLE_HTTP_SERVER_CONFIG_TASK_USE_OBJECT => 'task_use_object',
         self::SWOOLE_HTTP_SERVER_CONFIG_COROUTINE_HOOK_FLAGS => 'hook_flags',
     ];
 
@@ -93,6 +99,10 @@ class HttpServerConfiguration
      *                        - package_max_length (default: '8388608b' unit in byte (8MB))
      *                        - worker_max_requests: Number of requests after which the worker reloads
      *                        - worker_max_requests_grace: Max random number of requests for worker reloading
+     *                        - enable_coroutine: enable coroutines in web processes
+     *                        - task_enable_coroutine: enable coroutines in task workers
+     *                        - task_use_object: enable OOP style task API
+     *                        - hook_flags: coroutine hook flags
      *
      * @throws \Assert\AssertionFailedException
      */
@@ -102,13 +112,6 @@ class HttpServerConfiguration
 
         $this->changeRunningMode($runningMode);
         $this->initializeSettings($settings);
-    }
-
-    public function changeRunningMode(string $runningMode): void
-    {
-        Assertion::inArray($runningMode, ['process', 'reactor', 'thread']);
-
-        $this->runningMode = $runningMode;
     }
 
     public function isDaemon(): bool
@@ -326,6 +329,13 @@ class HttpServerConfiguration
         return $this->settings[self::SWOOLE_HTTP_SERVER_CONFIG_TASK_WORKER_COUNT] ?? 0;
     }
 
+    private function changeRunningMode(string $runningMode): void
+    {
+        Assertion::inArray($runningMode, ['process', 'reactor', 'thread']);
+
+        $this->runningMode = $runningMode;
+    }
+
     /**
      * @throws \Assert\AssertionFailedException
      */
@@ -382,6 +392,7 @@ class HttpServerConfiguration
 
                 break;
             case self::SWOOLE_HTTP_SERVER_CONFIG_DAEMONIZE:
+            case self::SWOOLE_HTTP_SERVER_CONFIG_TASK_USE_OBJECT:
                 Assertion::boolean($value);
 
                 break;
@@ -421,6 +432,7 @@ class HttpServerConfiguration
 
                 break;
             case self::SWOOLE_HTTP_SERVER_CONFIG_ENABLE_COROUTINE:
+            case self::SWOOLE_HTTP_SERVER_CONFIG_TASK_ENABLE_COROUTINE:
                 Assertion::boolean($value, sprintf('Setting "%s" must be a boolean.', $key));
 
                 break;
@@ -429,6 +441,18 @@ class HttpServerConfiguration
                 Assertion::greaterOrEqualThan($value, 0, sprintf('Setting "%s" must be a positive integer.', $key));
 
                 break;
+            case self::SWOOLE_HTTP_SERVER_CONFIG_MAX_COROUTINE:
+                Assertion::integer(
+                    $value,
+                    sprintf('Setting "%s" must be a positive integer lower or equal than 100000.', $key)
+                );
+                Assertion::between(
+                    $value,
+                    0,
+                    100000,
+                    sprintf('Setting "%s" must be a positive integer lower or equal than 100000.', $key)
+                );
+                // no break
             default:
                 return;
         }

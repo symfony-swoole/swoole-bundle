@@ -12,9 +12,10 @@ use K911\Swoole\Bridge\Symfony\ErrorHandler\ThrowableHandlerFactory;
 use K911\Swoole\Bridge\Symfony\HttpFoundation\CloudFrontRequestFactory;
 use K911\Swoole\Bridge\Symfony\HttpFoundation\RequestFactoryInterface;
 use K911\Swoole\Bridge\Symfony\HttpFoundation\TrustAllProxiesRequestHandler;
+use K911\Swoole\Bridge\Symfony\HttpKernel\ContextReleasingHttpKernelRequestHandler;
 use K911\Swoole\Bridge\Symfony\HttpKernel\CoroutineKernelPool;
 use K911\Swoole\Bridge\Symfony\HttpKernel\KernelPoolInterface;
-use K911\Swoole\Bridge\Symfony\HttpKernel\ServiceResettingHttpKernelRequestHandler;
+use K911\Swoole\Bridge\Symfony\Messenger\ServiceResettingTransportHandler;
 use K911\Swoole\Bridge\Tideways\Apm\Apm;
 use K911\Swoole\Bridge\Tideways\Apm\RequestDataProvider;
 use K911\Swoole\Bridge\Tideways\Apm\RequestProfiler;
@@ -34,6 +35,7 @@ use K911\Swoole\Server\RequestHandler\RequestHandlerInterface;
 use K911\Swoole\Server\Runtime\BootableInterface;
 use K911\Swoole\Server\Runtime\HMR\HotModuleReloaderInterface;
 use K911\Swoole\Server\Runtime\HMR\InotifyHMR;
+use K911\Swoole\Server\TaskHandler\TaskHandlerInterface;
 use K911\Swoole\Server\WorkerHandler\HMRWorkerStartHandler;
 use K911\Swoole\Server\WorkerHandler\WorkerStartHandlerInterface;
 use Symfony\Component\Config\FileLocator;
@@ -78,7 +80,12 @@ final class SwooleExtension extends Extension implements PrependExtensionInterfa
 
         $config = $this->processConfiguration($configuration, $configs);
 
-        $this->registerHttpServer($config['http_server'], $container);
+        $runningMode = $config['http_server']['running_mode'];
+        $swooleSettings = isset($config['platform']) ? $this->configurePlatform($config['platform'], $container) : [];
+        $swooleSettings += $this->configureHttpServer($config['http_server'], $container);
+        $swooleSettings += isset($config['task_worker']) ?
+            $this->configureTaskWorker($config['task_worker'], $container) : [];
+        $this->assignSwooleConfiguration($swooleSettings, $runningMode, $container);
     }
 
     /**
@@ -97,23 +104,65 @@ final class SwooleExtension extends Extension implements PrependExtensionInterfa
         return Configuration::fromTreeBuilder();
     }
 
+    private function configurePlatform(array $config, ContainerBuilder $container): array
+    {
+        $swooleSettings = [];
+        $coroutineSettings = $config['coroutines'];
+
+        if (!$coroutineSettings['enabled']) {
+            return $swooleSettings;
+        }
+
+        if (!class_exists(Core::class)) {
+            throw new \RuntimeException('Please install lisachenko/z-engine to use coroutines');
+        }
+
+        $swooleSettings['hook_flags'] = \SWOOLE_HOOK_ALL;
+
+        if (isset($config['max_coroutines'])) {
+            $swooleSettings['max_coroutine'] = $config['max_coroutines'];
+        }
+
+        $container->setParameter(ContainerConstants::PARAM_COROUTINES_ENABLED, true);
+
+        if (isset($coroutineSettings['stateful_services']) && is_array($coroutineSettings['stateful_services'])) {
+            $container->setParameter(
+                ContainerConstants::PARAM_COROUTINES_STATEFUL_SERVICES,
+                $coroutineSettings['stateful_services']
+            );
+        }
+
+        if (isset($coroutineSettings['compile_processors']) && is_array($coroutineSettings['compile_processors'])) {
+            $container->setParameter(
+                ContainerConstants::PARAM_COROUTINES_COMPILE_PROCESSORS,
+                $coroutineSettings['compile_processors']
+            );
+        }
+
+        $container->registerForAutoconfiguration(StabilityChecker::class)
+            ->addTag(ContainerConstants::TAG_STABILITY_CHECKER)
+        ;
+
+        return $swooleSettings;
+    }
+
     /**
      * @throws \Symfony\Component\DependencyInjection\Exception\ServiceNotFoundException
      */
-    private function registerHttpServer(array $config, ContainerBuilder $container): void
+    private function configureHttpServer(array $config, ContainerBuilder $container): array
     {
-        $this->registerHttpServerServices($config['services'], $container);
-        $this->registerExceptionHandler($config['exception_handler'], $container);
+        $this->configureHttpServerServices($config['services'], $container);
+        $this->configureExceptionHandler($config['exception_handler'], $container);
 
         $container->setParameter('swoole.http_server.trusted_proxies', $config['trusted_proxies']);
         $container->setParameter('swoole.http_server.trusted_hosts', $config['trusted_hosts']);
         $container->setParameter('swoole.http_server.api.host', $config['api']['host']);
         $container->setParameter('swoole.http_server.api.port', $config['api']['port']);
 
-        $this->registerHttpServerConfiguration($config, $container);
+        return $this->prepareHttpServerConfiguration($config, $container);
     }
 
-    private function registerExceptionHandler(array $config, ContainerBuilder $container): void
+    private function configureExceptionHandler(array $config, ContainerBuilder $container): void
     {
         [
             'handler_id' => $handlerId,
@@ -131,7 +180,7 @@ final class SwooleExtension extends Extension implements PrependExtensionInterfa
 
                 break;
             case 'symfony':
-                $this->registerSymfonyExceptionHandler($container);
+                $this->configureSymfonyExceptionHandler($container);
                 $class = SymfonyExceptionHandler::class;
 
                 break;
@@ -162,7 +211,7 @@ final class SwooleExtension extends Extension implements PrependExtensionInterfa
         ;
     }
 
-    private function registerHttpServerConfiguration(array $config, ContainerBuilder $container): void
+    private function prepareHttpServerConfiguration(array $config, ContainerBuilder $container): array
     {
         [
             'static' => $static,
@@ -170,8 +219,6 @@ final class SwooleExtension extends Extension implements PrependExtensionInterfa
             'hmr' => $hmr,
             'host' => $host,
             'port' => $port,
-            'running_mode' => $runningMode,
-            'coroutines_support' => $coroutineSettings,
             'socket_type' => $socketType,
             'ssl_enabled' => $sslEnabled,
             'settings' => $settings,
@@ -199,37 +246,12 @@ final class SwooleExtension extends Extension implements PrependExtensionInterfa
             $settings['log_level'] = $this->isDebug($container) ? 'debug' : 'notice';
         }
 
-        if (isset($coroutineSettings['enabled']) && $coroutineSettings['enabled']) {
+        if ((bool) $container->getParameter(ContainerConstants::PARAM_COROUTINES_ENABLED)) {
             $settings['enable_coroutine'] = true;
-            $settings['hook_flags'] = \SWOOLE_HOOK_ALL;
-
-            if (!class_exists(Core::class)) {
-                throw new RuntimeException('Please install lisachenko/z-engine to use coroutines');
-            }
-
-            $container->setParameter(ContainerConstants::PARAM_COROUTINES_ENABLED, true);
-
-            if (isset($coroutineSettings['stateful_services']) && is_array($coroutineSettings['stateful_services'])) {
-                $container->setParameter(
-                    ContainerConstants::PARAM_COROUTINES_STATEFUL_SERVICES,
-                    $coroutineSettings['stateful_services']
-                );
-            }
-
-            if (isset($coroutineSettings['compile_processors']) && is_array($coroutineSettings['compile_processors'])) {
-                $container->setParameter(
-                    ContainerConstants::PARAM_COROUTINES_COMPILE_PROCESSORS,
-                    $coroutineSettings['compile_processors']
-                );
-            }
-
-            $container->registerForAutoconfiguration(StabilityChecker::class)
-                ->addTag(ContainerConstants::TAG_STABILITY_CHECKER)
-            ;
-            $coroutineKernelHandler = $container->findDefinition(ServiceResettingHttpKernelRequestHandler::class);
+            $coroutineKernelHandler = $container->findDefinition(ContextReleasingHttpKernelRequestHandler::class);
             $coroutineKernelHandler->setArgument(
                 '$decorated',
-                new Reference(ServiceResettingHttpKernelRequestHandler::class.'.inner')
+                new Reference(ContextReleasingHttpKernelRequestHandler::class.'.inner')
             );
             $coroutineKernelHandler->setDecoratedService(RequestHandlerInterface::class, null, -1000);
 
@@ -248,16 +270,12 @@ final class SwooleExtension extends Extension implements PrependExtensionInterfa
             $sockets->addArgument(new Definition(Socket::class, [$api['host'], $api['port']]));
         }
 
-        $container->getDefinition(HttpServerConfiguration::class)
-            ->addArgument(new Reference(Sockets::class))
-            ->addArgument($runningMode)
-            ->addArgument($settings)
-        ;
+        $this->configureHttpServerHMR($hmr, $container);
 
-        $this->registerHttpServerHMR($hmr, $container);
+        return $settings;
     }
 
-    private function registerHttpServerHMR(string $hmr, ContainerBuilder $container): void
+    private function configureHttpServerHMR(string $hmr, ContainerBuilder $container): void
     {
         if ('off' === $hmr || !$this->isDebug($container)) {
             return;
@@ -289,7 +307,7 @@ final class SwooleExtension extends Extension implements PrependExtensionInterfa
     /**
      * Registers optional http server dependencies providing various features.
      */
-    private function registerHttpServerServices(array $config, ContainerBuilder $container): void
+    private function configureHttpServerServices(array $config, ContainerBuilder $container): void
     {
         // RequestFactoryInterface
         // -----------------------
@@ -380,7 +398,7 @@ final class SwooleExtension extends Extension implements PrependExtensionInterfa
         }
     }
 
-    private function registerSymfonyExceptionHandler(ContainerBuilder $container): void
+    private function configureSymfonyExceptionHandler(ContainerBuilder $container): void
     {
         if (!\class_exists(ErrorHandler::class)) {
             throw new \RuntimeException('To be able to use Symfony exception handler, the "symfony/error-handler" package needs to be installed.');
@@ -415,15 +433,47 @@ final class SwooleExtension extends Extension implements PrependExtensionInterfa
         ;
     }
 
-    private function isBundleLoaded(ContainerBuilder $container, string $bundleName): bool
+    private function configureTaskWorker(array $config, ContainerBuilder $container): array
     {
-        /** @var array<string,string> */
-        $bundles = $container->getParameter('kernel.bundles');
+        if (!isset($config['settings']['worker_count'])) {
+            return [];
+        }
 
-        $bundleNameOnly = \str_replace('bundle', '', \mb_strtolower($bundleName));
-        $fullBundleName = \ucfirst($bundleNameOnly).'Bundle';
+        $settings['task_worker_count'] = $config['settings']['worker_count'];
+        $settings['task_use_object'] = true;
+        $this->configureTaskWorkerServices($config['services'], $container);
 
-        return isset($bundles[$fullBundleName]);
+        if ((bool) $container->getParameter(ContainerConstants::PARAM_COROUTINES_ENABLED)) {
+            $settings['task_enable_coroutine'] = true;
+        }
+
+        return $settings;
+    }
+
+    private function configureTaskWorkerServices(array $config, ContainerBuilder $container): void
+    {
+        if (!$config['reset_handler']) {
+            return;
+        }
+
+        $resetHandler = $container->findDefinition(ServiceResettingTransportHandler::class);
+        $resetHandler->setArgument(
+            '$decorated',
+            new Reference(ServiceResettingTransportHandler::class.'.inner')
+        );
+        $resetHandler->setDecoratedService(TaskHandlerInterface::class, null, -9999);
+    }
+
+    private function assignSwooleConfiguration(
+        array $swooleSettings,
+        string $runningMode,
+        ContainerBuilder $container
+    ): void {
+        $container->getDefinition(HttpServerConfiguration::class)
+            ->addArgument(new Reference(Sockets::class))
+            ->addArgument($runningMode)
+            ->addArgument($swooleSettings)
+        ;
     }
 
     private function isProd(ContainerBuilder $container): bool

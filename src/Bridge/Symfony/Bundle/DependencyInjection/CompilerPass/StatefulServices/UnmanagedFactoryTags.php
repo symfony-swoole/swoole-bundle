@@ -4,12 +4,7 @@ declare(strict_types=1);
 
 namespace K911\Swoole\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices;
 
-use ReflectionClass;
-use ReflectionException;
-use ReflectionNamedType;
-use RuntimeException;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
-use UnexpectedValueException;
 
 final class UnmanagedFactoryTags
 {
@@ -54,7 +49,7 @@ final class UnmanagedFactoryTags
     }
 
     /**
-     * @throws ReflectionException
+     * @throws \ReflectionException
      *
      * @return class-string
      */
@@ -68,7 +63,7 @@ final class UnmanagedFactoryTags
         }
 
         if (!class_exists($returnType)) {
-            throw new UnexpectedValueException(sprintf('Class does not exist: %s', $returnType));
+            throw new \UnexpectedValueException(sprintf('Class does not exist: %s', $returnType));
         }
 
         return $returnType;
@@ -77,16 +72,16 @@ final class UnmanagedFactoryTags
     /**
      * @param class-string $className
      *
-     * @throws ReflectionException
+     * @throws \ReflectionException
      */
     private function getReturnTypeForClassMethod(string $className, string $methodName): string
     {
-        $refl = new ReflectionClass($className);
+        $refl = new \ReflectionClass($className);
         $reflMethod = $refl->getMethod($methodName);
         $reflReturnType = $reflMethod->getReturnType();
 
-        if (!$reflReturnType instanceof ReflectionNamedType) {
-            throw new RuntimeException('Only simple return types are supported for now.');
+        if (!$reflReturnType instanceof \ReflectionNamedType) {
+            throw new \RuntimeException('Only simple return types are supported for now.');
         }
 
         return $reflReturnType->getName();

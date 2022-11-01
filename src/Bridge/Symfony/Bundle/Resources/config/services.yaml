@@ -1,260 +1,264 @@
 parameters:
-    swoole_bundle.coroutines_support.enabled: false
-    swoole_bundle.coroutines_support.compile_processors: []
-    swoole_bundle.coroutines_support.stability_checkers: []
-    swoole_bundle.cache_dir_name: !php/const 'K911\Swoole\Bridge\Symfony\Bundle\DependencyInjection\ContainerConstants::PARAM_CACHE_FOLDER'
-    swoole_bundle.cache_dir: '%kernel.cache_dir%/%swoole_bundle.cache_dir_name%'
-    swoole_bundle.service_proxy_cache_dir: '%swoole_bundle.cache_dir%/services'
+  swoole_bundle.coroutines_support.enabled: false
+  swoole_bundle.coroutines_support.compile_processors: [ ]
+  swoole_bundle.coroutines_support.stability_checkers: [ ]
+  swoole_bundle.cache_dir_name: !php/const 'K911\Swoole\Bridge\Symfony\Bundle\DependencyInjection\ContainerConstants::PARAM_CACHE_FOLDER'
+  swoole_bundle.cache_dir: '%kernel.cache_dir%/%swoole_bundle.cache_dir_name%'
+  swoole_bundle.service_proxy_cache_dir: '%swoole_bundle.cache_dir%/services'
 
 services:
-    _defaults:
-        autowire: true
-        autoconfigure: true
-        public: false
+  _defaults:
+    autowire: true
+    autoconfigure: true
+    public: false
 
-    K911\Swoole\Component\AtomicCounter:
-        factory: ['K911\Swoole\Component\AtomicCounter', fromZero]
+  K911\Swoole\Component\AtomicCounter:
+    factory: [ 'K911\Swoole\Component\AtomicCounter', fromZero ]
 
-    K911\Swoole\Component\ExceptionArrayTransformer:
+  K911\Swoole\Component\ExceptionArrayTransformer:
 
-    K911\Swoole\Server\Middleware\MiddlewareInjector:
+  K911\Swoole\Server\Middleware\MiddlewareInjector:
 
-    K911\Swoole\Server\RequestHandler\ExceptionHandler\ProductionExceptionHandler:
+  K911\Swoole\Server\RequestHandler\ExceptionHandler\ProductionExceptionHandler:
 
-    K911\Swoole\Server\RequestHandler\ExceptionHandler\JsonExceptionHandler:
+  K911\Swoole\Server\RequestHandler\ExceptionHandler\JsonExceptionHandler:
 
-    K911\Swoole\Server\RequestHandler\ExceptionRequestHandler:
-        arguments:
-            $decorated: '@K911\Swoole\Bridge\Symfony\HttpKernel\HttpKernelRequestHandler'
+  K911\Swoole\Server\RequestHandler\ExceptionRequestHandler:
+    arguments:
+      $decorated: '@K911\Swoole\Bridge\Symfony\HttpKernel\HttpKernelRequestHandler'
 
-    K911\Swoole\Bridge\Symfony\HttpFoundation\SetRequestRuntimeConfiguration:
-        tags:
-            - { name: 'swoole_bundle.bootable_service', priority: -1000 }
+  K911\Swoole\Bridge\Symfony\HttpFoundation\SetRequestRuntimeConfiguration:
+    tags:
+      - { name: 'swoole_bundle.bootable_service', priority: -1000 }
 
-    K911\Swoole\Bridge\Symfony\HttpFoundation\ResponseProcessorInjectorInterface: '@K911\Swoole\Bridge\Symfony\HttpFoundation\ResponseProcessorInjector'
+  K911\Swoole\Bridge\Symfony\HttpFoundation\ResponseProcessorInjectorInterface: '@K911\Swoole\Bridge\Symfony\HttpFoundation\ResponseProcessorInjector'
 
-    K911\Swoole\Bridge\Symfony\HttpFoundation\ResponseProcessorInjector:
-        arguments:
-            $responseProcessor: '@response_processor.headers_and_cookies.streamed'
+  K911\Swoole\Bridge\Symfony\HttpFoundation\ResponseProcessorInjector:
+    arguments:
+      $responseProcessor: '@response_processor.headers_and_cookies.streamed'
 
-    K911\Swoole\Bridge\Symfony\HttpKernel\KernelPoolInterface:
-        class: K911\Swoole\Bridge\Symfony\HttpKernel\SimpleKernelPool
+  K911\Swoole\Bridge\Symfony\HttpKernel\KernelPoolInterface:
+    class: K911\Swoole\Bridge\Symfony\HttpKernel\SimpleKernelPool
 
-    K911\Swoole\Bridge\Symfony\HttpFoundation\RequestFactoryInterface:
-        class: K911\Swoole\Bridge\Symfony\HttpFoundation\RequestFactory
+  K911\Swoole\Bridge\Symfony\HttpFoundation\RequestFactoryInterface:
+    class: K911\Swoole\Bridge\Symfony\HttpFoundation\RequestFactory
 
-    K911\Swoole\Bridge\Symfony\HttpFoundation\ResponseProcessorInterface:
-        class: K911\Swoole\Bridge\Symfony\HttpFoundation\ResponseProcessor
+  K911\Swoole\Bridge\Symfony\HttpFoundation\ResponseProcessorInterface:
+    class: K911\Swoole\Bridge\Symfony\HttpFoundation\ResponseProcessor
 
-    K911\Swoole\Bridge\Symfony\HttpFoundation\NoOpStreamedResponseProcessor:
-        decorates: K911\Swoole\Bridge\Symfony\HttpFoundation\ResponseProcessorInterface
-        decoration_priority: -100
-        arguments:
-            - '@K911\Swoole\Bridge\Symfony\HttpFoundation\NoOpStreamedResponseProcessor.inner'
+  K911\Swoole\Bridge\Symfony\HttpFoundation\NoOpStreamedResponseProcessor:
+    decorates: K911\Swoole\Bridge\Symfony\HttpFoundation\ResponseProcessorInterface
+    decoration_priority: -100
+    arguments:
+      - '@K911\Swoole\Bridge\Symfony\HttpFoundation\NoOpStreamedResponseProcessor.inner'
 
-    response_processor.headers_and_cookies.default:
-        class: K911\Swoole\Bridge\Symfony\HttpFoundation\ResponseHeadersAndStatusProcessor
-        decorates: K911\Swoole\Bridge\Symfony\HttpFoundation\ResponseProcessorInterface
-        arguments:
-            - '@response_processor.headers_and_cookies.default.inner'
+  response_processor.headers_and_cookies.default:
+    class: K911\Swoole\Bridge\Symfony\HttpFoundation\ResponseHeadersAndStatusProcessor
+    decorates: K911\Swoole\Bridge\Symfony\HttpFoundation\ResponseProcessorInterface
+    arguments:
+      - '@response_processor.headers_and_cookies.default.inner'
 
-    K911\Swoole\Bridge\Symfony\HttpFoundation\StreamedResponseProcessor:
+  K911\Swoole\Bridge\Symfony\HttpFoundation\StreamedResponseProcessor:
 
-    response_processor.headers_and_cookies.streamed:
-        class: K911\Swoole\Bridge\Symfony\HttpFoundation\ResponseHeadersAndStatusProcessor
-        decorates: K911\Swoole\Bridge\Symfony\HttpFoundation\StreamedResponseProcessor
-        arguments:
-            - '@response_processor.headers_and_cookies.streamed.inner'
+  response_processor.headers_and_cookies.streamed:
+    class: K911\Swoole\Bridge\Symfony\HttpFoundation\ResponseHeadersAndStatusProcessor
+    decorates: K911\Swoole\Bridge\Symfony\HttpFoundation\StreamedResponseProcessor
+    arguments:
+      - '@response_processor.headers_and_cookies.streamed.inner'
 
-    K911\Swoole\Server\RequestHandler\RequestHandlerInterface:
-        alias: K911\Swoole\Server\RequestHandler\ExceptionRequestHandler
+  K911\Swoole\Server\RequestHandler\RequestHandlerInterface:
+    alias: K911\Swoole\Server\RequestHandler\ExceptionRequestHandler
 
-    K911\Swoole\Bridge\Symfony\HttpKernel\SimpleKernelPool:
+  K911\Swoole\Bridge\Symfony\HttpKernel\SimpleKernelPool:
 
-    K911\Swoole\Bridge\Symfony\HttpKernel\HttpKernelRequestHandler:
+  K911\Swoole\Bridge\Symfony\HttpKernel\HttpKernelRequestHandler:
 
-    K911\Swoole\Bridge\Symfony\HttpKernel\ServiceResettingHttpKernelRequestHandler:
+  K911\Swoole\Bridge\Symfony\HttpKernel\ContextReleasingHttpKernelRequestHandler:
 
-    K911\Swoole\Bridge\Symfony\HttpFoundation\Session\SwooleSessionStorageFactory:
+  K911\Swoole\Bridge\Symfony\HttpFoundation\Session\SwooleSessionStorageFactory:
 
-    K911\Swoole\Server\RequestHandler\LimitedRequestHandler:
+  K911\Swoole\Server\RequestHandler\LimitedRequestHandler:
 
-    K911\Swoole\Server\LifecycleHandler\SigIntHandler:
+  K911\Swoole\Server\LifecycleHandler\SigIntHandler:
 
-    K911\Swoole\Server\Runtime\CallableBootManagerFactory:
+  K911\Swoole\Server\Runtime\CallableBootManagerFactory:
 
-    K911\Swoole\Server\Session\SwooleTableStorage:
-        factory: ['K911\Swoole\Server\Session\SwooleTableStorage', 'fromDefaults']
+  K911\Swoole\Server\Session\SwooleTableStorage:
+    factory: [ 'K911\Swoole\Server\Session\SwooleTableStorage', 'fromDefaults' ]
 
-    K911\Swoole\Server\Session\StorageInterface:
-        alias: K911\Swoole\Server\Session\SwooleTableStorage
+  K911\Swoole\Server\Session\StorageInterface:
+    alias: K911\Swoole\Server\Session\SwooleTableStorage
 
-    K911\Swoole\Bridge\Symfony\HttpFoundation\Session\SwooleSessionStorage:
+  K911\Swoole\Bridge\Symfony\HttpFoundation\Session\SwooleSessionStorage:
 
-    K911\Swoole\Server\Runtime\BootableInterface:
-        class: K911\Swoole\Server\Runtime\CallableBootManager
-        factory: ['@K911\Swoole\Server\Runtime\CallableBootManagerFactory', make]
-        arguments: [!tagged 'swoole_bundle.bootable_service']
-        autoconfigure: false
+  K911\Swoole\Server\Runtime\BootableInterface:
+    class: K911\Swoole\Server\Runtime\CallableBootManager
+    factory: [ '@K911\Swoole\Server\Runtime\CallableBootManagerFactory', make ]
+    arguments: [ !tagged 'swoole_bundle.bootable_service' ]
+    autoconfigure: false
 
-    K911\Swoole\Server\HttpServer:
+  K911\Swoole\Server\HttpServer:
 
-    K911\Swoole\Server\WorkerHandler\WorkerStartHandlerInterface: '@K911\Swoole\Bridge\Symfony\Bundle\EventDispatcher\EventDispatchingWorkerStartHandler'
+  K911\Swoole\Server\WorkerHandler\WorkerStartHandlerInterface: '@K911\Swoole\Bridge\Symfony\Bundle\EventDispatcher\EventDispatchingWorkerStartHandler'
 
-    K911\Swoole\Server\LifecycleHandler\ServerStartHandlerInterface: '@K911\Swoole\Bridge\Symfony\Bundle\EventDispatcher\EventDispatchingServerStartHandler'
+  K911\Swoole\Server\LifecycleHandler\ServerStartHandlerInterface: '@K911\Swoole\Bridge\Symfony\Bundle\EventDispatcher\EventDispatchingServerStartHandler'
 
-    K911\Swoole\Bridge\Symfony\Bundle\EventDispatcher\EventDispatchingWorkerStartHandler:
-        arguments:
-            $eventDispatcher: '@event_dispatcher'
+  K911\Swoole\Bridge\Symfony\Bundle\EventDispatcher\EventDispatchingWorkerStartHandler:
+    arguments:
+      $eventDispatcher: '@event_dispatcher'
 
-    K911\Swoole\Bridge\Symfony\Bundle\EventDispatcher\EventDispatchingServerStartHandler:
-        arguments:
-            $eventDispatcher: '@event_dispatcher'
+  K911\Swoole\Bridge\Symfony\Bundle\EventDispatcher\EventDispatchingServerStartHandler:
+    arguments:
+      $eventDispatcher: '@event_dispatcher'
 
-    K911\Swoole\Server\LifecycleHandler\ServerShutdownHandlerInterface:
-        class: K911\Swoole\Server\LifecycleHandler\NoOpServerShutdownHandler
+  K911\Swoole\Server\LifecycleHandler\ServerShutdownHandlerInterface:
+    class: K911\Swoole\Server\LifecycleHandler\NoOpServerShutdownHandler
 
-    K911\Swoole\Server\LifecycleHandler\ServerManagerStartHandlerInterface:
-        class: K911\Swoole\Server\LifecycleHandler\NoOpServerManagerStartHandler
+  K911\Swoole\Server\LifecycleHandler\ServerManagerStartHandlerInterface:
+    class: K911\Swoole\Server\LifecycleHandler\NoOpServerManagerStartHandler
 
-    K911\Swoole\Server\LifecycleHandler\ServerManagerStopHandlerInterface:
-        class: K911\Swoole\Server\LifecycleHandler\NoOpServerManagerStopHandler
+  K911\Swoole\Server\LifecycleHandler\ServerManagerStopHandlerInterface:
+    class: K911\Swoole\Server\LifecycleHandler\NoOpServerManagerStopHandler
 
-    K911\Swoole\Server\TaskHandler\TaskHandlerInterface:
-        class: K911\Swoole\Server\TaskHandler\NoOpTaskHandler
+  K911\Swoole\Server\TaskHandler\TaskHandlerInterface:
+    class: K911\Swoole\Server\TaskHandler\NoOpTaskHandler
 
-    K911\Swoole\Server\TaskHandler\TaskFinishedHandlerInterface:
-        class: K911\Swoole\Server\TaskHandler\NoOpTaskFinishedHandler
+  K911\Swoole\Server\TaskHandler\TaskFinishedHandlerInterface:
+    class: K911\Swoole\Server\TaskHandler\NoOpTaskFinishedHandler
 
-    K911\Swoole\Server\Api\ApiServerClientFactory:
+  K911\Swoole\Bridge\Symfony\Messenger\ServiceResettingTransportHandler:
+    arguments:
+      $resetter: '@services_resetter'
 
-    K911\Swoole\Server\Api\ApiServerClient:
-        factory: K911\Swoole\Server\Api\ApiServerClientFactory:newClient
+  K911\Swoole\Server\Api\ApiServerClientFactory:
 
-    K911\Swoole\Server\Api\ApiServerInterface:
-        class: K911\Swoole\Server\Api\ApiServer
+  K911\Swoole\Server\Api\ApiServerClient:
+    factory: K911\Swoole\Server\Api\ApiServerClientFactory:newClient
 
-    #  Could be helpful for projects that uses/have included proxy-manager
-    #        lazy: true
-    #        tags:
-    #            - { name: proxy, interface: K911\Swoole\Server\Api\ApiServerInterface }
+  K911\Swoole\Server\Api\ApiServerInterface:
+    class: K911\Swoole\Server\Api\ApiServer
 
-    K911\Swoole\Server\Config\Sockets:
+  #  Could be helpful for projects that uses/have included proxy-manager
+  #        lazy: true
+  #        tags:
+  #            - { name: proxy, interface: K911\Swoole\Server\Api\ApiServerInterface }
 
-    K911\Swoole\Server\HttpServerConfiguration:
+  K911\Swoole\Server\Config\Sockets:
 
-    K911\Swoole\Server\Configurator\WithHttpServerConfiguration:
+  K911\Swoole\Server\HttpServerConfiguration:
 
-    K911\Swoole\Server\Configurator\WithServerShutdownHandler:
+  K911\Swoole\Server\Configurator\WithHttpServerConfiguration:
 
-    K911\Swoole\Server\Configurator\WithServerStartHandler:
+  K911\Swoole\Server\Configurator\WithServerShutdownHandler:
 
-    K911\Swoole\Server\Configurator\WithServerManagerStartHandler:
+  K911\Swoole\Server\Configurator\WithServerStartHandler:
 
-    K911\Swoole\Server\Configurator\WithServerManagerStopHandler:
+  K911\Swoole\Server\Configurator\WithServerManagerStartHandler:
 
-    K911\Swoole\Server\Configurator\WithWorkerStartHandler:
+  K911\Swoole\Server\Configurator\WithServerManagerStopHandler:
 
-    K911\Swoole\Server\Configurator\WithTaskHandler:
+  K911\Swoole\Server\Configurator\WithWorkerStartHandler:
 
-    K911\Swoole\Server\Configurator\WithTaskFinishedHandler:
+  K911\Swoole\Server\Configurator\WithTaskHandler:
 
-    K911\Swoole\Server\Configurator\CallableChainConfiguratorFactory:
+  K911\Swoole\Server\Configurator\WithTaskFinishedHandler:
 
-    K911\Swoole\Server\Api\WithApiServerConfiguration:
-        arguments:
-            $requestHandler: '@swoole_bundle.server.api_server.request_handler'
+  K911\Swoole\Server\Configurator\CallableChainConfiguratorFactory:
 
-    K911\Swoole\Server\Api\ApiServerRequestHandler:
+  K911\Swoole\Server\Api\WithApiServerConfiguration:
+    arguments:
+      $requestHandler: '@swoole_bundle.server.api_server.request_handler'
 
-    swoole_bundle.server.api_server.request_handler:
-        class: K911\Swoole\Server\RequestHandler\ExceptionRequestHandler
-        arguments:
-            $decorated: '@K911\Swoole\Server\Api\ApiServerRequestHandler'
+  K911\Swoole\Server\Api\ApiServerRequestHandler:
 
-    swoole_bundle.server.http_server.configurator_collection:
-        class: K911\Swoole\Component\GeneratedCollection
-        arguments: [!tagged 'swoole_bundle.server_configurator']
+  swoole_bundle.server.api_server.request_handler:
+    class: K911\Swoole\Server\RequestHandler\ExceptionRequestHandler
+    arguments:
+      $decorated: '@K911\Swoole\Server\Api\ApiServerRequestHandler'
 
-    K911\Swoole\Server\Configurator\ConfiguratorInterface:
-        alias: swoole_bundle.server.http_server.configurator
+  swoole_bundle.server.http_server.configurator_collection:
+    class: K911\Swoole\Component\GeneratedCollection
+    arguments: [ !tagged 'swoole_bundle.server_configurator' ]
 
-    swoole_bundle.session.table_storage:
-        alias: K911\Swoole\Bridge\Symfony\HttpFoundation\Session\SwooleSessionStorage
+  K911\Swoole\Server\Configurator\ConfiguratorInterface:
+    alias: swoole_bundle.server.http_server.configurator
 
-    swoole_bundle.session.table_storage_factory:
-        alias: K911\Swoole\Bridge\Symfony\HttpFoundation\Session\SwooleSessionStorageFactory
+  swoole_bundle.session.table_storage:
+    alias: K911\Swoole\Bridge\Symfony\HttpFoundation\Session\SwooleSessionStorage
 
-    swoole_bundle.server.http_server.configurator.with_request_handler:
-        class: K911\Swoole\Server\Configurator\WithRequestHandler
-        autoconfigure: false
+  swoole_bundle.session.table_storage_factory:
+    alias: K911\Swoole\Bridge\Symfony\HttpFoundation\Session\SwooleSessionStorageFactory
 
-    swoole_bundle.server.http_server.configurator.with_limited_request_handler:
-        class: K911\Swoole\Server\Configurator\WithRequestHandler
-        autoconfigure: false
-        arguments:
-            $requestHandler: '@K911\Swoole\Server\RequestHandler\LimitedRequestHandler'
+  swoole_bundle.server.http_server.configurator.with_request_handler:
+    class: K911\Swoole\Server\Configurator\WithRequestHandler
+    autoconfigure: false
 
-    swoole_bundle.server.http_server.configurator.with_sigint_handler:
-        class: K911\Swoole\Server\Configurator\WithServerStartHandler
-        autoconfigure: false
-        arguments:
-            $handler: '@K911\Swoole\Server\LifecycleHandler\SigIntHandler'
+  swoole_bundle.server.http_server.configurator.with_limited_request_handler:
+    class: K911\Swoole\Server\Configurator\WithRequestHandler
+    autoconfigure: false
+    arguments:
+      $requestHandler: '@K911\Swoole\Server\RequestHandler\LimitedRequestHandler'
 
-    K911\Swoole\Bridge\Symfony\Container\Proxy\ProxyDirectoryHandler:
-        arguments:
-            $fileSystem: '@swoole_bundle.filesystem'
-            $proxyDir: '%swoole_bundle.service_proxy_cache_dir%'
+  swoole_bundle.server.http_server.configurator.with_sigint_handler:
+    class: K911\Swoole\Server\Configurator\WithServerStartHandler
+    autoconfigure: false
+    arguments:
+      $handler: '@K911\Swoole\Server\LifecycleHandler\SigIntHandler'
 
-    K911\Swoole\Bridge\Symfony\Container\Proxy\Instantiator:
-        arguments:
-            $proxyFactory: '@swoole_bundle.service_proxy_factory'
-            $proxyDirHandler: '@K911\Swoole\Bridge\Symfony\Container\Proxy\ProxyDirectoryHandler'
+  K911\Swoole\Bridge\Symfony\Container\Proxy\ProxyDirectoryHandler:
+    arguments:
+      $fileSystem: '@swoole_bundle.filesystem'
+      $proxyDir: '%swoole_bundle.service_proxy_cache_dir%'
 
-    K911\Swoole\Bridge\Symfony\Container\Proxy\UnmanagedFactoryInstantiator:
-        arguments:
-            $proxyFactory: '@swoole_bundle.unmanaged_factory_proxy_factory'
-            $instantiator: '@K911\Swoole\Bridge\Symfony\Container\Proxy\Instantiator'
-            $servicePoolContainer: '@K911\Swoole\Bridge\Symfony\Container\ServicePool\ServicePoolContainer'
-            $proxyDirHandler: '@K911\Swoole\Bridge\Symfony\Container\Proxy\ProxyDirectoryHandler'
+  K911\Swoole\Bridge\Symfony\Container\Proxy\Instantiator:
+    arguments:
+      $proxyFactory: '@swoole_bundle.service_proxy_factory'
+      $proxyDirHandler: '@K911\Swoole\Bridge\Symfony\Container\Proxy\ProxyDirectoryHandler'
 
-    swoole_bundle.filesystem:
-        class: 'Symfony\Component\Filesystem\Filesystem'
+  K911\Swoole\Bridge\Symfony\Container\Proxy\UnmanagedFactoryInstantiator:
+    arguments:
+      $proxyFactory: '@swoole_bundle.unmanaged_factory_proxy_factory'
+      $instantiator: '@K911\Swoole\Bridge\Symfony\Container\Proxy\Instantiator'
+      $servicePoolContainer: '@K911\Swoole\Bridge\Symfony\Container\ServicePool\ServicePoolContainer'
+      $proxyDirHandler: '@K911\Swoole\Bridge\Symfony\Container\Proxy\ProxyDirectoryHandler'
 
-    swoole_bundle.service_proxy_factory:
-        class: 'Symfony\Bridge\ProxyManager\LazyProxy\Instantiator\LazyLoadingValueHolderFactory'
-        arguments:
-            $configuration: '@swoole_bundle.service_proxy_configuration'
+  swoole_bundle.filesystem:
+    class: 'Symfony\Component\Filesystem\Filesystem'
 
-    swoole_bundle.unmanaged_factory_proxy_factory:
-        class: 'ProxyManager\Factory\AccessInterceptorValueHolderFactory'
-        arguments:
-            $configuration: '@swoole_bundle.service_proxy_configuration'
+  swoole_bundle.service_proxy_factory:
+    class: 'Symfony\Bridge\ProxyManager\LazyProxy\Instantiator\LazyLoadingValueHolderFactory'
+    arguments:
+      $configuration: '@swoole_bundle.service_proxy_configuration'
 
-    swoole_bundle.service_proxy_configuration:
-        class: 'ProxyManager\Configuration'
-        calls:
-            - [ 'setGeneratorStrategy', [ '@swoole_bundle.repository_proxy_file_writer_generator' ] ]
-            - [ 'setProxiesTargetDir', [ '%swoole_bundle.service_proxy_cache_dir%' ] ]
+  swoole_bundle.unmanaged_factory_proxy_factory:
+    class: 'ProxyManager\Factory\AccessInterceptorValueHolderFactory'
+    arguments:
+      $configuration: '@swoole_bundle.service_proxy_configuration'
 
-    swoole_bundle.repository_proxy_file_writer_generator:
-        class: 'ProxyManager\GeneratorStrategy\FileWriterGeneratorStrategy'
-        arguments:
-            $fileLocator: '@swoole_bundle.repository_proxy_file_locator'
+  swoole_bundle.service_proxy_configuration:
+    class: 'ProxyManager\Configuration'
+    calls:
+      - [ 'setGeneratorStrategy', [ '@swoole_bundle.repository_proxy_file_writer_generator' ] ]
+      - [ 'setProxiesTargetDir', [ '%swoole_bundle.service_proxy_cache_dir%' ] ]
 
-    swoole_bundle.repository_proxy_file_locator:
-        class: 'ProxyManager\FileLocator\FileLocator'
-        lazy: true # unable to instantiate when directory does not exist
-        arguments:
-            $proxiesDirectory: '%swoole_bundle.service_proxy_cache_dir%'
+  swoole_bundle.repository_proxy_file_writer_generator:
+    class: 'ProxyManager\GeneratorStrategy\FileWriterGeneratorStrategy'
+    arguments:
+      $fileLocator: '@swoole_bundle.repository_proxy_file_locator'
 
-    K911\Swoole\Bridge\Symfony\Container\CoWrapper:
+  swoole_bundle.repository_proxy_file_locator:
+    class: 'ProxyManager\FileLocator\FileLocator'
+    lazy: true # unable to instantiate when directory does not exist
+    arguments:
+      $proxiesDirectory: '%swoole_bundle.service_proxy_cache_dir%'
 
-    K911\Swoole\Bridge\Symfony\Container\ServicePool\ServicePoolContainer:
-        arguments:
-            $pools: []
+  K911\Swoole\Bridge\Symfony\Container\CoWrapper:
 
-    K911\Swoole\Bridge\Doctrine\ORM\EntityManagerStabilityChecker:
-        tags: ['swoole_bundle.stability_checker']
+  K911\Swoole\Bridge\Symfony\Container\ServicePool\ServicePoolContainer:
+    arguments:
+      $pools: [ ]
 
-    K911\Swoole\Bridge\Symfony\HttpKernel\CoroutineKernelPool:
+  K911\Swoole\Bridge\Doctrine\ORM\EntityManagerStabilityChecker:
+    tags: [ 'swoole_bundle.stability_checker' ]
+
+  K911\Swoole\Bridge\Symfony\HttpKernel\CoroutineKernelPool:

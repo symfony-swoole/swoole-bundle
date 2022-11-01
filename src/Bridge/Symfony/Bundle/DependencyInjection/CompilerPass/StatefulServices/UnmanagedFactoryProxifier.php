@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace K911\Swoole\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices;
 
 use K911\Swoole\Bridge\Symfony\Container\Proxy\UnmanagedFactoryInstantiator;
-use RuntimeException;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
@@ -28,7 +27,7 @@ final class UnmanagedFactoryProxifier
     public function proxifyService(string $serviceId): string
     {
         if (!$this->container->has($serviceId)) {
-            throw new RuntimeException(sprintf('Service missing: %s', $serviceId));
+            throw new \RuntimeException(sprintf('Service missing: %s', $serviceId));
         }
 
         $serviceDef = $this->prepareProxifiedService($serviceId);

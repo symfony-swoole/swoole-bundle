@@ -22,12 +22,12 @@ final class CodeCoverageTaskHandler implements TaskHandlerInterface
     /**
      * {@inheritdoc}
      */
-    public function handle(Server $server, int $taskId, int $fromId, $data): void
+    public function handle(Server $server, Server\Task $task): void
     {
-        $testName = sprintf('test_task_%d_%d_%s', $taskId, $fromId, bin2hex(random_bytes(4)));
+        $testName = sprintf('test_task_%d_%d_%s', $task->id, $task->worker_id, bin2hex(random_bytes(4)));
         $this->codeCoverageManager->start($testName);
 
-        $this->decorated->handle($server, $taskId, $fromId, $data);
+        $this->decorated->handle($server, $task);
 
         $this->codeCoverageManager->stop();
         $this->codeCoverageManager->finish($testName);

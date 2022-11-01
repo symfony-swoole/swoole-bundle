@@ -16,7 +16,6 @@ use K911\Swoole\Bridge\Symfony\Container\ServicePool\ServicePoolContainer;
 use K911\Swoole\Bridge\Symfony\Container\StabilityChecker;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
-use UnexpectedValueException;
 
 final class StatefulServicesPass implements CompilerPassInterface
 {
@@ -77,7 +76,7 @@ final class StatefulServicesPass implements CompilerPassInterface
         $compileProcessors = $container->getParameter(ContainerConstants::PARAM_COROUTINES_COMPILE_PROCESSORS);
 
         if (!is_array($compileProcessors)) {
-            throw new UnexpectedValueException('Invalid compiler processors provided');
+            throw new \UnexpectedValueException('Invalid compiler processors provided');
         }
 
         $compileProcessors = array_merge(self::COMPILE_PROCESSORS, $compileProcessors);
@@ -176,7 +175,7 @@ final class StatefulServicesPass implements CompilerPassInterface
         }
 
         if (!is_array($stabilityCheckers)) {
-            throw new UnexpectedValueException('Invalid stability checkers provided.');
+            throw new \UnexpectedValueException('Invalid stability checkers provided.');
         }
 
         return new Proxifier($container, $finalProcessor, $stabilityCheckers);

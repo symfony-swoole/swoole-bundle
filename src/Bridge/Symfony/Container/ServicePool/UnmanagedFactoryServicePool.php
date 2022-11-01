@@ -4,15 +4,12 @@ declare(strict_types=1);
 
 namespace K911\Swoole\Bridge\Symfony\Container\ServicePool;
 
-use Closure;
-use Co;
-
 final class UnmanagedFactoryServicePool implements ServicePool
 {
     /**
-     * @var Closure(): object
+     * @var \Closure(): object
      */
-    private Closure $instantiator;
+    private \Closure $instantiator;
 
     /**
      * @var array<int, object>
@@ -24,7 +21,7 @@ final class UnmanagedFactoryServicePool implements ServicePool
      */
     private array $assignedPool = [];
 
-    public function __construct(Closure $instantiator)
+    public function __construct(\Closure $instantiator)
     {
         $this->instantiator = $instantiator;
     }
@@ -59,6 +56,6 @@ final class UnmanagedFactoryServicePool implements ServicePool
 
     private function getCoroutineId(): int
     {
-        return Co::getCid();
+        return \Co::getCid();
     }
 }

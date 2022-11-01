@@ -9,13 +9,11 @@ use K911\Swoole\Bridge\Doctrine\ORM\EntityManagerStabilityChecker;
 use K911\Swoole\Bridge\Symfony\Container\Proxy\Instantiator;
 use K911\Swoole\Bridge\Symfony\Container\ServicePool\DiServicePool;
 use K911\Swoole\Bridge\Symfony\Container\StabilityChecker;
-use RuntimeException;
 use Symfony\Component\DependencyInjection\Argument\IteratorArgument;
 use Symfony\Component\DependencyInjection\ChildDefinition;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
-use UnexpectedValueException;
 
 final class Proxifier
 {
@@ -58,7 +56,7 @@ final class Proxifier
     public function proxifyService(string $serviceId): void
     {
         if (!$this->container->has($serviceId)) {
-            throw new RuntimeException(sprintf('Service missing: %s', $serviceId));
+            throw new \RuntimeException(sprintf('Service missing: %s', $serviceId));
         }
 
         $serviceDef = $this->container->findDefinition($serviceId);
@@ -95,7 +93,7 @@ final class Proxifier
     private function doProxifyService(string $serviceId, Definition $serviceDef): void
     {
         if (!$this->container->has($serviceId)) {
-            throw new RuntimeException(sprintf('Service missing: %s', $serviceId));
+            throw new \RuntimeException(sprintf('Service missing: %s', $serviceId));
         }
 
         $this->prepareProxifiedService($serviceDef);
@@ -115,7 +113,7 @@ final class Proxifier
     private function doProxifyDecoratedService(string $serviceId, Definition $serviceDef): void
     {
         if (null === $serviceDef->innerServiceId) {
-            throw new UnexpectedValueException(sprintf('Inner service id missing for service %s', $serviceId));
+            throw new \UnexpectedValueException(sprintf('Inner service id missing for service %s', $serviceId));
         }
 
         $decoratedServiceId = $serviceDef->innerServiceId;

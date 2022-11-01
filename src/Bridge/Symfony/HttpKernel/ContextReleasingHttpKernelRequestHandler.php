@@ -9,10 +9,10 @@ use K911\Swoole\Server\RequestHandler\RequestHandlerInterface;
 use Swoole\Http\Request as SwooleRequest;
 use Swoole\Http\Response as SwooleResponse;
 
-final class ServiceResettingHttpKernelRequestHandler implements RequestHandlerInterface
+final class ContextReleasingHttpKernelRequestHandler implements RequestHandlerInterface
 {
-    private $decorated;
-    private $coWrapper;
+    private RequestHandlerInterface $decorated;
+    private CoWrapper $coWrapper;
 
     public function __construct(RequestHandlerInterface $decorated, CoWrapper $coWrapper)
     {

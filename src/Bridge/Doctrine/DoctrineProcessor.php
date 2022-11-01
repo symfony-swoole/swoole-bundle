@@ -10,7 +10,6 @@ use Symfony\Component\DependencyInjection\Argument\IteratorArgument;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
-use UnexpectedValueException;
 
 final class DoctrineProcessor implements CompileProcessor
 {
@@ -26,7 +25,7 @@ final class DoctrineProcessor implements CompileProcessor
         $entityManagers = $container->getParameter('doctrine.entity_managers');
 
         if (!\is_array($entityManagers)) {
-            throw new UnexpectedValueException('Cannot obtain array of entity managers.');
+            throw new \UnexpectedValueException('Cannot obtain array of entity managers.');
         }
 
         $connectionSvcIds = [];
