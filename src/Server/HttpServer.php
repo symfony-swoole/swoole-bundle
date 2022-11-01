@@ -12,7 +12,6 @@ use K911\Swoole\Server\Exception\UninitializedException;
 use Swoole\Http\Server;
 use Swoole\Process;
 use Swoole\Server\Port as Listener;
-use Throwable;
 
 final class HttpServer
 {
@@ -140,7 +139,7 @@ final class HttpServer
     {
         try {
             return Process::kill($this->configuration->getPid(), 0);
-        } catch (Throwable $ex) {
+        } catch (\Throwable $ex) {
             return false;
         }
     }

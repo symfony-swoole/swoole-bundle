@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace K911\Swoole\Server\Config;
 
 use Assert\Assertion;
-use Generator;
 
 final class Sockets
 {
@@ -62,7 +61,7 @@ final class Sockets
      * - next if defined api socket
      * - rest of sockets.
      */
-    public function getAll(): Generator
+    public function getAll(): \Generator
     {
         yield $this->serverSocket;
 

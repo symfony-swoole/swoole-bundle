@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace K911\Swoole\Bridge\Tideways\Apm;
 
-use Closure;
 use K911\Swoole\Server\Middleware\Middleware;
 use Swoole\Http\Request;
 use Swoole\Http\Response;
@@ -12,13 +11,13 @@ use Tideways\Profiler;
 
 final class ProfilingMiddleware implements Middleware
 {
-    private Closure $nextMiddleware;
+    private \Closure $nextMiddleware;
 
     private RequestProfiler $profiler;
 
     public function __construct(callable $nextMiddleware, RequestProfiler $profiler)
     {
-        $this->nextMiddleware = Closure::fromCallable($nextMiddleware);
+        $this->nextMiddleware = \Closure::fromCallable($nextMiddleware);
         $this->profiler = $profiler;
     }
 

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace K911\Swoole\Tests\Fixtures\Symfony\CoverageBundle\Coverage;
 
-use DateTimeImmutable;
 use SebastianBergmann\CodeCoverage\CodeCoverage;
 use SebastianBergmann\CodeCoverage\Report\PHP;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
@@ -82,7 +81,7 @@ final class CodeCoverageManager
             return;
         }
 
-        $timestamp = (new DateTimeImmutable())->getTimestamp();
+        $timestamp = (new \DateTimeImmutable())->getTimestamp();
         $fileName = \sprintf('%s_%s.cov', $fileName ?? $this->testName, $timestamp);
 
         $this->writer->process($this->codeCoverage, \sprintf('%s/%s', $path ?? $this->coveragePath, $fileName));

@@ -4,11 +4,8 @@ declare(strict_types=1);
 
 namespace K911\Swoole\Server\Middleware;
 
-use ReflectionException;
-use ReflectionProperty;
 use Swoole\Http\Server;
 use Swoole\Server\Port;
-use UnexpectedValueException;
 
 final class MiddlewareInjector
 {
@@ -18,7 +15,7 @@ final class MiddlewareInjector
             ?: $this->getCallback($this->getPrimaryPort($server), $eventName);
 
         if (!is_callable($middleware)) {
-            throw new UnexpectedValueException('Server middleware has not been detected.');
+            throw new \UnexpectedValueException('Server middleware has not been detected.');
         }
 
         $server->on($eventName, $factory->createMiddleware($middleware));
@@ -27,7 +24,7 @@ final class MiddlewareInjector
     /**
      * Retrieve the primary port listened by the server.
      *
-     * @throws UnexpectedValueException
+     * @throws \UnexpectedValueException
      */
     public function getPrimaryPort(Server $server): Port
     {
@@ -37,7 +34,7 @@ final class MiddlewareInjector
             }
         }
 
-        throw new UnexpectedValueException('Primary server port was not found.');
+        throw new \UnexpectedValueException('Primary server port was not found.');
     }
 
     /**
@@ -49,11 +46,11 @@ final class MiddlewareInjector
     {
         try {
             $propertyName = 'on'.ucfirst($eventName);
-            $property = new ReflectionProperty($observer, $propertyName);
+            $property = new \ReflectionProperty($observer, $propertyName);
             $property->setAccessible(true);
 
             return $property->getValue($observer);
-        } catch (ReflectionException $e) {
+        } catch (\ReflectionException $e) {
             return null;
         }
     }

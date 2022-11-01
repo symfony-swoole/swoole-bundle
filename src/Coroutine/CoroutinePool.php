@@ -8,7 +8,6 @@ use Assert\Assertion;
 use Swoole\Coroutine;
 use Swoole\Coroutine\Channel;
 use Swoole\Coroutine\Scheduler;
-use Throwable;
 
 /**
  * @internal
@@ -92,7 +91,7 @@ final class CoroutinePool
         return function (): void {
             while ($this->coroutinesCount > 0) {
                 $result = $this->resultsChannel->pop(-1);
-                $outputName = $result instanceof Throwable ? 'exceptions' : 'results';
+                $outputName = $result instanceof \Throwable ? 'exceptions' : 'results';
                 $this->{$outputName}[] = $result;
                 --$this->coroutinesCount;
             }

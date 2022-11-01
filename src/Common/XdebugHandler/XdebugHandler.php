@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace K911\Swoole\Common\XdebugHandler;
 
-use Generator;
-use RuntimeException;
 use Symfony\Component\Process\Process;
 
 /**
@@ -94,19 +92,19 @@ final class XdebugHandler
     {
         $tempIniFilePath = \tempnam(\sys_get_temp_dir(), '');
         if (false === $tempIniFilePath) {
-            throw new RuntimeException('Could not generate temporary file');
+            throw new \RuntimeException('Could not generate temporary file');
         }
 
         $preparedContent = $this->parsePhpIniContent($this->generateLoadedPhpIniFiles());
 
         if (false === @\file_put_contents($tempIniFilePath, $preparedContent)) {
-            throw new RuntimeException(\sprintf('Could not write prepared temporary php ini file to "%s".', $tempIniFilePath));
+            throw new \RuntimeException(\sprintf('Could not write prepared temporary php ini file to "%s".', $tempIniFilePath));
         }
 
         return $tempIniFilePath;
     }
 
-    private function generateLoadedPhpIniFiles(): Generator
+    private function generateLoadedPhpIniFiles(): \Generator
     {
         $loadedIniFile = \php_ini_loaded_file();
         if (!empty($loadedIniFile)) {
@@ -135,7 +133,7 @@ final class XdebugHandler
         foreach ($iniFiles as $iniFile) {
             $iniContent = \file_get_contents($iniFile);
             if (false === $iniContent) {
-                throw new RuntimeException(\sprintf('Could not get contents of ini file "%s".', $iniFile));
+                throw new \RuntimeException(\sprintf('Could not get contents of ini file "%s".', $iniFile));
             }
 
             $data = \preg_replace($regex, ';$1', $iniContent);

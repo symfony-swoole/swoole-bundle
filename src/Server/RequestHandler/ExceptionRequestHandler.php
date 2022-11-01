@@ -7,7 +7,6 @@ namespace K911\Swoole\Server\RequestHandler;
 use K911\Swoole\Server\RequestHandler\ExceptionHandler\ExceptionHandlerInterface;
 use Swoole\Http\Request;
 use Swoole\Http\Response;
-use Throwable;
 
 final class ExceptionRequestHandler implements RequestHandlerInterface
 {
@@ -27,7 +26,7 @@ final class ExceptionRequestHandler implements RequestHandlerInterface
     {
         try {
             $this->decorated->handle($request, $response);
-        } catch (Throwable $exception) {
+        } catch (\Throwable $exception) {
             $this->exceptionHandler->handle($request, $exception, $response);
         }
     }

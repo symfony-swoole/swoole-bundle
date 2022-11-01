@@ -4,12 +4,8 @@ declare(strict_types=1);
 
 namespace K911\Swoole\Bridge\Symfony\ErrorHandler;
 
-use Error;
-use ErrorException;
-use ReflectionMethod;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
-use Throwable;
 
 final class ExceptionHandlerFactory
 {
@@ -19,7 +15,7 @@ final class ExceptionHandlerFactory
     private $kernel;
 
     /**
-     * @var ReflectionMethod
+     * @var \ReflectionMethod
      */
     private $throwableHandler;
 
@@ -28,7 +24,7 @@ final class ExceptionHandlerFactory
      */
     private $isSymfony4 = false;
 
-    public function __construct(HttpKernelInterface $kernel, ReflectionMethod $throwableHandler)
+    public function __construct(HttpKernelInterface $kernel, \ReflectionMethod $throwableHandler)
     {
         $this->kernel = $kernel;
         $this->throwableHandler = $throwableHandler;
@@ -40,9 +36,9 @@ final class ExceptionHandlerFactory
 
     public function newExceptionHandler(Request $request): callable
     {
-        return function (Throwable $e) use ($request) {
-            if ($this->isSymfony4 && $e instanceof Error) {
-                $e = new ErrorException(
+        return function (\Throwable $e) use ($request) {
+            if ($this->isSymfony4 && $e instanceof \Error) {
+                $e = new \ErrorException(
                     $e->getMessage(),
                     $e->getCode(),
                     \E_ERROR,

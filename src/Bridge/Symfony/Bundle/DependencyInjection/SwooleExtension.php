@@ -36,8 +36,6 @@ use K911\Swoole\Server\Runtime\HMR\InotifyHMR;
 use K911\Swoole\Server\TaskHandler\TaskHandlerInterface;
 use K911\Swoole\Server\WorkerHandler\HMRWorkerStartHandler;
 use K911\Swoole\Server\WorkerHandler\WorkerStartHandlerInterface;
-use ReflectionMethod;
-use RuntimeException;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
@@ -366,7 +364,7 @@ final class SwooleExtension extends Extension implements PrependExtensionInterfa
     private function registerSymfonyExceptionHandler(ContainerBuilder $container): void
     {
         if (!\class_exists(ErrorHandler::class)) {
-            throw new RuntimeException('To be able to use Symfony exception handler, the "symfony/error-handler" package needs to be installed.');
+            throw new \RuntimeException('To be able to use Symfony exception handler, the "symfony/error-handler" package needs to be installed.');
         }
 
         $container->register('swoole_bundle.error_handler.symfony_error_handler', ErrorHandler::class)
@@ -375,7 +373,7 @@ final class SwooleExtension extends Extension implements PrependExtensionInterfa
         $container->register(ThrowableHandlerFactory::class)
             ->setPublic(false)
         ;
-        $container->register('swoole_bundle.error_handler.symfony_kernel_throwable_handler', ReflectionMethod::class)
+        $container->register('swoole_bundle.error_handler.symfony_kernel_throwable_handler', \ReflectionMethod::class)
             ->setFactory([ThrowableHandlerFactory::class, 'newThrowableHandler'])
             ->setPublic(false)
         ;

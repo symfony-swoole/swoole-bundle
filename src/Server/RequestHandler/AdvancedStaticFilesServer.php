@@ -7,7 +7,6 @@ namespace K911\Swoole\Server\RequestHandler;
 use Assert\AssertionFailedException;
 use K911\Swoole\Server\HttpServerConfiguration;
 use K911\Swoole\Server\Runtime\BootableInterface;
-use RuntimeException;
 use Swoole\Http\Request;
 use Swoole\Http\Response;
 
@@ -129,7 +128,7 @@ final class AdvancedStaticFilesServer implements RequestHandlerInterface, Bootab
     public function boot(array $runtimeConfiguration = []): void
     {
         if (!$this->configuration->hasPublicDir()) {
-            throw new RuntimeException('AdvancedStaticFilesHandler requires setting "public_dir", which is unavailable. Either disable driver or fill "public_dir" setting.');
+            throw new \RuntimeException('AdvancedStaticFilesHandler requires setting "public_dir", which is unavailable. Either disable driver or fill "public_dir" setting.');
         }
 
         $this->publicDir = $this->configuration->getPublicDir();

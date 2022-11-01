@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace K911\Swoole\Tests\Fixtures\Symfony;
 
-use Exception;
-use Generator;
 use K911\Swoole\Bridge\Symfony\Bundle\SwooleBundle;
 use K911\Swoole\Tests\Fixtures\Symfony\CoverageBundle\CoverageBundle;
 use K911\Swoole\Tests\Fixtures\Symfony\TestBundle\TestBundle;
@@ -76,7 +74,7 @@ class TestAppKernel extends Kernel
     /**
      * {@inheritdoc}
      */
-    public function registerBundles(): Generator
+    public function registerBundles(): \Generator
     {
         yield new FrameworkBundle();
         yield new TwigBundle();
@@ -149,7 +147,7 @@ class TestAppKernel extends Kernel
     /**
      * {@inheritdoc}
      *
-     * @throws Exception
+     * @throws \Exception
      */
     protected function configureContainer(ContainerBuilder $c, LoaderInterface $loader): void
     {

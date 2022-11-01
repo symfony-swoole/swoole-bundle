@@ -11,7 +11,6 @@ use Swoole\Http\Request;
 use Swoole\Http\Response;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\HttpKernel\TerminableInterface;
-use Throwable;
 
 final class SymfonyExceptionHandler implements ExceptionHandlerInterface
 {
@@ -47,7 +46,7 @@ final class SymfonyExceptionHandler implements ExceptionHandlerInterface
         $this->errorResponder = $errorResponder;
     }
 
-    public function handle(Request $request, Throwable $exception, Response $response): void
+    public function handle(Request $request, \Throwable $exception, Response $response): void
     {
         $httpFoundationRequest = $this->requestFactory->make($request);
         $httpFoundationResponse = $this->errorResponder->processErroredRequest($httpFoundationRequest, $exception);

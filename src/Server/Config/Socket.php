@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace K911\Swoole\Server\Config;
 
 use Assert\Assertion;
-use InvalidArgumentException;
 
 final class Socket
 {
@@ -86,7 +85,7 @@ final class Socket
 
         if ($this->ssl) {
             if (!\defined('SWOOLE_SSL')) {
-                throw new InvalidArgumentException(self::CONSTANT_SWOOLE_SSL_IS_NOT_DEFINED_ERROR_MESSAGE);
+                throw new \InvalidArgumentException(self::CONSTANT_SWOOLE_SSL_IS_NOT_DEFINED_ERROR_MESSAGE);
             }
             $resolvedSocketType |= \SWOOLE_SSL;
         }

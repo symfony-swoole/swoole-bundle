@@ -8,7 +8,6 @@ use K911\Swoole\Client\Http;
 use K911\Swoole\Component\ExceptionArrayTransformer;
 use Swoole\Http\Request;
 use Swoole\Http\Response;
-use Throwable;
 
 final class JsonExceptionHandler implements ExceptionHandlerInterface
 {
@@ -21,7 +20,7 @@ final class JsonExceptionHandler implements ExceptionHandlerInterface
         $this->verbosity = $verbosity;
     }
 
-    public function handle(Request $request, Throwable $exception, Response $response): void
+    public function handle(Request $request, \Throwable $exception, Response $response): void
     {
         $data = $this->exceptionArrayTransformer->transform($exception, $this->verbosity);
 

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Controller;
 
-use InvalidArgumentException;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -34,7 +33,7 @@ class TwigController
     /**
      * @Route("/twig")
      *
-     * @throws InvalidArgumentException
+     * @throws \InvalidArgumentException
      * @throws LoaderError
      * @throws RuntimeError
      * @throws SyntaxError

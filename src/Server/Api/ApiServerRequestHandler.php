@@ -8,7 +8,6 @@ use K911\Swoole\Client\Http;
 use K911\Swoole\Server\RequestHandler\RequestHandlerInterface;
 use Swoole\Http\Request;
 use Swoole\Http\Response;
-use Throwable;
 
 final class ApiServerRequestHandler implements RequestHandlerInterface
 {
@@ -71,7 +70,7 @@ final class ApiServerRequestHandler implements RequestHandlerInterface
 
                     return;
             }
-        } catch (Throwable $exception) {
+        } catch (\Throwable $exception) {
             $this->sendErrorExceptionResponse($response, $exception);
         }
     }
@@ -84,7 +83,7 @@ final class ApiServerRequestHandler implements RequestHandlerInterface
         ];
     }
 
-    private function sendErrorExceptionResponse(Response $response, Throwable $exception): void
+    private function sendErrorExceptionResponse(Response $response, \Throwable $exception): void
     {
         $this->sendResponse($response, 500, [
             'error' => $exception->getMessage(),

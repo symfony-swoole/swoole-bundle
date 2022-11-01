@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace K911\Swoole\Component;
 
-use Generator;
 use IteratorAggregate;
 
 /**
@@ -12,7 +11,7 @@ use IteratorAggregate;
  *
  * @implements IteratorAggregate<T>
  */
-final class GeneratedCollection implements IteratorAggregate
+final class GeneratedCollection implements \IteratorAggregate
 {
     private $itemCollection;
     private $items;
@@ -30,9 +29,9 @@ final class GeneratedCollection implements IteratorAggregate
     /**
      * @throws \Exception
      *
-     * @return Generator<T>
+     * @return \Generator<T>
      */
-    public function each(callable $func): Generator
+    public function each(callable $func): \Generator
     {
         foreach ($this->getIterator() as $item) {
             yield $func($item);
@@ -62,9 +61,9 @@ final class GeneratedCollection implements IteratorAggregate
     /**
      * {@inheritdoc}
      *
-     * @return Generator<T>
+     * @return \Generator<T>
      */
-    public function getIterator(): Generator
+    public function getIterator(): \Generator
     {
         yield from $this->itemCollection;
 
@@ -74,9 +73,9 @@ final class GeneratedCollection implements IteratorAggregate
     /**
      * @throws \Exception
      *
-     * @return Generator<T>
+     * @return \Generator<T>
      */
-    private function filterItems(callable $func): Generator
+    private function filterItems(callable $func): \Generator
     {
         foreach ($this->getIterator() as $item) {
             if ($func($item)) {

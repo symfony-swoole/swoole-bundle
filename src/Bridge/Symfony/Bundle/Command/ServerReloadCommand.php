@@ -13,7 +13,6 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
-use Throwable;
 
 final class ServerReloadCommand extends Command
 {
@@ -61,7 +60,7 @@ final class ServerReloadCommand extends Command
 
         try {
             $this->server->reload();
-        } catch (Throwable $ex) {
+        } catch (\Throwable $ex) {
             $io->error($ex->getMessage());
             exit(1);
         }

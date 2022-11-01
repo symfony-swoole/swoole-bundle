@@ -4,10 +4,8 @@ declare(strict_types=1);
 
 namespace K911\Swoole\Bridge\Tideways\Apm;
 
-use Closure;
 use Swoole\Http\Request;
 use Swoole\Http\Response;
-use Throwable;
 use Tideways\Profiler;
 
 final class RequestProfiler
@@ -23,13 +21,13 @@ final class RequestProfiler
         $this->serviceName = '' !== $serviceName ? $serviceName : 'web';
     }
 
-    public function profile(Closure $fn, Request $request, Response $response): void
+    public function profile(\Closure $fn, Request $request, Response $response): void
     {
         $this->start($request);
 
         try {
             call_user_func($fn, $request, $response);
-        } catch (Throwable $e) {
+        } catch (\Throwable $e) {
             Profiler::logException($e);
 
             throw $e;

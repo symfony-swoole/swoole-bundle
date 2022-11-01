@@ -4,10 +4,6 @@ declare(strict_types=1);
 
 namespace K911\Swoole;
 
-use Closure;
-use OutOfRangeException;
-use UnexpectedValueException;
-
 /**
  * Replaces object property with provided value.
  * Property may not be public.
@@ -17,7 +13,7 @@ use UnexpectedValueException;
  */
 function replace_object_property(object $obj, string $propertyName, $newValue, ?string $scope = null): void
 {
-    Closure::bind(function (string $propertyName, $newValue): void {
+    \Closure::bind(function (string $propertyName, $newValue): void {
         $this->$propertyName = $newValue;
     }, $obj, $scope ?? $obj)($propertyName, $newValue);
 }
@@ -32,7 +28,7 @@ function replace_object_property(object $obj, string $propertyName, $newValue, ?
  */
 function &get_object_property(object $obj, string $propertyName, ?string $scope = null)
 {
-    return Closure::bind(fn &(string $propertyName) => $this->$propertyName, $obj, $scope ?? $obj)($propertyName);
+    return \Closure::bind(fn &(string $propertyName) => $this->$propertyName, $obj, $scope ?? $obj)($propertyName);
 }
 
 /**
@@ -65,7 +61,7 @@ function get_max_memory(): int
 function format_bytes(int $bytes): string
 {
     if ($bytes < 0) {
-        throw new OutOfRangeException('Bytes number cannot be negative.');
+        throw new \OutOfRangeException('Bytes number cannot be negative.');
     }
 
     $labels = ['B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB'];
@@ -97,7 +93,7 @@ function decode_string_as_set(?string $stringSet, string $separator = ',', array
     $separator = \trim($separator);
 
     if ('' === $separator) {
-        throw new UnexpectedValueException(\sprintf('Invalid separator: \'%s\'.', $separator));
+        throw new \UnexpectedValueException(\sprintf('Invalid separator: \'%s\'.', $separator));
     }
 
     /** @var string[] $set */

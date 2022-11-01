@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace K911\Swoole\Server\RequestHandler;
 
-use InvalidArgumentException;
 use K911\Swoole\Component\AtomicCounter;
 use K911\Swoole\Server\HttpServer;
 use K911\Swoole\Server\Runtime\BootableInterface;
@@ -76,7 +75,7 @@ final class LimitedRequestHandler implements RequestHandlerInterface, BootableIn
     private function console(callable $callback): void
     {
         if (!$this->symfonyStyle instanceof SymfonyStyle) {
-            throw new InvalidArgumentException('To interact with console, SymfonyStyle object must be provided as "symfonyStyle" attribute.');
+            throw new \InvalidArgumentException('To interact with console, SymfonyStyle object must be provided as "symfonyStyle" attribute.');
         }
 
         $callback($this->symfonyStyle);

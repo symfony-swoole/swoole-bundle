@@ -4,11 +4,9 @@ declare(strict_types=1);
 
 namespace K911\Swoole\Component;
 
-use Throwable;
-
 final class ExceptionArrayTransformer
 {
-    public function transform(Throwable $exception, string $verbosity = 'default'): array
+    public function transform(\Throwable $exception, string $verbosity = 'default'): array
     {
         switch ($verbosity) {
             case 'trace':
@@ -20,20 +18,20 @@ final class ExceptionArrayTransformer
         }
     }
 
-    private function transformWithFn(Throwable $exception, callable $transformer): array
+    private function transformWithFn(\Throwable $exception, callable $transformer): array
     {
         $data = $transformer($exception);
 
         $previous = $exception->getPrevious();
 
-        if ($previous instanceof Throwable) {
+        if ($previous instanceof \Throwable) {
             $data['previous'] = $transformer($previous);
         }
 
         return $data;
     }
 
-    private function transformFnDefault(Throwable $exception): array
+    private function transformFnDefault(\Throwable $exception): array
     {
         return [
             'code' => $exception->getCode(),
@@ -41,7 +39,7 @@ final class ExceptionArrayTransformer
         ];
     }
 
-    private function transformFnVerbose(Throwable $exception): array
+    private function transformFnVerbose(\Throwable $exception): array
     {
         return [
             'class' => \get_class($exception),
@@ -52,7 +50,7 @@ final class ExceptionArrayTransformer
         ];
     }
 
-    private function transformFnVerboseWithTrace(Throwable $exception): array
+    private function transformFnVerboseWithTrace(\Throwable $exception): array
     {
         return [
             'class' => \get_class($exception),
