@@ -158,6 +158,7 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
 
         $dropSchema = $this->createConsoleProcess([
             'doctrine:schema:drop',
+            '--full-database',
             '--force',
         ], ['APP_ENV' => 'coroutines', 'APP_DEBUG' => '0', 'WORKER_COUNT' => '1', 'REACTOR_COUNT' => '1']);
         $dropSchema->setTimeout(5);
@@ -165,15 +166,6 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
         $dropSchema->run();
 
         $this->assertProcessSucceeded($dropSchema);
-
-        $createSchema = $this->createConsoleProcess([
-            'doctrine:schema:create',
-        ], ['APP_ENV' => 'coroutines', 'APP_DEBUG' => '0', 'WORKER_COUNT' => '1', 'REACTOR_COUNT' => '1']);
-        $createSchema->setTimeout(5);
-        $createSchema->disableOutput();
-        $createSchema->run();
-
-        $this->assertProcessSucceeded($createSchema);
 
         $migrations = $this->createConsoleProcess([
             'doctrine:migrations:migrate',
@@ -292,7 +284,7 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
             $wg->wait(3);
             $end = microtime(true);
 
-            self::assertLessThan(1.5, $end - $start);
+            self::assertLessThan(1.1, $end - $start);
             usleep(1200000);
         });
 
@@ -320,6 +312,7 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
 
         $dropSchema = $this->createConsoleProcess([
             'doctrine:schema:drop',
+            '--full-database',
             '--force',
         ], [
             'APP_ENV' => 'coroutines',
@@ -333,21 +326,6 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
         $dropSchema->run();
 
         $this->assertProcessSucceeded($dropSchema);
-
-        $createSchema = $this->createConsoleProcess([
-            'doctrine:schema:create',
-        ], [
-            'APP_ENV' => 'coroutines',
-            'APP_DEBUG' => '0',
-            'WORKER_COUNT' => '1',
-            'REACTOR_COUNT' => '1',
-            'TASK_WORKER_COUNT' => '1',
-        ]);
-        $createSchema->setTimeout(5);
-        $createSchema->disableOutput();
-        $createSchema->run();
-
-        $this->assertProcessSucceeded($createSchema);
 
         $migrations = $this->createConsoleProcess([
             'doctrine:migrations:migrate',
