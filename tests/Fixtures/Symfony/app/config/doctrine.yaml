@@ -9,8 +9,8 @@ doctrine:
         # coroutines don't work well with sqlite because it is blocking
         driver: 'pdo_mysql'
         charset: utf8
-        user: root
-        password: root
+        user: user
+        password: pass
         host: '%env(DATABASE_HOST)%'
         port: 3306
         dbname: db
