@@ -282,15 +282,18 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
             }
 
             $wg->wait(3);
-            $end = microtime(true);
+            sleep(1);
 
-            self::assertLessThan(1.1, $end - $start);
-            usleep(1200000);
+            $end = microtime(true);
+            // after one second, three rows should be in the file, not after 1.6s
+            self::assertLessThan(self::coverageEnabled() ? 1.4 : 1.1, $end - $start);
         });
 
         $content = file_get_contents($fileName);
 
-        self::assertEquals(implode(PHP_EOL, ['2nd', '3rd', '1st']).PHP_EOL, $content);
+        self::assertNotEmpty($content);
+        $lines = explode(PHP_EOL, trim($content));
+        self::assertCount(3, $lines);
     }
 
     public function testCoroutinesWithTaskWorkersWithDoctrine(): void
