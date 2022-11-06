@@ -216,6 +216,14 @@ services:
       $fileSystem: '@swoole_bundle.filesystem'
       $proxyDir: '%swoole_bundle.service_proxy_cache_dir%'
 
+  swoole_bundle.service_pool.locking:
+    class: K911\Swoole\Component\Locking\CoroutineLocking
+    factory: ['K911\Swoole\Component\Locking\CoroutineLocking', 'init']
+
+  swoole_bundle.unmanaged_factory_first_time.locking:
+    class: K911\Swoole\Component\Locking\FirstTimeOnlyLocking
+    factory: [ 'K911\Swoole\Component\Locking\FirstTimeOnlyLocking', 'init' ]
+
   K911\Swoole\Bridge\Symfony\Container\Proxy\Instantiator:
     arguments:
       $proxyFactory: '@swoole_bundle.service_proxy_factory'
@@ -227,6 +235,8 @@ services:
       $instantiator: '@K911\Swoole\Bridge\Symfony\Container\Proxy\Instantiator'
       $servicePoolContainer: '@K911\Swoole\Bridge\Symfony\Container\ServicePool\ServicePoolContainer'
       $proxyDirHandler: '@K911\Swoole\Bridge\Symfony\Container\Proxy\ProxyDirectoryHandler'
+      $limitLocking: '@swoole_bundle.service_pool.locking'
+      $newInstanceLocking: '@swoole_bundle.unmanaged_factory_first_time.locking'
 
   swoole_bundle.filesystem:
     class: 'Symfony\Component\Filesystem\Filesystem'

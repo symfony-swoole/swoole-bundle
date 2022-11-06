@@ -6,7 +6,6 @@ namespace K911\Swoole\Bridge\Symfony\Container\Proxy;
 
 use K911\Swoole\Bridge\Symfony\Container\ServicePool\ServicePoolContainer;
 use K911\Swoole\Bridge\Symfony\Container\ServicePool\UnmanagedFactoryServicePool;
-use K911\Swoole\Component\Locking\FirstTimeOnlyLocking;
 use K911\Swoole\Component\Locking\Locking;
 use ProxyManager\Factory\AccessInterceptorValueHolderFactory;
 use ProxyManager\Proxy\AccessInterceptorInterface;
@@ -23,22 +22,24 @@ final class UnmanagedFactoryInstantiator
 
     private ProxyDirectoryHandler $proxyDirHandler;
 
-    private static ?Locking $locking = null;
+    private Locking $limitLocking;
+
+    private Locking $newInstanceLocking;
 
     public function __construct(
         AccessInterceptorValueHolderFactory $proxyFactory,
         Instantiator $instantiator,
         ServicePoolContainer $servicePoolContainer,
-        ProxyDirectoryHandler $proxyDirHandler
+        ProxyDirectoryHandler $proxyDirHandler,
+        Locking $limitLocking,
+        Locking $newInstanceLocking
     ) {
         $this->proxyFactory = $proxyFactory;
         $this->instantiator = $instantiator;
         $this->servicePoolContainer = $servicePoolContainer;
         $this->proxyDirHandler = $proxyDirHandler;
-
-        if (null === self::$locking) {
-            self::$locking = FirstTimeOnlyLocking::init();
-        }
+        $this->limitLocking = $limitLocking;
+        $this->newInstanceLocking = $newInstanceLocking;
     }
 
     /**
@@ -52,7 +53,6 @@ final class UnmanagedFactoryInstantiator
      */
     public function newInstance(object $instance, array $factoryMethods, string $wrappedSvcClass): object
     {
-        $locking = self::$locking;
         $this->proxyDirHandler->ensureProxyDirExists();
         /**
          * @var array<string, callable(
@@ -92,10 +92,10 @@ final class UnmanagedFactoryInstantiator
                 string $method,
                 array $params,
                 bool &$returnEarly
-            ) use ($servicePoolContainer, $instantiator, $wrappedSvcClass, $locking, $lockingKey) {
+            ) use ($servicePoolContainer, $instantiator, $wrappedSvcClass, $lockingKey) {
                 $returnEarly = true;
-                $factoryInstantiator = function () use ($instance, $method, $params, $locking, $lockingKey): object {
-                    $lock = $locking->acquire($lockingKey);
+                $factoryInstantiator = function () use ($instance, $method, $params, $lockingKey): object {
+                    $lock = $this->newInstanceLocking->acquire($lockingKey);
 
                     try {
                         $service = $instance->{$method}(...array_values($params));
@@ -105,7 +105,9 @@ final class UnmanagedFactoryInstantiator
 
                     return $service;
                 };
-                $servicePool = new UnmanagedFactoryServicePool($factoryInstantiator);
+                // unique locking key for each managed instance of the new service pool
+                $limitLockingKey = sprintf('%s::limit::%s', $lockingKey, uniqid());
+                $servicePool = new UnmanagedFactoryServicePool($factoryInstantiator, $limitLockingKey, $this->limitLocking);
                 $servicePoolContainer->addPool($servicePool);
 
                 return $instantiator->newInstance($servicePool, $wrappedSvcClass);

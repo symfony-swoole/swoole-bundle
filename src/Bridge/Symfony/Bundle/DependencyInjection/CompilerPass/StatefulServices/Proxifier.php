@@ -144,6 +144,8 @@ final class Proxifier
         $svcPoolDef->setShared(true);
         $svcPoolDef->setArgument(0, $wrappedServiceId);
         $svcPoolDef->setArgument(1, new Reference('service_container'));
+        $svcPoolDef->setArgument(2, new Reference('swoole_bundle.service_pool.locking'));
+        $svcPoolDef->setArgument(3, 50);
         $serviceClass = $serviceDef->getClass();
 
         if (!isset($this->stabilityCheckers[$serviceClass])) {
@@ -152,7 +154,7 @@ final class Proxifier
 
         $checkerSvcId = $this->stabilityCheckers[$serviceClass];
         $this->container->findDefinition($checkerSvcId);
-        $svcPoolDef->setArgument(2, new Reference($checkerSvcId));
+        $svcPoolDef->setArgument(4, new Reference($checkerSvcId));
 
         return $svcPoolDef;
     }
