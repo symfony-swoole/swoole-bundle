@@ -4,6 +4,9 @@ parameters:
   env(REACTOR_COUNT): 1
 
 swoole:
+  http_server:
+    exception_handler:
+      type: symfony
   task_worker:
     settings:
       worker_count: '%env(int:TASK_WORKER_COUNT)%'

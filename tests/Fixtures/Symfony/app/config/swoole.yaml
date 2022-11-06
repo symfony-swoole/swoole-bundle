@@ -1,8 +1,8 @@
 parameters:
     env(PORT): 9501
     env(HOST): 0.0.0.0
-    env(TRUSTED_HOSTS): localhost,127.0.0.1
-    env(TRUSTED_PROXIES): '*,196.168.0.0/16'
+    env(TRUSTED_HOSTS): localhost,127.0.0.1,docker.stack
+    env(TRUSTED_PROXIES): '*,192.168.0.0/16'
     env(WORKER_COUNT): 6
     env(REACTOR_COUNT): 3
 
