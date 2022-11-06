@@ -126,6 +126,12 @@ services:
   K911\Swoole\Server\TaskHandler\TaskFinishedHandlerInterface:
     class: K911\Swoole\Server\TaskHandler\NoOpTaskFinishedHandler
 
+  K911\Swoole\Bridge\Symfony\Messenger\ExceptionLoggingTransportHandler:
+    arguments:
+      $logger: '@logger'
+    tags:
+      - { name: monolog.logger, channel: swoole }
+
   K911\Swoole\Bridge\Symfony\Messenger\ServiceResettingTransportHandler:
     arguments:
       $resetter: '@services_resetter'

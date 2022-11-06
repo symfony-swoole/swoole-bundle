@@ -26,7 +26,7 @@ final class ServiceResettingTransportHandler implements TaskHandlerInterface
      */
     public function handle(Server $server, Server\Task $task): void
     {
-        $this->decorated->handle($server, $task);
         $this->resetter->reset();
+        $this->decorated->handle($server, $task);
     }
 }

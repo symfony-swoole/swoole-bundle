@@ -15,6 +15,7 @@ use K911\Swoole\Bridge\Symfony\HttpFoundation\TrustAllProxiesRequestHandler;
 use K911\Swoole\Bridge\Symfony\HttpKernel\ContextReleasingHttpKernelRequestHandler;
 use K911\Swoole\Bridge\Symfony\HttpKernel\CoroutineKernelPool;
 use K911\Swoole\Bridge\Symfony\HttpKernel\KernelPoolInterface;
+use K911\Swoole\Bridge\Symfony\Messenger\ExceptionLoggingTransportHandler;
 use K911\Swoole\Bridge\Symfony\Messenger\ServiceResettingTransportHandler;
 use K911\Swoole\Bridge\Tideways\Apm\Apm;
 use K911\Swoole\Bridge\Tideways\Apm\RequestDataProvider;
@@ -452,6 +453,13 @@ final class SwooleExtension extends Extension implements PrependExtensionInterfa
 
     private function configureTaskWorkerServices(array $config, ContainerBuilder $container): void
     {
+        $loggingHandler = $container->findDefinition(ExceptionLoggingTransportHandler::class);
+        $loggingHandler->setArgument(
+            '$decorated',
+            new Reference(ExceptionLoggingTransportHandler::class.'.inner')
+        );
+        $loggingHandler->setDecoratedService(TaskHandlerInterface::class, null, -9998);
+
         if (!$config['reset_handler']) {
             return;
         }
@@ -461,7 +469,7 @@ final class SwooleExtension extends Extension implements PrependExtensionInterfa
             '$decorated',
             new Reference(ServiceResettingTransportHandler::class.'.inner')
         );
-        $resetHandler->setDecoratedService(TaskHandlerInterface::class, null, -9999);
+        $resetHandler->setDecoratedService(TaskHandlerInterface::class, null, -9997);
     }
 
     private function assignSwooleConfiguration(
