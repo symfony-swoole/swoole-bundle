@@ -7,7 +7,7 @@ namespace K911\Swoole\Tests\Fixtures\Symfony;
 use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
 use Doctrine\Bundle\MigrationsBundle\DoctrineMigrationsBundle;
 use K911\Swoole\Bridge\Symfony\Bundle\SwooleBundle;
-use K911\Swoole\Bridge\Symfony\Kernel\CoroutinesSupportingKernel;
+use K911\Swoole\Bridge\Symfony\Kernel\CoroutinesSupportingKernelTrait;
 use K911\Swoole\Tests\Fixtures\Symfony\CoverageBundle\CoverageBundle;
 use K911\Swoole\Tests\Fixtures\Symfony\TestBundle\TestBundle;
 use PixelFederation\DoctrineResettableEmBundle\PixelFederationDoctrineResettableEmBundle;
@@ -27,7 +27,7 @@ use Symfony\Component\Routing\Loader\Configurator\RoutingConfigurator;
 class TestAppKernel extends Kernel
 {
     use MicroKernelTrait;
-    use CoroutinesSupportingKernel;
+    use CoroutinesSupportingKernelTrait;
 
     private const CONFIG_EXTENSIONS = '.{php,xml,yaml,yml}';
 

@@ -174,6 +174,14 @@ There should be no issues with the changes in the file, the custom version only 
 It should be compatible with most of the `laminas/laminas-code` versions installed as a dependency
 of `ocramius/proxy-manager`.**
 
+### Application kernel modification
+
+To be able to use coroutines in your application the following trait has to be used in the application kernel class:
+`K911\Swoole\Bridge\Symfony\Kernel\CoroutinesSupportingKernelTrait`. 
+
+This trait will disable state resetting of the app kernel while cloning it and makes some default overrides 
+and initializations.
+
 ### Proxification
 
 To be able to run a Symfony app with Swoole coroutines without modifications of the app, this bundle implements
