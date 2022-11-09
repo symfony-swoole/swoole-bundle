@@ -141,15 +141,22 @@ final class Proxifier
 
     private function prepareServicePool(string $wrappedServiceId, Definition $serviceDef): Definition
     {
-        $instanceLimit = (int) $this->container->getParameter(ContainerConstants::PARAM_COROUTINES_MAX_SVC_INSTANCES);
-
         $svcPoolDef = new Definition(DiServicePool::class);
         $svcPoolDef->setShared(true);
         $svcPoolDef->setArgument(0, $wrappedServiceId);
         $svcPoolDef->setArgument(1, new Reference('service_container'));
         $svcPoolDef->setArgument(2, new Reference('swoole_bundle.service_pool.locking'));
-        $svcPoolDef->setArgument(3, $instanceLimit);
+        $instanceLimit = (int) $this->container->getParameter(ContainerConstants::PARAM_COROUTINES_MAX_SVC_INSTANCES);
+        /** @var class-string $serviceClass */
         $serviceClass = $serviceDef->getClass();
+        $serviceTags = new Tags($serviceClass, $serviceDef->getTags());
+        $serviceTag = $serviceTags->findStatefulServiceTag();
+
+        if (null !== $serviceTag && null !== $serviceTag->getLimit()) {
+            $instanceLimit = $serviceTag->getLimit();
+        }
+
+        $svcPoolDef->setArgument(3, $instanceLimit);
 
         if (!isset($this->stabilityCheckers[$serviceClass])) {
             return $svcPoolDef;

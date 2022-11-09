@@ -50,4 +50,9 @@ final class DefaultDummyService implements ResetInterface, DummyService
     {
         $this->tmpRepository->reset();
     }
+
+    public function getTmpRepository(): InMemoryRepository
+    {
+        return $this->tmpRepository;
+    }
 }

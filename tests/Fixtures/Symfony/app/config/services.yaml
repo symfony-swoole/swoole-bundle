@@ -48,3 +48,4 @@ services:
       - name: 'swoole_bundle.unmanaged_factory'
         factoryMethod: 'newInstance'
         returnType: 'K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Service\InMemoryRepository'
+        limit: 15

@@ -39,6 +39,18 @@ final class Tags implements \IteratorAggregate
         return !empty($ufTags);
     }
 
+    public function findStatefulServiceTag(): ?StatefulServiceTag
+    {
+        $ssTags = $this->findByName(ContainerConstants::TAG_STATEFUL_SERVICE);
+
+        if (empty($ssTags)) {
+            return null;
+        }
+
+        /* @phpstan-ignore-next-line */
+        return new StatefulServiceTag($ssTags[0]);
+    }
+
     public function hasDecoratedStatefulServiceTag(): bool
     {
         $ufTags = $this->findByName(ContainerConstants::TAG_DECORATED_STATEFUL_SERVICE);

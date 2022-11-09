@@ -50,7 +50,7 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
             $wg = new WaitGroup();
             $trueChecks = 0;
 
-            for ($i = 0; $i < 4; ++$i) {
+            for ($i = 0; $i < 10; ++$i) {
                 go(function () use ($wg, &$trueChecks): void {
                     $wg->add();
                     $client = HttpClient::fromDomain('localhost', 9999, false);
@@ -63,6 +63,10 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
                     // is 1 for the first 4 concurrent requests
                     $this->assertStringContainsString('Sleep was fine. Count was 1.', $response['body']);
                     $this->assertStringContainsString('Service was proxified.', $response['body']);
+                    $this->assertStringContainsString('Service2 was proxified.', $response['body']);
+                    $this->assertStringContainsString('Service2 limit is 10.', $response['body']);
+                    $this->assertStringContainsString('TmpRepo was proxified.', $response['body']);
+                    $this->assertStringContainsString('TmpRepo limit is 15.', $response['body']);
 
                     if (false !== strpos($response['body'], 'Check was true')) {
                         ++$trueChecks;
@@ -75,7 +79,16 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
             $wg->wait(10);
             $end = microtime(true);
 
-            self::assertGreaterThanOrEqual(1, $trueChecks);
+            self::assertSame(0, $trueChecks);
+
+            $client = HttpClient::fromDomain('localhost', 9999, false);
+            $this->assertTrue($client->connect());
+            $response = $client->send('/sleep')['response']; // request sleeps for 2 seconds
+            $this->assertSame(200, $response['statusCode']);
+            $this->assertStringContainsString('text/html', $response['headers']['content-type']);
+            $this->assertStringContainsString('Check was true.', $response['body']);
+            $this->assertStringContainsString('Checks: 10.', $response['body']);
+
             // without coroutines, it should be 8, expected is 2, 1.5s is slowness tolerance in initialization
             // 4.5 is tolerance for xdebug coverage
             self::assertLessThan(self::coverageEnabled() ? 4.5 : 3.5, $end - $start);
@@ -115,7 +128,7 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
             $wg = new WaitGroup();
             $trueChecks = 0;
 
-            for ($i = 0; $i < 4; ++$i) {
+            for ($i = 0; $i < 10; ++$i) {
                 go(function () use ($wg, &$trueChecks): void {
                     $wg->add();
                     $client = HttpClient::fromDomain('localhost', 9999, false);
@@ -127,6 +140,11 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
                     // so multiple instances will be created (one for each coroutine), so the counter in them
                     // is 1 for the first 4 concurrent requests
                     $this->assertStringContainsString('Sleep was fine. Count was 1.', $response['body']);
+                    $this->assertStringContainsString('Service was proxified.', $response['body']);
+                    $this->assertStringContainsString('Service2 was proxified.', $response['body']);
+                    $this->assertStringContainsString('Service2 limit is 10.', $response['body']);
+                    $this->assertStringContainsString('TmpRepo was proxified.', $response['body']);
+                    $this->assertStringContainsString('TmpRepo limit is 15.', $response['body']);
 
                     if (false !== strpos($response['body'], 'Check was true')) {
                         ++$trueChecks;
@@ -139,7 +157,16 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
             $wg->wait(10);
             $end = microtime(true);
 
-            self::assertGreaterThanOrEqual(1, $trueChecks);
+            self::assertSame(0, $trueChecks);
+
+            $client = HttpClient::fromDomain('localhost', 9999, false);
+            $this->assertTrue($client->connect());
+            $response = $client->send('/sleep')['response']; // request sleeps for 2 seconds
+            $this->assertSame(200, $response['statusCode']);
+            $this->assertStringContainsString('text/html', $response['headers']['content-type']);
+            $this->assertStringContainsString('Check was true.', $response['body']);
+            $this->assertStringContainsString('Checks: 10.', $response['body']);
+
             // without coroutines, it should be 8, expected is 2, 1.5s is slowness tolerance in initialization
             self::assertLessThan(3.5, $end - $start);
         });

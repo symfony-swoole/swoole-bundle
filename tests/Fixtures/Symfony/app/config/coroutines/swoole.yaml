@@ -29,6 +29,10 @@ services:
     autoconfigure: true
     public: false
 
+  K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Service\ShouldBeProxified2:
+    tags:
+      - { name: 'swoole_bundle.stateful_service', limit: 10 }
+
   K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Controller\CoroutinesTaskController:
     tags:
       - controller.service_arguments

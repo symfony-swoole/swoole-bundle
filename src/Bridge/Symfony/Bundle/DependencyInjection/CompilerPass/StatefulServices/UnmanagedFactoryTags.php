@@ -69,6 +69,11 @@ final class UnmanagedFactoryTags
         return $returnType;
     }
 
+    public function getLimit(): ?int
+    {
+        return $this->tags[0]->getLimit();
+    }
+
     /**
      * @param class-string $className
      *

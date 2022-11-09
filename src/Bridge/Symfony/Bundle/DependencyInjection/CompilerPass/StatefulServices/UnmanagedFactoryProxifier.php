@@ -67,6 +67,11 @@ final class UnmanagedFactoryProxifier
         $proxyDef->setArgument(2, $returnType);
 
         $instanceLimit = (int) $this->container->getParameter(ContainerConstants::PARAM_COROUTINES_MAX_SVC_INSTANCES);
+
+        if (null !== $ufTags->getLimit()) {
+            $instanceLimit = $ufTags->getLimit();
+        }
+
         $proxyDef->setArgument(3, $instanceLimit);
 
         foreach ($serviceTags as $tag => $attributes) {
