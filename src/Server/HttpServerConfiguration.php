@@ -76,17 +76,16 @@ class HttpServerConfiguration
         'error' => \SWOOLE_LOG_ERROR,
     ];
 
-    private $sockets;
+    private Sockets $sockets;
 
-    /**
-     * @var string
-     */
-    private $runningMode;
+    private string $runningMode;
+
+    private ?int $maxConcurrency;
 
     /**
      * @var array<string, mixed>
      */
-    private $settings;
+    private array $settings;
 
     /**
      * @param array $settings settings available:
@@ -106,12 +105,17 @@ class HttpServerConfiguration
      *
      * @throws \Assert\AssertionFailedException
      */
-    public function __construct(Sockets $sockets, string $runningMode = 'process', array $settings = [])
-    {
+    public function __construct(
+        Sockets $sockets,
+        string $runningMode = 'process',
+        array $settings = [],
+        ?int $maxConcurrency = null
+    ) {
         $this->sockets = $sockets;
 
         $this->changeRunningMode($runningMode);
         $this->initializeSettings($settings);
+        $this->maxConcurrency = $maxConcurrency;
     }
 
     public function isDaemon(): bool
@@ -142,6 +146,11 @@ class HttpServerConfiguration
     public function getSockets(): Sockets
     {
         return $this->sockets;
+    }
+
+    public function getMaxConcurrency(): ?int
+    {
+        return $this->maxConcurrency;
     }
 
     /**

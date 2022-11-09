@@ -15,7 +15,8 @@ swoole:
   platform:
     coroutines:
       enabled: true
-      max_coroutines: 100
+      max_concurrency: 30
+#      max_service_instances: 50
       stateful_services:
         - K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Service\ShouldBeProxified
       compile_processors:

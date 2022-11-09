@@ -290,6 +290,22 @@ final class Configuration implements ConfigurationInterface
                                     ->defaultFalse()
                                 ->end()
                                 ->scalarNode('max_coroutines')
+                                    ->defaultValue(100000) // swoole default
+                                    ->validate()
+                                        ->always(function (?int $max): ?int {
+                                            if (null === $max) {
+                                                return $max;
+                                            }
+
+                                            if ($max < 1 || $max > 100000) {
+                                                throw new InvalidConfigurationException(sprintf('Max coroutines %d should be between 1 and 100000.', $max));
+                                            }
+
+                                            return $max;
+                                        })
+                                    ->end()
+                                ->end()
+                                    ->scalarNode('max_concurrency')
                                     ->defaultNull()
                                     ->validate()
                                         ->always(function (?int $max): ?int {
@@ -298,11 +314,27 @@ final class Configuration implements ConfigurationInterface
                                             }
 
                                             if ($max < 1 || $max > 100000) {
-                                                throw new InvalidConfigurationException(sprintf('Max coroutines has invalid value: %d.', $max));
+                                                throw new InvalidConfigurationException(sprintf('Max concurrency %d should be between 1 and 100000.', $max));
                                             }
 
                                             return $max;
                                         })
+                                    ->end()
+                                ->end()
+                                ->scalarNode('max_service_instances')
+                                    ->defaultNull()
+                                    ->validate()
+                                    ->always(function (?int $max): ?int {
+                                        if (null === $max) {
+                                            return $max;
+                                        }
+
+                                        if ($max < 1 || $max > 100000) {
+                                            throw new InvalidConfigurationException(sprintf('Max service instances (%d) should be between 1 and 100000.', $max));
+                                        }
+
+                                        return $max;
+                                    })
                                     ->end()
                                 ->end()
                                 ->arrayNode('stateful_services')

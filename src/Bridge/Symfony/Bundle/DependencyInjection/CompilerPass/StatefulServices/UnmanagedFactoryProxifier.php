@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace K911\Swoole\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices;
 
+use K911\Swoole\Bridge\Symfony\Bundle\DependencyInjection\ContainerConstants;
 use K911\Swoole\Bridge\Symfony\Container\Proxy\UnmanagedFactoryInstantiator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
@@ -64,6 +65,9 @@ final class UnmanagedFactoryProxifier
         $returnType = $ufTags->getFactoryReturnType($this->container);
         $this->finalProcessor->process($returnType);
         $proxyDef->setArgument(2, $returnType);
+
+        $instanceLimit = (int) $this->container->getParameter(ContainerConstants::PARAM_COROUTINES_MAX_SVC_INSTANCES);
+        $proxyDef->setArgument(3, $instanceLimit);
 
         foreach ($serviceTags as $tag => $attributes) {
             $proxyDef->addTag($tag, $attributes[0]);
