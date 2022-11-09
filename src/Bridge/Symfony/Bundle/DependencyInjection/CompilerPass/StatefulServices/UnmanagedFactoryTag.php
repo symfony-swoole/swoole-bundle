@@ -7,12 +7,12 @@ namespace K911\Swoole\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\Sta
 final class UnmanagedFactoryTag
 {
     /**
-     * @var array{factoryMethod: string, returnType?: class-string|string}
+     * @var array{factoryMethod: string, returnType?: class-string|string, limit?: int}
      */
     private array $tag;
 
     /**
-     * @param array{factoryMethod: string, returnType?: class-string|string} $tag
+     * @param array{factoryMethod: string, returnType?: class-string|string, limit?: int} $tag
      */
     public function __construct(array $tag)
     {
@@ -30,5 +30,10 @@ final class UnmanagedFactoryTag
     public function getReturnType(): ?string
     {
         return $this->tag['returnType'] ?? null;
+    }
+
+    public function getLimit(): ?int
+    {
+        return $this->tag['limit'] ?? null;
     }
 }

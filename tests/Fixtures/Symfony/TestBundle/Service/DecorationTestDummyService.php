@@ -18,6 +18,11 @@ final class DecorationTestDummyService implements DummyService
         return $this->decorated->process();
     }
 
+    public function getDecorated(): DummyService
+    {
+        return $this->decorated;
+    }
+
     /**
      * this method has to be here because SF container decorating logic leaves removes the kernel.reset tag
      * from the decorated service and adds it to the decorating service.
