@@ -122,8 +122,18 @@ swoole:
       # (https://openswoole.com/article/isolating-variables-with-coroutine-context)
       max_coroutines: 100
       # default value is 100000, if not set
-      # it helps limitting this number, so you can be sure, that there is a limited amount of proxified service instances
       # (https://openswoole.com/docs/modules/swoole-server/configuration#max_coroutine)
+      max_concurrency: 100
+      # default value is null, if not set
+      # it helps limitting this number, so you can be sure, that there is a limited amount of proxified service instances
+      # (https://openswoole.com/article/v4-7-1-released)
+      max_service_instances: 100
+      # default is the same as max_concurrency, if not set, or max_coroutines if max_concurrency is not set
+      # it is important to limit the amount of stateful service instances, that need to be created,
+      # otherwise there would be at least so many service instances as coroutines, which might be quite enough
+      # regarding how much coroutines can be run concurrently (e.g. 100000)
+      # this number is by default equal to max_concurrency or max_coroutines, since it doesn't make sense to have 
+      # more stateful services than coroutines, but sometimes it might have sense to have less instances (e.g. if max_coroutines is too high)
       stateful_services:
         - SomeStatefulServiceId
           # add stateful service ids which need to be proxified and the bundle cannot detect them alone

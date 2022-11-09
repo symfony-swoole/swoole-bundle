@@ -82,11 +82,22 @@ final class SwooleExtension extends Extension implements PrependExtensionInterfa
         $config = $this->processConfiguration($configuration, $configs);
 
         $runningMode = $config['http_server']['running_mode'];
-        $swooleSettings = isset($config['platform']) ? $this->configurePlatform($config['platform'], $container) : [];
+
+        $maxConcurrency = null;
+
+        if (
+            isset($config['platform']['coroutines']['max_concurrency'])
+            && is_int($config['platform']['coroutines']['max_concurrency'])
+        ) {
+            $maxConcurrency = $config['platform']['coroutines']['max_concurrency'];
+        }
+
+        $swooleSettings = isset($config['platform']) ?
+            $this->configurePlatform($config['platform'], $maxConcurrency, $container) : [];
         $swooleSettings += $this->configureHttpServer($config['http_server'], $container);
         $swooleSettings += isset($config['task_worker']) ?
             $this->configureTaskWorker($config['task_worker'], $container) : [];
-        $this->assignSwooleConfiguration($swooleSettings, $runningMode, $container);
+        $this->assignSwooleConfiguration($swooleSettings, $runningMode, $maxConcurrency, $container);
     }
 
     /**
@@ -105,7 +116,7 @@ final class SwooleExtension extends Extension implements PrependExtensionInterfa
         return Configuration::fromTreeBuilder();
     }
 
-    private function configurePlatform(array $config, ContainerBuilder $container): array
+    private function configurePlatform(array $config, ?int $maxConcurrency, ContainerBuilder $container): array
     {
         $swooleSettings = [];
         $coroutineSettings = $config['coroutines'];
@@ -119,12 +130,15 @@ final class SwooleExtension extends Extension implements PrependExtensionInterfa
         }
 
         $swooleSettings['hook_flags'] = \SWOOLE_HOOK_ALL;
+        $swooleSettings['max_coroutine'] = $coroutineSettings['max_coroutines'];
+        $container->setParameter(ContainerConstants::PARAM_COROUTINES_ENABLED, true);
+        $maxServiceInstances = $maxConcurrency ?? $swooleSettings['max_coroutine'];
 
-        if (isset($config['max_coroutines'])) {
-            $swooleSettings['max_coroutine'] = $config['max_coroutines'];
+        if (isset($coroutineSettings['max_service_instances']) && is_int($coroutineSettings['max_service_instances'])) {
+            $maxServiceInstances = $coroutineSettings['max_service_instances'];
         }
 
-        $container->setParameter(ContainerConstants::PARAM_COROUTINES_ENABLED, true);
+        $container->setParameter(ContainerConstants::PARAM_COROUTINES_MAX_SVC_INSTANCES, $maxServiceInstances);
 
         if (isset($coroutineSettings['stateful_services']) && is_array($coroutineSettings['stateful_services'])) {
             $container->setParameter(
@@ -475,12 +489,14 @@ final class SwooleExtension extends Extension implements PrependExtensionInterfa
     private function assignSwooleConfiguration(
         array $swooleSettings,
         string $runningMode,
+        ?int $maxConcurrency,
         ContainerBuilder $container
     ): void {
         $container->getDefinition(HttpServerConfiguration::class)
             ->addArgument(new Reference(Sockets::class))
             ->addArgument($runningMode)
             ->addArgument($swooleSettings)
+            ->addArgument($maxConcurrency)
         ;
     }
 

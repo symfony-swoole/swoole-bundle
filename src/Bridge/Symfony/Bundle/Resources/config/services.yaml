@@ -2,6 +2,7 @@ parameters:
   swoole_bundle.coroutines_support.enabled: false
   swoole_bundle.coroutines_support.compile_processors: [ ]
   swoole_bundle.coroutines_support.stability_checkers: [ ]
+  swoole_bundle.coroutines_support.max_service_instances: 100000
   swoole_bundle.cache_dir_name: !php/const 'K911\Swoole\Bridge\Symfony\Bundle\DependencyInjection\ContainerConstants::PARAM_CACHE_FOLDER'
   swoole_bundle.cache_dir: '%kernel.cache_dir%/%swoole_bundle.cache_dir_name%'
   swoole_bundle.service_proxy_cache_dir: '%swoole_bundle.cache_dir%/services'

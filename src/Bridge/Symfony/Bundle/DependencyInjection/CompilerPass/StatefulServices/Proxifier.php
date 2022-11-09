@@ -6,6 +6,7 @@ namespace K911\Swoole\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\Sta
 
 use Doctrine\ORM\EntityManager;
 use K911\Swoole\Bridge\Doctrine\ORM\EntityManagerStabilityChecker;
+use K911\Swoole\Bridge\Symfony\Bundle\DependencyInjection\ContainerConstants;
 use K911\Swoole\Bridge\Symfony\Container\Proxy\Instantiator;
 use K911\Swoole\Bridge\Symfony\Container\ServicePool\DiServicePool;
 use K911\Swoole\Bridge\Symfony\Container\StabilityChecker;
@@ -140,12 +141,14 @@ final class Proxifier
 
     private function prepareServicePool(string $wrappedServiceId, Definition $serviceDef): Definition
     {
+        $instanceLimit = (int) $this->container->getParameter(ContainerConstants::PARAM_COROUTINES_MAX_SVC_INSTANCES);
+
         $svcPoolDef = new Definition(DiServicePool::class);
         $svcPoolDef->setShared(true);
         $svcPoolDef->setArgument(0, $wrappedServiceId);
         $svcPoolDef->setArgument(1, new Reference('service_container'));
         $svcPoolDef->setArgument(2, new Reference('swoole_bundle.service_pool.locking'));
-        $svcPoolDef->setArgument(3, 50);
+        $svcPoolDef->setArgument(3, $instanceLimit);
         $serviceClass = $serviceDef->getClass();
 
         if (!isset($this->stabilityCheckers[$serviceClass])) {

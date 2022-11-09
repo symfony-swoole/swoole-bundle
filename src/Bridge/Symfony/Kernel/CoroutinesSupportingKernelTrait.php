@@ -29,7 +29,7 @@ trait CoroutinesSupportingKernelTrait
     }
 
     /**
-     * this initializes logic which removes the final flag from proxified classes (if they are final)
+     * this initializes logic which removes the final flag from proxified classes (if they are final).
      */
     protected function initializeContainer()
     {

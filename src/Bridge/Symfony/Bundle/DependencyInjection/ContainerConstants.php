@@ -8,6 +8,8 @@ interface ContainerConstants
 {
     public const PARAM_COROUTINES_ENABLED = 'swoole_bundle.coroutines_support.enabled';
 
+    public const PARAM_COROUTINES_MAX_SVC_INSTANCES = 'swoole_bundle.coroutines_support.max_service_instances';
+
     public const PARAM_COROUTINES_STATEFUL_SERVICES = 'swoole_bundle.coroutines_support.stateful_services';
 
     public const PARAM_COROUTINES_COMPILE_PROCESSORS = 'swoole_bundle.coroutines_support.compile_processors';

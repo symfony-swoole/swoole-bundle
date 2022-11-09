@@ -27,5 +27,13 @@ final class WithHttpServerConfiguration implements ConfiguratorInterface
         if (0 === $defaultSocket->port()) {
             $this->configuration->changeServerSocket($defaultSocket->withPort($server->port));
         }
+
+        $maxConcurrency = $this->configuration->getMaxConcurrency();
+
+        if (null === $maxConcurrency) {
+            return;
+        }
+
+        \Co::set(['max_concurrency' => $maxConcurrency]);
     }
 }
