@@ -19,13 +19,21 @@ final class UnmanagedFactoryTags
     private array $tags;
 
     /**
-     * @var null|array<string>
+     * @var null|array<array{
+     *     factoryMethod: string,
+     *     returnType: class-string|string,
+     *     limit?: int
+     * }>
      */
-    private ?array $factoryMethods = null;
+    private ?array $factoryMethodConfigs = null;
 
     /**
-     * @param class-string                                                          $serviceClass
-     * @param array<array{factoryMethod: string, returnType?: class-string|string}> $tags
+     * @param class-string $serviceClass
+     * @param array<array{
+     *     factoryMethod: string,
+     *     returnType?: class-string|string,
+     *     limit?: int
+     * }> $tags
      */
     public function __construct(string $serviceClass, array $tags)
     {
@@ -34,44 +42,37 @@ final class UnmanagedFactoryTags
     }
 
     /**
-     * @return array<string>
+     * @return array<array{
+     *     factoryMethod: string,
+     *     returnType: class-string|string,
+     *     limit?: int
+     * }>
      */
-    public function getFactoryMethods(): array
+    public function getFactoryMethodConfigs(ContainerBuilder $container): array
     {
-        if (null === $this->factoryMethods) {
-            $this->factoryMethods = array_map(
-                fn (UnmanagedFactoryTag $tag): string => $tag->getFactoryMethod(),
+        if (null === $this->factoryMethodConfigs) {
+            $this->factoryMethodConfigs = array_map(
+                function (UnmanagedFactoryTag $tag) use ($container): array {
+                    $config = $tag->toArray();
+
+                    if (!isset($config['returnType'])) {
+                        $config['returnType'] = $this->getReturnTypeForClassMethod(
+                            $this->serviceClass,
+                            $config['factoryMethod']
+                        );
+                    }
+
+                    if (str_starts_with($config['returnType'], '%')) {
+                        $config['returnType'] = (string) $container->getParameter(trim($config['returnType'], '%'));
+                    }
+
+                    return $config;
+                },
                 $this->tags
             );
         }
 
-        return $this->factoryMethods;
-    }
-
-    /**
-     * @throws \ReflectionException
-     *
-     * @return class-string
-     */
-    public function getFactoryReturnType(ContainerBuilder $container): string
-    {
-        $returnType = $this->tags[0]->getReturnType() ??
-            $this->getReturnTypeForClassMethod($this->serviceClass, $this->getFactoryMethods()[0]);
-
-        if (str_starts_with($returnType, '%')) {
-            $returnType = (string) $container->getParameter(trim($returnType, '%'));
-        }
-
-        if (!class_exists($returnType)) {
-            throw new \UnexpectedValueException(sprintf('Class does not exist: %s', $returnType));
-        }
-
-        return $returnType;
-    }
-
-    public function getLimit(): ?int
-    {
-        return $this->tags[0]->getLimit();
+        return $this->factoryMethodConfigs;
     }
 
     /**

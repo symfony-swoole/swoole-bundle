@@ -46,16 +46,18 @@ final class UnmanagedFactoryInstantiator
      * @template RealObjectType of object
      *
      * @param RealObjectType $instance
-     * @param class-string   $wrappedSvcClass
-     * @param array<string>  $factoryMethods
+     * @param array<array{
+     *     factoryMethod: string,
+     *     returnType: class-string,
+     *     limit?: int
+     * }> $factoryConfigs
      *
      * @return AccessInterceptorInterface<RealObjectType>&AccessInterceptorValueHolderInterface<RealObjectType>&RealObjectType&ValueHolderInterface<RealObjectType>
      */
     public function newInstance(
         object $instance,
-        array $factoryMethods,
-        string $wrappedSvcClass,
-        int $instancesLimit
+        array $factoryConfigs,
+        int $globalInstancesLimit
     ): object {
         $this->proxyDirHandler->ensureProxyDirExists();
         /**
@@ -71,11 +73,13 @@ final class UnmanagedFactoryInstantiator
         $servicePoolContainer = $this->servicePoolContainer;
         $instantiator = $this->instantiator;
 
-        if (empty($factoryMethods)) {
+        if (empty($factoryConfigs)) {
             throw new \RuntimeException(sprintf('Factory methods missing for class %s', get_class($instance)));
         }
 
-        foreach ($factoryMethods as $factoryMethod) {
+        foreach ($factoryConfigs as $factoryConfig) {
+            $factoryMethod = $factoryConfig['factoryMethod'];
+
             if (!method_exists($instance, $factoryMethod)) {
                 throw new \RuntimeException(sprintf('Missing method %s in class %s', $factoryMethod, get_class($instance)));
             }
@@ -96,7 +100,7 @@ final class UnmanagedFactoryInstantiator
                 string $method,
                 array $params,
                 bool &$returnEarly
-            ) use ($servicePoolContainer, $instantiator, $wrappedSvcClass, $lockingKey, $instancesLimit) {
+            ) use ($servicePoolContainer, $instantiator, $factoryConfig, $lockingKey, $globalInstancesLimit) {
                 $returnEarly = true;
                 $factoryInstantiator = function () use ($instance, $method, $params, $lockingKey): object {
                     $lock = $this->newInstanceLocking->acquire($lockingKey);
@@ -114,6 +118,7 @@ final class UnmanagedFactoryInstantiator
                 // this might need refactoring later...
                 // unique locking key for each managed instance of the new service pool
                 $limitLockingKey = sprintf('%s::limit::%s', $lockingKey, uniqid());
+                $instancesLimit = $factoryConfig['limit'] ?? $globalInstancesLimit;
                 $servicePool = new UnmanagedFactoryServicePool(
                     $factoryInstantiator,
                     $limitLockingKey,
@@ -122,8 +127,9 @@ final class UnmanagedFactoryInstantiator
                 );
                 $servicePoolContainer->addPool($servicePool);
 
-                return $instantiator->newInstance($servicePool, $wrappedSvcClass);
+                return $instantiator->newInstance($servicePool, $factoryConfig['returnType']);
             };
+
             $prefixInterceptors[$factoryMethod] = $interceptor;
         }
 

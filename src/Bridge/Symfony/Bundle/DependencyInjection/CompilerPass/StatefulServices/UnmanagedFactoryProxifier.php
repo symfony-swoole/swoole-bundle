@@ -61,18 +61,16 @@ final class UnmanagedFactoryProxifier
         $proxyDef->setArgument(0, new Reference($wrappedServiceId));
         $serviceTags = new Tags($serviceClass, $serviceDef->getTags());
         $ufTags = $serviceTags->getUnmanagedFactoryTags();
-        $proxyDef->setArgument(1, $ufTags->getFactoryMethods());
-        $returnType = $ufTags->getFactoryReturnType($this->container);
-        $this->finalProcessor->process($returnType);
-        $proxyDef->setArgument(2, $returnType);
+        $factoryConfigs = $ufTags->getFactoryMethodConfigs($this->container);
+        $proxyDef->setArgument(1, $factoryConfigs);
+
+        foreach ($factoryConfigs as $factoryConfig) {
+            $this->finalProcessor->process($factoryConfig['returnType']);
+        }
 
         $instanceLimit = (int) $this->container->getParameter(ContainerConstants::PARAM_COROUTINES_MAX_SVC_INSTANCES);
 
-        if (null !== $ufTags->getLimit()) {
-            $instanceLimit = $ufTags->getLimit();
-        }
-
-        $proxyDef->setArgument(3, $instanceLimit);
+        $proxyDef->setArgument(2, $instanceLimit);
 
         foreach ($serviceTags as $tag => $attributes) {
             $proxyDef->addTag($tag, $attributes[0]);
