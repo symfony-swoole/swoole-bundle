@@ -24,10 +24,10 @@ final class ServicePoolContainer
         $this->pools[] = $pool;
     }
 
-    public function releaseForCoroutine(int $cId): void
+    public function releaseFromCoroutine(int $cId): void
     {
         foreach ($this->pools as $pool) {
-            $pool->releaseForCoroutine($cId);
+            $pool->releaseFromCoroutine($cId);
         }
     }
 }
