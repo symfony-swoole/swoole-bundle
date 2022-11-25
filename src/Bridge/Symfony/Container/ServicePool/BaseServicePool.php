@@ -66,7 +66,7 @@ abstract class BaseServicePool implements ServicePool
         return $this->assignedPool[$cId] = $this->newServiceInstance();
     }
 
-    public function releaseForCoroutine(int $cId): void
+    public function releaseFromCoroutine(int $cId): void
     {
         if (!isset($this->assignedPool[$cId])) {
             return;

@@ -8,5 +8,5 @@ interface ServicePool
 {
     public function get(): object;
 
-    public function releaseForCoroutine(int $cId): void;
+    public function releaseFromCoroutine(int $cId): void;
 }

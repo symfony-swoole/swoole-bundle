@@ -79,12 +79,7 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
             $wg->wait(10);
             $end = microtime(true);
 
-            // not sure why this behaves differentply with coverage enabled
-            if (self::coverageEnabled()) {
-                self::assertGreaterThan(0, $trueChecks);
-            } else {
-                self::assertSame(0, $trueChecks);
-            }
+            self::assertGreaterThan(0, $trueChecks);
 
             $client = HttpClient::fromDomain('localhost', 9999, false);
             $this->assertTrue($client->connect());
@@ -162,12 +157,7 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
             $wg->wait(10);
             $end = microtime(true);
 
-            // not sure why this behaves differentply with coverage enabled
-            if (self::coverageEnabled()) {
-                self::assertGreaterThan(0, $trueChecks);
-            } else {
-                self::assertSame(0, $trueChecks);
-            }
+            self::assertGreaterThan(0, $trueChecks);
 
             $client = HttpClient::fromDomain('localhost', 9999, false);
             $this->assertTrue($client->connect());

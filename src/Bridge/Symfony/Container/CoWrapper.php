@@ -22,7 +22,7 @@ final class CoWrapper
     public function defer(): void
     {
         \Co::defer(function (): void {
-            $this->servicePoolContainer->releaseForCoroutine(\Co::getCid());
+            $this->servicePoolContainer->releaseFromCoroutine(\Co::getCid());
         });
     }
 
