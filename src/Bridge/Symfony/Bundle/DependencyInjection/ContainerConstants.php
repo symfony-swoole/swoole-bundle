@@ -14,6 +14,9 @@ interface ContainerConstants
 
     public const PARAM_COROUTINES_COMPILE_PROCESSORS = 'swoole_bundle.coroutines_support.compile_processors';
 
+    public const PARAM_COROUTINES_DOCTRINE_COMPILE_PROCESSOR_CONFIG =
+        'swoole_bundle.coroutines_support.doctrine_compile_processor.config';
+
     public const PARAM_CACHE_FOLDER = 'swoole_bundle';
 
     public const TAG_STATEFUL_SERVICE = 'swoole_bundle.stateful_service';

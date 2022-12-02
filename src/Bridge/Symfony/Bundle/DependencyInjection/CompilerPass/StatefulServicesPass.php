@@ -39,11 +39,11 @@ final class StatefulServicesPass implements CompilerPassInterface
      * @var array<array{class: class-string<CompileProcessor>, priority: int}>
      */
     private const COMPILE_PROCESSORS = [
-        [
+        DoctrineProcessor::class => [
             'class' => DoctrineProcessor::class,
             'priority' => 0,
         ],
-        [
+        MonologProcessor::class => [
             'class' => MonologProcessor::class,
             'priority' => 0,
         ],
@@ -73,36 +73,56 @@ final class StatefulServicesPass implements CompilerPassInterface
 
     private function runCompileProcessors(ContainerBuilder $container, Proxifier $proxifier): void
     {
-        /** @var array<array{class: class-string<CompileProcessor>, priority: int}> $compileProcessors */
         $compileProcessors = $container->getParameter(ContainerConstants::PARAM_COROUTINES_COMPILE_PROCESSORS);
 
         if (!is_array($compileProcessors)) {
             throw new \UnexpectedValueException('Invalid compiler processors provided');
         }
 
-        $compileProcessors = array_merge(self::COMPILE_PROCESSORS, $compileProcessors);
+        /** @var null|array<string, mixed> $doctrineConfig */
+        $doctrineConfig = $container->hasParameter(ContainerConstants::PARAM_COROUTINES_DOCTRINE_COMPILE_PROCESSOR_CONFIG) ?
+            $container->getParameter(ContainerConstants::PARAM_COROUTINES_DOCTRINE_COMPILE_PROCESSOR_CONFIG) : null;
+
+        $defaultProcessors = self::COMPILE_PROCESSORS;
+
+        if (null !== $doctrineConfig) {
+            $defaultProcessors[DoctrineProcessor::class]['config'] = $doctrineConfig;
+        }
+
+        /** @var array<array{class: class-string<CompileProcessor>, priority: int}> $compileProcessors */
+        $compileProcessors = array_merge(array_values($defaultProcessors), $compileProcessors);
+
         /**
          * @var callable(
-         *  array<int, array<class-string<CompileProcessor>>>,
-         *  array{class: class-string<CompileProcessor>, priority: int}
-         * ): array<int, array<class-string<CompileProcessor>>> $reducer
+         *  array<int, array<array{class: class-string<CompileProcessor>, config?: array<string, mixed>}>>,
+         *  array{class: class-string<CompileProcessor>, priority?: int, config?: array<string, mixed>}
+         * ): array<int, array<array{class: class-string<CompileProcessor>, config?: array<string, mixed>}>> $reducer
          */
         $reducer = static function (array $processors, array $processorConfig): array {
-            $processors[$processorConfig['priority']][] = $processorConfig['class'];
+            $priority = $processorConfig['priority'] ?? 0;
+            $processors[$priority][] = $processorConfig;
 
             return $processors;
         };
-        /** @var array<int, array{class: class-string<CompileProcessor>, priority: int}> $compileProcessors */
+
         $compileProcessors = array_reduce(
             $compileProcessors,
             $reducer,
             []
         );
+        /**
+         * @var array<int, array{
+         *     class: class-string<CompileProcessor>,
+         *     priority?: int,
+         *     config?: array<string, mixed>
+         * }> $compileProcessors
+         */
         $compileProcessors = array_merge(...array_reverse($compileProcessors));
 
-        foreach ($compileProcessors as $processorClass) {
+        foreach ($compileProcessors as $processorConfig) {
             /** @var CompileProcessor $processor */
-            $processor = new $processorClass();
+            $processor = isset($processorConfig['config']) ?
+                new $processorConfig['class']($processorConfig['config']) : new $processorConfig['class']();
             $processor->process($container, $proxifier);
         }
     }

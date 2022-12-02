@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Controller;
 
+use Doctrine\DBAL\Connection;
 use K911\Swoole\Bridge\Symfony\Container\ServicePool\BaseServicePool;
 use K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Service\DefaultDummyService;
 use K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Service\DummyService;
@@ -27,18 +28,22 @@ final class SleepController
 
     private DummyService $dummyService;
 
+    private Connection $connection;
+
     public function __construct(
         SleepingCounter $sleepingCounter,
         SleepingCounterChecker $checker,
         ShouldBeProxified $shouldBeProxified,
         ShouldBeProxified2 $shouldBeProxified2,
-        DummyService $dummyService
+        DummyService $dummyService,
+        Connection $connection
     ) {
         $this->sleepingCounter = $sleepingCounter;
         $this->checker = $checker;
         $this->shouldBeProxified = $shouldBeProxified;
         $this->shouldBeProxified2 = $shouldBeProxified2;
         $this->dummyService = $dummyService;
+        $this->connection = $connection;
     }
 
     /**
@@ -79,15 +84,22 @@ final class SleepController
         $isProxified3 = $tmpRepo instanceof VirtualProxyInterface ? 'was' : 'WAS NOT';
         $initializer2 = $tmpRepo->getProxyInitializer();
         $rf2 = new \ReflectionFunction($initializer2);
-        $servicePool2 = $rf2->getStaticVariables()['servicePool'];
-        $limit2 = $limitProperty->getValue($servicePool2);
+        $connServicePool = $rf2->getStaticVariables()['servicePool'];
+        $limit2 = $limitProperty->getValue($connServicePool);
+
+        /** @phpstan-ignore-next-line */
+        $connInitializer = $this->connection->getProxyInitializer();
+        $rf3 = new \ReflectionFunction($connInitializer);
+        $connServicePool = $rf3->getStaticVariables()['servicePool'];
+        $connlimit = $limitProperty->getValue($connServicePool);
 
         return new Response(
             "<html><body>Sleep was fine. Count was {$counter}. Check was {$check}. "
                     ."Checks: {$checks}. "
                     ."Service {$isProxified} proxified. Service2 {$isProxified2} proxified. "
                     ."Service2 limit is {$limit}. TmpRepo {$isProxified3} proxified. "
-                    ."TmpRepo limit is {$limit2}.</body></html>"
+                    ."TmpRepo limit is {$limit2}. "
+                    ."Connection limit is {$connlimit}.</body></html>"
         );
     }
 }
