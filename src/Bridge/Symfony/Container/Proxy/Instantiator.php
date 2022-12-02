@@ -6,10 +6,10 @@ namespace K911\Swoole\Bridge\Symfony\Container\Proxy;
 
 use Closure;
 use K911\Swoole\Bridge\Symfony\Container\ServicePool\ServicePool;
+use ProxyManager\Factory\LazyLoadingValueHolderFactory;
 use ProxyManager\Proxy\LazyLoadingInterface;
 use ProxyManager\Proxy\ValueHolderInterface;
 use ProxyManager\Proxy\VirtualProxyInterface;
-use Symfony\Bridge\ProxyManager\LazyProxy\Instantiator\LazyLoadingValueHolderFactory;
 
 final class Instantiator
 {
