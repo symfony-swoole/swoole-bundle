@@ -6,6 +6,7 @@ namespace K911\Swoole\Bridge\Doctrine;
 
 use K911\Swoole\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices\CompileProcessor;
 use K911\Swoole\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices\Proxifier;
+use K911\Swoole\Bridge\Symfony\Bundle\DependencyInjection\ContainerConstants;
 use Symfony\Component\DependencyInjection\Argument\IteratorArgument;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
@@ -13,6 +14,19 @@ use Symfony\Component\DependencyInjection\Reference;
 
 final class DoctrineProcessor implements CompileProcessor
 {
+    /**
+     * @var array{global_limit?: int, limits?: array<string, int>}
+     */
+    private array $config;
+
+    /**
+     * @param array{global_limit?: int, limits?: array<string, int>} $config
+     */
+    public function __construct(array $config = [])
+    {
+        $this->config = $config;
+    }
+
     public function process(ContainerBuilder $container, Proxifier $proxifier): void
     {
         /** @var array<string,string> $bundles */
@@ -28,15 +42,16 @@ final class DoctrineProcessor implements CompileProcessor
             throw new \UnexpectedValueException('Cannot obtain array of entity managers.');
         }
 
-        $connectionSvcIds = [];
+        $connectionSvcIds = $container->getParameter('doctrine.connections');
+
+        if (!\is_array($connectionSvcIds)) {
+            throw new \UnexpectedValueException('Cannot obtain array of doctrine connections.');
+        }
 
         foreach ($entityManagers as $emName => $emSvcId) {
             $emDef = $container->findDefinition($emSvcId);
             $proxifier->proxifyService($emSvcId);
             $this->overrideEmConfigurator($container, $emDef);
-            $connRef = $emDef->getArgument(0);
-            $connSvcId = (string) $connRef;
-            $connectionSvcIds[$connSvcId] = $connSvcId;
             $this->decorateRepositoryFactory($container, $emName, $emSvcId);
         }
 
@@ -61,7 +76,21 @@ final class DoctrineProcessor implements CompileProcessor
         Proxifier $proxifier,
         array $connectionSvcIds
     ): void {
-        foreach ($connectionSvcIds as $connectionSvcId) {
+        foreach ($connectionSvcIds as $connectionName => $connectionSvcId) {
+            $limit = $this->getConnectionLimit($connectionName);
+
+            if (!$limit) {
+                $limit = $this->getGlobalConnectionLimit();
+            }
+
+            $connectionDef = $container->findDefinition($connectionSvcId);
+
+            if ($limit) {
+                $connectionDef->addTag(ContainerConstants::TAG_STATEFUL_SERVICE, ['limit' => $limit]);
+
+                continue;
+            }
+
             $proxifier->proxifyService($connectionSvcId);
         }
     }
@@ -114,5 +143,27 @@ final class DoctrineProcessor implements CompileProcessor
             break;
         }
         $configuratorDef->setMethodCalls($methodCalls);
+    }
+
+    private function getGlobalConnectionLimit(): ?int
+    {
+        if (!isset($this->config['global_limit'])) {
+            return null;
+        }
+
+        return $this->config['global_limit'];
+    }
+
+    private function getConnectionLimit(string $connectionName): ?int
+    {
+        if (!isset($this->config['limits'])) {
+            return null;
+        }
+
+        if (!isset($this->config['limits'][$connectionName])) {
+            return null;
+        }
+
+        return (int) $this->config['limits'][$connectionName];
     }
 }

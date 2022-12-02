@@ -158,6 +158,13 @@ final class SwooleExtension extends Extension implements PrependExtensionInterfa
             ->addTag(ContainerConstants::TAG_STABILITY_CHECKER)
         ;
 
+        if (isset($coroutineSettings['doctrine_processor_config'])) {
+            $container->setParameter(
+                ContainerConstants::PARAM_COROUTINES_DOCTRINE_COMPILE_PROCESSOR_CONFIG,
+                $coroutineSettings['doctrine_processor_config']
+            );
+        }
+
         return $swooleSettings;
     }
 

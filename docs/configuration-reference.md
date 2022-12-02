@@ -141,9 +141,17 @@ swoole:
       compile_processors:
         - class: ProcessorClass1
           priority: 10
+          config: [] # all data will be propagated to the processor constructor, this attribute is not needed
         - ProcessorClass2 # default priority
           # register classes implementing the CompileProcessor interface
           # check the section below about coroutines usage
+      # configuration options for doctrine processor - set instance limits for each connection type, or global limit
+      doctrine_processor_config:
+        # max connections in each swoole process for each doctrine connections, default is max_service_instances
+        global_limit: 10 
+        limits:
+          # connection with name 'default' will have max 9 instances per swoole process, if not set, default is global_limit
+          default: 9
 ```
 
 ## Additional info for coroutines usage

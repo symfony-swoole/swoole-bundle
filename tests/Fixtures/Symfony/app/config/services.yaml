@@ -25,6 +25,11 @@ services:
     exclude: '../../TestBundle/Controller/ReplacedContentTestController.php'
     tags: ['controller.service_arguments']
 
+  K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Controller\SleepController:
+    arguments:
+      $connection: '@doctrine.dbal.default_connection'
+    tags: ['controller.service_arguments']
+
   Ramsey\Uuid\UuidFactoryInterface: '@Ramsey\Uuid\UuidFactory'
 
   Ramsey\Uuid\UuidFactory:
