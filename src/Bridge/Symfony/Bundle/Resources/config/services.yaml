@@ -243,7 +243,7 @@ services:
     class: 'Symfony\Component\Filesystem\Filesystem'
 
   swoole_bundle.service_proxy_factory:
-    class: 'Symfony\Bridge\ProxyManager\LazyProxy\Instantiator\LazyLoadingValueHolderFactory'
+    class: 'ProxyManager\Factory\LazyLoadingValueHolderFactory'
     arguments:
       $configuration: '@swoole_bundle.service_proxy_configuration'
 
