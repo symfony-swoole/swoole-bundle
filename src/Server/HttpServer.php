@@ -70,12 +70,16 @@ final class HttpServer
      * @throws \Assert\AssertionFailedException
      * @throws NotRunningException
      */
-    public function shutdown(): void
+    public function shutdown(bool $noDelay = false): void
     {
         if ($this->server instanceof Server) {
             $this->server->shutdown();
         } elseif ($this->isRunningInBackground()) {
-            $this->gracefulSignalShutdown($this->configuration->getPid(), self::GRACEFUL_SHUTDOWN_TIMEOUT_SECONDS);
+            if ($noDelay) {
+                $this->immediateSignalShutdown($this->configuration->getPid());
+            } else {
+                $this->gracefulSignalShutdown($this->configuration->getPid(), self::GRACEFUL_SHUTDOWN_TIMEOUT_SECONDS);
+            }
         } else {
             throw NotRunningException::make();
         }
@@ -178,5 +182,10 @@ final class HttpServer
         if ($this->isRunningInBackground()) {
             Process::kill($masterPid, $this->signalKill);
         }
+    }
+
+    private function immediateSignalShutdown(int $masterPid): void
+    {
+        Process::kill($masterPid, $this->signalKill);
     }
 }

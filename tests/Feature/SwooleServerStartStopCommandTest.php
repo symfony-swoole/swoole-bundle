@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace K911\Swoole\Tests\Feature;
 
+use K911\Swoole\Client\Exception\ClientConnectionErrorException;
 use K911\Swoole\Client\HttpClient;
 use K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Test\ServerTestCase;
 
@@ -59,6 +60,42 @@ final class SwooleServerStartStopCommandTest extends ServerTestCase
             $client = HttpClient::fromDomain('localhost', 9999, false);
             $this->assertTrue($client->connect());
             $this->assertHelloWorldRequestSucceeded($client);
+        });
+    }
+
+    public function testNoDelayShutdown(): void
+    {
+        $serverStart = $this->createConsoleProcess([
+            'swoole:server:start',
+            '--host=localhost',
+            '--port=9999',
+        ]);
+
+        $serverStart->setTimeout(3);
+        $serverStart->disableOutput();
+        $serverStart->run();
+
+        $this->assertProcessSucceeded($serverStart);
+
+        $this->runAsCoroutineAndWait(function (): void {
+            go(function () {
+                $client = HttpClient::fromDomain('localhost', 9999, false);
+                $this->assertTrue($client->connect());
+
+                try {
+                    $response = $client->send('/dummy-sleep')['response'];
+                    $this->assertSame(200, $response['statusCode']);
+                    $this->fail('Server was not shutdown by kill (no-delay).');
+                } catch (ClientConnectionErrorException $e) {
+                    // exception thrown, request was not finished, no-delay server shutdown
+                    $this->assertStringContainsStringIgnoringCase('Server Reset', $e->getMessage());
+                }
+            });
+            go(function () {
+                // wait for $client to do request
+                \co::sleep(1);
+                $this->serverStop(['--no-delay']);
+            });
         });
     }
 }
