@@ -19,4 +19,17 @@ final class IndexController
     {
         return new JsonResponse(['hello' => 'world!'], 200);
     }
+
+    /**
+     * @Route(
+     *     methods={"GET"},
+     *     path="/dummy-sleep"
+     * )
+     */
+    public function sleep(): JsonResponse
+    {
+        \co::sleep(2);
+
+        return new JsonResponse(['hello' => 'world!'], 200);
+    }
 }

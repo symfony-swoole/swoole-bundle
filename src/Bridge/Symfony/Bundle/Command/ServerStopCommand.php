@@ -33,6 +33,7 @@ final class ServerStopCommand extends Command
     {
         $this->setDescription('Stop Swoole HTTP server running in the background.')
             ->addOption('pid-file', null, InputOption::VALUE_REQUIRED, 'Pid file', $this->getProjectDirectory().'/var/swoole.pid')
+            ->addOption('no-delay', null, InputOption::VALUE_NONE, 'Ignore graceful shutdown timeout.')
         ;
     }
 
@@ -47,11 +48,13 @@ final class ServerStopCommand extends Command
 
         $pidFile = $input->getOption('pid-file');
         Assertion::nullOrString($pidFile);
+        $noDelay = $input->getOption('no-delay');
+        Assertion::boolean($noDelay);
 
         $this->serverConfiguration->daemonize($pidFile);
 
         try {
-            $this->server->shutdown();
+            $this->server->shutdown($noDelay);
         } catch (\Throwable $ex) {
             $io->error($ex->getMessage());
             exit(1);
