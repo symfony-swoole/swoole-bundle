@@ -11,7 +11,6 @@ use K911\Swoole\Bridge\Symfony\Container\Proxy\Instantiator;
 use K911\Swoole\Bridge\Symfony\Container\ServicePool\DiServicePool;
 use K911\Swoole\Bridge\Symfony\Container\StabilityChecker;
 use Symfony\Component\DependencyInjection\Argument\IteratorArgument;
-use Symfony\Component\DependencyInjection\ChildDefinition;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
@@ -30,11 +29,6 @@ final class Proxifier
      * @var array<Reference>
      */
     private $proxifiedServicePoolsRefs = [];
-
-    /**
-     * @var array<ChildDefinition>
-     */
-    private $resetterRefs = [];
 
     /**
      * @var array<class-string, class-string<StabilityChecker>|string>
@@ -83,25 +77,17 @@ final class Proxifier
         return $this->proxifiedServicePoolsRefs;
     }
 
-    /**
-     * @return array<ChildDefinition>
-     */
-    public function getResetterRefs(): array
-    {
-        return $this->resetterRefs;
-    }
-
     private function doProxifyService(string $serviceId, Definition $serviceDef): void
     {
         if (!$this->container->has($serviceId)) {
             throw new \RuntimeException(sprintf('Service missing: %s', $serviceId));
         }
 
-        $this->prepareProxifiedService($serviceDef);
         $wrappedServiceId = sprintf('%s.swoole_coop.wrapped', $serviceId);
         $svcPoolDef = $this->prepareServicePool($wrappedServiceId, $serviceDef);
         $svcPoolServiceId = sprintf('%s.swoole_coop.service_pool', $serviceId);
         $proxyDef = $this->prepareProxy($svcPoolServiceId, $serviceDef);
+        $this->prepareProxifiedService($serviceDef);
         $serviceDef->clearTags();
 
         $this->container->setDefinition($svcPoolServiceId, $svcPoolDef);

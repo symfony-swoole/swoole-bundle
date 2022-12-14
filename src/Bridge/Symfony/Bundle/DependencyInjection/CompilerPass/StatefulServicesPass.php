@@ -202,6 +202,5 @@ final class StatefulServicesPass implements CompilerPassInterface
     {
         $poolContainerDef = $container->findDefinition(ServicePoolContainer::class);
         $poolContainerDef->setArgument(0, $proxifier->getProxifiedServicePoolsRefs());
-        $poolContainerDef->setArgument(1, $proxifier->getResetterRefs());
     }
 }
