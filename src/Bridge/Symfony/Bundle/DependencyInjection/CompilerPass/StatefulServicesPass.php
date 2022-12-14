@@ -14,11 +14,8 @@ use K911\Swoole\Bridge\Symfony\Bundle\DependencyInjection\ContainerConstants;
 use K911\Swoole\Bridge\Symfony\Container\BlockingContainer;
 use K911\Swoole\Bridge\Symfony\Container\ServicePool\ServicePoolContainer;
 use K911\Swoole\Bridge\Symfony\Container\StabilityChecker;
-use Symfony\Component\DependencyInjection\Argument\IteratorArgument;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\DependencyInjection\ContainerInterface;
-use Symfony\Component\DependencyInjection\Reference;
 
 final class StatefulServicesPass implements CompilerPassInterface
 {
@@ -68,7 +65,6 @@ final class StatefulServicesPass implements CompilerPassInterface
         $this->proxifyKnownStatefulServices($container, $proxifier);
         $this->proxifyUnmanagedFactories($container, $finalProcessor);
         $this->configureServicePoolContainer($container, $proxifier);
-        $this->makeResettableServicesActive($container);
     }
 
     private function runCompileProcessors(ContainerBuilder $container, Proxifier $proxifier): void
@@ -207,40 +203,5 @@ final class StatefulServicesPass implements CompilerPassInterface
         $poolContainerDef = $container->findDefinition(ServicePoolContainer::class);
         $poolContainerDef->setArgument(0, $proxifier->getProxifiedServicePoolsRefs());
         $poolContainerDef->setArgument(1, $proxifier->getResetterRefs());
-    }
-
-    /**
-     * by default ins Symfony, all resettable services are ignored during reset if they haven't been instantiated yet.
-     * when using coroutines, all resettable services need to be instantiated on first reset, because otherwise,
-     * it would be possible for a coroutine to acquire them not resetted in the scenario described below.
-     *
-     * 1) coroutine 1 starts, service reset runs but the resettable service is not instantiated yet, so there is no reset
-     * 2) coroutine 2 starts in the same manner
-     * 3) coroutine 1 needs the service so it instantiates the service pool
-     * 4) coroutine 1 uses the stateful service and returns it to the service pool (not resetted)
-     * 5) coroutine 2 needs the service, there is already a service pool so it acquires the instance formerly used
-     *    in coroutine 1 (which still is not resetted and coroutine 2 is already after the reset phase)
-     * 6) coroutine 2 uses the not resetted service with state remembered from the other coroutine
-     *
-     * the instantiation on first reset is forced by using the RUNTIME_EXCEPTION_ON_INVALID_REFERENCE in service reference
-     */
-    private function makeResettableServicesActive(ContainerBuilder $container): void
-    {
-        $resetterDef = $container->findDefinition('services_resetter');
-
-        if ($resetterDef->hasTag('kernel.reset')) {
-            return;
-        }
-
-        /** @var IteratorArgument $resetters */
-        $resetters = $resetterDef->getArgument(0);
-        $resetterValues = $resetters->getValues();
-        $newReferences = [];
-
-        foreach ($resetterValues as $key => $reference) {
-            $newReferences[$key] = new Reference((string) $reference, ContainerInterface::RUNTIME_EXCEPTION_ON_INVALID_REFERENCE);
-        }
-
-        $resetters->setValues($newReferences);
     }
 }
