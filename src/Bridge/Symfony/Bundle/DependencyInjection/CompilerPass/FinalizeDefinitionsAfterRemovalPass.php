@@ -12,7 +12,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\HttpKernel\DependencyInjection\ResettableServicePass;
 
-final class ResettableServicesPass implements CompilerPassInterface
+final class FinalizeDefinitionsAfterRemovalPass implements CompilerPassInterface
 {
     public function process(ContainerBuilder $container): void
     {

@@ -54,3 +54,7 @@ services:
         factoryMethod: 'newInstance'
         returnType: 'K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Service\InMemoryRepository'
         limit: 15
+
+  K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Service\UnusedServiceToRemove:
+    tags:
+      - { name: kernel.reset, method: reset }

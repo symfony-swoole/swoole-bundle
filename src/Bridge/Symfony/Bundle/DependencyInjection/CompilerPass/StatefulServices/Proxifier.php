@@ -28,7 +28,7 @@ final class Proxifier
     /**
      * @var array<Reference>
      */
-    private $proxifiedServicePoolsRefs = [];
+    private $proxifiedServicePoolRefs = [];
 
     /**
      * @var array<class-string, class-string<StabilityChecker>|string>
@@ -72,9 +72,12 @@ final class Proxifier
         $this->doProxifyDecoratedService($serviceId, $serviceDef);
     }
 
-    public function getProxifiedServicePoolsRefs(): array
+    /**
+     * @return array<Reference>
+     */
+    public function getProxifiedServicePoolRefs(): array
     {
-        return $this->proxifiedServicePoolsRefs;
+        return $this->proxifiedServicePoolRefs;
     }
 
     private function doProxifyService(string $serviceId, Definition $serviceDef): void
@@ -94,7 +97,7 @@ final class Proxifier
         $this->container->setDefinition($serviceId, $proxyDef); // proxy swap
         $this->container->setDefinition($wrappedServiceId, $serviceDef); // old service for copying
 
-        $this->proxifiedServicePoolsRefs[] = new Reference($svcPoolServiceId);
+        $this->proxifiedServicePoolRefs[] = new Reference($svcPoolServiceId);
     }
 
     private function doProxifyDecoratedService(string $serviceId, Definition $serviceDef): void
