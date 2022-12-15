@@ -1,8 +1,10 @@
 framework:
-    secret: ThisIsVeryNotSecret!
-    default_locale: en
-    php_errors:
-        log: true
-    test: ~
-    session:
-        enabled: false
+  secret: ThisIsVeryNotSecret!
+  default_locale: en
+  php_errors:
+    log: true
+  test: ~
+  session:
+    enabled: false
+  router:
+    utf8: true
