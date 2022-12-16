@@ -6345,16 +6345,16 @@
         },
         {
             "name": "symfony/amqp-messenger",
-            "version": "v5.4.13",
+            "version": "v5.4.15",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/amqp-messenger.git",
-                "reference": "def93f2a7841cfa1a4a1fa487b84054d0d53e521"
+                "reference": "8775f97adc4f3dc8ce21f5d25c330d4081681bb6"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/amqp-messenger/zipball/def93f2a7841cfa1a4a1fa487b84054d0d53e521",
-                "reference": "def93f2a7841cfa1a4a1fa487b84054d0d53e521",
+                "url": "https://api.github.com/repos/symfony/amqp-messenger/zipball/8775f97adc4f3dc8ce21f5d25c330d4081681bb6",
+                "reference": "8775f97adc4f3dc8ce21f5d25c330d4081681bb6",
                 "shasum": ""
             },
             "require": {
@@ -6394,7 +6394,7 @@
             "description": "Symfony AMQP extension Messenger Bridge",
             "homepage": "https://symfony.com",
             "support": {
-                "source": "https://github.com/symfony/amqp-messenger/tree/v5.4.13"
+                "source": "https://github.com/symfony/amqp-messenger/tree/v5.4.15"
             },
             "funding": [
                 {
@@ -6410,7 +6410,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2022-09-11T09:11:59+00:00"
+            "time": "2022-10-11T16:57:44+00:00"
         },
         {
             "name": "symfony/cache",
@@ -6718,16 +6718,16 @@
         },
         {
             "name": "symfony/doctrine-messenger",
-            "version": "v5.4.12",
+            "version": "v5.4.16",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/doctrine-messenger.git",
-                "reference": "7649a80e917b47c5072480a2d763c2422da239d2"
+                "reference": "e44bc95cf7f9ad34b7a993b9aaa93703e0bc35eb"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/doctrine-messenger/zipball/7649a80e917b47c5072480a2d763c2422da239d2",
-                "reference": "7649a80e917b47c5072480a2d763c2422da239d2",
+                "url": "https://api.github.com/repos/symfony/doctrine-messenger/zipball/e44bc95cf7f9ad34b7a993b9aaa93703e0bc35eb",
+                "reference": "e44bc95cf7f9ad34b7a993b9aaa93703e0bc35eb",
                 "shasum": ""
             },
             "require": {
@@ -6771,7 +6771,7 @@
             "description": "Symfony Doctrine Messenger Bridge",
             "homepage": "https://symfony.com",
             "support": {
-                "source": "https://github.com/symfony/doctrine-messenger/tree/v5.4.12"
+                "source": "https://github.com/symfony/doctrine-messenger/tree/v5.4.16"
             },
             "funding": [
                 {
@@ -6787,7 +6787,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2022-08-09T12:54:00+00:00"
+            "time": "2022-11-04T07:27:04+00:00"
         },
         {
             "name": "symfony/finder",
@@ -7005,16 +7005,16 @@
         },
         {
             "name": "symfony/messenger",
-            "version": "v5.4.14",
+            "version": "v5.4.16",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/messenger.git",
-                "reference": "de4b258a5551934460c422620b61cf0a35744f51"
+                "reference": "ead27c3bcb125799a249b430ca0540ee0b3a4504"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/messenger/zipball/de4b258a5551934460c422620b61cf0a35744f51",
-                "reference": "de4b258a5551934460c422620b61cf0a35744f51",
+                "url": "https://api.github.com/repos/symfony/messenger/zipball/ead27c3bcb125799a249b430ca0540ee0b3a4504",
+                "reference": "ead27c3bcb125799a249b430ca0540ee0b3a4504",
                 "shasum": ""
             },
             "require": {
@@ -7075,7 +7075,7 @@
             "description": "Helps applications send and receive messages to/from other applications or via message queues",
             "homepage": "https://symfony.com",
             "support": {
-                "source": "https://github.com/symfony/messenger/tree/v5.4.14"
+                "source": "https://github.com/symfony/messenger/tree/v5.4.16"
             },
             "funding": [
                 {
@@ -7091,7 +7091,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2022-10-10T09:32:54+00:00"
+            "time": "2022-11-14T10:09:38+00:00"
         },
         {
             "name": "symfony/monolog-bridge",
@@ -7453,16 +7453,16 @@
         },
         {
             "name": "symfony/redis-messenger",
-            "version": "v5.4.13",
+            "version": "v5.4.15",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/redis-messenger.git",
-                "reference": "d3028b772de91e9aa0342c92ff71c77b130ac9c4"
+                "reference": "cff610d031586c341b9118f3682c8294d959f929"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/redis-messenger/zipball/d3028b772de91e9aa0342c92ff71c77b130ac9c4",
-                "reference": "d3028b772de91e9aa0342c92ff71c77b130ac9c4",
+                "url": "https://api.github.com/repos/symfony/redis-messenger/zipball/cff610d031586c341b9118f3682c8294d959f929",
+                "reference": "cff610d031586c341b9118f3682c8294d959f929",
                 "shasum": ""
             },
             "require": {
@@ -7500,7 +7500,7 @@
             "description": "Symfony Redis extension Messenger Bridge",
             "homepage": "https://symfony.com",
             "support": {
-                "source": "https://github.com/symfony/redis-messenger/tree/v5.4.13"
+                "source": "https://github.com/symfony/redis-messenger/tree/v5.4.15"
             },
             "funding": [
                 {
@@ -7516,7 +7516,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2022-09-11T09:11:59+00:00"
+            "time": "2022-10-27T07:55:40+00:00"
         },
         {
             "name": "symfony/routing",
