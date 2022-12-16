@@ -35,6 +35,12 @@ aliases:
               echo "LATEST_SWOOLE_VERSION=$LATEST_SWOOLE_VERSION"
               echo "export SWOOLE_VERSION='$LATEST_SWOOLE_VERSION'" >> $BASH_ENV
             fi;
+
+            if [ "7.4" = "$PHP_VERSION" ]; then
+              echo "export XDEBUG_TAG='3.1.6'" >> $BASH_ENV
+            else
+              echo "export XDEBUG_TAG='3.2.0'" >> $BASH_ENV
+            fi
       - run:
           name: Print env
           command: env

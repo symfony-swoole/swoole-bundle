@@ -6,6 +6,7 @@ x-env-aliases:
     COMPOSER_ARGS: "${COMPOSER_ARGS:-install}"
     SWOOLE_VERSION: "${SWOOLE_VERSION:-4.10.0}"
     COMPOSER_TAG: "${COMPOSER_TAG:-2.3.10}"
+    XDEBUG_TAG: "${XDEBUG_TAG:-3.1.6}"
 
 volumes:
   coverage: {}

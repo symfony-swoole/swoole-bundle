@@ -2,6 +2,7 @@ ARG PHP_TAG="7.4-cli-alpine3.16"
 ARG COMPOSER_TAG="2.2.9"
 
 FROM php:$PHP_TAG as ext-builder
+RUN apk add --no-cache linux-headers
 RUN docker-php-source extract && \
     apk add --no-cache --virtual .phpize-deps $PHPIZE_DEPS
 
@@ -17,7 +18,8 @@ RUN apk add --no-cache icu-dev && \
     docker-php-ext-install intl
 
 FROM ext-builder as ext-xdebug
-RUN pecl install xdebug && \
+ARG XDEBUG_TAG="3.1.6"
+RUN pecl install "xdebug-$XDEBUG_TAG" && \
     docker-php-ext-enable xdebug
 
 FROM ext-builder as ext-openswoole
