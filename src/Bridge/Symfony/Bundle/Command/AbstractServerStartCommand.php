@@ -206,6 +206,7 @@ abstract class AbstractServerStartCommand extends Command
             ['running_mode', $serverConfiguration->getRunningMode()],
             ['coroutines', $serverConfiguration->getCoroutinesEnabled() ? 'enabled' : 'disabled'],
             ['worker_count', $serverConfiguration->getWorkerCount()],
+            ['task_worker_count', $serverConfiguration->getTaskWorkerCount()],
             ['reactor_count', $serverConfiguration->getReactorCount()],
             ['worker_max_request', $serverConfiguration->getMaxRequest()],
             ['worker_max_request_grace', $serverConfiguration->getMaxRequestGrace()],
