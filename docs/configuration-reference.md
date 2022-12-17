@@ -185,13 +185,6 @@ are appreciated.
 
 To work as intended, please use `pixelfederation/z-engine`.
 
-**YET ANOTHER WARNING!!! This feature is also dependent on a not yet released version of `laminas/laminas-code`,
-This bundle contains a custom override for `Code\Generator\ValueGenerator.php`, which is 
-[waiting to be merged](https://github.com/laminas/laminas-code/pull/143).
-There should be no issues with the changes in the file, the custom version only extends the features of the original file.
-It should be compatible with most of the `laminas/laminas-code` versions installed as a dependency
-of `ocramius/proxy-manager`.**
-
 ### Application kernel modification
 
 To be able to use coroutines in your application the following trait has to be used in the application kernel class:
