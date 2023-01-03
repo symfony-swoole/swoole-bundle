@@ -47,7 +47,8 @@ final class UnmanagedFactoryTags
      * @return array<array{
      *     factoryMethod: string,
      *     returnType: class-string|string,
-     *     limit?: int
+     *     limit?: int,
+     *     resetter?: string
      * }>
      */
     public function getFactoryMethodConfigs(ContainerBuilder $container): array

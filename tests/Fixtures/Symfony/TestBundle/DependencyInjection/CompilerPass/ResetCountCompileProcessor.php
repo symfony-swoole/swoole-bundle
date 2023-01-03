@@ -16,8 +16,8 @@ final class ResetCountCompileProcessor implements CompileProcessor
 {
     public function process(ContainerBuilder $container, Proxifier $proxifier): void
     {
-        $this->decorateResetter($container,'swoole_bundle.coroutines_support.doctrine.connection_resetter.default');
-        $this->decorateResetter($container,'inmemory_repository_resetter');
+        $this->decorateResetter($container, 'swoole_bundle.coroutines_support.doctrine.connection_resetter.default');
+        $this->decorateResetter($container, 'inmemory_repository_resetter');
     }
 
     private function decorateResetter(ContainerBuilder $container, string $resetterId): void
