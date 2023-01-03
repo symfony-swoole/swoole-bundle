@@ -10,7 +10,8 @@ final class UnmanagedFactoryTag
      * @var array{
      *     factoryMethod: string,
      *     returnType?: class-string|string,
-     *     limit?: int
+     *     limit?: int,
+     *     resetter?: string
      * }
      */
     private array $tag;
@@ -19,7 +20,8 @@ final class UnmanagedFactoryTag
      * @param array{
      *     factoryMethod: string,
      *     returnType?: class-string|string,
-     *     limit?: int
+     *     limit?: int,
+     *     resetter?: string
      * } $tag
      */
     public function __construct(array $tag)
@@ -43,6 +45,11 @@ final class UnmanagedFactoryTag
     public function getLimit(): ?int
     {
         return $this->tag['limit'] ?? null;
+    }
+
+    public function getResetter(): ?string
+    {
+        return $this->tag['resetter'] ?? null;
     }
 
     /**

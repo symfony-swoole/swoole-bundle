@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "651506fdb4985107af5644aa85446042",
+    "content-hash": "f9477a04afcb5430337b4fb0ff6ef00a",
     "packages": [
         {
             "name": "beberlei/assert",
@@ -5780,16 +5780,16 @@
         },
         {
             "name": "pixelfederation/doctrine-resettable-em-bundle",
-            "version": "6.2.0",
+            "version": "dev-pinging_rework",
             "source": {
                 "type": "git",
                 "url": "https://github.com/pixelfederation/doctrine-resettable-em-bundle.git",
-                "reference": "a6a639a9ab866b785271240ae0021d487308e54f"
+                "reference": "8f31468382fa40de4f648c7eed53971c8384b771"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/pixelfederation/doctrine-resettable-em-bundle/zipball/a6a639a9ab866b785271240ae0021d487308e54f",
-                "reference": "a6a639a9ab866b785271240ae0021d487308e54f",
+                "url": "https://api.github.com/repos/pixelfederation/doctrine-resettable-em-bundle/zipball/8f31468382fa40de4f648c7eed53971c8384b771",
+                "reference": "8f31468382fa40de4f648c7eed53971c8384b771",
                 "shasum": ""
             },
             "require": {
@@ -5803,7 +5803,7 @@
                 "symfony/yaml": "^5.0|^6.0"
             },
             "require-dev": {
-                "friendsofphp/php-cs-fixer": "^3.2",
+                "friendsofphp/php-cs-fixer": "3.13.0||^3.14",
                 "madewithlove/license-checker": "^0.10|^1.0",
                 "nikic/php-parser": "^4.2",
                 "php-parallel-lint/php-parallel-lint": "^1.2",
@@ -5843,9 +5843,9 @@
             "homepage": "https://github.com/pixelfederation/doctrine-resettable-em-bundle",
             "support": {
                 "issues": "https://github.com/pixelfederation/doctrine-resettable-em-bundle/issues",
-                "source": "https://github.com/pixelfederation/doctrine-resettable-em-bundle/tree/6.2.0"
+                "source": "https://github.com/pixelfederation/doctrine-resettable-em-bundle/tree/pinging_rework"
             },
-            "time": "2022-12-05T13:42:55+00:00"
+            "time": "2022-12-23T17:42:06+00:00"
         },
         {
             "name": "pixelfederation/openswoole-blackfire",
@@ -9184,7 +9184,9 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": [],
+    "stability-flags": {
+        "pixelfederation/doctrine-resettable-em-bundle": 20
+    },
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {

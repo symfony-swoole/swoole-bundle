@@ -256,6 +256,50 @@ in multiple coroutine contexts:
   e.g. in runtime (the point is to proxify those services in runtime)
 - `swoole_bundle.stability_checker` - use this tag to mark a service as a stability checker
 
+### Resetters
+
+This bundle overrides Symfony resetting mechanism (`kernel.reset` tag), because the original mechanism is not well suited
+for concurrent request processing. The main problem is that Symfony service resetter resets each already initialised 
+service on each request, which would lock a service instance of each service for each coroutine serving a request.
+But not all of the services may be needed to be available for the request. Such behaviour might produce unnecessary
+slowdowns while handling requests, since there are srvice instance limits implemented into the bundle. That means
+that requests that don't need specific services would need to wait for other requests (which may or may not need 
+the same service instances as the waiting/blocked request), until they release the specific service instance.
+
+This behaviour is problematic, so this bundle activates the resetting mechanism on each service instance only when 
+it is used for the first time in the request (while assigning it for concrete coroutine in the service pool). When
+the request does not need the specific service, it won't get assigned to the coroutine. This helps the app to serve requests
+without unnecessary blocking, e.g. when there are liveliness probes in the app that do not touch any database,
+there is no need to assign a database connection for them. Since database connections (and maybe some other services) 
+are expensive resources, they will be used on demand, not always.
+
+By default, this bundle automatically extracts all the resetter methods from Symfony service resetter and assigns
+them to the service pools for each resettable service. That means, there is no need to do anything special in the app.
+
+Sometimes there are special cases that emerge for using Symfony with coroutines turned on, like pinging DBAL connections
+before the first query on each request (because the connections may be already closed, btw this bundle already has
+a solution for this, using connection pingers 
+from [pixelfederation/doctrine-resettable-em-bundle](https://github.com/pixelfederation/doctrine-resettable-em-bundle)).
+
+For special cases like this, you can implement a custom service resetter. The resetter has to implement
+the `K911\Swoole\Bridge\Symfony\Container\Resetter` interface and has to be registered in the SF container
+as a service. After that, you can configure any stateful service to use the resetter just by adding the resetter
+service id to the stateful service tag like this:
+
+```yaml
+services:
+  my_custom_resetter:
+    class: My\Custom\ResetterClass
+
+  some_stateful_service:
+    class: My\Stateful\ServiceClass
+    tags: [{ name: swoole_bundle.stateful_service, resetter: my_custom_resetter}]
+
+  some_unmanaged_factory:
+    class: My\Unmanaged\FactoryClass2
+    tags: [{ name: swoole_bundle.unmanaged_factory, resetter: my_custom_resetter}]
+```
+
 ### Stability checkers
 
 Stability checkers are services services which make run-time checks for paired stateful services. They check,

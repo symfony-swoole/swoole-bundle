@@ -22,6 +22,7 @@ swoole:
       compile_processors:
         - class: K911\Swoole\Tests\Fixtures\Symfony\TestBundle\DependencyInjection\CompilerPass\SleepingCounterCompileProcessor
           priority: 10
+        - K911\Swoole\Tests\Fixtures\Symfony\TestBundle\DependencyInjection\CompilerPass\ResetCountCompileProcessor
       doctrine_processor_config:
         limits:
           default: 12

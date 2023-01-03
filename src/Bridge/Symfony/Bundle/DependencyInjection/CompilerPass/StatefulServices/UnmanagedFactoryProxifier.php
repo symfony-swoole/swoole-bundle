@@ -6,6 +6,7 @@ namespace K911\Swoole\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\Sta
 
 use K911\Swoole\Bridge\Symfony\Bundle\DependencyInjection\ContainerConstants;
 use K911\Swoole\Bridge\Symfony\Container\Proxy\UnmanagedFactoryInstantiator;
+use K911\Swoole\Bridge\Symfony\Container\SimpleResetter;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
@@ -25,7 +26,7 @@ final class UnmanagedFactoryProxifier
     /**
      * returns new service id of the proxified service.
      */
-    public function proxifyService(string $serviceId): string
+    public function proxifyService(string $serviceId, ?string $externalResetter = null): string
     {
         if (!$this->container->has($serviceId)) {
             throw new \RuntimeException(sprintf('Service missing: %s', $serviceId));
@@ -33,7 +34,7 @@ final class UnmanagedFactoryProxifier
 
         $serviceDef = $this->prepareProxifiedService($serviceId);
         $wrappedServiceId = sprintf('%s.swoole_coop.wrapped_factory', $serviceId);
-        $proxyDef = $this->prepareProxy($wrappedServiceId, $serviceDef);
+        $proxyDef = $this->prepareProxy($wrappedServiceId, $serviceDef, $externalResetter);
         $serviceDef->clearTags();
 
         $this->container->setDefinition($serviceId, $proxyDef); // proxy swap
@@ -50,8 +51,11 @@ final class UnmanagedFactoryProxifier
         return $serviceDef;
     }
 
-    private function prepareProxy(string $wrappedServiceId, Definition $serviceDef): Definition
-    {
+    private function prepareProxy(
+        string $wrappedServiceId,
+        Definition $serviceDef,
+        ?string $externalResetter = null
+    ): Definition {
         /** @var class-string $serviceClass */
         $serviceClass = $serviceDef->getClass();
         $proxyDef = new Definition($serviceClass);
@@ -62,6 +66,19 @@ final class UnmanagedFactoryProxifier
         $serviceTags = new Tags($serviceClass, $serviceDef->getTags());
         $ufTags = $serviceTags->getUnmanagedFactoryTags();
         $factoryConfigs = $ufTags->getFactoryMethodConfigs($this->container);
+
+        $factoryConfigs = array_map(function (array $factoryConfig): array {
+            if (!isset($factoryConfig['resetter'])) {
+                return $factoryConfig;
+            }
+
+            $customResetter = $factoryConfig['resetter'];
+            $resetterRef = new Reference($customResetter);
+            $factoryConfig['resetter'] = $resetterRef;
+
+            return $factoryConfig;
+        }, $factoryConfigs);
+
         $proxyDef->setArgument(1, $factoryConfigs);
 
         foreach ($factoryConfigs as $factoryConfig) {
@@ -69,7 +86,6 @@ final class UnmanagedFactoryProxifier
         }
 
         $instanceLimit = (int) $this->container->getParameter(ContainerConstants::PARAM_COROUTINES_MAX_SVC_INSTANCES);
-
         $proxyDef->setArgument(2, $instanceLimit);
 
         foreach ($serviceTags as $tag => $attributes) {

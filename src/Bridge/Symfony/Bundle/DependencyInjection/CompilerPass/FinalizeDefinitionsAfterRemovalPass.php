@@ -41,11 +41,11 @@ final class FinalizeDefinitionsAfterRemovalPass implements CompilerPassInterface
      * 6) coroutine 2 uses the not resetted service with state remembered from the other coroutine
      *
      * the instantiation on first reset is forced by using the RUNTIME_EXCEPTION_ON_INVALID_REFERENCE in service reference
+     *
+     * all this is only happening for resetters that are global and which have not been changed to service pool resetters
      */
     private function makeResettableServicesActive(ContainerBuilder $container): void
     {
-        $resetterCompilerPass = new ResettableServicePass();
-        $resetterCompilerPass->process($container);
         $resetterDef = $container->findDefinition('services_resetter');
 
         if ($resetterDef->hasTag('kernel.reset')) {
