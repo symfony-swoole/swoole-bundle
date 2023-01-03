@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace K911\Swoole\Bridge\Symfony\Container\Proxy;
 
+use K911\Swoole\Bridge\Symfony\Container\Resetter;
 use K911\Swoole\Bridge\Symfony\Container\ServicePool\ServicePoolContainer;
 use K911\Swoole\Bridge\Symfony\Container\ServicePool\UnmanagedFactoryServicePool;
 use K911\Swoole\Component\Locking\Locking;
@@ -49,7 +50,8 @@ final class UnmanagedFactoryInstantiator
      * @param array<array{
      *     factoryMethod: string,
      *     returnType: class-string,
-     *     limit?: int
+     *     limit?: int,
+     *     resetter?: Resetter
      * }> $factoryConfigs
      *
      * @return AccessInterceptorInterface<RealObjectType>&AccessInterceptorValueHolderInterface<RealObjectType>&RealObjectType&ValueHolderInterface<RealObjectType>
@@ -119,11 +121,13 @@ final class UnmanagedFactoryInstantiator
                 // unique locking key for each managed instance of the new service pool
                 $limitLockingKey = sprintf('%s::limit::%s', $lockingKey, uniqid());
                 $instancesLimit = $factoryConfig['limit'] ?? $globalInstancesLimit;
+                $resetter = $factoryConfig['resetter'] ?? null;
                 $servicePool = new UnmanagedFactoryServicePool(
                     $factoryInstantiator,
                     $limitLockingKey,
                     $this->limitLocking,
-                    $instancesLimit
+                    $instancesLimit,
+                    $resetter
                 );
                 $servicePoolContainer->addPool($servicePool);
 

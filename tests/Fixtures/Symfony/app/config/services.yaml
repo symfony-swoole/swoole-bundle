@@ -15,7 +15,7 @@ services:
     resource: '../../TestBundle/*'
     # you can exclude directories or files
     # but if a service is unused, it's removed anyway
-    exclude: '../../TestBundle/{Message,Test,Controller,Migrations}'
+    exclude: '../../TestBundle/{Message,Test,Controller,Migrations,Resetter}'
 
   # controllers are imported separately to make sure they
   # have the tag that allows actions to type-hint services
@@ -23,6 +23,12 @@ services:
     resource: '../../TestBundle/Controller'
     # without this the HMR tests break, might be a bug in HMR
     exclude: '../../TestBundle/Controller/ReplacedContentTestController.php'
+    tags: ['controller.service_arguments']
+
+  K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Controller\DoctrineController:
+    arguments:
+      $resetters: []
+      $dataHolder: '@?doctrine.debug_data_holder'
     tags: ['controller.service_arguments']
 
   K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Controller\SleepController:
@@ -54,6 +60,12 @@ services:
         factoryMethod: 'newInstance'
         returnType: 'K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Service\InMemoryRepository'
         limit: 15
+        resetter: 'inmemory_repository_resetter'
+
+  inmemory_repository_resetter:
+    class: K911\Swoole\Bridge\Symfony\Container\SimpleResetter
+    arguments:
+      $resetFn: 'reset'
 
   K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Service\UnusedServiceToRemove:
     tags:

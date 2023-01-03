@@ -15,6 +15,10 @@ final class EntityManagerStabilityChecker implements StabilityChecker
             throw new \UnexpectedValueException(\sprintf('Invalid service - expected %s, got %s', EntityManager::class, \get_class($service)));
         }
 
+        if ($service->isOpen()) {
+            $service->clear(); // clear the em when not used any more in context, so RAM can be freed early
+        }
+
         return $service->isOpen();
     }
 

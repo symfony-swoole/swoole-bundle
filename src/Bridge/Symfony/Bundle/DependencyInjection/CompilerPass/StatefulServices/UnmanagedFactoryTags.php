@@ -22,7 +22,8 @@ final class UnmanagedFactoryTags
      * @var null|array<array{
      *     factoryMethod: string,
      *     returnType: class-string|string,
-     *     limit?: int
+     *     limit?: int,
+     *     resetter?: string
      * }>
      */
     private ?array $factoryMethodConfigs = null;
@@ -32,7 +33,8 @@ final class UnmanagedFactoryTags
      * @param array<array{
      *     factoryMethod: string,
      *     returnType?: class-string|string,
-     *     limit?: int
+     *     limit?: int,
+     *     resetter?: string
      * }> $tags
      */
     public function __construct(string $serviceClass, array $tags)

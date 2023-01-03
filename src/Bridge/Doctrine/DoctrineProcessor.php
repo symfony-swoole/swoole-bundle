@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace K911\Swoole\Bridge\Doctrine;
 
+use K911\Swoole\Bridge\Doctrine\DBAL\ConnectionKeepAliveResetter;
 use K911\Swoole\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices\CompileProcessor;
 use K911\Swoole\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices\Proxifier;
 use K911\Swoole\Bridge\Symfony\Bundle\DependencyInjection\ContainerConstants;
+use PixelFederation\DoctrineResettableEmBundle\DBAL\Connection\PlatformAliveKeeper;
 use Symfony\Component\DependencyInjection\Argument\IteratorArgument;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
@@ -55,7 +57,7 @@ final class DoctrineProcessor implements CompileProcessor
             $this->decorateRepositoryFactory($container, $emName, $emSvcId);
         }
 
-        $this->proxifyConnections($container, $proxifier, $connectionSvcIds);
+        $this->prepareConnectionsForProxification($container, $connectionSvcIds);
         $this->fixDebugDataHolderResetter($container, $proxifier);
     }
 
@@ -71,11 +73,12 @@ final class DoctrineProcessor implements CompileProcessor
         $emDef->setConfigurator([new Reference($newConfiguratorDefSvcId), 'configure']);
     }
 
-    private function proxifyConnections(
-        ContainerBuilder $container,
-        Proxifier $proxifier,
-        array $connectionSvcIds
-    ): void {
+    private function prepareConnectionsForProxification(ContainerBuilder $container, array $connectionSvcIds): void
+    {
+        $dbalAliveKeeperDef = $container->findDefinition(PlatformAliveKeeper::class);
+        $aliveKeepers = $dbalAliveKeeperDef->getArgument(1);
+        $dbalAliveKeeperDef->setArgument(1, []);
+
         foreach ($connectionSvcIds as $connectionName => $connectionSvcId) {
             $limit = $this->getConnectionLimit($connectionName);
 
@@ -84,14 +87,21 @@ final class DoctrineProcessor implements CompileProcessor
             }
 
             $connectionDef = $container->findDefinition($connectionSvcId);
+            $tagParams = [];
 
             if ($limit) {
-                $connectionDef->addTag(ContainerConstants::TAG_STATEFUL_SERVICE, ['limit' => $limit]);
-
-                continue;
+                $tagParams['limit'] = $limit;
             }
 
-            $proxifier->proxifyService($connectionSvcId);
+            if (isset($aliveKeepers[$connectionName])) {
+                $tagParams['resetter'] = $this->tryToCreateKeepAliveResetter(
+                    $container,
+                    $connectionName,
+                    $aliveKeepers[$connectionName]
+                );
+            }
+
+            $connectionDef->addTag(ContainerConstants::TAG_STATEFUL_SERVICE, $tagParams);
         }
     }
 
@@ -165,5 +175,23 @@ final class DoctrineProcessor implements CompileProcessor
         }
 
         return (int) $this->config['limits'][$connectionName];
+    }
+
+    private function tryToCreateKeepAliveResetter(
+        ContainerBuilder $container,
+        string $connectionName,
+        Reference $aliveKeeperRef
+    ): string {
+        $resetterSvcId = sprintf(
+            'swoole_bundle.coroutines_support.doctrine.connection_resetter.%s',
+            $connectionName
+        );
+        $resetterDef = new Definition();
+        $resetterDef->setClass(ConnectionKeepAliveResetter::class);
+        $resetterDef->setArgument(0, $aliveKeeperRef);
+        $resetterDef->setArgument(1, $connectionName);
+        $container->setDefinition($resetterSvcId, $resetterDef);
+
+        return $resetterSvcId;
     }
 }

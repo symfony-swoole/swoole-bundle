@@ -7,12 +7,12 @@ namespace K911\Swoole\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\Sta
 final class StatefulServiceTag
 {
     /**
-     * @var array{limit?: int}
+     * @var array{limit?: int, resetter?: string}
      */
     private array $tag;
 
     /**
-     * @param array{limit?: int} $tag
+     * @param array{limit?: int, resetter?: string} $tag
      */
     public function __construct(array $tag)
     {
@@ -22,5 +22,10 @@ final class StatefulServiceTag
     public function getLimit(): ?int
     {
         return $this->tag['limit'] ?? null;
+    }
+
+    public function getResetter(): ?string
+    {
+        return $this->tag['resetter'] ?? null;
     }
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace K911\Swoole\Bridge\Symfony\Container\ServicePool;
 
+use K911\Swoole\Bridge\Symfony\Container\Resetter;
 use K911\Swoole\Bridge\Symfony\Container\StabilityChecker;
 use K911\Swoole\Component\Locking\Lock;
 use K911\Swoole\Component\Locking\Locking;
@@ -13,6 +14,8 @@ abstract class BaseServicePool implements ServicePool
     private string $lockingKey;
 
     private Locking $locking;
+
+    private ?Resetter $resetter;
 
     private ?StabilityChecker $stabilityChecker;
 
@@ -36,11 +39,13 @@ abstract class BaseServicePool implements ServicePool
         string $lockingKey,
         Locking $locking,
         int $instancesLimit = 50,
+        ?Resetter $resetter = null,
         ?StabilityChecker $stabilityChecker = null
     ) {
         $this->lockingKey = $lockingKey;
         $this->instancesLimit = $instancesLimit;
         $this->locking = $locking;
+        $this->resetter = $resetter;
         $this->stabilityChecker = $stabilityChecker;
     }
 
@@ -60,7 +65,13 @@ abstract class BaseServicePool implements ServicePool
         ++$this->assignedCount;
 
         if (!empty($this->freePool)) {
-            return $this->assignedPool[$cId] = array_shift($this->freePool);
+            $assigned = array_shift($this->freePool);
+
+            if (null !== $this->resetter) {
+                $this->resetter->reset($assigned);
+            }
+
+            return $this->assignedPool[$cId] = $assigned;
         }
 
         return $this->assignedPool[$cId] = $this->newServiceInstance();

@@ -14,6 +14,7 @@ use K911\Swoole\Bridge\Symfony\Bundle\DependencyInjection\ContainerConstants;
 use K911\Swoole\Bridge\Symfony\Container\BlockingContainer;
 use K911\Swoole\Bridge\Symfony\Container\ServicePool\ServicePoolContainer;
 use K911\Swoole\Bridge\Symfony\Container\StabilityChecker;
+use Symfony\Component\DependencyInjection\Argument\ServiceLocatorArgument;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 
@@ -62,8 +63,10 @@ final class StatefulServicesPass implements CompilerPassInterface
         $finalProcessor = new FinalClassesProcessor($container);
         $proxifier = $this->createDefaultProxifier($container, $finalProcessor);
         $this->runCompileProcessors($container, $proxifier);
-        $this->proxifyKnownStatefulServices($container, $proxifier);
-        $this->proxifyUnmanagedFactories($container, $finalProcessor);
+        $resetters = $this->getServiceResetters($container);
+        $this->proxifyKnownStatefulServices($container, $proxifier, $resetters);
+        $this->proxifyUnmanagedFactories($container, $finalProcessor, $resetters);
+        $this->cancelServiceResetting($container);
         $this->configureServicePoolContainer($container, $proxifier);
     }
 
@@ -123,8 +126,14 @@ final class StatefulServicesPass implements CompilerPassInterface
         }
     }
 
-    private function proxifyKnownStatefulServices(ContainerBuilder $container, Proxifier $proxifier): void
-    {
+    /**
+     * @param array<string, string> $resetters
+     */
+    private function proxifyKnownStatefulServices(
+        ContainerBuilder $container,
+        Proxifier $proxifier,
+        array $resetters
+    ): void {
         /** @var array<string, null|array<string, mixed>> $resettableStatefulServices */
         $resettableStatefulServices = $container->findTaggedServiceIds('kernel.reset');
         /** @var array<string, null|array<string, mixed>> $taggedStatefulServices */
@@ -148,13 +157,18 @@ final class StatefulServicesPass implements CompilerPassInterface
                 continue;
             }
 
-            $proxifier->proxifyService($serviceId);
+            $resetter = $resetters[$serviceId] ?? null;
+            $proxifier->proxifyService($serviceId, $resetter);
         }
     }
 
+    /**
+     * @param array<string, string> $resetters
+     */
     private function proxifyUnmanagedFactories(
         ContainerBuilder $container,
-        FinalClassesProcessor $finalProcessor
+        FinalClassesProcessor $finalProcessor,
+        array $resetters
     ): void {
         $factoryProxifier = new UnmanagedFactoryProxifier($container, $finalProcessor);
         /** @var array<string, null|array<string, mixed>> $factoriesToProxify */
@@ -170,7 +184,8 @@ final class StatefulServicesPass implements CompilerPassInterface
                 continue;
             }
 
-            $factoryProxifier->proxifyService($serviceId);
+            $resetter = $resetters[$serviceId] ?? null;
+            $factoryProxifier->proxifyService($serviceId, $resetter);
         }
     }
 
@@ -196,6 +211,27 @@ final class StatefulServicesPass implements CompilerPassInterface
         }
 
         return new Proxifier($container, $finalProcessor, $stabilityCheckers);
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function getServiceResetters(ContainerBuilder $container): array
+    {
+        $resetterDef = $container->findDefinition('services_resetter');
+        /** @var array<string, list<string>> $resetters */
+        $resetters = $resetterDef->getArgument(1);
+
+        return array_map(fn (array $r): string => $r[0], $resetters);
+    }
+
+    private function cancelServiceResetting(ContainerBuilder $container): void
+    {
+        $resetterDef = $container->findDefinition('services_resetter');
+        /** @var ServiceLocatorArgument $resetters */
+        $resetters = $resetterDef->getArgument(0);
+        $resetters->setValues([]);
+        $resetterDef->setArgument(1, []);
     }
 
     private function configureServicePoolContainer(ContainerBuilder $container, Proxifier $proxifier): void

@@ -57,7 +57,7 @@
         "phpunit/php-code-coverage": "^9.1.0",
         "phpunit/phpcov": "^8.0",
         "phpunit/phpunit": "^9.5",
-        "pixelfederation/doctrine-resettable-em-bundle": "^6.2",
+        "pixelfederation/doctrine-resettable-em-bundle": "dev-pinging_rework",
         "pixelfederation/openswoole-blackfire": "^1.0",
         "pixelfederation/z-engine": "~7.4|~8.0|~8.1",
         "ramsey/uuid": "^4.1",
