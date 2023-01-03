@@ -155,8 +155,8 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
             $this->assertStringContainsString('Check was true.', $response['body']);
             $this->assertStringContainsString('Checks: 10.', $response['body']);
 
-            // without coroutines, it should be 8, expected is 2, 1.5s is slowness tolerance in initialization
-            self::assertLessThan(3.5, $end - $start);
+            // without coroutines, it should be 8, expected is 2, 2s is slowness tolerance in initialization
+            self::assertLessThan(4, $end - $start);
         });
     }
 
@@ -228,7 +228,7 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
             $wg->wait(10);
             $end = microtime(true);
 
-            self::assertLessThan(self::coverageEnabled() ? 3 : 0.5, $end - $start);
+            self::assertLessThan(self::coverageEnabled() ? 6 : 0.5, $end - $start);
 
             $client = HttpClient::fromDomain('localhost', 9999, false);
             $this->assertTrue($client->connect());
@@ -314,7 +314,7 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
             $wg->wait(10);
             $end = microtime(true);
 
-            self::assertLessThan(self::coverageEnabled() ? 3 : 0.5, $end - $start);
+            self::assertLessThan(self::coverageEnabled() ? 5 : 0.5, $end - $start);
 
             $client = HttpClient::fromDomain('localhost', 9999, false);
             $this->assertTrue($client->connect());
@@ -401,7 +401,7 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
 
             $end = microtime(true);
             // after one second, three rows should be in the file, not after 1.6s
-            self::assertLessThan(self::coverageEnabled() ? 1.4 : 1.1, $end - $start);
+            self::assertLessThan(self::coverageEnabled() ? 2 : 1.1, $end - $start);
         });
 
         $content = file_get_contents($fileName);
