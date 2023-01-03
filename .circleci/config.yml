@@ -31,7 +31,8 @@ aliases:
             echo "export TAG='$TAG'" >> $BASH_ENV
 
             if [ "latest" = "$SWOOLE_VERSION" ]; then
-              LATEST_SWOOLE_VERSION="$(wget -q -O /dev/stdout https://api.github.com/repos/openswoole/swoole-src/releases/latest | grep '"tag_name":' | sed -E 's/.*"v([^"]+)".*/\1/')"
+              # LATEST_SWOOLE_VERSION="$(wget -q -O /dev/stdout https://api.github.com/repos/openswoole/swoole-src/releases/latest | grep '"tag_name":' | sed -E 's/.*"v([^"]+)".*/\1/')"
+              LATEST_SWOOLE_VERSION=4.12.1
               echo "LATEST_SWOOLE_VERSION=$LATEST_SWOOLE_VERSION"
               echo "export SWOOLE_VERSION='$LATEST_SWOOLE_VERSION'" >> $BASH_ENV
             fi;
