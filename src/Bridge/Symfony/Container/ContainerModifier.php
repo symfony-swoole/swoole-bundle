@@ -8,9 +8,16 @@ use ZEngine\Reflection\ReflectionClass;
 
 final class ContainerModifier
 {
+    private static $alreadyOverridden = [];
+
     public static function modifyContainer(BlockingContainer $container): void
     {
         $reflContainer = new ReflectionClass($container);
+        BlockingContainer::setBuildContainerNs($reflContainer->getNamespaceName());
+
+        if (isset(self::$alreadyOverridden[$reflContainer->getName()])) {
+            return;
+        }
 
         if (!$reflContainer->hasMethod('createProxy')) {
             return;
@@ -18,10 +25,15 @@ final class ContainerModifier
 
         self::overrideCreateProxy($container, $reflContainer);
         self::overrideLoad($container, $reflContainer);
+        self::$alreadyOverridden[$reflContainer->getName()] = true;
     }
 
     public static function overrideDoInExtension(string $containerDir, string $fileToLoad, string $class): void
     {
+        if (isset(self::$alreadyOverridden[$fileToLoad])) {
+            return;
+        }
+
         require $containerDir.\DIRECTORY_SEPARATOR.$fileToLoad;
 
         $refl = new ReflectionClass($class);
@@ -40,6 +52,7 @@ final class ContainerModifier
 
             return $return;
         });
+        self::$alreadyOverridden[$fileToLoad] = true;
     }
 
     private static function overrideCreateProxy(BlockingContainer $container, ReflectionClass $reflContainer): void
@@ -61,7 +74,6 @@ final class ContainerModifier
 
     private static function overrideLoad(BlockingContainer $container, ReflectionClass $reflContainer): void
     {
-        BlockingContainer::setBuildContainerNs($reflContainer->getNamespaceName());
         $loadRefl = $reflContainer->getMethod('load');
         $reflContainer->addMethod('loadOriginal', $loadRefl->getClosure($container));
         $loadRefl->redefine(function ($file, $lazyLoad = true) {
