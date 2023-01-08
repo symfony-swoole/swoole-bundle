@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace K911\Swoole\Bridge\Symfony\Kernel;
 
 use K911\Swoole\Bridge\Symfony\Container\BlockingContainer;
+use K911\Swoole\Bridge\Symfony\Container\ContainerModifier;
 use K911\Swoole\Reflection\FinalClassModifier;
 
 trait CoroutinesSupportingKernelTrait
@@ -36,5 +37,7 @@ trait CoroutinesSupportingKernelTrait
         FinalClassModifier::initialize($this->getCacheDir());
 
         parent::initializeContainer();
+
+        ContainerModifier::modifyContainer($this->container);
     }
 }

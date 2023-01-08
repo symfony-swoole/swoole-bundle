@@ -155,8 +155,9 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
             $this->assertStringContainsString('Check was true.', $response['body']);
             $this->assertStringContainsString('Checks: 10.', $response['body']);
 
-            // without coroutines, it should be 8, expected is 2, 2s is slowness tolerance in initialization
-            self::assertLessThan(4, $end - $start);
+            // without coroutines, it should be 20, expected is 2, 3s is slowness tolerance in initialization
+            // with coverage enabled
+            self::assertLessThan(5, $end - $start);
         });
     }
 
@@ -401,7 +402,7 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
 
             $end = microtime(true);
             // after one second, three rows should be in the file, not after 1.6s
-            self::assertLessThan(self::coverageEnabled() ? 2 : 1.1, $end - $start);
+            self::assertLessThan(self::coverageEnabled() ? 2.2 : 1.1, $end - $start);
         });
 
         $content = file_get_contents($fileName);
