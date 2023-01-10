@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace K911\Swoole\Bridge\Symfony\Container;
 
+use Symfony\Component\DependencyInjection\Container;
 use ZEngine\Reflection\ReflectionClass;
 
 final class ContainerModifier
@@ -73,6 +74,36 @@ final class ContainerModifier
     }
 
     private static function overrideLoad(BlockingContainer $container, ReflectionClass $reflContainer): void
+    {
+        $loadRefl = $reflContainer->getMethod('load');
+
+        if (Container::class == $loadRefl->getDeclaringClass()->getName()) {
+            self::overrideOriginalContainerLoad($container, $reflContainer);
+
+            return;
+        }
+
+        self::overrideGeneratedLoad($container, $reflContainer);
+    }
+
+    private static function overrideOriginalContainerLoad(BlockingContainer $container, ReflectionClass $reflContainer): void
+    {
+        $loadRefl = $reflContainer->getMethod('load');
+        $reflContainer->addMethod('loadOriginal', $loadRefl->getClosure($container));
+        $loadRefl->redefine(function (string $file) {
+            $lock = self::$locking->acquire($file);
+
+            try {
+                $return = $this->loadOriginal($file);
+            } finally {
+                $lock->release();
+            }
+
+            return $return;
+        });
+    }
+
+    private static function overrideGeneratedLoad(BlockingContainer $container, ReflectionClass $reflContainer): void
     {
         $loadRefl = $reflContainer->getMethod('load');
         $reflContainer->addMethod('loadOriginal', $loadRefl->getClosure($container));
