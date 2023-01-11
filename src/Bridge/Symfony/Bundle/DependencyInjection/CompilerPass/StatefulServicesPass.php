@@ -9,6 +9,7 @@ use K911\Swoole\Bridge\Monolog\MonologProcessor;
 use K911\Swoole\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices\CompileProcessor;
 use K911\Swoole\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices\FinalClassesProcessor;
 use K911\Swoole\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices\Proxifier;
+use K911\Swoole\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices\Tags;
 use K911\Swoole\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices\UnmanagedFactoryProxifier;
 use K911\Swoole\Bridge\Symfony\Bundle\DependencyInjection\ContainerConstants;
 use K911\Swoole\Bridge\Symfony\Container\BlockingContainer;
@@ -66,7 +67,7 @@ final class StatefulServicesPass implements CompilerPassInterface
         $resetters = $this->getServiceResetters($container);
         $this->proxifyKnownStatefulServices($container, $proxifier, $resetters);
         $this->proxifyUnmanagedFactories($container, $finalProcessor, $resetters);
-        $this->cancelServiceResetting($container);
+        $this->reduceServiceResetters($container);
         $this->configureServicePoolContainer($container, $proxifier);
     }
 
@@ -225,13 +226,36 @@ final class StatefulServicesPass implements CompilerPassInterface
         return array_map(fn (array $r): string => $r[0], $resetters);
     }
 
-    private function cancelServiceResetting(ContainerBuilder $container): void
+    private function reduceServiceResetters(ContainerBuilder $container): void
     {
         $resetterDef = $container->findDefinition('services_resetter');
         /** @var ServiceLocatorArgument $resetters */
         $resetters = $resetterDef->getArgument(0);
-        $resetters->setValues([]);
-        $resetterDef->setArgument(1, []);
+        $resetMethods = $resetterDef->getArgument(1);
+        $newResetters = [];
+        $newResetMethods = [];
+
+        foreach ($resetters->getValues() as $serviceId => $value) {
+            $valueDef = $container->findDefinition((string) $value);
+            /** @var class-string $classString */
+            $classString = $valueDef->getClass();
+            $tags = new Tags($classString, $valueDef->getTags());
+            $tag = $tags->findStatefulServiceTag();
+
+            if (null === $tag) {
+                continue;
+            }
+
+            if (!$tag->getResetOnEachRequest()) {
+                continue;
+            }
+
+            $newResetters[$serviceId] = $value;
+            $newResetMethods[$serviceId] = $resetMethods[$serviceId];
+        }
+
+        $resetters->setValues($newResetters);
+        $resetterDef->setArgument(1, $newResetMethods);
     }
 
     private function configureServicePoolContainer(ContainerBuilder $container, Proxifier $proxifier): void

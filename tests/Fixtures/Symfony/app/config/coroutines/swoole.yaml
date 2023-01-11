@@ -48,3 +48,7 @@ services:
   K911\Swoole\Tests\Fixtures\Symfony\TestBundle\MessageHandler\RunDummyHandler:
     tags:
       - messenger.message_handler
+
+  K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Service\AlwaysReset:
+    tags:
+      - { name: 'swoole_bundle.stateful_service', reset_on_each_request: true }
