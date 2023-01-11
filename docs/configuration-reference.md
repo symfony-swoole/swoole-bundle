@@ -293,12 +293,15 @@ services:
 
   some_stateful_service:
     class: My\Stateful\ServiceClass
-    tags: [{ name: swoole_bundle.stateful_service, resetter: my_custom_resetter}]
+    tags: [{ name: swoole_bundle.stateful_service, resetter: my_custom_resetter, reset_on_each_request: true}]
 
   some_unmanaged_factory:
     class: My\Unmanaged\FactoryClass2
     tags: [{ name: swoole_bundle.unmanaged_factory, resetter: my_custom_resetter}]
 ```
+
+By default, each resetted service is being reset on first usage during request. But there are some services, 
+that need to be reset on each request. To activate this, use the `reset_on_each_request` attribute.
 
 ### Stability checkers
 

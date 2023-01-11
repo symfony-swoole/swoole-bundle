@@ -74,6 +74,7 @@ final class SleepController
         $limitProperty = $rc->getProperty('instancesLimit');
         $limitProperty->setAccessible(true);
         $limit = $limitProperty->getValue($servicePool);
+        $alwaysResetWorks = $this->shouldBeProxified->wasDummyReset();
 
         $rc2 = new \ReflectionClass(DefaultDummyService::class);
         $tmpRepoProperty = $rc2->getProperty('tmpRepository');
@@ -97,6 +98,7 @@ final class SleepController
             "<html><body>Sleep was fine. Count was {$counter}. Check was {$check}. "
                     ."Checks: {$checks}. "
                     ."Service {$isProxified} proxified. Service2 {$isProxified2} proxified. "
+                    .'Always reset '.($alwaysResetWorks ? 'works' : 'did not work').'. '
                     ."Service2 limit is {$limit}. TmpRepo {$isProxified3} proxified. "
                     ."TmpRepo limit is {$limit2}. "
                     ."Connection limit is {$connlimit}.</body></html>"
