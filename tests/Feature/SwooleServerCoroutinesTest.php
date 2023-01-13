@@ -65,6 +65,8 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
                     $this->assertStringContainsString('Service2 was proxified.', $response['body']);
                     $this->assertStringContainsString('Service2 limit is 10.', $response['body']);
                     $this->assertStringContainsString('Always reset works.', $response['body']);
+                    $this->assertStringContainsString('Safe always reseter is not a proxy.', $response['body']);
+                    $this->assertStringContainsString('Safe Always reset works.', $response['body']);
                     $this->assertStringContainsString('TmpRepo was proxified.', $response['body']);
                     $this->assertStringContainsString('TmpRepo limit is 15.', $response['body']);
                     $this->assertStringContainsString('Connection limit is 12.', $response['body']);
@@ -138,6 +140,8 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
                     $this->assertStringContainsString('Service2 was proxified.', $response['body']);
                     $this->assertStringContainsString('Service2 limit is 10.', $response['body']);
                     $this->assertStringContainsString('Always reset works.', $response['body']);
+                    $this->assertStringContainsString('Safe always reseter is not a proxy.', $response['body']);
+                    $this->assertStringContainsString('Safe Always reset works.', $response['body']);
                     $this->assertStringContainsString('TmpRepo was proxified.', $response['body']);
                     $this->assertStringContainsString('TmpRepo limit is 15.', $response['body']);
                     $this->assertStringContainsString('Connection limit is 12.', $response['body']);
