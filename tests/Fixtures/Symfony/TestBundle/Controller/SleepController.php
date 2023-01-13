@@ -75,6 +75,10 @@ final class SleepController
         $limitProperty->setAccessible(true);
         $limit = $limitProperty->getValue($servicePool);
         $alwaysResetWorks = $this->shouldBeProxified->wasDummyReset();
+        $alwaysResetSafe = $this->shouldBeProxified->getSafeDummy();
+        /** @phpstan-ignore-next-line */
+        $safeDummyIsProxy = $alwaysResetSafe instanceof VirtualProxyInterface ? 'IS' : 'is not';
+        $safeAlwaysResetWorks = $alwaysResetSafe->getWasReset();
 
         $rc2 = new \ReflectionClass(DefaultDummyService::class);
         $tmpRepoProperty = $rc2->getProperty('tmpRepository');
@@ -99,6 +103,8 @@ final class SleepController
                     ."Checks: {$checks}. "
                     ."Service {$isProxified} proxified. Service2 {$isProxified2} proxified. "
                     .'Always reset '.($alwaysResetWorks ? 'works' : 'did not work').'. '
+                    ."Safe always reseter {$safeDummyIsProxy} a proxy. "
+                    .'Safe Always reset '.($safeAlwaysResetWorks ? 'works' : 'did not work').'. '
                     ."Service2 limit is {$limit}. TmpRepo {$isProxified3} proxified. "
                     ."TmpRepo limit is {$limit2}. "
                     ."Connection limit is {$connlimit}.</body></html>"

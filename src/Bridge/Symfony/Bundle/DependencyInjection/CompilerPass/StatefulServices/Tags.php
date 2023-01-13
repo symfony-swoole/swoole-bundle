@@ -96,6 +96,25 @@ final class Tags implements \IteratorAggregate
         return new \ArrayIterator($this->tags);
     }
 
+    public function resetOnEachRequest(): bool
+    {
+        if (!$this->hasStatefulServiceTag() && !$this->hasSafeStatefulServiceTag()) {
+            return false;
+        }
+
+        if ($this->hasSafeStatefulServiceTag()) {
+            return true;
+        }
+
+        $tag = $this->findStatefulServiceTag();
+
+        if ($tag->getResetOnEachRequest()) {
+            return true;
+        }
+
+        return false;
+    }
+
     /**
      * @return array<array<array<string, mixed>>>
      */

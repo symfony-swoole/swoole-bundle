@@ -8,13 +8,21 @@ final class ShouldBeProxified
 {
     private AlwaysReset $dummy;
 
-    public function __construct(AlwaysReset $dummy)
+    private AlwaysResetSafe $safeDummy;
+
+    public function __construct(AlwaysReset $dummy, AlwaysResetSafe $safeDummy)
     {
         $this->dummy = $dummy;
+        $this->safeDummy = $safeDummy;
     }
 
     public function wasDummyReset(): bool
     {
         return $this->dummy->getWasReset();
+    }
+
+    public function getSafeDummy(): AlwaysResetSafe
+    {
+        return $this->safeDummy;
     }
 }

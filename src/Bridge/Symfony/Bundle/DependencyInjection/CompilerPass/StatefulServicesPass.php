@@ -240,13 +240,8 @@ final class StatefulServicesPass implements CompilerPassInterface
             /** @var class-string $classString */
             $classString = $valueDef->getClass();
             $tags = new Tags($classString, $valueDef->getTags());
-            $tag = $tags->findStatefulServiceTag();
 
-            if (null === $tag) {
-                continue;
-            }
-
-            if (!$tag->getResetOnEachRequest()) {
+            if (!$tags->resetOnEachRequest()) {
                 continue;
             }
 
