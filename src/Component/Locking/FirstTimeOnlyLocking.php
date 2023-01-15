@@ -10,10 +10,13 @@ final class FirstTimeOnlyLocking implements Locking
 
     private Locking $wrapped;
 
+    private Lock $unlockedLock;
+
     private function __construct(Locking $wrapped)
     {
         $this->store = new Store();
         $this->wrapped = $wrapped;
+        $this->unlockedLock = FirstTimeOnlyLock::unlocked();
     }
 
     public function acquire(string $key): Lock
@@ -25,7 +28,7 @@ final class FirstTimeOnlyLocking implements Locking
         }
 
         if (FirstTimeOnlyLock::RELEASED === $this->store->get($key)) {
-            return FirstTimeOnlyLock::unlocked();
+            return $this->unlockedLock;
         }
 
         while (FirstTimeOnlyLock::RELEASED !== $this->store->get($key)) {
@@ -33,7 +36,7 @@ final class FirstTimeOnlyLocking implements Locking
         }
 
         /* @phpstan-ignore-next-line */
-        return FirstTimeOnlyLock::unlocked();
+        return $this->unlockedLock;
     }
 
     public static function init(?Locking $locking = null): Locking
