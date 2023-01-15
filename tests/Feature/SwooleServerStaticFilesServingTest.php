@@ -12,6 +12,7 @@ final class SwooleServerStaticFilesServingTest extends ServerTestCase
     protected function setUp(): void
     {
         $this->markTestSkippedIfXdebugEnabled();
+        $this->deleteVarDirectory();
     }
 
     public function testAdvancedStaticFilesServerWithAutoRegistration(): void

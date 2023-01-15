@@ -42,8 +42,8 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
 
         $this->assertProcessSucceeded($serverStart);
 
-        $this->runAsCoroutineAndWait(function (): void {
-            $this->deferServerStop();
+        $this->runAsCoroutineAndWait(function () use ($envs): void {
+            $this->deferServerStop([], $envs);
 
             $initClient = HttpClient::fromDomain('localhost', 9999, false);
             $this->assertTrue($initClient->connect());
@@ -148,8 +148,8 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
 
         $this->assertProcessSucceeded($serverStart);
 
-        $this->runAsCoroutineAndWait(function (): void {
-            $this->deferServerStop();
+        $this->runAsCoroutineAndWait(function () use ($envs): void {
+            $this->deferServerStop([], $envs);
 
             $initClient = HttpClient::fromDomain('localhost', 9999, false);
             $this->assertTrue($initClient->connect());
@@ -218,8 +218,8 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
         $this->assertProcessSucceeded($serverStart);
 
         $fileName = $this->generateNotExistingCustomTestFile();
-        $this->runAsCoroutineAndWait(function () use ($fileName): void {
-            $this->deferServerStop();
+        $this->runAsCoroutineAndWait(function () use ($fileName, $envs): void {
+            $this->deferServerStop([], $envs);
 
             $initClient = HttpClient::fromDomain('localhost', 9999, false);
             $this->assertTrue($initClient->connect());
@@ -315,8 +315,8 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
 
         $this->assertProcessSucceeded($serverStart);
 
-        $this->runAsCoroutineAndWait(function (): void {
-            $this->deferServerStop();
+        $this->runAsCoroutineAndWait(function () use ($envs): void {
+            $this->deferServerStop([], $envs);
 
             $initClient = HttpClient::fromDomain('localhost', 9999, false);
             $this->assertTrue($initClient->connect());

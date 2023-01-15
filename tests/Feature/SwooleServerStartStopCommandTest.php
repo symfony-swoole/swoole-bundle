@@ -12,6 +12,7 @@ final class SwooleServerStartStopCommandTest extends ServerTestCase
     protected function setUp(): void
     {
         $this->markTestSkippedIfXdebugEnabled();
+        $this->deleteVarDirectory();
     }
 
     public function testStartCallStop(): void
@@ -39,11 +40,12 @@ final class SwooleServerStartStopCommandTest extends ServerTestCase
 
     public function testStartCallStopOnReactorRunningMode(): void
     {
+        $envs = ['APP_ENV' => 'reactor'];
         $serverStart = $this->createConsoleProcess([
             'swoole:server:start',
             '--host=localhost',
             '--port=9999',
-        ], ['APP_ENV' => 'reactor']);
+        ], $envs);
 
         $serverStart->setTimeout(3);
         $serverStart->disableOutput();
@@ -51,8 +53,8 @@ final class SwooleServerStartStopCommandTest extends ServerTestCase
 
         $this->assertProcessSucceeded($serverStart);
 
-        $this->runAsCoroutineAndWait(function (): void {
-            $this->deferServerStop();
+        $this->runAsCoroutineAndWait(function () use ($envs): void {
+            $this->deferServerStop([], $envs);
 
             $client = HttpClient::fromDomain('localhost', 9999, false);
             $this->assertTrue($client->connect());

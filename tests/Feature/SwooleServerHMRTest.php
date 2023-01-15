@@ -19,15 +19,17 @@ final class SwooleServerHMRTest extends ServerTestCase
     {
         $this->markTestSkippedIfXdebugEnabled();
         $this->markTestSkippedIfInotifyDisabled();
+        $this->deleteVarDirectory();
     }
 
     public function testStartCallHMRCallStopWithAutoRegistration(): void
     {
+        $envs = ['APP_ENV' => 'auto'];
         $serverStart = $this->createConsoleProcess([
             'swoole:server:start',
             '--host=localhost',
             '--port=9999',
-        ], ['APP_ENV' => 'auto']);
+        ], $envs);
 
         $serverStart->setTimeout(3);
         $serverStart->disableOutput();
@@ -35,8 +37,8 @@ final class SwooleServerHMRTest extends ServerTestCase
 
         $this->assertProcessSucceeded($serverStart);
 
-        $this->runAsCoroutineAndWait(function (): void {
-            $this->deferServerStop();
+        $this->runAsCoroutineAndWait(function () use ($envs): void {
+            $this->deferServerStop([], $envs);
             $this->deferRestoreOriginalTemplateControllerResponse();
 
             $client = HttpClient::fromDomain('localhost', 9999, false);
@@ -64,11 +66,12 @@ final class SwooleServerHMRTest extends ServerTestCase
 
     public function testHMRDisabledByDefaultOnProduction(): void
     {
+        $envs = ['APP_ENV' => 'prod'];
         $serverStart = $this->createConsoleProcess([
             'swoole:server:start',
             '--host=localhost',
             '--port=9999',
-        ], ['APP_ENV' => 'prod']);
+        ], $envs);
 
         $serverStart->setTimeout(3);
         $serverStart->disableOutput();
@@ -76,8 +79,8 @@ final class SwooleServerHMRTest extends ServerTestCase
 
         $this->assertProcessSucceeded($serverStart);
 
-        $this->runAsCoroutineAndWait(function (): void {
-            $this->deferServerStop();
+        $this->runAsCoroutineAndWait(function () use ($envs): void {
+            $this->deferServerStop([], $envs);
             $this->deferRestoreOriginalTemplateControllerResponse();
 
             $client = HttpClient::fromDomain('localhost', 9999, false);

@@ -14,6 +14,7 @@ final class SymfonyProfilerTest extends ServerTestCase
         // problem with messenger support in symfony profiler in symfony 4.3
         $this->markTestSkippedIfSymfonyVersionIsLoverThan('4.4.0');
         $this->markTestSkippedIfXdebugEnabled();
+        $this->deleteVarDirectory();
     }
 
     public function testProfilerIsEnabled(): void

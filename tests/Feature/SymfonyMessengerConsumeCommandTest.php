@@ -14,6 +14,7 @@ final class SymfonyMessengerConsumeCommandTest extends ServerTestCase
     protected function setUp(): void
     {
         $this->markTestSkippedIfXdebugEnabled();
+        $this->deleteVarDirectory();
     }
 
     public function testConsumeMessagesFail(): void

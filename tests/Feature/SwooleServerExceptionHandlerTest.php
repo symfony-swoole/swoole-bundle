@@ -62,7 +62,8 @@ final class SwooleServerExceptionHandlerTest extends ServerTestCase
 
     public function testCatchExceptionOnReactorRunningMode(): void
     {
-        $clearCache = $this->createConsoleProcess(['cache:clear'], ['APP_ENV' => 'reactor']);
+        $envs = ['APP_ENV' => 'reactor'];
+        $clearCache = $this->createConsoleProcess(['cache:clear'], $envs);
         $clearCache->setTimeout(5);
         $clearCache->disableOutput();
         $clearCache->run();
@@ -71,7 +72,7 @@ final class SwooleServerExceptionHandlerTest extends ServerTestCase
             'swoole:server:start',
             '--host=localhost',
             '--port=9999',
-        ], ['APP_ENV' => 'reactor']);
+        ], $envs);
 
         $serverStart->setTimeout(3);
         $serverStart->disableOutput();
@@ -79,8 +80,8 @@ final class SwooleServerExceptionHandlerTest extends ServerTestCase
 
         $this->assertProcessSucceeded($serverStart);
 
-        $this->runAsCoroutineAndWait(function (): void {
-            $this->deferServerStop();
+        $this->runAsCoroutineAndWait(function () use ($envs): void {
+            $this->deferServerStop([], $envs);
 
             $client1 = HttpClient::fromDomain('localhost', 9999, false);
             $this->assertTrue($client1->connect());
@@ -107,7 +108,8 @@ final class SwooleServerExceptionHandlerTest extends ServerTestCase
 
     public function testCatchExceptionViaProductionExceptionHandler(): void
     {
-        $clearCache = $this->createConsoleProcess(['cache:clear'], ['APP_ENV' => 'prod', 'APP_DEBUG' => '0']);
+        $envs = ['APP_ENV' => 'prod', 'APP_DEBUG' => '0'];
+        $clearCache = $this->createConsoleProcess(['cache:clear'], $envs);
         $clearCache->setTimeout(5);
         $clearCache->disableOutput();
         $clearCache->run();
@@ -116,7 +118,7 @@ final class SwooleServerExceptionHandlerTest extends ServerTestCase
             'swoole:server:start',
             '--host=localhost',
             '--port=9999',
-        ], ['APP_ENV' => 'prod', 'APP_DEBUG' => '0']);
+        ], $envs);
 
         $serverStart->setTimeout(3);
         $serverStart->disableOutput();
@@ -124,8 +126,8 @@ final class SwooleServerExceptionHandlerTest extends ServerTestCase
 
         $this->assertProcessSucceeded($serverStart);
 
-        $this->runAsCoroutineAndWait(function (): void {
-            $this->deferServerStop();
+        $this->runAsCoroutineAndWait(function () use ($envs): void {
+            $this->deferServerStop([], $envs);
 
             $client1 = HttpClient::fromDomain('localhost', 9999, false);
             $this->assertTrue($client1->connect());
@@ -145,7 +147,8 @@ final class SwooleServerExceptionHandlerTest extends ServerTestCase
 
     public function testCatchExceptionWithNoTrace(): void
     {
-        $clearCache = $this->createConsoleProcess(['cache:clear'], ['APP_DEBUG' => '0']);
+        $envs = ['APP_DEBUG' => '0'];
+        $clearCache = $this->createConsoleProcess(['cache:clear'], $envs);
         $clearCache->setTimeout(5);
         $clearCache->disableOutput();
         $clearCache->run();
@@ -154,7 +157,7 @@ final class SwooleServerExceptionHandlerTest extends ServerTestCase
             'swoole:server:start',
             '--host=localhost',
             '--port=9999',
-        ], ['APP_DEBUG' => '0']);
+        ], $envs);
 
         $serverStart->setTimeout(3);
         $serverStart->disableOutput();
@@ -162,8 +165,8 @@ final class SwooleServerExceptionHandlerTest extends ServerTestCase
 
         $this->assertProcessSucceeded($serverStart);
 
-        $this->runAsCoroutineAndWait(function (): void {
-            $this->deferServerStop();
+        $this->runAsCoroutineAndWait(function () use ($envs): void {
+            $this->deferServerStop([], $envs);
 
             $client = HttpClient::fromDomain('localhost', 9999, false);
             $this->assertTrue($client->connect());
@@ -183,7 +186,8 @@ final class SwooleServerExceptionHandlerTest extends ServerTestCase
 
     public function testExceptionHandlerJsonDefaultVerbosity(): void
     {
-        $clearCache = $this->createConsoleProcess(['cache:clear'], ['APP_ENV' => 'exception_handler_json']);
+        $envs = ['APP_ENV' => 'exception_handler_json'];
+        $clearCache = $this->createConsoleProcess(['cache:clear'], $envs);
         $clearCache->setTimeout(5);
         $clearCache->disableOutput();
         $clearCache->run();
@@ -192,7 +196,7 @@ final class SwooleServerExceptionHandlerTest extends ServerTestCase
             'swoole:server:start',
             '--host=localhost',
             '--port=9999',
-        ], ['APP_ENV' => 'exception_handler_json']);
+        ], $envs);
 
         $serverStart->setTimeout(3);
         $serverStart->disableOutput();
@@ -200,8 +204,8 @@ final class SwooleServerExceptionHandlerTest extends ServerTestCase
 
         $this->assertProcessSucceeded($serverStart);
 
-        $this->runAsCoroutineAndWait(function (): void {
-            $this->deferServerStop();
+        $this->runAsCoroutineAndWait(function () use ($envs): void {
+            $this->deferServerStop([], $envs);
 
             $client = HttpClient::fromDomain('localhost', 9999, false);
             $this->assertTrue($client->connect());
@@ -224,10 +228,8 @@ final class SwooleServerExceptionHandlerTest extends ServerTestCase
 
     public function testCatchExceptionViaSymfonyExceptionHandler(): void
     {
-        $clearCache = $this->createConsoleProcess(
-            ['cache:clear'],
-            ['APP_ENV' => 'exception_handler_symfony', 'APP_DEBUG' => '0']
-        );
+        $envs = ['APP_ENV' => 'exception_handler_symfony', 'APP_DEBUG' => '0'];
+        $clearCache = $this->createConsoleProcess(['cache:clear'], $envs);
         $clearCache->setTimeout(5);
         $clearCache->disableOutput();
         $clearCache->run();
@@ -236,7 +238,7 @@ final class SwooleServerExceptionHandlerTest extends ServerTestCase
             'swoole:server:start',
             '--host=localhost',
             '--port=9999',
-        ], ['APP_ENV' => 'exception_handler_symfony', 'APP_DEBUG' => '0']);
+        ], $envs);
 
         $serverStart->setTimeout(3);
         $serverStart->disableOutput();
@@ -244,8 +246,8 @@ final class SwooleServerExceptionHandlerTest extends ServerTestCase
 
         $this->assertProcessSucceeded($serverStart);
 
-        $this->runAsCoroutineAndWait(function (): void {
-            $this->deferServerStop();
+        $this->runAsCoroutineAndWait(function () use ($envs): void {
+            $this->deferServerStop([], $envs);
 
             $client1 = HttpClient::fromDomain('localhost', 9999, false);
             $this->assertTrue($client1->connect());
@@ -265,10 +267,8 @@ final class SwooleServerExceptionHandlerTest extends ServerTestCase
 
     public function testCatchExceptionViaSymfonyExceptionHandlerWithDebug(): void
     {
-        $clearCache = $this->createConsoleProcess(
-            ['cache:clear'],
-            ['APP_ENV' => 'exception_handler_symfony', 'APP_DEBUG' => '1']
-        );
+        $envs = ['APP_ENV' => 'exception_handler_symfony', 'APP_DEBUG' => '1'];
+        $clearCache = $this->createConsoleProcess(['cache:clear'], $envs);
         $clearCache->setTimeout(5);
         $clearCache->disableOutput();
         $clearCache->run();
@@ -277,7 +277,7 @@ final class SwooleServerExceptionHandlerTest extends ServerTestCase
             'swoole:server:start',
             '--host=localhost',
             '--port=9999',
-        ], ['APP_ENV' => 'exception_handler_symfony', 'APP_DEBUG' => '1']);
+        ], $envs);
 
         $serverStart->setTimeout(3);
         $serverStart->disableOutput();
@@ -285,8 +285,8 @@ final class SwooleServerExceptionHandlerTest extends ServerTestCase
 
         $this->assertProcessSucceeded($serverStart);
 
-        $this->runAsCoroutineAndWait(function (): void {
-            $this->deferServerStop();
+        $this->runAsCoroutineAndWait(function () use ($envs): void {
+            $this->deferServerStop([], $envs);
 
             $client1 = HttpClient::fromDomain('localhost', 9999, false);
             $this->assertTrue($client1->connect());
@@ -306,10 +306,8 @@ final class SwooleServerExceptionHandlerTest extends ServerTestCase
 
     public function testCustomExceptionHandler(): void
     {
-        $clearCache = $this->createConsoleProcess(
-            ['cache:clear'],
-            ['APP_ENV' => 'exception_handler_custom']
-        );
+        $envs = ['APP_ENV' => 'exception_handler_custom'];
+        $clearCache = $this->createConsoleProcess(['cache:clear'], $envs);
         $clearCache->setTimeout(5);
         $clearCache->disableOutput();
         $clearCache->run();
@@ -318,7 +316,7 @@ final class SwooleServerExceptionHandlerTest extends ServerTestCase
             'swoole:server:start',
             '--host=localhost',
             '--port=9999',
-        ], ['APP_ENV' => 'exception_handler_custom']);
+        ], $envs);
 
         $serverStart->setTimeout(3);
         $serverStart->disableOutput();
@@ -326,8 +324,8 @@ final class SwooleServerExceptionHandlerTest extends ServerTestCase
 
         $this->assertProcessSucceeded($serverStart);
 
-        $this->runAsCoroutineAndWait(function (): void {
-            $this->deferServerStop();
+        $this->runAsCoroutineAndWait(function () use ($envs): void {
+            $this->deferServerStop([], $envs);
 
             $client = HttpClient::fromDomain('localhost', 9999, false);
             $this->assertTrue($client->connect());

@@ -13,19 +13,21 @@ final class SymfonySessionSwooleSessionIdStorageTest extends ServerTestCase
     protected function setUp(): void
     {
         $this->markTestSkippedIfXdebugEnabled();
+        $this->deleteVarDirectory();
     }
 
     public function testReturnTheSameDataForTheSameSessionId(): void
     {
         $cookieLifetime = 5;
+        $envs = [
+            'APP_ENV' => 'session',
+            'COOKIE_LIFETIME' => $cookieLifetime,
+        ];
         $serverStart = $this->createConsoleProcess([
             'swoole:server:start',
             '--host=localhost',
             '--port=9999',
-        ], [
-            'APP_ENV' => 'session',
-            'COOKIE_LIFETIME' => $cookieLifetime,
-        ]);
+        ], $envs);
 
         $serverStart->setTimeout(3);
         $serverStart->disableOutput();
@@ -33,8 +35,8 @@ final class SymfonySessionSwooleSessionIdStorageTest extends ServerTestCase
 
         $this->assertProcessSucceeded($serverStart);
 
-        $this->runAsCoroutineAndWait(function (): void {
-            $this->deferServerStop();
+        $this->runAsCoroutineAndWait(function () use ($envs): void {
+            $this->deferServerStop([], $envs);
 
             $client = HttpClient::fromDomain('localhost', 9999, false);
             $this->assertTrue($client->connect());
@@ -59,14 +61,15 @@ final class SymfonySessionSwooleSessionIdStorageTest extends ServerTestCase
     public function testDoNotReturnTheSameSessionForDifferentClients(): void
     {
         $cookieLifetime = 5;
+        $envs = [
+            'APP_ENV' => 'session',
+            'COOKIE_LIFETIME' => $cookieLifetime,
+        ];
         $serverStart = $this->createConsoleProcess([
             'swoole:server:start',
             '--host=localhost',
             '--port=9999',
-        ], [
-            'APP_ENV' => 'session',
-            'COOKIE_LIFETIME' => $cookieLifetime,
-        ]);
+        ], $envs);
 
         $serverStart->setTimeout(3);
         $serverStart->disableOutput();
@@ -74,8 +77,8 @@ final class SymfonySessionSwooleSessionIdStorageTest extends ServerTestCase
 
         $this->assertProcessSucceeded($serverStart);
 
-        $this->runAsCoroutineAndWait(function (): void {
-            $this->deferServerStop();
+        $this->runAsCoroutineAndWait(function () use ($envs): void {
+            $this->deferServerStop([], $envs);
 
             $client1 = HttpClient::fromDomain('localhost', 9999, false);
             $this->assertTrue($client1->connect());
@@ -101,14 +104,15 @@ final class SymfonySessionSwooleSessionIdStorageTest extends ServerTestCase
     public function testExpireSession(): void
     {
         $cookieLifetime = 1;
+        $envs = [
+            'APP_ENV' => 'session',
+            'COOKIE_LIFETIME' => $cookieLifetime,
+        ];
         $serverStart = $this->createConsoleProcess([
             'swoole:server:start',
             '--host=localhost',
             '--port=9999',
-        ], [
-            'APP_ENV' => 'session',
-            'COOKIE_LIFETIME' => $cookieLifetime,
-        ]);
+        ], $envs);
 
         $serverStart->setTimeout(3);
         $serverStart->disableOutput();
@@ -116,8 +120,8 @@ final class SymfonySessionSwooleSessionIdStorageTest extends ServerTestCase
 
         $this->assertProcessSucceeded($serverStart);
 
-        $this->runAsCoroutineAndWait(function () use ($cookieLifetime): void {
-            $this->deferServerStop();
+        $this->runAsCoroutineAndWait(function () use ($cookieLifetime, $envs): void {
+            $this->deferServerStop([], $envs);
 
             $client = HttpClient::fromDomain('localhost', 9999, false);
             $this->assertTrue($client->connect());
@@ -149,14 +153,15 @@ final class SymfonySessionSwooleSessionIdStorageTest extends ServerTestCase
     public function testUpdateSession(): void
     {
         $cookieLifetime = 5;
+        $envs = [
+            'APP_ENV' => 'session',
+            'COOKIE_LIFETIME' => $cookieLifetime,
+        ];
         $serverStart = $this->createConsoleProcess([
             'swoole:server:start',
             '--host=localhost',
             '--port=9999',
-        ], [
-            'APP_ENV' => 'session',
-            'COOKIE_LIFETIME' => $cookieLifetime,
-        ]);
+        ], $envs);
 
         $serverStart->setTimeout(3);
         $serverStart->disableOutput();
@@ -164,8 +169,8 @@ final class SymfonySessionSwooleSessionIdStorageTest extends ServerTestCase
 
         $this->assertProcessSucceeded($serverStart);
 
-        $this->runAsCoroutineAndWait(function (): void {
-            $this->deferServerStop();
+        $this->runAsCoroutineAndWait(function () use ($envs): void {
+            $this->deferServerStop([], $envs);
 
             $client = HttpClient::fromDomain('localhost', 9999, false);
             $this->assertTrue($client->connect());
@@ -199,17 +204,18 @@ final class SymfonySessionSwooleSessionIdStorageTest extends ServerTestCase
     public function testDoNotReturnTheSameSessionForDifferentClientsWithHttpCacheEnabled(): void
     {
         $cookieLifetime = 5;
-        $serverStart = $this->createConsoleProcess([
-            'swoole:server:start',
-            '--host=localhost',
-            '--port=9999',
-        ], [
+        $envs = [
             'APP_ENV' => 'session_http_cache',
             'COOKIE_LIFETIME' => $cookieLifetime,
             // Only one worker to reliably verify app state is reset between requests.
             // Without it 2nd request may be handled by a different "clean" worker, which would distort test results.
             'WORKER_COUNT' => 1,
-        ]);
+        ];
+        $serverStart = $this->createConsoleProcess([
+            'swoole:server:start',
+            '--host=localhost',
+            '--port=9999',
+        ], $envs);
 
         $serverStart->setTimeout(3);
         $serverStart->disableOutput();
@@ -217,8 +223,8 @@ final class SymfonySessionSwooleSessionIdStorageTest extends ServerTestCase
 
         $this->assertProcessSucceeded($serverStart);
 
-        $this->runAsCoroutineAndWait(function (): void {
-            $this->deferServerStop();
+        $this->runAsCoroutineAndWait(function () use ($envs): void {
+            $this->deferServerStop([], $envs);
 
             $client1 = HttpClient::fromDomain('localhost', 9999, false);
             $this->assertTrue($client1->connect());

@@ -21,6 +21,7 @@ final class SwooleServerReloadViaApiClientTest extends ServerTestCase
     protected function setUp(): void
     {
         $this->markTestSkippedIfXdebugEnabled();
+        $this->deleteVarDirectory();
     }
 
     public function testStartRequestApiToReloadCallStop(): void
@@ -84,11 +85,12 @@ final class SwooleServerReloadViaApiClientTest extends ServerTestCase
             ->newClient()
         ;
 
+        $envs = ['APP_ENV' => 'api'];
         $serverStart = $this->createConsoleProcess([
             'swoole:server:start',
             '--host=localhost',
             '--port=9999',
-        ], ['APP_ENV' => 'api']);
+        ], $envs);
 
         $serverStart->setTimeout(3);
         $serverStart->disableOutput();
@@ -96,8 +98,8 @@ final class SwooleServerReloadViaApiClientTest extends ServerTestCase
 
         self::assertTrue($serverStart->isSuccessful());
 
-        $this->runAsCoroutineAndWait(function () use ($apiClient): void {
-            $this->deferServerStop();
+        $this->runAsCoroutineAndWait(function () use ($apiClient, $envs): void {
+            $this->deferServerStop([], $envs);
             $this->deferRestoreOriginalTemplateControllerResponse();
 
             $serverClient = HttpClient::fromDomain('localhost', 9999, false);

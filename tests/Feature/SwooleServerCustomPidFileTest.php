@@ -9,6 +9,12 @@ use K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Test\ServerTestCase;
 
 final class SwooleServerCustomPidFileTest extends ServerTestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->deleteVarDirectory();
+    }
+
     public function testStartServerOnCustomPidFileLocation(): void
     {
         $this->markTestSkippedIfXdebugEnabled();
@@ -31,7 +37,7 @@ final class SwooleServerCustomPidFileTest extends ServerTestCase
         $this->assertProcessSucceeded($serverStart);
 
         $this->runAsCoroutineAndWait(function () use ($pidFile): void {
-            $this->deferServerStop(sprintf('--pid-file=%s', $pidFile));
+            $this->deferServerStop([sprintf('--pid-file=%s', $pidFile)]);
 
             $client = HttpClient::fromDomain('localhost', 9999, false);
             $this->assertTrue($client->connect());
