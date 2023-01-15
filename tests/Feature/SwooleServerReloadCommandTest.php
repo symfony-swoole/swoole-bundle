@@ -18,6 +18,7 @@ final class SwooleServerReloadCommandTest extends ServerTestCase
     protected function setUp(): void
     {
         $this->markTestSkippedIfXdebugEnabled();
+        $this->deleteVarDirectory();
     }
 
     public function testStartCallReloadCallStop(): void

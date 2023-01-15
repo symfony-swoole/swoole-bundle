@@ -100,17 +100,17 @@ class ServerTestCase extends KernelTestCase
         );
     }
 
-    public function deferServerStop(string ...$args): void
+    public function deferServerStop(array $args = [], array $envs = []): void
     {
-        defer(function () use ($args): void {
-            $this->serverStop(...$args);
+        defer(function () use ($args, $envs): void {
+            $this->serverStop($args, $envs);
         });
     }
 
-    public function serverStop(string ...$args): void
+    public function serverStop(array $args = [], array $envs = []): void
     {
         $processArgs = array_merge(['swoole:server:stop'], $args);
-        $serverStop = $this->createConsoleProcess($processArgs);
+        $serverStop = $this->createConsoleProcess($processArgs, $envs);
 
         $serverStop->setTimeout(10);
         $serverStop->run();

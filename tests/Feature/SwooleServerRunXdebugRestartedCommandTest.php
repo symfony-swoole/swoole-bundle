@@ -11,6 +11,12 @@ use Symfony\Component\Console\Tester\CommandTester;
 
 final class SwooleServerRunXdebugRestartedCommandTest extends ServerTestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->deleteVarDirectory();
+    }
+
     public function testRunAndCall(): void
     {
         $kernel = static::createKernel();

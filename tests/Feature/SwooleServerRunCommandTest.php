@@ -12,6 +12,7 @@ final class SwooleServerRunCommandTest extends ServerTestCase
     protected function setUp(): void
     {
         $this->markTestSkippedIfXdebugEnabled();
+        $this->deleteVarDirectory();
     }
 
     public function testRunAndCall(): void

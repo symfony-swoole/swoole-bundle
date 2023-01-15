@@ -12,6 +12,12 @@ use Tideways\Profiler;
 
 final class TidewaysProfilerRegisteredTest extends ServerTestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->deleteVarDirectory();
+    }
+
     /**
      * Ensure that WithProfiler and Profiler are registered.
      */
