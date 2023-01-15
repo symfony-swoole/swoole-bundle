@@ -121,6 +121,7 @@ final class SwooleServerExceptionHandlerTest extends ServerTestCase
             $client2 = HttpClient::fromDomain('localhost', 9999, false);
             $this->assertTrue($client2->connect());
             $response2 = $client2->send('/throwable/error')['response'];
+            dump($response2);
             $this->assertSame(500, $response2['statusCode']);
             $this->assertStringContainsString('text/plain', $response2['headers']['content-type']);
             $this->assertStringContainsString('An unexpected fatal error has occurred. Please report this incident to the administrator of this service.', $response2['body']);

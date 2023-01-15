@@ -9,6 +9,7 @@ use K911\Swoole\Coroutine\CoroutinePool;
 use K911\Swoole\Tests\Fixtures\Symfony\TestAppKernel;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Console\Tester\CommandTester;
+use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpKernel\Kernel;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Process\Exception\ProcessFailedException;
@@ -203,5 +204,11 @@ class ServerTestCase extends KernelTestCase
     protected function currentUnixTimestamp(): int
     {
         return (new \DateTimeImmutable())->getTimestamp();
+    }
+
+    protected function deleteVarDirectory(): void
+    {
+        $fs = new Filesystem();
+        $fs->remove(self::WORKING_DIRECTORY.'/var');
     }
 }

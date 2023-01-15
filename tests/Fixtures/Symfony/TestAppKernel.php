@@ -171,10 +171,33 @@ class TestAppKernel extends Kernel
         if ($this->coverageEnabled && 'cov' !== $this->environment) {
             $loader->load($confDir.'/cov/**/*'.self::CONFIG_EXTENSIONS, 'glob');
         }
+
+        $this->loadOverrideForProdEnvironment($confDir, $loader);
     }
 
     private function getVarDir(): string
     {
         return $this->getProjectDir().'/var';
+    }
+
+    private function loadOverrideForProdEnvironment(string $confDir, LoaderInterface $loader): void
+    {
+        if (!isset($_SERVER['OVERRIDE_PROD_ENV'])) {
+            return;
+        }
+
+        $overrideEnv = trim((string) $_SERVER['OVERRIDE_PROD_ENV']);
+
+        if ('' === $overrideEnv) {
+            return;
+        }
+
+        $envPackageConfigurationDir = sprintf('%s/%s', $confDir, $overrideEnv);
+
+        if (!is_dir($envPackageConfigurationDir)) {
+            return;
+        }
+
+        $loader->load($envPackageConfigurationDir.'/**/*'.self::CONFIG_EXTENSIONS, 'glob');
     }
 }
