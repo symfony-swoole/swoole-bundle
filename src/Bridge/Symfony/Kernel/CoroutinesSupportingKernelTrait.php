@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace K911\Swoole\Bridge\Symfony\Kernel;
 
+use K911\Swoole\Bridge\Symfony\Bundle\DependencyInjection\ContainerConstants;
 use K911\Swoole\Bridge\Symfony\Container\BlockingContainer;
 use K911\Swoole\Bridge\Symfony\Container\ContainerModifier;
 use K911\Swoole\Reflection\FinalClassModifier;
@@ -37,6 +38,14 @@ trait CoroutinesSupportingKernelTrait
         FinalClassModifier::initialize($this->getCacheDir());
 
         parent::initializeContainer();
+
+        if (!$this->container->hasParameter(ContainerConstants::PARAM_COROUTINES_ENABLED)) {
+            return;
+        }
+
+        if (!$this->container->getParameter(ContainerConstants::PARAM_COROUTINES_ENABLED)) {
+            return;
+        }
 
         ContainerModifier::modifyContainer($this->container);
     }
