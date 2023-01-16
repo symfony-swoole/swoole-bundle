@@ -9,7 +9,7 @@ use Symfony\Component\Routing\Annotation\Route;
 
 final class ReplacedContentTestController
 {
-    private const BASH_REPLACE_PATTERN = 'Hello world from reloaded server worker via HTTP API!';
+    private const BASH_REPLACE_PATTERN = 'Wrong response!';
 
     /**
      * @Route(
