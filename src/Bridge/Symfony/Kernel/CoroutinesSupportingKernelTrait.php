@@ -36,17 +36,29 @@ trait CoroutinesSupportingKernelTrait
     protected function initializeContainer()
     {
         FinalClassModifier::initialize($this->getCacheDir());
+        $cacheDir = $this->getCacheDir();
+        $containerClass = $this->getContainerClass();
+        ContainerModifier::includeOverriddenContainer($cacheDir, $containerClass, $this->isDebug());
 
         parent::initializeContainer();
 
-        if (!$this->container->hasParameter(ContainerConstants::PARAM_COROUTINES_ENABLED)) {
+        if (!$this->areCoroutinesEnabled()) {
             return;
+        }
+
+        ContainerModifier::modifyContainer($this->container, $cacheDir);
+    }
+
+    private function areCoroutinesEnabled(): bool
+    {
+        if (!$this->container->hasParameter(ContainerConstants::PARAM_COROUTINES_ENABLED)) {
+            return false;
         }
 
         if (!$this->container->getParameter(ContainerConstants::PARAM_COROUTINES_ENABLED)) {
-            return;
+            return false;
         }
 
-        ContainerModifier::modifyContainer($this->container);
+        return true;
     }
 }
