@@ -60,7 +60,7 @@ WORKDIR /usr/src/app
 RUN addgroup -g 1000 -S runner && \
     adduser -u 1000 -S app -G runner && \
     chown app:runner /usr/src/app
-RUN apk add --no-cache libstdc++ icu lsof libffi
+RUN apk add --no-cache libstdc++ icu lsof libffi vim
 # php -i | grep 'PHP API' | sed -e 's/PHP API => //'
 ARG PHP_API_VERSION="20190902"
 COPY --from=ext-openswoole /usr/local/lib/php/extensions/no-debug-non-zts-${PHP_API_VERSION}/openswoole.so /usr/local/lib/php/extensions/no-debug-non-zts-${PHP_API_VERSION}/openswoole.so
