@@ -31,13 +31,15 @@ class TestAppKernel extends Kernel
 
     private const CONFIG_EXTENSIONS = '.{php,xml,yaml,yml}';
 
-    private $cacheKernel;
+    private ?string $overrideProdEnv;
 
-    private $coverageEnabled;
+    private ?TestCacheKernel $cacheKernel = null;
 
-    private $profilerEnabled = false;
+    private bool $coverageEnabled;
 
-    public function __construct(string $environment, bool $debug)
+    private bool $profilerEnabled = false;
+
+    public function __construct(string $environment, bool $debug, ?string $overrideProdEnv = null)
     {
         if ('_cov' === \mb_substr($environment, -4, 4)) {
             $environment = \mb_substr($environment, 0, -4);
@@ -56,6 +58,12 @@ class TestAppKernel extends Kernel
             $environment = \mb_substr($environment, 0, -11);
             $this->cacheKernel = new TestCacheKernel($this);
         }
+
+        if (null !== $overrideProdEnv) {
+            $overrideProdEnv = trim($overrideProdEnv);
+        }
+
+        $this->overrideProdEnv = $overrideProdEnv;
 
         parent::__construct($environment, $debug);
     }
@@ -182,17 +190,11 @@ class TestAppKernel extends Kernel
 
     private function loadOverrideForProdEnvironment(string $confDir, LoaderInterface $loader): void
     {
-        if (!isset($_SERVER['OVERRIDE_PROD_ENV'])) {
+        if ('prod' !== $this->environment) {
             return;
         }
 
-        $overrideEnv = trim((string) $_SERVER['OVERRIDE_PROD_ENV']);
-
-        if ('' === $overrideEnv) {
-            return;
-        }
-
-        $envPackageConfigurationDir = sprintf('%s/%s', $confDir, $overrideEnv);
+        $envPackageConfigurationDir = sprintf('%s/%s', $confDir, $this->overrideProdEnv);
 
         if (!is_dir($envPackageConfigurationDir)) {
             return;

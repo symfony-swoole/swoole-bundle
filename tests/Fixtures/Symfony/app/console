@@ -16,6 +16,7 @@ if (!\class_exists(Application::class)) {
 
 $input = new ArgvInput();
 $env = $input->getParameterOption(['--env', '-e'], $_SERVER['APP_ENV'] ?? 'test');
+$overrideProdEnv = $input->getParameterOption(['--override-prod-env', '-o'], $_SERVER['OVERRIDE_PROD_ENV'] ?? null);
 $debug = ($_SERVER['APP_DEBUG'] ?? ('prod' !== $env)) && !$input->hasParameterOption(['--no-debug', '']);
 
 if ($debug) {
@@ -26,6 +27,10 @@ if ($debug) {
     }
 }
 
-$kernel = new TestAppKernel($env, $debug);
+$argv = $_SERVER['argv'];
+$argv = array_filter($argv, fn (string $arg): bool => strpos($arg, '--override-prod-env') === false && strpos($arg, '-o ') === false);
+$input = new ArgvInput($argv);
+
+$kernel = new TestAppKernel($env, $debug, $overrideProdEnv);
 $application = new Application($kernel);
 $application->run($input);
