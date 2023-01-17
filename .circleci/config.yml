@@ -279,7 +279,7 @@ jobs:
   releaser-dry-run:
     executor: pixelfederation-release-version
     environment:
-      DEBUG: "0"
+      DEBUG: "1"
       DRY_RUN: "1"
       GH_TOKEN: "xxx"
       GH_REPOSITORY: "pixelfederation/swoole-bundle"
