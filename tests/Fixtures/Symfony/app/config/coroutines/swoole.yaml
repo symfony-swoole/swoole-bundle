@@ -55,4 +55,4 @@ services:
 
   K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Service\AlwaysResetSafe:
     tags:
-      - { name: 'swoole_bundle.safe_stateful_service' }
+      - { name: 'swoole_bundle.safe_stateful_service', reset_on_each_request: true }

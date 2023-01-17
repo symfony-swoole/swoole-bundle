@@ -7,6 +7,7 @@ namespace K911\Swoole\Tests\Feature;
 use Doctrine\ORM\EntityManager;
 use K911\Swoole\Client\HttpClient;
 use K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Entity\Test;
+use K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Service\NoAutowiring\ResetCountingRegistry;
 use K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Test\ServerTestCase;
 use Swoole\Coroutine\WaitGroup;
 
@@ -187,6 +188,94 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
                 // it cannot be determined how many connections are created
                 self::assertGreaterThan(0, $reset);
             }
+        });
+    }
+
+    /**
+     * @dataProvider coroutineTestDataProvider
+     */
+    public function testCoroutinesAndAdvancedDoctrineWithEnvs(array $envs): void
+    {
+        $clearCache = $this->createConsoleProcess(['cache:clear'], $envs);
+        $clearCache->setTimeout(5);
+        $clearCache->disableOutput();
+        $clearCache->run();
+
+        $this->assertProcessSucceeded($clearCache);
+
+        $dropSchema = $this->createConsoleProcess(
+            [
+                'doctrine:schema:drop',
+                '--full-database',
+                '--force',
+            ],
+            $envs
+        );
+        $dropSchema->setTimeout(5);
+        $dropSchema->disableOutput();
+        $dropSchema->run();
+
+        $this->assertProcessSucceeded($dropSchema);
+
+        $migrations = $this->createConsoleProcess(
+            [
+                'doctrine:migrations:migrate',
+                '--no-interaction',
+            ],
+            $envs
+        );
+        $migrations->setTimeout(5);
+        $migrations->disableOutput();
+        $migrations->run();
+
+        $this->assertProcessSucceeded($migrations);
+
+        $serverStart = $this->createConsoleProcess(
+            [
+                'swoole:server:start',
+                '--host=localhost',
+                '--port=9999',
+            ],
+            $envs
+        );
+
+        $serverStart->setTimeout(5);
+        $serverStart->disableOutput();
+        $serverStart->run();
+
+        $this->assertProcessSucceeded($serverStart);
+
+        $this->runAsCoroutineAndWait(function () use ($envs): void {
+            $this->deferServerStop([], $envs);
+
+            $initClient = HttpClient::fromDomain('localhost', 9999, false);
+            $this->assertTrue($initClient->connect());
+
+            $start = microtime(true);
+            $wg = new WaitGroup();
+
+            for ($i = 0; $i < 40; ++$i) {
+                go(function () use ($wg): void {
+                    $wg->add();
+                    $client = HttpClient::fromDomain('localhost', 9999, false);
+                    $this->assertTrue($client->connect());
+                    $response = $client->send('/doctrine-advanced')['response'];
+                    $this->assertSame(200, $response['statusCode']);
+                    $this->assertStringContainsString('application/json', $response['headers']['content-type']);
+                    $toAssert = [
+                        'increment' => 10,
+                        'resets' => 0,
+                        'doctrineClass' => ResetCountingRegistry::class,
+                    ];
+                    $this->assertSame($toAssert, $response['body']);
+                    $wg->done();
+                });
+            }
+
+            $wg->wait(10);
+            $end = microtime(true);
+
+            self::assertLessThan(self::coverageEnabled() ? 6 : 0.8, $end - $start);
         });
     }
 

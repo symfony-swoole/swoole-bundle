@@ -1,17 +1,17 @@
 parameters:
-    env(PORT): 9501
-    env(HOST): 0.0.0.0
-    env(TRUSTED_HOSTS): localhost,127.0.0.1,docker.stack
-    env(TRUSTED_PROXIES): '*,192.168.0.0/16'
-    env(WORKER_COUNT): 6
-    env(REACTOR_COUNT): 3
+  env(PORT): 9501
+  env(HOST): 0.0.0.0
+  env(TRUSTED_HOSTS): localhost,127.0.0.1,docker.stack
+  env(TRUSTED_PROXIES): '*,192.168.0.0/16'
+  env(WORKER_COUNT): 6
+  env(REACTOR_COUNT): 3
 
 swoole:
-    http_server:
-        port: '%env(int:PORT)%'
-        host: '%env(HOST)%'
-        trusted_hosts: '%env(TRUSTED_HOSTS)%'
-        trusted_proxies: '%env(TRUSTED_PROXIES)%'
-        settings:
-            worker_count: '%env(int:WORKER_COUNT)%'
-            reactor_count: '%env(int:REACTOR_COUNT)%'
+  http_server:
+    port: '%env(int:PORT)%'
+    host: '%env(HOST)%'
+    trusted_hosts: '%env(TRUSTED_HOSTS)%'
+    trusted_proxies: '%env(TRUSTED_PROXIES)%'
+    settings:
+      worker_count: '%env(int:WORKER_COUNT)%'
+      reactor_count: '%env(int:REACTOR_COUNT)%'

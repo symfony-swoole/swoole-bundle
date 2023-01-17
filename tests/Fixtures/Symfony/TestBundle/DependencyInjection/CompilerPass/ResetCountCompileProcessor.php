@@ -31,8 +31,8 @@ final class ResetCountCompileProcessor implements CompileProcessor
         $container->setDefinition($resetterId, $counterDef);
 
         $controllerDef = $container->findDefinition(DoctrineController::class);
-        $resetters = $controllerDef->getArgument(1);
+        $resetters = $controllerDef->getArgument(3);
         $resetters[$resetterId] = new Reference($resetterId);
-        $controllerDef->setArgument(1, $resetters);
+        $controllerDef->setArgument(3, $resetters);
     }
 }

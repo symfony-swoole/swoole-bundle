@@ -38,6 +38,9 @@ final class DoctrineProcessor implements CompileProcessor
             return;
         }
 
+        $doctrineDef = $container->findDefinition('doctrine');
+        $doctrineDef->addTag(ContainerConstants::TAG_SAFE_STATEFUL_SERVICE);
+
         $entityManagers = $container->getParameter('doctrine.entity_managers');
 
         if (!\is_array($entityManagers)) {
