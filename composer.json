@@ -135,7 +135,7 @@
             "COVERAGE=1 phpunit tests/Feature --coverage-php cov/feature-tests.cov --colors=always --process-isolation"
         ],
         "merge-code-coverage": [
-            "phpcov merge cov --clover=cov/clover.xml"
+            "php -dmemory_limit=512M ./vendor/bin/phpcov merge cov --clover=cov/clover.xml"
         ],
         "fix": "php-cs-fixer fix -v --ansi",
         "unit-tests": [
