@@ -46,6 +46,8 @@ final class BlockingProxyFactory extends ProxyFactory
 
     /**
      * {@inheritDoc}
+     *
+     * @return int
      */
     public function generateProxyClasses(array $classes, $proxyDir = null)
     {
