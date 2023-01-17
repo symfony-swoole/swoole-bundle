@@ -51,6 +51,18 @@ final class Tags implements \IteratorAggregate
         return new StatefulServiceTag($ssTags[0]);
     }
 
+    public function findSafeStatefulServiceTag(): ?SafeStatefulServiceTag
+    {
+        $ssTags = $this->findByName(ContainerConstants::TAG_SAFE_STATEFUL_SERVICE);
+
+        if (empty($ssTags)) {
+            return null;
+        }
+
+        /* @phpstan-ignore-next-line */
+        return new SafeStatefulServiceTag($ssTags[0]);
+    }
+
     public function hasDecoratedStatefulServiceTag(): bool
     {
         $ufTags = $this->findByName(ContainerConstants::TAG_DECORATED_STATEFUL_SERVICE);
@@ -98,17 +110,15 @@ final class Tags implements \IteratorAggregate
 
     public function resetOnEachRequest(): bool
     {
-        if (!$this->hasStatefulServiceTag() && !$this->hasSafeStatefulServiceTag()) {
-            return false;
-        }
+        $safeSsTag = $this->findSafeStatefulServiceTag();
 
-        if ($this->hasSafeStatefulServiceTag()) {
+        if ($safeSsTag && $safeSsTag->getResetOnEachRequest()) {
             return true;
         }
 
-        $tag = $this->findStatefulServiceTag();
+        $sStag = $this->findStatefulServiceTag();
 
-        if ($tag->getResetOnEachRequest()) {
+        if ($sStag && $sStag->getResetOnEachRequest()) {
             return true;
         }
 

@@ -294,6 +294,10 @@ services:
   some_stateful_service:
     class: My\Stateful\ServiceClass
     tags: [{ name: swoole_bundle.stateful_service, resetter: my_custom_resetter, reset_on_each_request: true}]
+    
+  some_SAFE_stateful_service:
+      class: My\Stateful\SafeServiceClass
+      tags: [{ name: swoole_bundle.safe_stateful_service, reset_on_each_request: true}]
 
   some_unmanaged_factory:
     class: My\Unmanaged\FactoryClass2

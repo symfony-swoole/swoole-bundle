@@ -1,17 +1,17 @@
 framework:
-    session:
-        enabled: true
-        storage_factory_id: swoole_bundle.session.table_storage_factory
+  session:
+    enabled: true
+    storage_factory_id: swoole_bundle.session.table_storage_factory
 
 parameters:
-    env(COOKIE_LIFETIME): 60
+  env(COOKIE_LIFETIME): 60
 
 services:
-    _defaults:
-        autowire: true
-        autoconfigure: true
-        public: false
+  _defaults:
+    autowire: true
+    autoconfigure: true
+    public: false
 
-    K911\Swoole\Bridge\Symfony\HttpFoundation\Session\SwooleSessionStorageFactory:
-        arguments:
-            $lifetimeSeconds: '%env(int:COOKIE_LIFETIME)%'
+  K911\Swoole\Bridge\Symfony\HttpFoundation\Session\SwooleSessionStorageFactory:
+    arguments:
+      $lifetimeSeconds: '%env(int:COOKIE_LIFETIME)%'

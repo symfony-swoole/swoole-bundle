@@ -9,6 +9,7 @@ use Doctrine\Bundle\MigrationsBundle\DoctrineMigrationsBundle;
 use K911\Swoole\Bridge\Symfony\Bundle\SwooleBundle;
 use K911\Swoole\Bridge\Symfony\Kernel\CoroutinesSupportingKernelTrait;
 use K911\Swoole\Tests\Fixtures\Symfony\CoverageBundle\CoverageBundle;
+use K911\Swoole\Tests\Fixtures\Symfony\TestBundle\DependencyInjection\CompilerPass\OverrideDoctrineCompilerPass;
 use K911\Swoole\Tests\Fixtures\Symfony\TestBundle\TestBundle;
 use PixelFederation\DoctrineResettableEmBundle\PixelFederationDoctrineResettableEmBundle;
 use Symfony\Bundle\FrameworkBundle\FrameworkBundle;
@@ -140,6 +141,11 @@ class TestAppKernel extends Kernel
     public function isDebug(): bool
     {
         return (bool) $this->debug;
+    }
+
+    protected function build(ContainerBuilder $container)
+    {
+        $container->addCompilerPass(new OverrideDoctrineCompilerPass());
     }
 
     /**

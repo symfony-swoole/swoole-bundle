@@ -14,17 +14,13 @@ use Ramsey\Uuid\UuidInterface;
 class Test
 {
     /**
-     * @var int
-     *
      * @ORM\Id()
      * @ORM\Column(type="integer")
      * @ORM\GeneratedValue
      */
-    private $id;
+    private int $id;
 
     /**
-     * @var UuidInterface
-     *
      * @ORM\Column(type="guid")
      */
     private $uuid;

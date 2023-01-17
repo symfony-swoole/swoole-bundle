@@ -15,7 +15,7 @@ services:
     resource: '../../TestBundle/*'
     # you can exclude directories or files
     # but if a service is unused, it's removed anyway
-    exclude: '../../TestBundle/{Message,Test,Controller,Migrations,Resetter}'
+    exclude: '../../TestBundle/{Message,Test,Controller,Migrations,Resetter,Service/NoAutowiring}'
 
   # controllers are imported separately to make sure they
   # have the tag that allows actions to type-hint services
@@ -27,6 +27,7 @@ services:
 
   K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Controller\DoctrineController:
     arguments:
+      $registry: '@doctrine'
       $resetters: []
       $dataHolder: '@?doctrine.debug_data_holder'
     tags: ['controller.service_arguments']
@@ -48,6 +49,11 @@ services:
       $uuidFactory: '@Ramsey\Uuid\UuidFactoryInterface'
       $factory: '@K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Service\RepositoryFactory'
     tags: [{ name: 'swoole_bundle.decorated_stateful_service' }]
+
+  K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Service\AdvancedDoctrineUsage:
+    arguments:
+      $uuidFactory: '@Ramsey\Uuid\UuidFactoryInterface'
+      $doctrine: '@doctrine'
 
   K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Service\DecorationTestDummyService:
     decorates: 'K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Service\DefaultDummyService'
