@@ -251,7 +251,7 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
 
             $end = microtime(true);
             // after one second, three rows should be in the file, not after 1.6s
-            self::assertLessThan(self::coverageEnabled() ? 2.2 : 1.1, $end - $start);
+            self::assertLessThan(self::coverageEnabled() ? 3 : 1.1, $end - $start);
         });
 
         $content = file_get_contents($fileName);
@@ -340,7 +340,7 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
             $wg->wait(3);
             $end = microtime(true);
 
-            self::assertLessThan(1.5, $end - $start);
+            self::assertLessThan(self::coverageEnabled() ? 2 : 1.5, $end - $start);
             usleep(1200000);
         });
 
