@@ -275,7 +275,7 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
             $wg->wait(10);
             $end = microtime(true);
 
-            self::assertLessThan(self::coverageEnabled() ? 6 : 0.8, $end - $start);
+            self::assertLessThan(self::coverageEnabled() ? 8 : 0.8, $end - $start);
         });
     }
 
