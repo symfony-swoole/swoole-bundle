@@ -348,3 +348,14 @@ final class EntityManagerStabilityChecker implements StabilityChecker
 When the checker returns false, the coroutine engine will forget the unstable service and will fetch a fresh instance
 from the DI container. Otherwise the engine will mark the service instance as unused and will assign it to a coroutine 
 in the next web request.
+
+## Opcache problems
+
+This bundle overrides generated Symfony container class, it renames the original container class (and corresponding filename)
+and generates a new container class which extends the original class.
+
+Including these two relatively big classes into the engine at runtime somehow corrupts the Opcache 
+(in cases where `opcache.enable_cli` is enabled, which can save some RAM, not sure why) and results in segmentation fault. 
+That is why this bundle generates a blacklist file which can be used for the `opcache.blacklist_filename` setting. 
+With this blacklist file, Opcache can still be enabled for CLI and there are no segmentation faults.
+The generated file is stored under this path: `{$PROJECT_DIR}/var/cache/{$ENV}/swoole_bundle/opcache/blacklist.txt`
