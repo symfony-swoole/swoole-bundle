@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace K911\Swoole\Bridge\Symfony\Container;
 
+use K911\Swoole\Bridge\Symfony\Bundle\DependencyInjection\ContainerConstants;
 use Symfony\Component\Config\ConfigCache;
 use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\Filesystem\Filesystem;
@@ -196,6 +197,14 @@ final class ContainerModifier
 
         $containerSource = file_get_contents($containerFile);
         $overriddenSource = str_replace('class '.$containerClass, 'class '.$overriddenClass, $containerSource);
+
+        // dump opcache.blacklist_filename
+        $blacklistFile = $cacheDir.DIRECTORY_SEPARATOR.ContainerConstants::PARAM_CACHE_FOLDER.DIRECTORY_SEPARATOR.'opcache'.DIRECTORY_SEPARATOR.'blacklist.txt';
+        $blacklistFiles = [$containerFile, $overriddenFile];
+        $blacklistFileContent = implode(PHP_EOL, $blacklistFiles).PHP_EOL;
+        $fs->dumpFile($blacklistFile, $blacklistFileContent);
+
+        // methods override
         $ignoredMethods = self::getIgnoredGetters();
         $methods = $reflContainer->getMethods(\ReflectionMethod::IS_PROTECTED);
         $methodsCodes = [];

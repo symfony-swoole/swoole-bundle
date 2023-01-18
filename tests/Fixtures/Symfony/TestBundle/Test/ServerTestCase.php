@@ -158,9 +158,32 @@ class ServerTestCase extends KernelTestCase
 
     protected static function createKernel(array $options = []): KernelInterface
     {
-        $options['environment'] = self::resolveEnvironment($options['environment'] ?? null);
+        if (null === static::$class) {
+            static::$class = static::getKernelClass();
+        }
 
-        return parent::createKernel($options);
+        $options['environment'] = self::resolveEnvironment($options['environment'] ?? null);
+        $env = $options['environment'];
+
+        if (isset($options['debug'])) {
+            $debug = $options['debug'];
+        } elseif (isset($_ENV['APP_DEBUG'])) {
+            $debug = $_ENV['APP_DEBUG'];
+        } elseif (isset($_SERVER['APP_DEBUG'])) {
+            $debug = $_SERVER['APP_DEBUG'];
+        } else {
+            $debug = true;
+        }
+
+        $overrideProdEnv = null;
+
+        if (isset($options['override_prod_env'])) {
+            $overrideProdEnv = $options['override_prod_env'];
+        } elseif (isset($_SERVER['OVERRIDE_PROD_ENV'])) {
+            $overrideProdEnv = $_SERVER['OVERRIDE_PROD_ENV'];
+        }
+
+        return new static::$class($env, $debug, $overrideProdEnv);
     }
 
     protected static function getKernelClass(): string

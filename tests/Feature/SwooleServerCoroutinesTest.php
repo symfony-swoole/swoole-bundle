@@ -6,10 +6,12 @@ namespace K911\Swoole\Tests\Feature;
 
 use Doctrine\ORM\EntityManager;
 use K911\Swoole\Client\HttpClient;
+use K911\Swoole\Tests\Fixtures\Symfony\TestAppKernel;
 use K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Entity\Test;
 use K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Service\NoAutowiring\ResetCountingRegistry;
 use K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Test\ServerTestCase;
 use Swoole\Coroutine\WaitGroup;
+use Symfony\Bundle\FrameworkBundle\Console\Application;
 
 final class SwooleServerCoroutinesTest extends ServerTestCase
 {
@@ -17,6 +19,30 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
     {
         $this->markTestSkippedIfXdebugEnabled();
         $this->deleteVarDirectory();
+    }
+
+    /**
+     * @dataProvider kernelEnvironmentDataProvider
+     */
+    public function testOpcacheBlacklistFileGeneration(array $options): void
+    {
+        /** @var TestAppKernel $kernel */
+        $kernel = static::createKernel($options);
+        $application = new Application($kernel);
+        $application->find('cache:clear'); // this will trigger cache generation
+        $blacklistFile = $kernel->getCacheDir().DIRECTORY_SEPARATOR.'swoole_bundle'.DIRECTORY_SEPARATOR.'opcache'.DIRECTORY_SEPARATOR.'blacklist.txt';
+
+        self::assertFileExists($blacklistFile);
+
+        $content = file_get_contents($blacklistFile);
+
+        self::assertIsString($content);
+
+        $files = explode(PHP_EOL, trim($content));
+
+        foreach ($files as $file) {
+            self::assertFileExists($file);
+        }
     }
 
     /**
@@ -517,6 +543,16 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
                     'REACTOR_COUNT' => '1',
                 ],
             ],
+        ];
+    }
+
+    public function kernelEnvironmentDataProvider(): array
+    {
+        return [
+            [['environment' => 'prod', 'debug' => false, 'override_prod_env' => 'coroutines']],
+            [['environment' => 'prod', 'debug' => true, 'override_prod_env' => 'coroutines']],
+            [['environment' => 'coroutines', 'debug' => false]],
+            [['environment' => 'coroutines', 'debug' => true]],
         ];
     }
 
