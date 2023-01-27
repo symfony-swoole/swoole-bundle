@@ -135,7 +135,7 @@ final class Proxifier
         ?string $externalResetter = null
     ): Definition {
         $svcPoolDef = new Definition(DiServicePool::class);
-        $svcPoolDef->setShared(true);
+        $svcPoolDef->setShared($serviceDef->isShared());
         $svcPoolDef->setArgument(0, $wrappedServiceId);
         $svcPoolDef->setArgument(1, new Reference('service_container'));
         $svcPoolDef->setArgument(2, new Reference('swoole_bundle.service_pool.locking'));
@@ -184,10 +184,12 @@ final class Proxifier
     private function prepareProxy(string $svcPoolServiceId, Definition $serviceDef): Definition
     {
         $serviceWasPublic = $serviceDef->isPublic();
+        $serviceWasShared = $serviceDef->isShared();
         $serviceClass = $serviceDef->getClass();
         $proxyDef = new Definition($serviceClass);
         $proxyDef->setFactory([new Reference(Instantiator::class), 'newInstance']);
         $proxyDef->setPublic($serviceWasPublic);
+        $proxyDef->setShared($serviceWasShared);
         $proxyDef->setArgument(0, new Reference($svcPoolServiceId));
         $proxyDef->setArgument(1, $serviceClass);
         $serviceTags = $serviceDef->getTags();
