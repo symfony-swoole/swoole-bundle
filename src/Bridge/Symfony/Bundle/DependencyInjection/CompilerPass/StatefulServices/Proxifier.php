@@ -148,6 +148,9 @@ final class Proxifier
 
         if (null !== $serviceTag && null !== $serviceTag->getLimit()) {
             $instanceLimit = $serviceTag->getLimit();
+        }
+
+        if (null !== $serviceTag && null !== $serviceTag->getResetter()) {
             $customResetter = $serviceTag->getResetter();
         }
 
