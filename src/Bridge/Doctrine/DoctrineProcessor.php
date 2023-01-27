@@ -8,7 +8,7 @@ use K911\Swoole\Bridge\Doctrine\DBAL\ConnectionKeepAliveResetter;
 use K911\Swoole\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices\CompileProcessor;
 use K911\Swoole\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices\Proxifier;
 use K911\Swoole\Bridge\Symfony\Bundle\DependencyInjection\ContainerConstants;
-use PixelFederation\DoctrineResettableEmBundle\DBAL\Connection\PlatformAliveKeeper;
+use PixelFederation\DoctrineResettableEmBundle\DBAL\Connection\DBALPlatformAliveKeeper;
 use Symfony\Component\DependencyInjection\Argument\IteratorArgument;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
@@ -78,7 +78,7 @@ final class DoctrineProcessor implements CompileProcessor
 
     private function prepareConnectionsForProxification(ContainerBuilder $container, array $connectionSvcIds): void
     {
-        $dbalAliveKeeperDef = $container->findDefinition(PlatformAliveKeeper::class);
+        $dbalAliveKeeperDef = $container->findDefinition(DBALPlatformAliveKeeper::class);
         $aliveKeepers = $dbalAliveKeeperDef->getArgument(1);
         $dbalAliveKeeperDef->setArgument(1, []);
 
