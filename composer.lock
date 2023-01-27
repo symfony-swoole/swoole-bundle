@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "f9477a04afcb5430337b4fb0ff6ef00a",
+    "content-hash": "b4eae318bd21c2e0120bef14e219aa26",
     "packages": [
         {
             "name": "beberlei/assert",
@@ -5780,16 +5780,16 @@
         },
         {
             "name": "pixelfederation/doctrine-resettable-em-bundle",
-            "version": "dev-pinging_rework",
+            "version": "7.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/pixelfederation/doctrine-resettable-em-bundle.git",
-                "reference": "8f31468382fa40de4f648c7eed53971c8384b771"
+                "reference": "16723e997fbb92e1937550a830e95ab36faa5e29"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/pixelfederation/doctrine-resettable-em-bundle/zipball/8f31468382fa40de4f648c7eed53971c8384b771",
-                "reference": "8f31468382fa40de4f648c7eed53971c8384b771",
+                "url": "https://api.github.com/repos/pixelfederation/doctrine-resettable-em-bundle/zipball/16723e997fbb92e1937550a830e95ab36faa5e29",
+                "reference": "16723e997fbb92e1937550a830e95ab36faa5e29",
                 "shasum": ""
             },
             "require": {
@@ -5843,9 +5843,9 @@
             "homepage": "https://github.com/pixelfederation/doctrine-resettable-em-bundle",
             "support": {
                 "issues": "https://github.com/pixelfederation/doctrine-resettable-em-bundle/issues",
-                "source": "https://github.com/pixelfederation/doctrine-resettable-em-bundle/tree/pinging_rework"
+                "source": "https://github.com/pixelfederation/doctrine-resettable-em-bundle/tree/7.0.0"
             },
-            "time": "2022-12-23T17:42:06+00:00"
+            "time": "2023-01-24T15:34:32+00:00"
         },
         {
             "name": "pixelfederation/openswoole-blackfire",
@@ -9184,9 +9184,7 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": {
-        "pixelfederation/doctrine-resettable-em-bundle": 20
-    },
+    "stability-flags": [],
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {

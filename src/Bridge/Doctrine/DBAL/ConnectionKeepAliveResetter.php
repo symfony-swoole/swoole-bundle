@@ -6,15 +6,15 @@ namespace K911\Swoole\Bridge\Doctrine\DBAL;
 
 use Doctrine\DBAL\Connection;
 use K911\Swoole\Bridge\Symfony\Container\Resetter;
-use PixelFederation\DoctrineResettableEmBundle\DBAL\Connection\AliveKeeper;
+use PixelFederation\DoctrineResettableEmBundle\DBAL\Connection\DBALAliveKeeper;
 
 final class ConnectionKeepAliveResetter implements Resetter
 {
-    private AliveKeeper $aliveKeeper;
+    private DBALAliveKeeper $aliveKeeper;
 
     private string $connectionName;
 
-    public function __construct(AliveKeeper $aliveKeeper, string $connectionName)
+    public function __construct(DBALAliveKeeper $aliveKeeper, string $connectionName)
     {
         $this->aliveKeeper = $aliveKeeper;
         $this->connectionName = $connectionName;
