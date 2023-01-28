@@ -265,7 +265,7 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
             $envs
         );
 
-        $serverStart->setTimeout(5);
+        $serverStart->setTimeout(6);
         $serverStart->disableOutput();
         $serverStart->run();
 

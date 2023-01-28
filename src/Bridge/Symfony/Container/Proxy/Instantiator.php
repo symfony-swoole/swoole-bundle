@@ -15,12 +15,9 @@ final class Instantiator
 {
     private LazyLoadingValueHolderFactory $proxyFactory;
 
-    private ProxyDirectoryHandler $proxyDirHandler;
-
-    public function __construct(LazyLoadingValueHolderFactory $proxyFactory, ProxyDirectoryHandler $proxyDirHandler)
+    public function __construct(LazyLoadingValueHolderFactory $proxyFactory)
     {
         $this->proxyFactory = $proxyFactory;
-        $this->proxyDirHandler = $proxyDirHandler;
     }
 
     /**
@@ -32,8 +29,6 @@ final class Instantiator
      */
     public function newInstance(ServicePool $servicePool, string $wrappedSvcClass): object
     {
-        $this->proxyDirHandler->ensureProxyDirExists();
-
         /**
          * @var Closure(
          *   RealObjectType|null=,

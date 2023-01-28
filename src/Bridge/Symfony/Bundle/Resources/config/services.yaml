@@ -217,6 +217,10 @@ services:
       $fileSystem: '@swoole_bundle.filesystem'
       $proxyDir: '%swoole_bundle.service_proxy_cache_dir%'
 
+  K911\Swoole\Bridge\Symfony\Container\Proxy\FileLocatorFactory:
+    arguments:
+      $directoryHandler: '@K911\Swoole\Bridge\Symfony\Container\Proxy\ProxyDirectoryHandler'
+
   swoole_bundle.service_pool.locking:
     class: K911\Swoole\Component\Locking\CoroutineLocking
     factory: ['K911\Swoole\Component\Locking\CoroutineLocking', 'init']
@@ -228,14 +232,12 @@ services:
   K911\Swoole\Bridge\Symfony\Container\Proxy\Instantiator:
     arguments:
       $proxyFactory: '@swoole_bundle.service_proxy_factory'
-      $proxyDirHandler: '@K911\Swoole\Bridge\Symfony\Container\Proxy\ProxyDirectoryHandler'
 
   K911\Swoole\Bridge\Symfony\Container\Proxy\UnmanagedFactoryInstantiator:
     arguments:
       $proxyFactory: '@swoole_bundle.unmanaged_factory_proxy_factory'
       $instantiator: '@K911\Swoole\Bridge\Symfony\Container\Proxy\Instantiator'
       $servicePoolContainer: '@K911\Swoole\Bridge\Symfony\Container\ServicePool\ServicePoolContainer'
-      $proxyDirHandler: '@K911\Swoole\Bridge\Symfony\Container\Proxy\ProxyDirectoryHandler'
       $limitLocking: '@swoole_bundle.service_pool.locking'
       $newInstanceLocking: '@swoole_bundle.unmanaged_factory_first_time.locking'
 
@@ -265,7 +267,7 @@ services:
 
   swoole_bundle.repository_proxy_file_locator:
     class: 'ProxyManager\FileLocator\FileLocator'
-    lazy: true # unable to instantiate when directory does not exist
+    factory: ['@K911\Swoole\Bridge\Symfony\Container\Proxy\FileLocatorFactory', 'createFileLocator']
     arguments:
       $proxiesDirectory: '%swoole_bundle.service_proxy_cache_dir%'
 
