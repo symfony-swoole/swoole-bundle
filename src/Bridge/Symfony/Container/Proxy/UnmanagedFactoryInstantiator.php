@@ -21,8 +21,6 @@ final class UnmanagedFactoryInstantiator
 
     private ServicePoolContainer $servicePoolContainer;
 
-    private ProxyDirectoryHandler $proxyDirHandler;
-
     private Locking $limitLocking;
 
     private Locking $newInstanceLocking;
@@ -31,14 +29,12 @@ final class UnmanagedFactoryInstantiator
         AccessInterceptorValueHolderFactory $proxyFactory,
         Instantiator $instantiator,
         ServicePoolContainer $servicePoolContainer,
-        ProxyDirectoryHandler $proxyDirHandler,
         Locking $limitLocking,
         Locking $newInstanceLocking
     ) {
         $this->proxyFactory = $proxyFactory;
         $this->instantiator = $instantiator;
         $this->servicePoolContainer = $servicePoolContainer;
-        $this->proxyDirHandler = $proxyDirHandler;
         $this->limitLocking = $limitLocking;
         $this->newInstanceLocking = $newInstanceLocking;
     }
@@ -61,7 +57,6 @@ final class UnmanagedFactoryInstantiator
         array $factoryConfigs,
         int $globalInstancesLimit
     ): object {
-        $this->proxyDirHandler->ensureProxyDirExists();
         /**
          * @var array<string, callable(
          *  AccessInterceptorInterface<RealObjectType>&RealObjectType=,
