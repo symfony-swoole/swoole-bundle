@@ -22,9 +22,11 @@ final class FirstTimeOnlyLocking implements Locking
     public function acquire(string $key): Lock
     {
         if (!$this->store->has($key)) {
-            $this->store->save($key, FirstTimeOnlyLock::LOCKED);
-
-            return FirstTimeOnlyLock::locked($key, $this->store, $this->wrapped->acquire($key));
+            return $this->store->save(
+                $key,
+                FirstTimeOnlyLock::LOCKED,
+                FirstTimeOnlyLock::locked($key, $this->store, $this->wrapped->acquire($key))
+            );
         }
 
         if (FirstTimeOnlyLock::RELEASED === $this->store->get($key)) {

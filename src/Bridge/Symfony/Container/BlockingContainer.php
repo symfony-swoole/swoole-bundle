@@ -4,20 +4,25 @@ declare(strict_types=1);
 
 namespace K911\Swoole\Bridge\Symfony\Container;
 
-use K911\Swoole\Component\Locking\CoroutineLocking;
-use K911\Swoole\Component\Locking\Locking;
+use K911\Swoole\Component\Locking\ContainerLocking;
 use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 
 class BlockingContainer extends Container
 {
-    protected static Locking $locking;
+    protected static ContainerLocking $locking;
 
     protected static string $buildContainerNs = '';
 
     public function __construct(ParameterBagInterface $parameterBag = null)
     {
-        self::$locking = CoroutineLocking::init();
+        $locking = ContainerLocking::init();
+
+        if (!$locking instanceof ContainerLocking) {
+            throw new \UnexpectedValueException(sprintf('Invalid locking class: %s', get_class($locking)));
+        }
+
+        self::$locking = $locking;
 
         parent::__construct($parameterBag);
     }
@@ -27,7 +32,7 @@ class BlockingContainer extends Container
      */
     public function get(string $id, int $invalidBehavior = self::EXCEPTION_ON_INVALID_REFERENCE): ?object
     {
-        $lock = self::$locking->acquire($id);
+        $lock = self::$locking->acquireContainerLock();
 
         try {
             $service = parent::get($id, $invalidBehavior);

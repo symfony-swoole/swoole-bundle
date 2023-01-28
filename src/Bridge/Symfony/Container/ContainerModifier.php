@@ -69,8 +69,7 @@ final class ContainerModifier
         $refl->addMethod('doOverridden', $reflDo->getClosure());
 
         $reflDo->redefine(function ($container, $lazyLoad = true) {
-            $lockName = get_called_class().'::DO_'.($lazyLoad ? 'lazy' : '');
-            $lock = self::$locking->acquire($lockName);
+            $lock = self::$locking->acquireContainerLock();
 
             try {
                 $return = self::doOverridden($container, $lazyLoad);
@@ -109,7 +108,7 @@ final class ContainerModifier
         $createProxyRefl = $reflContainer->getMethod('createProxy');
         $reflContainer->addMethod('createProxyOverridden', $createProxyRefl->getClosure($container));
         $createProxyRefl->redefine(function ($class, \Closure $factory) {
-            $lock = self::$locking->acquire($class);
+            $lock = self::$locking->acquireContainerLock();
 
             try {
                 $return = $this->createProxyOverridden($class, $factory);
@@ -139,7 +138,7 @@ final class ContainerModifier
         $loadRefl = $reflContainer->getMethod('load');
         $reflContainer->addMethod('loadOverridden', $loadRefl->getClosure($container));
         $loadRefl->redefine(function (string $file) {
-            $lock = self::$locking->acquire($file);
+            $lock = self::$locking->acquireContainerLock();
 
             try {
                 $return = $this->loadOverridden($file);
@@ -156,7 +155,7 @@ final class ContainerModifier
         $loadRefl = $reflContainer->getMethod('load');
         $reflContainer->addMethod('loadOverridden', $loadRefl->getClosure($container));
         $loadRefl->redefine(function ($file, $lazyLoad = true) {
-            $lock = self::$locking->acquire($file);
+            $lock = self::$locking->acquireContainerLock();
 
             try {
                 $fileToLoad = $file;
@@ -196,6 +195,7 @@ final class ContainerModifier
         }
 
         $containerSource = file_get_contents($containerFile);
+        $codeExtractor = new ContainerSourceCodeExtractor($containerSource);
         $overriddenSource = str_replace('class '.$containerClass, 'class '.$overriddenClass, $containerSource);
 
         // dump opcache.blacklist_filename
@@ -216,7 +216,7 @@ final class ContainerModifier
                 continue;
             }
 
-            $methodsCodes[] = self::generateOverriddenGetter($method);
+            $methodsCodes[] = self::generateOverriddenGetter($method, $codeExtractor);
         }
 
         $namespace = $reflContainer->getNamespaceName();
@@ -228,6 +228,8 @@ final class ContainerModifier
 
             class $containerClass extends $overriddenClass
             {
+                private \$lazyInitializedShared = [];
+
             $methodsCode
             }
             EOF;
@@ -237,16 +239,37 @@ final class ContainerModifier
         $fs->dumpFile($containerFile, $newContainerSource);
     }
 
-    private static function generateOverriddenGetter(ReflectionMethod $method): string
+    private static function generateOverriddenGetter(ReflectionMethod $method, ContainerSourceCodeExtractor $extractor): ?string
     {
         $methodName = $method->getName();
+        $internals = $extractor->getContainerInternalsForMethod($method);
+
+        if (isset($internals['type']) && 'factories' === $internals['type']) {
+            $internals = [];
+        }
 
         return $method->getNumberOfParameters() > 0 ?
-            self::generateLazyGetter($methodName) : self::generateCasualGetter($methodName);
+            self::generateLazyGetter($methodName, $internals) : self::generateCasualGetter($methodName, $internals);
     }
 
-    private static function generateLazyGetter(string $methodName): string
+    private static function generateLazyGetter(string $methodName, array $internals): string
     {
+        $sharedCheck = PHP_EOL;
+
+        if (!empty($internals)) {
+            $arrayKey = "['{$internals['key']}']".(isset($internals['key2']) ? "['{$internals['key2']}']" : '');
+            $sharedCheck = <<<EOF
+                                        if (isset(\$this->{$internals['type']}{$arrayKey})) {
+                                            if (\$lazyLoad) {
+                                                return \$this->{$internals['type']}{$arrayKey};
+                                            } elseif (\$this->{$internals['type']}{$arrayKey}->isProxyInitialized() && isset(\$this->lazyInitializedShared['$methodName'])) {
+                                                return \$this->lazyInitializedShared['$methodName'];
+                                            }
+                                        }
+
+                EOF;
+        }
+
         return <<<EOF
                     protected function $methodName(\$lazyLoad = true) {
                         // this might be a weird SF container bug or idk... but SF container keeps calling this factory method
@@ -255,10 +278,14 @@ final class ContainerModifier
                             \$lazyLoad = true;
                         }
 
-                        \$lock = self::\$locking->acquire('$methodName'.'_'.(\$lazyLoad ? 'lazy' : ''));
-
+            {$sharedCheck}
                         try {
+                            \$lock = self::\$locking->acquireContainerLock();
+            {$sharedCheck}
+
                             \$return = parent::{$methodName}(\$lazyLoad);
+
+                            if (!\$lazyLoad) \$this->lazyInitializedShared['$methodName'] = \$return;
                         } finally {
                             \$lock->release();
                         }
@@ -268,13 +295,27 @@ final class ContainerModifier
             EOF;
     }
 
-    private static function generateCasualGetter(string $methodName): string
+    private static function generateCasualGetter(string $methodName, array $internals): string
     {
+        $sharedCheck = PHP_EOL;
+
+        if (!empty($internals)) {
+            $arrayKey = "['{$internals['key']}']".(isset($internals['key2']) ? "['{$internals['key2']}']" : '');
+            $sharedCheck = <<<EOF
+
+                                        if (isset(\$this->{$internals['type']}{$arrayKey})) {
+                                            return \$this->{$internals['type']}{$arrayKey};
+                                        }
+
+                EOF;
+        }
+
         return <<<EOF
                     protected function $methodName() {
-                        \$lock = self::\$locking->acquire('$methodName');
-
+            {$sharedCheck}
                         try {
+                            \$lock = self::\$locking->acquireContainerLock();
+            {$sharedCheck}
                             \$return = parent::{$methodName}();
                         } finally {
                             \$lock->release();

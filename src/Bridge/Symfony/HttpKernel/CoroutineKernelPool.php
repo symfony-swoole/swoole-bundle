@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace K911\Swoole\Bridge\Symfony\HttpKernel;
 
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\KernelInterface;
 
 final class CoroutineKernelPool implements KernelPoolInterface
@@ -24,10 +23,6 @@ final class CoroutineKernelPool implements KernelPoolInterface
     public function boot(): void
     {
         $this->kernel->boot();
-        // this will boot the http kernel before the start of swoole web workers, which means that
-        // routers etc. will be initialized before getting into coroutine context
-        // without this there are concurrency problems while loading the application
-        $this->kernel->handle(new Request());
     }
 
     public function get(): KernelInterface

@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace K911\Swoole\Component\Locking;
 
-final class CoroutineLocking implements Locking
+class CoroutineLocking implements Locking
 {
     private Store $store;
 
-    private function __construct()
+    protected function __construct()
     {
         $this->store = new Store();
     }
@@ -17,15 +17,13 @@ final class CoroutineLocking implements Locking
     {
         $cid = \Co::getCid();
 
-        // wait 0.01 ms if the container is already resolving the requested service
+        // wait 0.001 ms if the container is already resolving the requested service
         // coroutine hook for usleep should switch context to other coroutine, while waiting
         while ($this->store->has($key) && $this->store->get($key) !== $cid) {
-            usleep(10);
+            usleep(1);
         }
 
-        $this->store->save($key, $cid);
-
-        return new CoroutineLock($key, $this->store);
+        return $this->store->save($key, $cid);
     }
 
     public static function init(?Locking $locking = null): Locking
