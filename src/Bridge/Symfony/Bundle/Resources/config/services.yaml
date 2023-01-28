@@ -222,8 +222,8 @@ services:
     factory: ['K911\Swoole\Component\Locking\CoroutineLocking', 'init']
 
   swoole_bundle.unmanaged_factory_first_time.locking:
-    class: K911\Swoole\Component\Locking\FirstTimeOnlyLocking
-    factory: [ 'K911\Swoole\Component\Locking\FirstTimeOnlyLocking', 'init' ]
+    class: K911\Swoole\Component\Locking\CoroutineLocking
+    factory: [ 'K911\Swoole\Component\Locking\CoroutineLocking', 'init' ]
 
   K911\Swoole\Bridge\Symfony\Container\Proxy\Instantiator:
     arguments:

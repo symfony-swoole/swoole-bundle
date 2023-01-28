@@ -11,13 +11,26 @@ final class Store
      */
     private array $locks = [];
 
-    public function save(string $key, int $lockId): void
+    private array $counts = [];
+
+    private array $realLocks = [];
+
+    public function save(string $key, int $lockId, ?Lock $lock = null): Lock
     {
         if ($this->has($key)) {
-            throw new \RuntimeException(sprintf('Lock was already acquired for key %s.', $key));
+            ++$this->counts[$key];
+
+            return $this->realLocks[$key];
         }
 
         $this->locks[$key] = $lockId;
+        $this->counts[$key] = 1;
+
+        if (null === $lock) {
+            $lock = new CoroutineLock($key, $this);
+        }
+
+        return $this->realLocks[$key] = $lock;
     }
 
     public function delete(string $key): void
@@ -26,7 +39,13 @@ final class Store
             throw new \RuntimeException(sprintf('Lock key %s does not exist.', $key));
         }
 
-        unset($this->locks[$key]);
+        --$this->counts[$key];
+
+        if ($this->counts[$key] > 0) {
+            return;
+        }
+
+        unset($this->locks[$key], $this->counts[$key], $this->realLocks[$key]);
     }
 
     public function has(string $key): bool

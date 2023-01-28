@@ -53,14 +53,22 @@ final class DoctrineProcessor implements CompileProcessor
             throw new \UnexpectedValueException('Cannot obtain array of doctrine connections.');
         }
 
+        $this->prepareConnectionsForProxification($container, $connectionSvcIds);
+
         foreach ($entityManagers as $emName => $emSvcId) {
             $emDef = $container->findDefinition($emSvcId);
-            $proxifier->proxifyService($emSvcId);
+            $tagParams = [];
+            $limit = $this->getLimitFromEntityManagerConnection($container, $emDef);
+
+            if (null !== $limit) {
+                $tagParams['limit'] = $limit;
+            }
+
+            $emDef->addTag(ContainerConstants::TAG_STATEFUL_SERVICE, $tagParams);
             $this->overrideEmConfigurator($container, $emDef);
             $this->decorateRepositoryFactory($container, $emName, $emSvcId);
         }
 
-        $this->prepareConnectionsForProxification($container, $connectionSvcIds);
         $this->fixDebugDataHolderResetter($container, $proxifier);
     }
 
@@ -106,6 +114,16 @@ final class DoctrineProcessor implements CompileProcessor
 
             $connectionDef->addTag(ContainerConstants::TAG_STATEFUL_SERVICE, $tagParams);
         }
+    }
+
+    private function getLimitFromEntityManagerConnection(ContainerBuilder $container, Definition $emDef): ?int
+    {
+        /** @vat Reference $connRef */
+        $connRef = $emDef->getArgument(0);
+        $connDef = $container->findDefinition((string) $connRef);
+        $statefulSvcTag = $connDef->getTag(ContainerConstants::TAG_STATEFUL_SERVICE);
+
+        return $statefulSvcTag && isset($statefulSvcTag[0]['limit']) ? $statefulSvcTag[0]['limit'] : null;
     }
 
     private function fixDebugDataHolderResetter(ContainerBuilder $container, Proxifier $proxifier): void
