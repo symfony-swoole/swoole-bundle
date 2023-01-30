@@ -183,6 +183,14 @@ jobs:
           DATABASE_HOST: '127.0.0.1'
       - *mysql-for-feature-tests
 
+  swoole-bundle-composer-74-feature-tests:
+    <<: *job-composer-feature-tests
+    docker:
+      - image: docker.io/pixelfederation/swoole-bundle-composer:7.4-std-$CIRCLE_SHA1
+        environment:
+          DATABASE_HOST: '127.0.0.1'
+      - *mysql-for-feature-tests
+
   swoole-bundle-composer-80-latest-feature-tests:
     <<: *job-composer-feature-tests
     docker:
@@ -431,6 +439,9 @@ workflows:
       - swoole-bundle-composer-74-lowest-feature-tests:
           requires:
             - docker-buildx-bake-74-lowest
+      - swoole-bundle-composer-74-feature-tests:
+          requires:
+            - docker-buildx-bake-74
       - swoole-bundle-74-code-coverage:
           context: swoole-bundle-dockerhub
           requires:
@@ -495,6 +506,9 @@ workflows:
       - swoole-bundle-composer-74-lowest-feature-tests:
           requires:
             - docker-buildx-bake-74-lowest
+      - swoole-bundle-composer-74-feature-tests:
+          requires:
+            - docker-buildx-bake-74
       - swoole-bundle-74-code-coverage:
           requires:
             - docker-buildx-bake-74
@@ -549,6 +563,9 @@ workflows:
       - swoole-bundle-composer-74-lowest-feature-tests:
           requires:
             - docker-buildx-bake-74-lowest
+      - swoole-bundle-composer-74-feature-tests:
+          requires:
+            - docker-buildx-bake-74
       - swoole-bundle-74-code-coverage:
           requires:
             - docker-buildx-bake-74
@@ -578,6 +595,7 @@ workflows:
             - releaser-dry-run
             - swoole-bundle-74-code-coverage
             - swoole-bundle-composer-74-lowest-feature-tests
+            - swoole-bundle-composer-74-feature-tests
             - swoole-bundle-composer-74-lowest-unit-tests
             - swoole-bundle-composer-74-unit-tests
             - swoole-bundle-composer-74-code-style
