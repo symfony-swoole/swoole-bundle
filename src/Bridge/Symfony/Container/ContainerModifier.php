@@ -322,7 +322,7 @@ final class ContainerModifier
     ): void {
         $fullPath = $containerDir.\DIRECTORY_SEPARATOR.$fileToLoad;
 
-        if (false !== strpos($fullPath, '__Overridden.php')) {
+        if (false !== strpos($fullPath, '__Overridden.php') || false !== strpos($class, '__Overridden')) {
             return;
         }
 
