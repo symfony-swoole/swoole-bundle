@@ -37,8 +37,6 @@ trait CoroutinesSupportingKernelTrait
     {
         FinalClassModifier::initialize($this->getCacheDir());
         $cacheDir = $this->getCacheDir();
-        $containerClass = $this->getContainerClass();
-        ContainerModifier::includeOverriddenContainer($cacheDir, $containerClass, $this->isDebug());
 
         parent::initializeContainer();
 
@@ -46,7 +44,7 @@ trait CoroutinesSupportingKernelTrait
             return;
         }
 
-        ContainerModifier::modifyContainer($this->container, $cacheDir);
+        ContainerModifier::modifyContainer($this->container, $cacheDir, $this->isDebug());
     }
 
     private function areCoroutinesEnabled(): bool
