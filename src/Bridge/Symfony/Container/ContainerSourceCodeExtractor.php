@@ -15,12 +15,13 @@ final class ContainerSourceCodeExtractor
         $this->sourceCode = explode(PHP_EOL, $sourceCode);
     }
 
-    public function getContainerInternalsForMethod(ReflectionMethod $method): array
+    public function getContainerInternalsForMethod(ReflectionMethod $method, bool $isExtension = false): array
     {
         $code = $this->getMethodCode($method);
+        $variable = $isExtension ? 'container' : 'this';
 
         if (!preg_match(
-            '/return \\$this->(?P<type>[a-z]+)\[\'(?P<key>[^\']+)\'\](\[\'(?P<key2>[^\']+)\'\])? \=/',
+            '/return \\$'.$variable.'->(?P<type>[a-z]+)\[\'(?P<key>[^\']+)\'\](\[\'(?P<key2>[^\']+)\'\])? \=/',
             $code,
             $matches
         )) {
