@@ -90,6 +90,7 @@ final class Proxifier
         $wrappedServiceId = sprintf('%s.swoole_coop.wrapped', $serviceId);
         $svcPoolDef = $this->prepareServicePool($wrappedServiceId, $serviceDef, $externalResetter);
         $svcPoolServiceId = sprintf('%s.swoole_coop.service_pool', $serviceId);
+        $wasShared = $serviceDef->isShared();
         $proxyDef = $this->prepareProxy($svcPoolServiceId, $serviceDef);
         $this->prepareProxifiedService($serviceDef);
         $serviceDef->clearTags();
@@ -97,6 +98,11 @@ final class Proxifier
         $this->container->setDefinition($svcPoolServiceId, $svcPoolDef);
         $this->container->setDefinition($serviceId, $proxyDef); // proxy swap
         $this->container->setDefinition($wrappedServiceId, $serviceDef); // old service for copying
+
+        // new pools will be registered in the container on their instantiation
+        if (!$wasShared) {
+            return;
+        }
 
         $this->proxifiedServicePoolRefs[] = new Reference($svcPoolServiceId);
     }
@@ -136,6 +142,11 @@ final class Proxifier
     ): Definition {
         $svcPoolDef = new Definition(DiServicePool::class);
         $svcPoolDef->setShared($serviceDef->isShared());
+
+        if (!$serviceDef->isShared()) {
+            $svcPoolDef->setConfigurator([new Reference(NonSharedSvcPoolConfigurator::class), 'configure']);
+        }
+
         $svcPoolDef->setArgument(0, $wrappedServiceId);
         $svcPoolDef->setArgument(1, new Reference('service_container'));
         $svcPoolDef->setArgument(2, new Reference('swoole_bundle.service_pool.locking'));

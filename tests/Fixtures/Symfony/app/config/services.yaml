@@ -35,6 +35,7 @@ services:
   K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Controller\SleepController:
     arguments:
       $connection: '@doctrine.dbal.default_connection'
+      $container: '@service_container'
     tags: ['controller.service_arguments']
 
   Ramsey\Uuid\UuidFactoryInterface: '@Ramsey\Uuid\UuidFactory'

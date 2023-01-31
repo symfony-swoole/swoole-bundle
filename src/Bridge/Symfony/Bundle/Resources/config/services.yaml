@@ -281,3 +281,7 @@ services:
     tags: [ 'swoole_bundle.stability_checker' ]
 
   K911\Swoole\Bridge\Symfony\HttpKernel\CoroutineKernelPool:
+
+  K911\Swoole\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices\NonSharedSvcPoolConfigurator:
+    arguments:
+      $container: '@K911\Swoole\Bridge\Symfony\Container\ServicePool\ServicePoolContainer'
