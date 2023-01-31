@@ -30,4 +30,9 @@ final class ServicePoolContainer
             $pool->releaseFromCoroutine($cId);
         }
     }
+
+    public function count(): int
+    {
+        return count($this->pools);
+    }
 }

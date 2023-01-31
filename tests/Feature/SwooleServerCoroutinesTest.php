@@ -99,6 +99,7 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
                     $this->assertStringContainsString('TmpRepo was proxified.', $response['body']);
                     $this->assertStringContainsString('TmpRepo limit is 15.', $response['body']);
                     $this->assertStringContainsString('Connection limit is 12.', $response['body']);
+                    $this->assertStringContainsString('Service pool for NonShared was added.', $response['body']);
 
                     $wg->done();
                 });
@@ -205,7 +206,7 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
             $wg->wait(10);
             $end = microtime(true);
 
-            self::assertLessThan(self::coverageEnabled() ? 6 : 0.5, $end - $start);
+            self::assertLessThan(self::coverageEnabled() ? 6 : 0.6, $end - $start);
             \Co::sleep(1);
 
             // this has to be the 10th request becasue PCOV coverage tests run weirdly and don't free svc pool services

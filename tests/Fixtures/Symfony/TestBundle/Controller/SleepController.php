@@ -6,13 +6,16 @@ namespace K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Controller;
 
 use Doctrine\DBAL\Connection;
 use K911\Swoole\Bridge\Symfony\Container\ServicePool\BaseServicePool;
+use K911\Swoole\Bridge\Symfony\Container\ServicePool\ServicePoolContainer;
 use K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Service\DefaultDummyService;
 use K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Service\DummyService;
+use K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Service\NonSharedExample;
 use K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Service\ShouldBeProxified;
 use K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Service\ShouldBeProxified2;
 use K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Service\SleepingCounter;
 use K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Service\SleepingCounterChecker;
 use ProxyManager\Proxy\VirtualProxyInterface;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
@@ -30,13 +33,22 @@ final class SleepController
 
     private Connection $connection;
 
+    private ContainerInterface $container;
+
+    private ServicePoolContainer $servicePoolContainer;
+
+    /** @phpstan-ignore-next-line */
+    private array $nonShared = [];
+
     public function __construct(
         SleepingCounter $sleepingCounter,
         SleepingCounterChecker $checker,
         ShouldBeProxified $shouldBeProxified,
         ShouldBeProxified2 $shouldBeProxified2,
         DummyService $dummyService,
-        Connection $connection
+        Connection $connection,
+        ContainerInterface $container,
+        ServicePoolContainer $servicePoolContainer
     ) {
         $this->sleepingCounter = $sleepingCounter;
         $this->checker = $checker;
@@ -44,6 +56,8 @@ final class SleepController
         $this->shouldBeProxified2 = $shouldBeProxified2;
         $this->dummyService = $dummyService;
         $this->connection = $connection;
+        $this->container = $container;
+        $this->servicePoolContainer = $servicePoolContainer;
     }
 
     /**
@@ -58,6 +72,10 @@ final class SleepController
      */
     public function index()
     {
+        $firstCount = $this->servicePoolContainer->count();
+        $this->nonShared[] = $this->container->get(NonSharedExample::class);
+        $poolWasAdded = $this->servicePoolContainer->count() > $firstCount;
+
         $this->sleepingCounter->sleepAndCount();
         $counter = $this->sleepingCounter->getCounter();
         $check = $this->checker->wasChecked() ? 'true' : 'false';
@@ -107,7 +125,8 @@ final class SleepController
                     .'Safe Always reset '.($safeAlwaysResetWorks ? 'works' : 'did not work').'. '
                     ."Service2 limit is {$limit}. TmpRepo {$isProxified3} proxified. "
                     ."TmpRepo limit is {$limit2}. "
-                    ."Connection limit is {$connlimit}.</body></html>"
+                    ."Connection limit is {$connlimit}.</body></html> "
+                    .'Service pool for NonShared was '.($poolWasAdded ? '' : 'NOT ').'added.'
         );
     }
 }
