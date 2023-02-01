@@ -7,6 +7,10 @@
 
 Symfony integration with [Open Swoole](https://openswoole.com/) to speed up your applications.
 
+| Sponsored by:                         |                                                                                                 |
+|---------------------------------------|-------------------------------------------------------------------------------------------------|
+| [Blackfire.io](https://blackfire.io/) | [<img src="docs/img/blackfire-io.png" width="100" alt="Blackfire.io"/>](https://blackfire.io/)  |
+| [Travis CI](https://travis-ci.com/)   | [<img src="https://www.travis-ci.com/wp-content/uploads/2022/09/Logo.png" width="100" alt="Travis CI"/>](https://travis-ci.com/)       |
 ---
 
 ## Build Matrix
