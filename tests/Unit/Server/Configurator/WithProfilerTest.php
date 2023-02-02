@@ -4,37 +4,35 @@ declare(strict_types=1);
 
 namespace K911\Swoole\Tests\Unit\Server\Configurator;
 
+use K911\Swoole\Bridge\Upscale\Blackfire\ProfilerActivator;
 use K911\Swoole\Bridge\Upscale\Blackfire\WithProfiler;
 use PHPUnit\Framework\TestCase;
+use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
 use Swoole\Http\Server;
-use Upscale\Swoole\Blackfire\Profiler;
 
 /**
  * @runTestsInSeparateProcesses
  */
 class WithProfilerTest extends TestCase
 {
-    use \Prophecy\PhpUnit\ProphecyTrait;
+    use ProphecyTrait;
+
+    private WithProfiler $configurator;
 
     /**
-     * @var WithProfiler
-     */
-    private $configurator;
-
-    /**
-     * @var ObjectProphecy|Profiler
+     * @var ObjectProphecy|ProfilerActivator
      */
     private $configurationProphecy;
 
     protected function setUp(): void
     {
-        $this->configurationProphecy = $this->prophesize(Profiler::class);
+        $this->configurationProphecy = $this->prophesize(ProfilerActivator::class);
 
-        /** @var Profiler $profilerMock */
-        $profilerMock = $this->configurationProphecy->reveal();
+        /** @var ProfilerActivator $profileActivatorMock */
+        $profileActivatorMock = $this->configurationProphecy->reveal();
 
-        $this->configurator = new WithProfiler($profilerMock);
+        $this->configurator = new WithProfiler($profileActivatorMock);
     }
 
     public function testProfiler(): void
@@ -42,7 +40,7 @@ class WithProfilerTest extends TestCase
         $swooleServer = $this->createMock(Server::class);
 
         $this->configurationProphecy
-            ->instrument($swooleServer)
+            ->activate($swooleServer)
             ->shouldBeCalled()
         ;
 

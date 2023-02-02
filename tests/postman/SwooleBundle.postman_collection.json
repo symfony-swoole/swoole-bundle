@@ -1,0 +1,146 @@
+{
+  "info": {
+    "_postman_id": "2dcbcad0-69fb-4a37-958e-af09899ba804",
+    "name": "SwooleBundle",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "24209"
+  },
+  "item": [
+    {
+      "name": "Coroutines/Messenger",
+      "item": [
+        {
+          "name": "SleepAndAppend",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://{{hostname}}/coroutines/message/sleep-and-append?fileName=var/cache/coroutines/messenger.txt&sleep=500&append=test",
+              "protocol": "http",
+              "host": [
+                "{{hostname}}"
+              ],
+              "path": [
+                "coroutines",
+                "message",
+                "sleep-and-append"
+              ],
+              "query": [
+                {
+                  "key": "fileName",
+                  "value": "var/cache/coroutines/messenger.txt"
+                },
+                {
+                  "key": "sleep",
+                  "value": "500"
+                },
+                {
+                  "key": "append",
+                  "value": "test"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "RunDummy",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://{{hostname}}/coroutines/message/run-dummy",
+              "protocol": "http",
+              "host": [
+                "{{hostname}}"
+              ],
+              "path": [
+                "coroutines",
+                "message",
+                "run-dummy"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Coroutines/Web",
+      "item": [
+        {
+          "name": "Welcome",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://{{hostname}}/",
+              "protocol": "http",
+              "host": [
+                "{{hostname}}"
+              ],
+              "path": [
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Sleep",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://{{hostname}}/sleep",
+              "protocol": "http",
+              "host": [
+                "{{hostname}}"
+              ],
+              "path": [
+                "sleep"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Doctrine",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://{{hostname}}/doctrine",
+              "protocol": "http",
+              "host": [
+                "{{hostname}}"
+              ],
+              "path": [
+                "doctrine"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Doctrine Advanced",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://{{hostname}}/doctrine-advanced",
+              "protocol": "http",
+              "host": [
+                "{{hostname}}"
+              ],
+              "path": [
+                "doctrine-advanced"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
