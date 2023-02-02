@@ -10,4 +10,4 @@ sync:
       defaultDirectoryMode: 755
   swoolebundle:
     alpha: "."
-    beta: "docker://app@swoole-bundle-cli/usr/src/app"
+    beta: "docker://app@swoole-bundle-cli-74/usr/src/app"

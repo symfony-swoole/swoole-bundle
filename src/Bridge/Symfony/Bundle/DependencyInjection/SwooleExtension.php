@@ -22,6 +22,7 @@ use K911\Swoole\Bridge\Tideways\Apm\RequestDataProvider;
 use K911\Swoole\Bridge\Tideways\Apm\RequestProfiler;
 use K911\Swoole\Bridge\Tideways\Apm\TidewaysMiddlewareFactory;
 use K911\Swoole\Bridge\Tideways\Apm\WithApm;
+use K911\Swoole\Bridge\Upscale\Blackfire\ProfilerActivator;
 use K911\Swoole\Bridge\Upscale\Blackfire\WithProfiler;
 use K911\Swoole\Server\Config\Socket;
 use K911\Swoole\Server\Config\Sockets;
@@ -358,12 +359,20 @@ final class SwooleExtension extends Extension implements PrependExtensionInterfa
                 ->setClass(BlackfireProfiler::class)
             ;
 
+            $container->register(ProfilerActivator::class)
+                ->setClass(ProfilerActivator::class)
+                ->setAutowired(false)
+                ->setAutoconfigured(false)
+                ->setPublic(false)
+                ->addArgument(new Reference(BlackfireProfiler::class))
+            ;
+
             $container->register(WithProfiler::class)
                 ->setClass(WithProfiler::class)
                 ->setAutowired(false)
                 ->setAutoconfigured(false)
                 ->setPublic(false)
-                ->addArgument(new Reference(BlackfireProfiler::class))
+                ->addArgument(new Reference(ProfilerActivator::class))
             ;
             $def = $container->getDefinition('swoole_bundle.server.http_server.configurator.for_server_run_command');
             $def->addArgument(new Reference(WithProfiler::class));
