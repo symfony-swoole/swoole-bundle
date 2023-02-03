@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace K911\Swoole\Bridge\Doctrine;
 
 use K911\Swoole\Bridge\Doctrine\DBAL\ConnectionKeepAliveResetter;
+use K911\Swoole\Bridge\Doctrine\ORM\EntityManagerResetter;
 use K911\Swoole\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices\CompileProcessor;
 use K911\Swoole\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices\Proxifier;
 use K911\Swoole\Bridge\Symfony\Bundle\DependencyInjection\ContainerConstants;
@@ -53,11 +54,12 @@ final class DoctrineProcessor implements CompileProcessor
             throw new \UnexpectedValueException('Cannot obtain array of doctrine connections.');
         }
 
+        $this->createEntityManagerResetterDefinition($container);
         $this->prepareConnectionsForProxification($container, $connectionSvcIds);
 
         foreach ($entityManagers as $emName => $emSvcId) {
             $emDef = $container->findDefinition($emSvcId);
-            $tagParams = [];
+            $tagParams = ['resetter' => EntityManagerResetter::class];
             $limit = $this->getLimitFromEntityManagerConnection($container, $emDef);
 
             if (null !== $limit) {
@@ -70,6 +72,13 @@ final class DoctrineProcessor implements CompileProcessor
         }
 
         $this->fixDebugDataHolderResetter($container, $proxifier);
+    }
+
+    private function createEntityManagerResetterDefinition(ContainerBuilder $container): void
+    {
+        $resetterDef = new Definition(EntityManagerResetter::class);
+        $resetterDef->setClass(EntityManagerResetter::class);
+        $container->setDefinition(EntityManagerResetter::class, $resetterDef);
     }
 
     private function overrideEmConfigurator(ContainerBuilder $container, Definition $emDef): void
