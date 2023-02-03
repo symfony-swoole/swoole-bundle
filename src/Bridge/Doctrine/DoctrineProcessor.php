@@ -59,6 +59,7 @@ final class DoctrineProcessor implements CompileProcessor
 
         foreach ($entityManagers as $emName => $emSvcId) {
             $emDef = $container->findDefinition($emSvcId);
+            $emDef->setLazy(false); // no need for another level of proxy wihich is technically lazy itself
             $tagParams = ['resetter' => EntityManagerResetter::class];
             $limit = $this->getLimitFromEntityManagerConnection($container, $emDef);
 
