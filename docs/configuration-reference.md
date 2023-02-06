@@ -156,11 +156,12 @@ swoole:
 
 ## Additional info for coroutines usage
 
-**WARNING!!! Coroutines usage in Symfony is highly experimental at this stage. It still needs to be tested properly.
+**WARNING!!! Coroutines usage in Symfony is highly EXPERIMENTAL at this stage. It still needs to be tested properly.
 There may be changes in the configuration/implementation in later releases.**
 
-For now, coroutines are only supported in the web server. It is possible that they would also work in task workers,
-but no one has ever tested this approach.
+Current implementation wupports coroutines in the web server and in task workers,
+but no one has ever tested this approach in real life application. The feature was merged because it
+was easier for maintenance. It is not recommended to use this feature in production yet.
 
 To be able to use coroutines in a Symfony app, it is mandatory to change all stateful services of the app into special
 proxies, which preserve separate state for each coroutine context. This bundle has a Proxifier service, which modifies
