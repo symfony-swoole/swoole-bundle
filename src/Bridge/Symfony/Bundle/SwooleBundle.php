@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace K911\Swoole\Bridge\Symfony\Bundle;
 
+use K911\Swoole\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\BlackfireMonitoringPass;
 use K911\Swoole\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\DebugLogProcessorPass;
 use K911\Swoole\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\FinalizeDefinitionsAfterRemovalPass;
 use K911\Swoole\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\MessengerTransportFactoryPass;
@@ -18,6 +19,7 @@ final class SwooleBundle extends Bundle
 {
     public function build(ContainerBuilder $container): void
     {
+        $container->addCompilerPass(new BlackfireMonitoringPass());
         $container->addCompilerPass(new DebugLogProcessorPass());
         $container->addCompilerPass(new StreamedResponseListenerPass());
         $container->addCompilerPass(new SessionStorageListenerPass());

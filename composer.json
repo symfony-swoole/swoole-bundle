@@ -99,7 +99,8 @@
             "K911\\Swoole\\Tests\\": "tests"
         },
         "files": [
-            "tests/Bridge/Tideways/TidewaysMock.php"
+            "tests/Bridge/Tideways/TidewaysMock.php",
+            "tests/Bridge/Blackfire/BlackfireMock.php"
         ]
     },
     "scripts": {

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace K911\Swoole\Tests\Unit\Server\Configurator;
 
-use K911\Swoole\Bridge\Upscale\Blackfire\ProfilerActivator;
-use K911\Swoole\Bridge\Upscale\Blackfire\WithProfiler;
+use K911\Swoole\Bridge\Upscale\Blackfire\Profiling\ProfilerActivator;
+use K911\Swoole\Bridge\Upscale\Blackfire\Profiling\WithProfiler;
 use PHPUnit\Framework\TestCase;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;

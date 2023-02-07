@@ -75,6 +75,6 @@ services:
       $client: '@Blackfire\Client'
 
   # comment out these service definition to disable blackfire profiling for multiple requests, contained in the k6 test script
-  K911\Swoole\Bridge\Upscale\Blackfire\ProfilerActivator:
+  K911\Swoole\Bridge\Upscale\Blackfire\Profiling\ProfilerActivator:
     arguments:
       $profiler: '@K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Blackfire\CollectionProfiler'

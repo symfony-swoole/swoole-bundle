@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Bridge\Upscale\Blackfire;
+namespace K911\Swoole\Bridge\Upscale\Blackfire\Profiling;
 
 use K911\Swoole\Server\Configurator\ConfiguratorInterface;
 use Swoole\Http\Server;

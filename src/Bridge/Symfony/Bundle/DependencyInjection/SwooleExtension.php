@@ -22,8 +22,8 @@ use K911\Swoole\Bridge\Tideways\Apm\RequestDataProvider;
 use K911\Swoole\Bridge\Tideways\Apm\RequestProfiler;
 use K911\Swoole\Bridge\Tideways\Apm\TidewaysMiddlewareFactory;
 use K911\Swoole\Bridge\Tideways\Apm\WithApm;
-use K911\Swoole\Bridge\Upscale\Blackfire\ProfilerActivator;
-use K911\Swoole\Bridge\Upscale\Blackfire\WithProfiler;
+use K911\Swoole\Bridge\Upscale\Blackfire\Profiling\ProfilerActivator;
+use K911\Swoole\Bridge\Upscale\Blackfire\Profiling\WithProfiler;
 use K911\Swoole\Server\Config\Socket;
 use K911\Swoole\Server\Config\Sockets;
 use K911\Swoole\Server\Configurator\ConfiguratorInterface;
@@ -391,6 +391,10 @@ final class SwooleExtension extends Extension implements PrependExtensionInterfa
             $def->addArgument(new Reference(WithProfiler::class));
             $def = $container->getDefinition('swoole_bundle.server.http_server.configurator.for_server_start_command');
             $def->addArgument(new Reference(WithProfiler::class));
+        }
+
+        if ($config['blackfire_monitoring'] || (null === $config['blackfire_monitoring'] && \class_exists(\BlackfireProbe::class))) {
+            $container->setParameter(ContainerConstants::PARAM_BLACKFIRE_MONITORING_ENABLED, true);
         }
 
         if ($config['tideways_apm']['enabled'] && \class_exists(TidewaysProfiler::class)) {
