@@ -28,4 +28,6 @@ interface ContainerConstants
     public const TAG_UNMANAGED_FACTORY = 'swoole_bundle.unmanaged_factory';
 
     public const TAG_STABILITY_CHECKER = 'swoole_bundle.stability_checker';
+
+    public const PARAM_BLACKFIRE_MONITORING_ENABLED = 'swoole_bundle.blackfire_monitoring.enabled';
 }

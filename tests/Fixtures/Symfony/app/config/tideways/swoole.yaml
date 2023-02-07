@@ -1,6 +1,6 @@
 swoole:
-    http_server:
-        services:
-            tideways_apm:
-                enabled: true
-                service_name: 'swoole_bundle_test'
+  http_server:
+    services:
+      tideways_apm:
+        enabled: true
+        service_name: 'swoole_bundle_test'

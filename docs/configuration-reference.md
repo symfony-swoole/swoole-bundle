@@ -83,6 +83,9 @@ swoole:
       # see: \K911\Swoole\Bridge\Upscale\Blackfire\WithProfiler
       blackfire_profiler: false
 
+      # see: \K911\Swoole\Bridge\Upscale\Blackfire\WithApm
+      blackfire_monitoring: false
+
       # see: \K911\Swoole\Bridge\Tideways\Apm\WithApm
       tideways_apm:
         enabled: true

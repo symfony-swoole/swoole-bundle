@@ -1,0 +1,4 @@
+swoole:
+  http_server:
+    services:
+      blackfire_monitoring: true

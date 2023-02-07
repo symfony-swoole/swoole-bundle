@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace K911\Swoole\Tests\Feature;
 
-use K911\Swoole\Bridge\Upscale\Blackfire\WithProfiler;
+use K911\Swoole\Bridge\Upscale\Blackfire\Profiling\WithProfiler;
 use K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Test\ServerTestCase;
 use Upscale\Swoole\Blackfire\Profiler;
 
-final class SwooleProfilerRegisteredTest extends ServerTestCase
+final class BlackfireProfilerRegisteredTest extends ServerTestCase
 {
     /**
      * Ensure that WithProfiler and Profiler are registered.
