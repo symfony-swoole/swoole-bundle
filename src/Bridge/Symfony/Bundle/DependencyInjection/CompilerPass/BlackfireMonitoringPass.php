@@ -19,6 +19,10 @@ final class BlackfireMonitoringPass implements CompilerPassInterface
 {
     public function process(ContainerBuilder $container): void
     {
+        if (!$container->hasParameter(ContainerConstants::PARAM_BLACKFIRE_MONITORING_ENABLED)) {
+            return;
+        }
+
         $enabled = $container->getParameter(ContainerConstants::PARAM_BLACKFIRE_MONITORING_ENABLED);
 
         if (true !== $enabled) {

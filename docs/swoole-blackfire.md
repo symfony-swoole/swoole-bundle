@@ -1,6 +1,6 @@
 # Swoole Server Blackfire integration
 
-Blackfire (https://blackfire.io/docs/introduction) is a profiler for PHP applications.
+Blackfire (https://blackfire.io/docs/) is a profiler for PHP applications.
 
 By default, blackfire does not work with Swoole Server, however, thanks to the work of [https://github.com/upscalesoftware/swoole-blackfire](https://github.com/upscalesoftware/swoole-blackfire) the Swoole server can be instrumented to produce data for blackfire.
 
@@ -11,7 +11,7 @@ First of all, setup blackfire following their docs [https://blackfire.io/docs/up
 Then, install the swoole-blackfire library
 
 ```shell script
-composer require upscale/swoole-blackfire --dev
+composer require upscale/swoole-blackfire
 ``` 
 
 That's it! The bundle will automatically detect that the library was installed and it will instrument the server.
