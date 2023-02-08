@@ -33,12 +33,12 @@ final class RequestMonitoring
     private function start(SymfonyRequest $request): void
     {
         \BlackfireProbe::startTransaction($request->getPathInfo());
-        \BlackfireProbe::setAttribute('http.target', $request->getPathInfo()); /* @phpstan-ignore-line */
-        \BlackfireProbe::setAttribute('http.url', $request->getRequestUri()); /* @phpstan-ignore-line */
-        \BlackfireProbe::setAttribute('http.method', $request->getMethod()); /* @phpstan-ignore-line */
-        \BlackfireProbe::setAttribute('http.host', $request->getHost()); /* @phpstan-ignore-line */
-        \BlackfireProbe::setAttribute('host', $request->getHost()); /* @phpstan-ignore-line */
-        \BlackfireProbe::setAttribute('framework', 'Symfony'); /* @phpstan-ignore-line */
+        \BlackfireProbe::setAttribute('http.target', $request->getPathInfo());
+        \BlackfireProbe::setAttribute('http.url', $request->getRequestUri());
+        \BlackfireProbe::setAttribute('http.method', $request->getMethod());
+        \BlackfireProbe::setAttribute('http.host', $request->getHost());
+        \BlackfireProbe::setAttribute('host', $request->getHost());
+        \BlackfireProbe::setAttribute('framework', 'Symfony');
     }
 
     private function stop(): void
