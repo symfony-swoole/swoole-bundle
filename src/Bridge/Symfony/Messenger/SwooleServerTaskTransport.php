@@ -9,13 +9,10 @@ use Symfony\Component\Messenger\Transport\TransportInterface;
 
 final class SwooleServerTaskTransport implements TransportInterface
 {
-    private $receiver;
-    private $sender;
-
-    public function __construct(SwooleServerTaskReceiver $receiver, SwooleServerTaskSender $sender)
-    {
-        $this->receiver = $receiver;
-        $this->sender = $sender;
+    public function __construct(
+        private SwooleServerTaskReceiver $receiver,
+        private SwooleServerTaskSender $sender
+    ) {
     }
 
     /**

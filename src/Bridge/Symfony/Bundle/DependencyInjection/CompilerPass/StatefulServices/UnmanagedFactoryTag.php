@@ -7,16 +7,6 @@ namespace K911\Swoole\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\Sta
 final class UnmanagedFactoryTag
 {
     /**
-     * @var array{
-     *     factoryMethod: string,
-     *     returnType?: class-string|string,
-     *     limit?: int,
-     *     resetter?: string
-     * }
-     */
-    private array $tag;
-
-    /**
      * @param array{
      *     factoryMethod: string,
      *     returnType?: class-string|string,
@@ -24,9 +14,8 @@ final class UnmanagedFactoryTag
      *     resetter?: string
      * } $tag
      */
-    public function __construct(array $tag)
+    public function __construct(private array $tag)
     {
-        $this->tag = $tag;
     }
 
     public function getFactoryMethod(): string

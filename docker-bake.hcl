@@ -1,5 +1,5 @@
 variable "PHP_VERSION" {
-    default = "7.4"
+    default = "8.0"
 }
 
 variable "BUILD_TYPE" {

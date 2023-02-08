@@ -15,28 +15,13 @@ use ProxyManager\Proxy\ValueHolderInterface;
 
 final class UnmanagedFactoryInstantiator
 {
-    private AccessInterceptorValueHolderFactory $proxyFactory;
-
-    private Instantiator $instantiator;
-
-    private ServicePoolContainer $servicePoolContainer;
-
-    private Locking $limitLocking;
-
-    private Locking $newInstanceLocking;
-
     public function __construct(
-        AccessInterceptorValueHolderFactory $proxyFactory,
-        Instantiator $instantiator,
-        ServicePoolContainer $servicePoolContainer,
-        Locking $limitLocking,
-        Locking $newInstanceLocking
+        private AccessInterceptorValueHolderFactory $proxyFactory,
+        private Instantiator $instantiator,
+        private ServicePoolContainer $servicePoolContainer,
+        private Locking $limitLocking,
+        private Locking $newInstanceLocking
     ) {
-        $this->proxyFactory = $proxyFactory;
-        $this->instantiator = $instantiator;
-        $this->servicePoolContainer = $servicePoolContainer;
-        $this->limitLocking = $limitLocking;
-        $this->newInstanceLocking = $newInstanceLocking;
     }
 
     /**
@@ -71,17 +56,17 @@ final class UnmanagedFactoryInstantiator
         $instantiator = $this->instantiator;
 
         if (empty($factoryConfigs)) {
-            throw new \RuntimeException(sprintf('Factory methods missing for class %s', get_class($instance)));
+            throw new \RuntimeException(sprintf('Factory methods missing for class %s', $instance::class));
         }
 
         foreach ($factoryConfigs as $factoryConfig) {
             $factoryMethod = $factoryConfig['factoryMethod'];
 
             if (!method_exists($instance, $factoryMethod)) {
-                throw new \RuntimeException(sprintf('Missing method %s in class %s', $factoryMethod, get_class($instance)));
+                throw new \RuntimeException(sprintf('Missing method %s in class %s', $factoryMethod, $instance::class));
             }
 
-            $lockingKey = sprintf('%s::%s', get_class($instance), $factoryMethod);
+            $lockingKey = sprintf('%s::%s', $instance::class, $factoryMethod);
             /**
              * @var callable(
              *  AccessInterceptorInterface<RealObjectType>&RealObjectType=,

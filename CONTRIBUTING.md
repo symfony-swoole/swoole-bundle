@@ -41,12 +41,12 @@ Make sure you have installed the latest version of PHP:
 ```sh
 php -v
 
-# PHP 7.4.13 (cli) (built: Nov 24 2020 16:22:20) ( NTS )
+# PHP 8.0.13 (cli) (built: Nov 24 2020 16:22:20) ( NTS )
 # Copyright (c) The PHP Group
 # Zend Engine v3.4.0, Copyright (c) Zend Technologies
 ```
 
-Currently, the minimum supported version is `7.4.x` but it is highly recommended to develop using the latest PHP version.
+Currently, the minimum supported version is `8.0.x` but it is highly recommended to develop using the latest PHP version.
 
 #### [Docker](https://docs.docker.com/install/)
 

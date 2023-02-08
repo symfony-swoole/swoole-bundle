@@ -17,11 +17,8 @@ final class Configuration implements ConfigurationInterface
 
     private const CONFIG_NAME = 'swoole';
 
-    private $builder;
-
-    public function __construct(TreeBuilder $builder)
+    public function __construct(private TreeBuilder $builder)
     {
-        $this->builder = $builder;
     }
 
     /**

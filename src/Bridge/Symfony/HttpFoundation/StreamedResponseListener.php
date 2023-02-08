@@ -12,11 +12,8 @@ use Symfony\Component\HttpKernel\KernelEvents;
 
 class StreamedResponseListener implements EventSubscriberInterface
 {
-    private $delegate;
-
-    public function __construct(?HttpFoundationStreamedResponseListener $delegate = null)
+    public function __construct(private ?HttpFoundationStreamedResponseListener $delegate = null)
     {
-        $this->delegate = $delegate;
     }
 
     public function onKernelResponse(ResponseEvent $event): void

@@ -8,14 +8,11 @@ final class FirstTimeOnlyLocking implements Locking
 {
     private Store $store;
 
-    private Locking $wrapped;
-
     private Lock $unlockedLock;
 
-    private function __construct(Locking $wrapped)
+    private function __construct(private Locking $wrapped)
     {
         $this->store = new Store();
-        $this->wrapped = $wrapped;
         $this->unlockedLock = FirstTimeOnlyLock::unlocked();
     }
 

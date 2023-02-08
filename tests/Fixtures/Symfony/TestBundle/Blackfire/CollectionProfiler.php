@@ -10,11 +10,8 @@ use Upscale\Swoole\Blackfire\Profiler;
 
 class CollectionProfiler extends Profiler
 {
-    private Client $client;
-
-    public function __construct(Client $client)
+    public function __construct(private Client $client)
     {
-        $this->client = $client;
     }
 
     /**

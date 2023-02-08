@@ -76,12 +76,6 @@ class HttpServerConfiguration
         'error' => \SWOOLE_LOG_ERROR,
     ];
 
-    private Sockets $sockets;
-
-    private string $runningMode;
-
-    private ?int $maxConcurrency;
-
     /**
      * @var array<string, mixed>
      */
@@ -106,16 +100,13 @@ class HttpServerConfiguration
      * @throws \Assert\AssertionFailedException
      */
     public function __construct(
-        Sockets $sockets,
-        string $runningMode = 'process',
+        private Sockets $sockets,
+        private string $runningMode = 'process',
         array $settings = [],
-        ?int $maxConcurrency = null
+        private ?int $maxConcurrency = null
     ) {
-        $this->sockets = $sockets;
-
         $this->changeRunningMode($runningMode);
         $this->initializeSettings($settings);
-        $this->maxConcurrency = $maxConcurrency;
     }
 
     public function isDaemon(): bool
@@ -387,11 +378,9 @@ class HttpServerConfiguration
     }
 
     /**
-     * @param mixed $value
-     *
      * @throws \Assert\AssertionFailedException
      */
-    private function validateSetting(string $key, $value): void
+    private function validateSetting(string $key, mixed $value): void
     {
         Assertion::keyExists(self::SWOOLE_HTTP_SERVER_CONFIGURATION, $key, 'There is no configuration mapping for setting "%s".');
 

@@ -216,7 +216,7 @@ class ServerTestCase extends KernelTestCase
     {
         try {
             return bin2hex(random_bytes($factor));
-        } catch (\Exception $e) {
+        } catch (\Exception) {
             $array = range(1, $factor * 2);
             shuffle($array);
 

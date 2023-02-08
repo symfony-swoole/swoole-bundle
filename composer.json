@@ -25,7 +25,7 @@
         }
     ],
     "require": {
-        "php": "^7.4|^8.0",
+        "php": "^8.0",
         "ext-json": "*",
         "ext-openswoole": "^4.10.0",
         "beberlei/assert": "^3.3",
@@ -41,13 +41,14 @@
         "symfony/proxy-manager-bridge": "^5.4|^6.0"
     },
     "require-dev": {
-        "ext-ffi": "^7.4|^8.0",
+        "ext-ffi": "^8.0",
         "doctrine/annotations": "^1.13",
         "doctrine/doctrine-bundle": "^2.7",
-        "doctrine/doctrine-migrations-bundle": "^3.1",
+        "doctrine/doctrine-migrations-bundle": "^3.2",
         "doctrine/orm": "^2.11",
         "friendsofphp/php-cs-fixer": "^3.7",
         "jangregor/phpstan-prophecy": "^1.0",
+        "phpspec/prophecy": "^1.17",
         "phpspec/prophecy-phpunit": "^2.0",
         "phpstan/extension-installer": "^1.0.2",
         "phpstan/phpstan": "^1.4",
@@ -59,7 +60,7 @@
         "phpunit/phpunit": "^9.5",
         "pixelfederation/doctrine-resettable-em-bundle": "^7.0",
         "pixelfederation/openswoole-blackfire": "^1.0",
-        "pixelfederation/z-engine": "~7.4|~8.0|~8.1",
+        "pixelfederation/z-engine": "~8.0|~8.1|~8.2",
         "ramsey/uuid": "^4.1",
         "swoole/ide-helper": "^4.8",
         "symfony/debug-pack": "^1.0",

@@ -10,13 +10,10 @@ use Swoole\Server;
 
 final class CodeCoverageTaskHandler implements TaskHandlerInterface
 {
-    private $decorated;
-    private $codeCoverageManager;
-
-    public function __construct(TaskHandlerInterface $decorated, CodeCoverageManager $codeCoverageManager)
-    {
-        $this->decorated = $decorated;
-        $this->codeCoverageManager = $codeCoverageManager;
+    public function __construct(
+        private TaskHandlerInterface $decorated,
+        private CodeCoverageManager $codeCoverageManager
+    ) {
     }
 
     /**

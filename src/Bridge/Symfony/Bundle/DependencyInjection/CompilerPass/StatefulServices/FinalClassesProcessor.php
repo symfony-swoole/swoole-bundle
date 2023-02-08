@@ -9,13 +9,13 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 
 final class FinalClassesProcessor
 {
-    private ContainerBuilder $container;
+    private string $cacheDir;
 
     private array $processedClasses = [];
 
     public function __construct(ContainerBuilder $container)
     {
-        $this->container = $container;
+        $this->setCacheDir($container);
     }
 
     public function process(string $className): void
@@ -26,6 +26,17 @@ final class FinalClassesProcessor
 
         $this->processedClasses[$className] = true;
         FinalClassModifier::removeFinalFlagsFromClass($className);
-        FinalClassModifier::dumpCache((string) $this->container->getParameter('kernel.cache_dir'));
+        FinalClassModifier::dumpCache($this->cacheDir);
+    }
+
+    private function setCacheDir(ContainerBuilder $container): void
+    {
+        $cacheDir = $container->getParameter('kernel.cache_dir');
+
+        if (!\is_string($cacheDir)) {
+            throw new \RuntimeException('Kernel cache directory is not a string.');
+        }
+
+        $this->cacheDir = $cacheDir;
     }
 }

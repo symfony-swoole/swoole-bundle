@@ -39,10 +39,8 @@ final class MiddlewareInjector
 
     /**
      * Retrieve a callback subscribed to a given event.
-     *
-     * @param Port|Server $observer
      */
-    private function getCallback(object $observer, string $eventName): ?callable
+    private function getCallback(Port|Server $observer, string $eventName): ?callable
     {
         try {
             $propertyName = 'on'.ucfirst($eventName);
@@ -50,7 +48,7 @@ final class MiddlewareInjector
             $property->setAccessible(true);
 
             return $property->getValue($observer);
-        } catch (\ReflectionException $e) {
+        } catch (\ReflectionException) {
             return null;
         }
     }

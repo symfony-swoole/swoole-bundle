@@ -8,16 +8,12 @@ use Symfony\Component\Filesystem\Filesystem;
 
 final class ProxyDirectoryHandler
 {
-    private Filesystem $fileSystem;
-
-    private string $proxyDir;
-
     private bool $proxyDirExists = false;
 
-    public function __construct(Filesystem $fileSystem, string $proxyDir)
-    {
-        $this->fileSystem = $fileSystem;
-        $this->proxyDir = $proxyDir;
+    public function __construct(
+        private Filesystem $fileSystem,
+        private string $proxyDir
+    ) {
     }
 
     public function ensureProxyDirExists(): void

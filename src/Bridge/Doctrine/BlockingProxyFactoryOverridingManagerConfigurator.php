@@ -10,19 +10,16 @@ use Doctrine\ORM\EntityManagerInterface;
 
 final class BlockingProxyFactoryOverridingManagerConfigurator
 {
-    private ManagerConfigurator $wrapped;
-
     private static ?\ReflectionProperty $emProxyFactoryPropRefl = null;
 
-    public function __construct(ManagerConfigurator $wrapped)
+    public function __construct(private ManagerConfigurator $wrapped)
     {
-        $this->wrapped = $wrapped;
     }
 
     public function configure(EntityManagerInterface $entityManager): void
     {
         if (!$entityManager instanceof EntityManager) {
-            throw new \UnexpectedValueException(sprintf('%s needed, got %s.', EntityManager::class, get_class($entityManager)));
+            throw new \UnexpectedValueException(sprintf('%s needed, got %s.', EntityManager::class, $entityManager::class));
         }
 
         $this->replaceProxyFactory($entityManager);

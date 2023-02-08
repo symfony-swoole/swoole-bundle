@@ -68,7 +68,7 @@ final class ContainerModifier
         foreach ($methods as $method) {
             $methodName = $method->getName();
 
-            if (isset($ignoredMethods[$methodName]) || 0 !== strpos($methodName, 'get')) {
+            if (isset($ignoredMethods[$methodName]) || !str_starts_with($methodName, 'get')) {
                 continue;
             }
 
@@ -299,7 +299,7 @@ final class ContainerModifier
         $containerNamespace = $reflContainer->getNamespaceName();
         $containerDirectory = $cacheDir.DIRECTORY_SEPARATOR.$containerNamespace;
         $files = scandir($containerDirectory);
-        $filteredFiles = array_filter($files, fn (string $fileName): bool => (0 === strpos($fileName, 'get')));
+        $filteredFiles = array_filter($files, fn (string $fileName): bool => str_starts_with($fileName, 'get'));
 
         foreach ($filteredFiles as $fileName) {
             $class = str_replace('.php', '', $fileName);
@@ -322,7 +322,7 @@ final class ContainerModifier
     ): void {
         $fullPath = $containerDir.\DIRECTORY_SEPARATOR.$fileToLoad;
 
-        if (false !== strpos($fullPath, '__Overridden.php') || false !== strpos($class, '__Overridden')) {
+        if (str_contains($fullPath, '__Overridden.php') || str_contains($class, '__Overridden')) {
             return;
         }
 
@@ -402,7 +402,7 @@ final class ContainerModifier
         $methods = $reflBlockingContainer->getMethods(\ReflectionMethod::IS_PROTECTED);
         $methodNames = array_map(fn (ReflectionMethod $method): string => $method->getName(), $methods);
         $methodNames = array_merge($methodNames, get_class_methods(BlockingContainer::class));
-        $getters = array_filter($methodNames, fn (string $methodName): bool => 0 === strpos($methodName, 'get'));
+        $getters = array_filter($methodNames, fn (string $methodName): bool => str_starts_with($methodName, 'get'));
         $getters[] = 'getDefaultParameters';
 
         return array_flip($getters);

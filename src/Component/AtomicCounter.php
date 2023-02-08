@@ -8,11 +8,8 @@ use Swoole\Atomic;
 
 final class AtomicCounter
 {
-    private $counter;
-
-    public function __construct(Atomic $counter)
+    public function __construct(private Atomic $counter)
     {
-        $this->counter = $counter;
     }
 
     public function increment(): void

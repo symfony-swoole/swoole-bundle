@@ -9,11 +9,8 @@ use K911\Swoole\Client\HttpClient;
 
 final class ApiServerClient implements ApiServerInterface
 {
-    private $client;
-
-    public function __construct(HttpClient $client)
+    public function __construct(private HttpClient $client)
     {
-        $this->client = $client;
     }
 
     /**

@@ -44,7 +44,7 @@ final class SwooleTableStorage implements StorageInterface
      *
      * @throws \Assert\AssertionFailedException
      */
-    public function set(string $key, $data, int $ttl): void
+    public function set(string $key, mixed $data, int $ttl): void
     {
         Assertion::greaterThan($ttl, 0, 'Provided TTL "%d" is not a positive number.');
         Assertion::string($data, 'Storage data expected to be string, type %$2s given.');

@@ -14,13 +14,10 @@ use Swoole\Http\Server;
  */
 final class WithApiServerConfiguration implements ConfiguratorInterface
 {
-    private $sockets;
-    private $requestHandler;
-
-    public function __construct(Sockets $sockets, RequestHandlerInterface $requestHandler)
-    {
-        $this->sockets = $sockets;
-        $this->requestHandler = $requestHandler;
+    public function __construct(
+        private Sockets $sockets,
+        private RequestHandlerInterface $requestHandler
+    ) {
     }
 
     public function configure(Server $server): void

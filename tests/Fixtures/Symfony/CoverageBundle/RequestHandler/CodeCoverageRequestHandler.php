@@ -11,13 +11,10 @@ use Swoole\Http\Response;
 
 final class CodeCoverageRequestHandler implements RequestHandlerInterface
 {
-    private $decorated;
-    private $codeCoverageManager;
-
-    public function __construct(RequestHandlerInterface $decorated, CodeCoverageManager $codeCoverageManager)
-    {
-        $this->decorated = $decorated;
-        $this->codeCoverageManager = $codeCoverageManager;
+    public function __construct(
+        private RequestHandlerInterface $decorated,
+        private CodeCoverageManager $codeCoverageManager
+    ) {
     }
 
     /**

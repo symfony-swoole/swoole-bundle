@@ -10,20 +10,16 @@ use PixelFederation\DoctrineResettableEmBundle\DBAL\Connection\DBALAliveKeeper;
 
 final class ConnectionKeepAliveResetter implements Resetter
 {
-    private DBALAliveKeeper $aliveKeeper;
-
-    private string $connectionName;
-
-    public function __construct(DBALAliveKeeper $aliveKeeper, string $connectionName)
-    {
-        $this->aliveKeeper = $aliveKeeper;
-        $this->connectionName = $connectionName;
+    public function __construct(
+        private DBALAliveKeeper $aliveKeeper,
+        private string $connectionName
+    ) {
     }
 
     public function reset(object $service): void
     {
         if (!$service instanceof Connection) {
-            throw new \UnexpectedValueException(\sprintf('Unexpected class instance: %s ', \get_class($service)));
+            throw new \UnexpectedValueException(\sprintf('Unexpected class instance: %s ', $service::class));
         }
 
         $this->aliveKeeper->keepAlive($service, $this->connectionName);

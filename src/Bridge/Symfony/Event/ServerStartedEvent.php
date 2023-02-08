@@ -11,11 +11,8 @@ final class ServerStartedEvent extends Event
 {
     public const NAME = 'swoole_bundle.server.started';
 
-    private Server $server;
-
-    public function __construct(Server $server)
+    public function __construct(private Server $server)
     {
-        $this->server = $server;
     }
 
     public function getServer(): Server

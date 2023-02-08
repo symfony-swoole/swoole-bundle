@@ -9,11 +9,8 @@ use Swoole\Http\Server;
 
 final class WithServerShutdownHandler implements ConfiguratorInterface
 {
-    private $handler;
-
-    public function __construct(ServerShutdownHandlerInterface $handler)
+    public function __construct(private ServerShutdownHandlerInterface $handler)
     {
-        $this->handler = $handler;
     }
 
     /**

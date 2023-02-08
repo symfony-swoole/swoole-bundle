@@ -30,34 +30,15 @@ abstract class AbstractServerStartCommand extends Command
 {
     use ParametersHelperTrait;
 
-    /**
-     * @var ParameterBagInterface
-     */
-    protected $parameterBag;
-
-    private $server;
-    private $bootManager;
-    private $serverConfiguration;
-    private $serverConfigurator;
-
-    /**
-     * @var bool
-     */
-    private $testing = false;
+    private bool $testing = false;
 
     public function __construct(
-        HttpServer $server,
-        HttpServerConfiguration $serverConfiguration,
-        ConfiguratorInterface $serverConfigurator,
-        ParameterBagInterface $parameterBag,
-        BootableInterface $bootManager
+        private HttpServer $server,
+        private HttpServerConfiguration $serverConfiguration,
+        private ConfiguratorInterface $serverConfigurator,
+        protected ParameterBagInterface $parameterBag,
+        private BootableInterface $bootManager
     ) {
-        $this->server = $server;
-        $this->bootManager = $bootManager;
-        $this->parameterBag = $parameterBag;
-        $this->serverConfigurator = $serverConfigurator;
-        $this->serverConfiguration = $serverConfiguration;
-
         parent::__construct();
     }
 
@@ -301,11 +282,9 @@ abstract class AbstractServerStartCommand extends Command
     }
 
     /**
-     * @param mixed $set
-     *
      * @throws \Assert\AssertionFailedException
      */
-    private function decodeSet($set): array
+    private function decodeSet(mixed $set): array
     {
         if (\is_string($set)) {
             return decode_string_as_set($set);

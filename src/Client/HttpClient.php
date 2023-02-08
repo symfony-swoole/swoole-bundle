@@ -41,11 +41,8 @@ final class HttpClient
         60 => true,
     ];
 
-    private $client;
-
-    public function __construct(Client $client)
+    public function __construct(private Client $client)
     {
-        $this->client = $client;
     }
 
     public function __serialize(): array
@@ -155,10 +152,7 @@ final class HttpClient
         throw UnsupportedHttpMethodException::forMethod($method, self::SUPPORTED_HTTP_METHODS);
     }
 
-    /**
-     * @param mixed $data
-     */
-    private function serializeRequestData(Client $client, $data): void
+    private function serializeRequestData(Client $client, mixed $data): void
     {
         $json = \json_encode($data, \JSON_THROW_ON_ERROR);
         $client->requestHeaders[Http::HEADER_CONTENT_TYPE] = Http::CONTENT_TYPE_APPLICATION_JSON;
@@ -207,10 +201,7 @@ final class HttpClient
         }
     }
 
-    /**
-     * @return array|string
-     */
-    private function resolveResponseBody(Client $client)
+    private function resolveResponseBody(Client $client): array|string
     {
         if (204 === $client->statusCode || '' === $client->body) {
             return [];
@@ -220,15 +211,11 @@ final class HttpClient
         $fullContentType = $client->headers[Http::HEADER_CONTENT_TYPE];
         $contentType = \explode(';', $fullContentType)[0];
 
-        switch ($contentType) {
-            case Http::CONTENT_TYPE_APPLICATION_JSON:
-                return \json_decode($client->body, true, 512, \JSON_THROW_ON_ERROR);
-            case Http::CONTENT_TYPE_TEXT_PLAIN:
-            case Http::CONTENT_TYPE_TEXT_HTML:
-                return $client->body;
-            default:
-                throw UnsupportedContentTypeException::forContentType($contentType, self::SUPPORTED_CONTENT_TYPES);
-        }
+        return match ($contentType) {
+            Http::CONTENT_TYPE_APPLICATION_JSON => \json_decode($client->body, true, 512, \JSON_THROW_ON_ERROR),
+            Http::CONTENT_TYPE_TEXT_PLAIN, Http::CONTENT_TYPE_TEXT_HTML => $client->body,
+            default => throw UnsupportedContentTypeException::forContentType($contentType, self::SUPPORTED_CONTENT_TYPES),
+        };
     }
 
     private function assertHasContentType(Client $client): void

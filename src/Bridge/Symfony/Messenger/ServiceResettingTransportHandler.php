@@ -10,13 +10,10 @@ use Symfony\Component\HttpKernel\DependencyInjection\ServicesResetter;
 
 final class ServiceResettingTransportHandler implements TaskHandlerInterface
 {
-    private TaskHandlerInterface $decorated;
-    private ServicesResetter $resetter;
-
-    public function __construct(TaskHandlerInterface $decorated, ServicesResetter $resetter)
-    {
-        $this->decorated = $decorated;
-        $this->resetter = $resetter;
+    public function __construct(
+        private TaskHandlerInterface $decorated,
+        private ServicesResetter $resetter
+    ) {
     }
 
     /**

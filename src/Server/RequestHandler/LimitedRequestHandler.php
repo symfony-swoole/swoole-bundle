@@ -14,20 +14,14 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 final class LimitedRequestHandler implements RequestHandlerInterface, BootableInterface
 {
     private $requestLimit;
-    private $server;
-    private $requestCounter;
-    private $decorated;
 
-    /**
-     * @var null|SymfonyStyle
-     */
-    private $symfonyStyle;
+    private ?SymfonyStyle $symfonyStyle = null;
 
-    public function __construct(RequestHandlerInterface $decorated, HttpServer $server, AtomicCounter $counter)
-    {
-        $this->decorated = $decorated;
-        $this->server = $server;
-        $this->requestCounter = $counter;
+    public function __construct(
+        private RequestHandlerInterface $decorated,
+        private HttpServer $server,
+        private AtomicCounter $requestCounter
+    ) {
         $this->requestLimit = -1;
     }
 

@@ -9,14 +9,8 @@ use Symfony\Component\HttpFoundation\Response as HttpFoundationResponse;
 
 final class ResponseHeadersAndStatusProcessor implements ResponseProcessorInterface
 {
-    /**
-     * @var ResponseProcessorInterface
-     */
-    private $decorated;
-
-    public function __construct(ResponseProcessorInterface $decorated)
+    public function __construct(private ResponseProcessorInterface $decorated)
     {
-        $this->decorated = $decorated;
     }
 
     /**

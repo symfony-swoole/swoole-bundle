@@ -8,14 +8,11 @@ use Swoole\Http\Server;
 
 final class CallableChainConfigurator implements ConfiguratorInterface
 {
-    private $configurators;
-
     /**
      * @param iterable<callable> $configurators
      */
-    public function __construct(iterable $configurators)
+    public function __construct(private iterable $configurators)
     {
-        $this->configurators = $configurators;
     }
 
     /**

@@ -8,18 +8,13 @@ use Assert\Assertion;
 
 final class Sockets
 {
-    private $serverSocket;
     private $additionalSockets;
 
-    /**
-     * @var null|Socket
-     */
-    private $apiSocket;
-
-    public function __construct(Socket $serverSocket, ?Socket $apiSocket = null, Socket ...$additionalSockets)
-    {
-        $this->serverSocket = $serverSocket;
-        $this->apiSocket = $apiSocket;
+    public function __construct(
+        private Socket $serverSocket,
+        private ?Socket $apiSocket = null,
+        Socket ...$additionalSockets
+    ) {
         $this->additionalSockets = $additionalSockets;
     }
 

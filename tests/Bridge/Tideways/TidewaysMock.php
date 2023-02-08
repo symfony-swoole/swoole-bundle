@@ -42,10 +42,8 @@ namespace Tideways {
 
         /**
          * @psalm-param string|array{api_key?: string, service?: string, sample_rate?: int} $options
-         *
-         * @param array|string $options
          */
-        public static function start($options): void
+        public static function start(array|string $options): void
         {
             self::$wasStarted = true;
         }

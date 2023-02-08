@@ -16,16 +16,16 @@ final class CoroutinePool
 {
     private $coroutines;
     private $coroutinesCount;
-    private $resultsChannel;
     private $results;
     private $exceptions;
     private $started;
 
-    public function __construct(Channel $resultsChannel, callable ...$coroutines)
-    {
+    public function __construct(
+        private Channel $resultsChannel,
+        callable ...$coroutines
+    ) {
         $this->coroutines = $coroutines;
         $this->coroutinesCount = \count($coroutines);
-        $this->resultsChannel = $resultsChannel;
         $this->results = [];
         $this->exceptions = [];
         $this->started = false;

@@ -12,13 +12,10 @@ use Symfony\Component\Messenger\MessageBusInterface;
 
 final class SwooleServerTaskTransportHandler implements TaskHandlerInterface
 {
-    private $bus;
-    private $decorated;
-
-    public function __construct(MessageBusInterface $bus, ?TaskHandlerInterface $decorated = null)
-    {
-        $this->bus = $bus;
-        $this->decorated = $decorated;
+    public function __construct(
+        private MessageBusInterface $bus,
+        private ?TaskHandlerInterface $decorated = null
+    ) {
     }
 
     public function handle(Server $server, Server\Task $task): void

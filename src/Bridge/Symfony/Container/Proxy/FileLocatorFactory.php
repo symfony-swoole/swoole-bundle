@@ -9,11 +9,8 @@ use ProxyManager\FileLocator\FileLocatorInterface;
 
 final class FileLocatorFactory
 {
-    private ProxyDirectoryHandler $directoryHandler;
-
-    public function __construct(ProxyDirectoryHandler $directoryHandler)
+    public function __construct(private ProxyDirectoryHandler $directoryHandler)
     {
-        $this->directoryHandler = $directoryHandler;
     }
 
     public function createFileLocator(string $proxiesDirectory): FileLocatorInterface

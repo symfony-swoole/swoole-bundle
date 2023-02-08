@@ -9,12 +9,10 @@ use Swoole\Server;
 
 final class SigIntHandler implements ServerStartHandlerInterface
 {
-    private $decorated;
     private $signalInterrupt;
 
-    public function __construct(?ServerStartHandlerInterface $decorated = null)
+    public function __construct(private ?ServerStartHandlerInterface $decorated = null)
     {
-        $this->decorated = $decorated;
         $this->signalInterrupt = \defined('SIGINT') ? (int) \constant('SIGINT') : 2;
     }
 

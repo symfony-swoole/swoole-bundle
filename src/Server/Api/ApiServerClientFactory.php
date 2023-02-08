@@ -10,11 +10,8 @@ use K911\Swoole\Server\Config\Sockets;
 
 final class ApiServerClientFactory
 {
-    private $sockets;
-
-    public function __construct(Sockets $sockets)
+    public function __construct(private Sockets $sockets)
     {
-        $this->sockets = $sockets;
     }
 
     public function newClient(array $options = []): ApiServerClient

@@ -11,21 +11,14 @@ use Symfony\Component\DependencyInjection\Container;
 
 final class DiServicePool extends BaseServicePool
 {
-    private string $wrappedServiceId;
-
-    private Container $container;
-
     public function __construct(
-        string $wrappedServiceId,
-        Container $container,
+        private string $wrappedServiceId,
+        private Container $container,
         Locking $locking,
         int $instancesLimit = 50,
         ?Resetter $resetter = null,
         ?StabilityChecker $stabilityChecker = null
     ) {
-        $this->wrappedServiceId = $wrappedServiceId;
-        $this->container = $container;
-
         parent::__construct($wrappedServiceId, $locking, $instancesLimit, $resetter, $stabilityChecker);
     }
 

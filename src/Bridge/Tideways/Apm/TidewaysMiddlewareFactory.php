@@ -8,11 +8,8 @@ use K911\Swoole\Server\Middleware\MiddlewareFactory;
 
 final class TidewaysMiddlewareFactory implements MiddlewareFactory
 {
-    private RequestProfiler $profiler;
-
-    public function __construct(RequestProfiler $profiler)
+    public function __construct(private RequestProfiler $profiler)
     {
-        $this->profiler = $profiler;
     }
 
     public function createMiddleware(callable $nextMiddleware): callable

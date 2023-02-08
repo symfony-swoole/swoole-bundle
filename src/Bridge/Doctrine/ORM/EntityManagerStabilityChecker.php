@@ -13,7 +13,7 @@ final class EntityManagerStabilityChecker implements StabilityChecker
     public function isStable(object $service): bool
     {
         if (!$service instanceof EntityManagerInterface) {
-            throw new \UnexpectedValueException(\sprintf('Invalid service - expected %s, got %s', EntityManagerInterface::class, \get_class($service)));
+            throw new \UnexpectedValueException(\sprintf('Invalid service - expected %s, got %s', EntityManagerInterface::class, $service::class));
         }
 
         return $service->isOpen();

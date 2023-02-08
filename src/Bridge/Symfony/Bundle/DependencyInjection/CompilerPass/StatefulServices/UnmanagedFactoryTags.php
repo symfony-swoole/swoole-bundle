@@ -9,11 +9,6 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 final class UnmanagedFactoryTags
 {
     /**
-     * @var class-string
-     */
-    private string $serviceClass;
-
-    /**
      * @var array<UnmanagedFactoryTag>
      */
     private array $tags;
@@ -37,9 +32,8 @@ final class UnmanagedFactoryTags
      *     resetter?: string
      * }> $tags
      */
-    public function __construct(string $serviceClass, array $tags)
+    public function __construct(private string $serviceClass, array $tags)
     {
-        $this->serviceClass = $serviceClass;
         $this->tags = array_map(fn (array $tag): UnmanagedFactoryTag => new UnmanagedFactoryTag($tag), $tags);
     }
 
@@ -66,7 +60,13 @@ final class UnmanagedFactoryTags
                     }
 
                     if (str_starts_with($config['returnType'], '%')) {
-                        $config['returnType'] = (string) $container->getParameter(trim($config['returnType'], '%'));
+                        $returnType = $container->getParameter(trim($config['returnType'], '%'));
+
+                        if (!is_string($returnType)) {
+                            throw new \RuntimeException('Return type is not a string.');
+                        }
+
+                        $config['returnType'] = $returnType;
                     }
 
                     return $config;

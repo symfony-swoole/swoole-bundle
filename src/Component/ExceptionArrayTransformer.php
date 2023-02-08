@@ -8,14 +8,11 @@ final class ExceptionArrayTransformer
 {
     public function transform(\Throwable $exception, string $verbosity = 'default'): array
     {
-        switch ($verbosity) {
-            case 'trace':
-                return $this->transformWithFn($exception, [$this, 'transformFnVerboseWithTrace']);
-            case 'verbose':
-                return $this->transformWithFn($exception, [$this, 'transformFnVerbose']);
-            default:
-                return $this->transformWithFn($exception, [$this, 'transformFnDefault']);
-        }
+        return match ($verbosity) {
+            'trace' => $this->transformWithFn($exception, [$this, 'transformFnVerboseWithTrace']),
+            'verbose' => $this->transformWithFn($exception, [$this, 'transformFnVerbose']),
+            default => $this->transformWithFn($exception, [$this, 'transformFnDefault']),
+        };
     }
 
     private function transformWithFn(\Throwable $exception, callable $transformer): array
@@ -42,7 +39,7 @@ final class ExceptionArrayTransformer
     private function transformFnVerbose(\Throwable $exception): array
     {
         return [
-            'class' => \get_class($exception),
+            'class' => $exception::class,
             'code' => $exception->getCode(),
             'message' => $exception->getMessage(),
             'file' => $exception->getFile(),
@@ -53,7 +50,7 @@ final class ExceptionArrayTransformer
     private function transformFnVerboseWithTrace(\Throwable $exception): array
     {
         return [
-            'class' => \get_class($exception),
+            'class' => $exception::class,
             'code' => $exception->getCode(),
             'message' => $exception->getMessage(),
             'file' => $exception->getFile(),
@@ -68,6 +65,6 @@ final class ExceptionArrayTransformer
 
     private function transformTraceArgs(array $args): array
     {
-        return array_map(fn ($arg): string => \is_object($arg) ? \get_class($arg) : \gettype($arg), $args);
+        return array_map(fn ($arg): string => get_debug_type($arg), $args);
     }
 }

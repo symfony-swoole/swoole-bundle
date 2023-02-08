@@ -15,31 +15,16 @@ use Symfony\Component\Routing\Annotation\Route;
 
 final class DoctrineController
 {
-    private DummyService $dummyService;
-
-    private AdvancedDoctrineUsage $advancedUsage;
-
-    private ResetCountingRegistry $registry;
-
     /**
-     * @var array<string, CountingResetter>
+     * @param array<string, CountingResetter> $resetters
      */
-    private array $resetters;
-
-    private ?DebugDataHolder $dataHolder;
-
     public function __construct(
-        DummyService $dummyService,
-        AdvancedDoctrineUsage $advancedUsage,
-        ResetCountingRegistry $registry,
-        array $resetters = [],
-        ?DebugDataHolder $dataHolder = null
+        private DummyService $dummyService,
+        private AdvancedDoctrineUsage $advancedUsage,
+        private ResetCountingRegistry $registry,
+        private array $resetters = [],
+        private ?DebugDataHolder $dataHolder = null
     ) {
-        $this->dummyService = $dummyService;
-        $this->advancedUsage = $advancedUsage;
-        $this->registry = $registry;
-        $this->resetters = $resetters;
-        $this->dataHolder = $dataHolder;
     }
 
     /**
@@ -76,7 +61,7 @@ final class DoctrineController
         return new JsonResponse([
             'increment' => $incr,
             'resets' => $this->registry->getResetCount(),
-            'doctrineClass' => get_class($this->registry),
+            'doctrineClass' => $this->registry::class,
         ]);
     }
 

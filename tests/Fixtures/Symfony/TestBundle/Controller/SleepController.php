@@ -21,43 +21,19 @@ use Symfony\Component\Routing\Annotation\Route;
 
 final class SleepController
 {
-    private SleepingCounter $sleepingCounter;
-
-    private SleepingCounterChecker $checker;
-
-    private ShouldBeProxified $shouldBeProxified;
-
-    private ShouldBeProxified2 $shouldBeProxified2;
-
-    private DummyService $dummyService;
-
-    private Connection $connection;
-
-    private ContainerInterface $container;
-
-    private ServicePoolContainer $servicePoolContainer;
-
     /** @phpstan-ignore-next-line */
     private array $nonShared = [];
 
     public function __construct(
-        SleepingCounter $sleepingCounter,
-        SleepingCounterChecker $checker,
-        ShouldBeProxified $shouldBeProxified,
-        ShouldBeProxified2 $shouldBeProxified2,
-        DummyService $dummyService,
-        Connection $connection,
-        ContainerInterface $container,
-        ServicePoolContainer $servicePoolContainer
+        private SleepingCounter $sleepingCounter,
+        private SleepingCounterChecker $checker,
+        private ShouldBeProxified $shouldBeProxified,
+        private ShouldBeProxified2 $shouldBeProxified2,
+        private DummyService $dummyService,
+        private Connection $connection,
+        private ContainerInterface $container,
+        private ServicePoolContainer $servicePoolContainer
     ) {
-        $this->sleepingCounter = $sleepingCounter;
-        $this->checker = $checker;
-        $this->shouldBeProxified = $shouldBeProxified;
-        $this->shouldBeProxified2 = $shouldBeProxified2;
-        $this->dummyService = $dummyService;
-        $this->connection = $connection;
-        $this->container = $container;
-        $this->servicePoolContainer = $servicePoolContainer;
     }
 
     /**

@@ -12,11 +12,8 @@ use Symfony\Component\Messenger\Transport\Sender\SenderInterface;
 
 final class SwooleServerTaskSender implements SenderInterface
 {
-    private $httpServer;
-
-    public function __construct(HttpServer $httpServer)
+    public function __construct(private HttpServer $httpServer)
     {
-        $this->httpServer = $httpServer;
     }
 
     /**

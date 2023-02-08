@@ -16,9 +16,6 @@ use Swoole\Server\Port as Listener;
 final class HttpServer
 {
     public const GRACEFUL_SHUTDOWN_TIMEOUT_SECONDS = 10;
-
-    private $running;
-    private $configuration;
     /**
      * @var null|Server
      */
@@ -32,14 +29,13 @@ final class HttpServer
     private $signalReload;
     private $signalKill;
 
-    public function __construct(HttpServerConfiguration $configuration, bool $running = false)
-    {
+    public function __construct(
+        private HttpServerConfiguration $configuration,
+        private bool $running = false
+    ) {
         $this->signalTerminate = \defined('SIGTERM') ? (int) \constant('SIGTERM') : 15;
         $this->signalReload = \defined('SIGUSR1') ? (int) \constant('SIGUSR1') : 10;
         $this->signalKill = \defined('SIGKILL') ? (int) \constant('SIGKILL') : 9;
-
-        $this->running = $running;
-        $this->configuration = $configuration;
     }
 
     /**
@@ -119,10 +115,7 @@ final class HttpServer
         return $this->server;
     }
 
-    /**
-     * @param mixed $data
-     */
-    public function dispatchTask($data): void
+    public function dispatchTask(mixed $data): void
     {
         $this->getServer()->task($data);
     }
@@ -139,7 +132,7 @@ final class HttpServer
     {
         try {
             return Process::kill($this->configuration->getPid(), 0);
-        } catch (\Throwable $ex) {
+        } catch (\Throwable) {
             return false;
         }
     }

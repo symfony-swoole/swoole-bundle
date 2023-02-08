@@ -10,14 +10,8 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 final class NoOpStreamedResponseProcessor implements ResponseProcessorInterface
 {
-    /**
-     * @var ResponseProcessorInterface
-     */
-    private $decorated;
-
-    public function __construct(ResponseProcessorInterface $decorated)
+    public function __construct(private ResponseProcessorInterface $decorated)
     {
-        $this->decorated = $decorated;
     }
 
     /**

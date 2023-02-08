@@ -14,19 +14,17 @@ use Ramsey\Uuid\UuidInterface;
 class AdvancedTest
 {
     /**
-     * @ORM\Id()
-     * @ORM\Column(type="guid")
-     */
-    private UuidInterface $uuid;
-
-    /**
      * @ORM\Column(type="integer")
      */
     private int $counter = 0;
 
-    public function __construct(UuidInterface $uuid)
-    {
-        $this->uuid = $uuid;
+    public function __construct(
+        /**
+         * @ORM\Id()
+         * @ORM\Column(type="guid")
+         */
+        private UuidInterface $uuid
+    ) {
     }
 
     public function getUuid(): UuidInterface

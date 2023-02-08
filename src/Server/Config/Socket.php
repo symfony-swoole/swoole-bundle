@@ -29,11 +29,6 @@ final class Socket
     private $port;
 
     /**
-     * @var string
-     */
-    private $type;
-
-    /**
      * @var bool
      */
     private $ssl;
@@ -41,16 +36,18 @@ final class Socket
     /**
      * @throws \Assert\AssertionFailedException
      */
-    public function __construct(string $host = '0.0.0.0', int $port = 9501, string $type = 'tcp', bool $ssl = false)
-    {
+    public function __construct(
+        string $host = '0.0.0.0',
+        int $port = 9501,
+        private string $type = 'tcp',
+        bool $ssl = false
+    ) {
         $this->setHost($host);
         $this->setPort($port);
 
         if ($ssl) {
             Assertion::defined('SWOOLE_SSL', self::CONSTANT_SWOOLE_SSL_IS_NOT_DEFINED_ERROR_MESSAGE);
         }
-
-        $this->type = $type;
         $this->ssl = $ssl;
     }
 

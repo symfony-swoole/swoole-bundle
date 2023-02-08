@@ -9,11 +9,8 @@ use Swoole\Http\Server;
 
 final class WithProfiler implements ConfiguratorInterface
 {
-    private ProfilerActivator $profilerActivator;
-
-    public function __construct(ProfilerActivator $profilerActivator)
+    public function __construct(private ProfilerActivator $profilerActivator)
     {
-        $this->profilerActivator = $profilerActivator;
     }
 
     /**

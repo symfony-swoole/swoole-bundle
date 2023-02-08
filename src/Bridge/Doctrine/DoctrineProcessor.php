@@ -18,16 +18,10 @@ use Symfony\Component\DependencyInjection\Reference;
 final class DoctrineProcessor implements CompileProcessor
 {
     /**
-     * @var array{global_limit?: int, limits?: array<string, int>}
-     */
-    private array $config;
-
-    /**
      * @param array{global_limit?: int, limits?: array<string, int>} $config
      */
-    public function __construct(array $config = [])
+    public function __construct(private array $config = [])
     {
-        $this->config = $config;
     }
 
     public function process(ContainerBuilder $container, Proxifier $proxifier): void

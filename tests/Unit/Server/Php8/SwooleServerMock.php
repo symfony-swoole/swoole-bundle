@@ -18,7 +18,7 @@ final class SwooleServerMock extends Server
         $this->taskworker = $taskworker;
     }
 
-    public function tick(int $ms, callable $callback): int|bool
+    public function tick(int $ms, callable $callback, ...$params): int|bool
     {
         $this->registeredTick = true;
         $this->registeredTickTuple = [$ms, $callback];

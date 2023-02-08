@@ -23,11 +23,11 @@ class Test
     /**
      * @ORM\Column(type="guid")
      */
-    private $uuid;
+    private string  $uuid;
 
     public function __construct(UuidInterface $uuid)
     {
-        $this->uuid = $uuid;
+        $this->uuid = $uuid->toString();
     }
 
     public function getId(): int
@@ -35,12 +35,7 @@ class Test
         return $this->id;
     }
 
-    /**
-     * @throws \Ramsey\Uuid\Exception\InvalidUuidStringException
-     *
-     * @return UuidInterface
-     */
-    public function getUuid()
+    public function getUuid(): string
     {
         return $this->uuid;
     }

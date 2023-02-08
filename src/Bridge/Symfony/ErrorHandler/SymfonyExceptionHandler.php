@@ -14,36 +14,12 @@ use Symfony\Component\HttpKernel\TerminableInterface;
 
 final class SymfonyExceptionHandler implements ExceptionHandlerInterface
 {
-    /**
-     * @var HttpKernelInterface
-     */
-    private $kernel;
-
-    /**
-     * @var RequestFactoryInterface
-     */
-    private $requestFactory;
-
-    /**
-     * @var ResponseProcessorInterface
-     */
-    private $responseProcessor;
-
-    /**
-     * @var ErrorResponder
-     */
-    private $errorResponder;
-
     public function __construct(
-        HttpKernelInterface $kernel,
-        RequestFactoryInterface $requestFactory,
-        ResponseProcessorInterface $responseProcessor,
-        ErrorResponder $errorResponder
+        private HttpKernelInterface $kernel,
+        private RequestFactoryInterface $requestFactory,
+        private ResponseProcessorInterface $responseProcessor,
+        private ErrorResponder $errorResponder
     ) {
-        $this->kernel = $kernel;
-        $this->requestFactory = $requestFactory;
-        $this->responseProcessor = $responseProcessor;
-        $this->errorResponder = $errorResponder;
     }
 
     public function handle(Request $request, \Throwable $exception, Response $response): void

@@ -10,13 +10,10 @@ use Swoole\Http\Response;
 
 final class ExceptionRequestHandler implements RequestHandlerInterface
 {
-    private $decorated;
-    private $exceptionHandler;
-
-    public function __construct(RequestHandlerInterface $decorated, ExceptionHandlerInterface $exceptionHandler)
-    {
-        $this->decorated = $decorated;
-        $this->exceptionHandler = $exceptionHandler;
+    public function __construct(
+        private RequestHandlerInterface $decorated,
+        private ExceptionHandlerInterface $exceptionHandler
+    ) {
     }
 
     /**

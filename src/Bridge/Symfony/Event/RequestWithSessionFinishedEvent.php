@@ -10,11 +10,8 @@ final class RequestWithSessionFinishedEvent extends Event
 {
     public const NAME = 'swoole_bundle.request.with.session.finished';
 
-    private string $sessionId;
-
-    public function __construct(string $sessionId)
+    public function __construct(private string $sessionId)
     {
-        $this->sessionId = $sessionId;
     }
 
     public function getSessionId(): string

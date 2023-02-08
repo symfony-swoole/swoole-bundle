@@ -23,23 +23,14 @@ use Symfony\Component\HttpKernel\KernelEvents;
  */
 final class SessionCookieEventListener implements EventSubscriberInterface
 {
-    private RequestStack $requestStack;
-
-    private StorageInterface $swooleStorage;
-
     private array $sessionCookieParameters;
 
-    private EventDispatcherInterface $dispatcher;
-
     public function __construct(
-        RequestStack $requestStack,
-        EventDispatcherInterface $dispatcher,
-        StorageInterface $swooleStorage,
+        private RequestStack $requestStack,
+        private EventDispatcherInterface $dispatcher,
+        private StorageInterface $swooleStorage,
         array $sessionOptions = []
     ) {
-        $this->requestStack = $requestStack;
-        $this->swooleStorage = $swooleStorage;
-        $this->dispatcher = $dispatcher;
         $this->sessionCookieParameters = $this->mergeCookieParams($sessionOptions);
     }
 

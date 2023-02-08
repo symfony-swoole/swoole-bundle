@@ -8,12 +8,9 @@ use Swoole\Atomic;
 
 final class AtomicStub extends Atomic
 {
-    private $value;
-
-    public function __construct(int $value)
+    public function __construct(private int $value)
     {
         parent::__construct(0);
-        $this->value = $value;
     }
 
     public function get(): int

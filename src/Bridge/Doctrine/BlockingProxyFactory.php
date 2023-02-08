@@ -11,14 +11,10 @@ use K911\Swoole\Component\Locking\Locking;
 
 final class BlockingProxyFactory extends ProxyFactory
 {
-    private ProxyFactory $wrapped;
-
     private static ?Locking $locking = null;
 
-    public function __construct(ProxyFactory $wrapped)
+    public function __construct(private ProxyFactory $wrapped)
     {
-        $this->wrapped = $wrapped;
-
         if (null === self::$locking) {
             self::$locking = FirstTimeOnlyLocking::init();
         }

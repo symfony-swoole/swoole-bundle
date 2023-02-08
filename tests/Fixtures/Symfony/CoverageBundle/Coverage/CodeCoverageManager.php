@@ -11,31 +11,20 @@ use Symfony\Contracts\Service\ResetInterface;
 
 class CodeCoverageManager implements ResetInterface
 {
-    /**
-     * @var string
-     */
-    private $testName;
+    private string $testName;
 
-    /**
-     * @var string
-     */
-    private $coveragePath;
+    private string $coveragePath;
 
-    /**
-     * @var bool
-     */
-    private $enabled;
-
-    private $codeCoverage;
-    private $writer;
+    private bool $enabled;
 
     private $finished = false;
     private $started = false;
 
-    public function __construct(ParameterBagInterface $parameterBag, CodeCoverage $codeCoverage, PHP $writer)
-    {
-        $this->codeCoverage = $codeCoverage;
-
+    public function __construct(
+        ParameterBagInterface $parameterBag,
+        private CodeCoverage $codeCoverage,
+        private PHP $writer
+    ) {
         $this->enabled = $parameterBag->get('coverage.enabled');
 
         $testName = null;
@@ -48,8 +37,6 @@ class CodeCoverageManager implements ResetInterface
         $this->coveragePath = $parameterBag->get('coverage.path');
 
         $this->initalizeCodeCoverage($parameterBag, $codeCoverage);
-
-        $this->writer = $writer;
     }
 
     public function start(?string $testName = null): void

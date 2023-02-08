@@ -9,13 +9,10 @@ use K911\Swoole\Bridge\Symfony\Container\ServicePool\ServicePoolContainer;
 
 final class CoWrapper
 {
-    private ServicePoolContainer $servicePoolContainer;
-
     private static ?self $instance;
 
-    public function __construct(ServicePoolContainer $servicePoolContainer)
+    public function __construct(private ServicePoolContainer $servicePoolContainer)
     {
-        $this->servicePoolContainer = $servicePoolContainer;
         self::$instance = $this;
     }
 

@@ -13,16 +13,14 @@ use IteratorAggregate;
  */
 final class GeneratedCollection implements \IteratorAggregate
 {
-    private $itemCollection;
     private $items;
 
     /**
      * @param iterable<T> $itemCollection
      * @param T           ...$items
      */
-    public function __construct(iterable $itemCollection, ...$items)
+    public function __construct(private iterable $itemCollection, ...$items)
     {
-        $this->itemCollection = $itemCollection;
         $this->items = $items;
     }
 

@@ -14,13 +14,10 @@ use Swoole\Server\Port;
  */
 final class ApiServer implements ApiServerInterface
 {
-    private $server;
-    private $serverConfiguration;
-
-    public function __construct(HttpServer $server, HttpServerConfiguration $serverConfiguration)
-    {
-        $this->server = $server;
-        $this->serverConfiguration = $serverConfiguration;
+    public function __construct(
+        private HttpServer $server,
+        private HttpServerConfiguration $serverConfiguration
+    ) {
     }
 
     /**

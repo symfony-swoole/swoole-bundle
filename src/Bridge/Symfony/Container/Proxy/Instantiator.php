@@ -13,11 +13,8 @@ use ProxyManager\Proxy\VirtualProxyInterface;
 
 final class Instantiator
 {
-    private LazyLoadingValueHolderFactory $proxyFactory;
-
-    public function __construct(LazyLoadingValueHolderFactory $proxyFactory)
+    public function __construct(private LazyLoadingValueHolderFactory $proxyFactory)
     {
-        $this->proxyFactory = $proxyFactory;
     }
 
     /**

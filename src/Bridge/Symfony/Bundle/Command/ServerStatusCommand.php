@@ -19,19 +19,11 @@ use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 
 final class ServerStatusCommand extends Command
 {
-    private $apiServerClientFactory;
-    private $sockets;
-    private $parameterBag;
-
     public function __construct(
-        Sockets $sockets,
-        ApiServerClientFactory $apiServerClientFactory,
-        ParameterBagInterface $parameterBag
+        private Sockets $sockets,
+        private ApiServerClientFactory $apiServerClientFactory,
+        private ParameterBagInterface $parameterBag
     ) {
-        $this->sockets = $sockets;
-        $this->apiServerClientFactory = $apiServerClientFactory;
-        $this->parameterBag = $parameterBag;
-
         parent::__construct();
     }
 
@@ -75,7 +67,7 @@ final class ServerStatusCommand extends Command
 
         try {
             $coroutinePool->run();
-        } catch (ClientConnectionErrorException $errorException) {
+        } catch (ClientConnectionErrorException) {
             $io->error('An error occurred while connecting to the API Server. Please verify configuration.');
             $exitCode = 1;
         }

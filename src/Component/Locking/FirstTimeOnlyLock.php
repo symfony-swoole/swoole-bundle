@@ -10,17 +10,11 @@ final class FirstTimeOnlyLock implements Lock
 
     public const RELEASED = 2;
 
-    private ?string $key;
-
-    private ?Store $store;
-
-    private ?Lock $wrapped;
-
-    private function __construct(?string $key = null, ?Store $store = null, ?Lock $wrapped = null)
-    {
-        $this->key = $key;
-        $this->store = $store;
-        $this->wrapped = $wrapped;
+    private function __construct(
+        private ?string $key = null,
+        private ?Store $store = null,
+        private ?Lock $wrapped = null
+    ) {
     }
 
     public static function locked(string $key, Store $store, Lock $wrapped): self

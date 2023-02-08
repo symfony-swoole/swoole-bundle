@@ -10,13 +10,10 @@ use Swoole\Server;
 
 final class ExceptionLoggingTransportHandler implements TaskHandlerInterface
 {
-    private TaskHandlerInterface $decorated;
-    private LoggerInterface $logger;
-
-    public function __construct(TaskHandlerInterface $decorated, LoggerInterface $logger)
-    {
-        $this->decorated = $decorated;
-        $this->logger = $logger;
+    public function __construct(
+        private TaskHandlerInterface $decorated,
+        private LoggerInterface $logger
+    ) {
     }
 
     /**

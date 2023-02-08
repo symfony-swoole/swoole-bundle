@@ -19,7 +19,7 @@ class BlockingContainer extends Container
         $locking = ContainerLocking::init();
 
         if (!$locking instanceof ContainerLocking) {
-            throw new \UnexpectedValueException(sprintf('Invalid locking class: %s', get_class($locking)));
+            throw new \UnexpectedValueException(sprintf('Invalid locking class: %s', $locking::class));
         }
 
         self::$locking = $locking;

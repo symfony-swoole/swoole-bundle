@@ -10,13 +10,10 @@ use Swoole\Http\Server;
 
 final class WithTaskHandler implements ConfiguratorInterface
 {
-    private $handler;
-    private $configuration;
-
-    public function __construct(TaskHandlerInterface $handler, HttpServerConfiguration $configuration)
-    {
-        $this->handler = $handler;
-        $this->configuration = $configuration;
+    public function __construct(
+        private TaskHandlerInterface $handler,
+        private HttpServerConfiguration $configuration
+    ) {
     }
 
     /**

@@ -15,21 +15,12 @@ use Symfony\Component\HttpKernel\TerminableInterface;
 
 final class HttpKernelRequestHandler implements RequestHandlerInterface, BootableInterface
 {
-    private $processorInjector;
-    private $kernelPool;
-    private $requestFactory;
-    private $responseProcessor;
-
     public function __construct(
-        KernelPoolInterface $kernelPool,
-        RequestFactoryInterface $requestFactory,
-        ResponseProcessorInjectorInterface $processorInjector,
-        ResponseProcessorInterface $responseProcessor
+        private KernelPoolInterface $kernelPool,
+        private RequestFactoryInterface $requestFactory,
+        private ResponseProcessorInjectorInterface $processorInjector,
+        private ResponseProcessorInterface $responseProcessor
     ) {
-        $this->kernelPool = $kernelPool;
-        $this->requestFactory = $requestFactory;
-        $this->responseProcessor = $responseProcessor;
-        $this->processorInjector = $processorInjector;
     }
 
     /**

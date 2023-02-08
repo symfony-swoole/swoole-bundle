@@ -14,20 +14,10 @@ use Twig\Error\SyntaxError;
 
 class TwigController
 {
-    /**
-     * @var Environment
-     */
-    private $environment;
-
-    /**
-     * @var LoggerInterface
-     */
-    private $logger;
-
-    public function __construct(Environment $environment, LoggerInterface $logger)
-    {
-        $this->environment = $environment;
-        $this->logger = $logger;
+    public function __construct(
+        private Environment $environment,
+        private LoggerInterface $logger
+    ) {
     }
 
     /**

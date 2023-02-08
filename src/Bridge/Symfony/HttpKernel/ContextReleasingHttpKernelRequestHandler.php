@@ -11,13 +11,10 @@ use Swoole\Http\Response as SwooleResponse;
 
 final class ContextReleasingHttpKernelRequestHandler implements RequestHandlerInterface
 {
-    private RequestHandlerInterface $decorated;
-    private CoWrapper $coWrapper;
-
-    public function __construct(RequestHandlerInterface $decorated, CoWrapper $coWrapper)
-    {
-        $this->decorated = $decorated;
-        $this->coWrapper = $coWrapper;
+    public function __construct(
+        private RequestHandlerInterface $decorated,
+        private CoWrapper $coWrapper
+    ) {
     }
 
     /**

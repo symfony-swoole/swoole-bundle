@@ -13,23 +13,13 @@ use K911\Swoole\Bridge\Symfony\Bundle\DependencyInjection\ContainerConstants;
 final class Tags implements \IteratorAggregate
 {
     /**
-     * @var class-string
-     */
-    private string $serviceClass;
-
-    /**
-     * @var array<string, array<array<string, mixed>>>
-     */
-    private array $tags;
-
-    /**
      * @param class-string                               $serviceClass
      * @param array<string, array<array<string, mixed>>> $tags
      */
-    public function __construct(string $serviceClass, array $tags)
-    {
-        $this->serviceClass = $serviceClass;
-        $this->tags = $tags;
+    public function __construct(
+        private string $serviceClass,
+        private array $tags
+    ) {
     }
 
     public function hasStatefulServiceTag(): bool

@@ -11,17 +11,7 @@ use K911\Swoole\Component\Locking\Locking;
 
 abstract class BaseServicePool implements ServicePool
 {
-    private string $lockingKey;
-
-    private Locking $locking;
-
-    private ?Resetter $resetter;
-
-    private ?StabilityChecker $stabilityChecker;
-
     private ?Lock $lock = null;
-
-    private int $instancesLimit;
 
     private int $assignedCount = 0;
 
@@ -36,17 +26,12 @@ abstract class BaseServicePool implements ServicePool
     private array $assignedPool = [];
 
     public function __construct(
-        string $lockingKey,
-        Locking $locking,
-        int $instancesLimit = 50,
-        ?Resetter $resetter = null,
-        ?StabilityChecker $stabilityChecker = null
+        private string $lockingKey,
+        private Locking $locking,
+        private int $instancesLimit = 50,
+        private ?Resetter $resetter = null,
+        private ?StabilityChecker $stabilityChecker = null
     ) {
-        $this->lockingKey = $lockingKey;
-        $this->instancesLimit = $instancesLimit;
-        $this->locking = $locking;
-        $this->resetter = $resetter;
-        $this->stabilityChecker = $stabilityChecker;
     }
 
     public function get(): object

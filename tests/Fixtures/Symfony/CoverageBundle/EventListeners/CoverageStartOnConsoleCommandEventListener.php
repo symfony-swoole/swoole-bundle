@@ -9,11 +9,8 @@ use Symfony\Component\Console\Event\ConsoleCommandEvent;
 
 final class CoverageStartOnConsoleCommandEventListener
 {
-    private $coverageManager;
-
-    public function __construct(CodeCoverageManager $coverageManager)
+    public function __construct(private CodeCoverageManager $coverageManager)
     {
-        $this->coverageManager = $coverageManager;
     }
 
     public function __invoke(ConsoleCommandEvent $commandEvent): void

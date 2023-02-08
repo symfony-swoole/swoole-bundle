@@ -91,33 +91,24 @@ final class AdvancedStaticFilesServer implements RequestHandlerInterface, Bootab
         'zip' => 'application/zip',
     ];
 
-    private $decorated;
-    private $configuration;
-
     /**
      * @var array<string,string>
      */
-    private $cachedMimeTypes;
+    private array $cachedMimeTypes = [];
+
+    private string $publicDir;
 
     /**
-     * @var string
+     * @var array<string, string>
      */
-    private $publicDir;
-
-    /**
-     * @var array
-     */
-    private $fileExtensionMimeTypeMap;
+    private array $fileExtensionMimeTypeMap;
 
     public function __construct(
-        RequestHandlerInterface $decorated,
-        HttpServerConfiguration $configuration,
+        private RequestHandlerInterface $decorated,
+        private HttpServerConfiguration $configuration,
         array $customMimeTypes = []
     ) {
-        $this->decorated = $decorated;
-        $this->configuration = $configuration;
         $this->fileExtensionMimeTypeMap = array_merge(self::FILE_EXTENSION_MIME_TYPE_DEFAULT_MAP, $customMimeTypes);
-        $this->cachedMimeTypes = [];
     }
 
     /**

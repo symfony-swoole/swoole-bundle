@@ -10,13 +10,12 @@ use Tideways\Profiler;
 
 final class RequestProfiler
 {
-    private RequestDataProvider $dataProvider;
-
     private string $serviceName;
 
-    public function __construct(RequestDataProvider $dataProvider, string $serviceName = 'web')
-    {
-        $this->dataProvider = $dataProvider;
+    public function __construct(
+        private RequestDataProvider $dataProvider,
+        string $serviceName = 'web'
+    ) {
         $serviceName = trim($serviceName);
         $this->serviceName = '' !== $serviceName ? $serviceName : 'web';
     }

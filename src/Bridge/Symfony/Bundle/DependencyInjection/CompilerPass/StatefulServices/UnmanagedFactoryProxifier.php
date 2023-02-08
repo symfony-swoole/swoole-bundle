@@ -12,14 +12,10 @@ use Symfony\Component\DependencyInjection\Reference;
 
 final class UnmanagedFactoryProxifier
 {
-    private ContainerBuilder $container;
-
-    private FinalClassesProcessor $finalProcessor;
-
-    public function __construct(ContainerBuilder $container, FinalClassesProcessor $finalProcessor)
-    {
-        $this->container = $container;
-        $this->finalProcessor = $finalProcessor;
+    public function __construct(
+        private ContainerBuilder $container,
+        private FinalClassesProcessor $finalProcessor
+    ) {
     }
 
     /**
@@ -84,7 +80,12 @@ final class UnmanagedFactoryProxifier
             $this->finalProcessor->process($factoryConfig['returnType']);
         }
 
-        $instanceLimit = (int) $this->container->getParameter(ContainerConstants::PARAM_COROUTINES_MAX_SVC_INSTANCES);
+        $instanceLimit = $this->container->getParameter(ContainerConstants::PARAM_COROUTINES_MAX_SVC_INSTANCES);
+
+        if (!is_int($instanceLimit)) {
+            throw new \UnexpectedValueException(sprintf('Parameter %s must be an integer', ContainerConstants::PARAM_COROUTINES_MAX_SVC_INSTANCES));
+        }
+
         $proxyDef->setArgument(2, $instanceLimit);
 
         foreach ($serviceTags as $tag => $attributes) {

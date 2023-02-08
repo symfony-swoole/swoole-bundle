@@ -11,11 +11,8 @@ use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
 final class EventDispatchingServerStartHandler implements ServerStartHandlerInterface
 {
-    private EventDispatcherInterface $eventDispatcher;
-
-    public function __construct(EventDispatcherInterface $eventDispatcher)
+    public function __construct(private EventDispatcherInterface $eventDispatcher)
     {
-        $this->eventDispatcher = $eventDispatcher;
     }
 
     public function handle(Server $server): void

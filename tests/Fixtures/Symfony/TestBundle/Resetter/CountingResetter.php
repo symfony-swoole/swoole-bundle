@@ -8,13 +8,10 @@ use K911\Swoole\Bridge\Symfony\Container\Resetter;
 
 final class CountingResetter implements Resetter
 {
-    private Resetter $decorated;
-
     private int $counter = 0;
 
-    public function __construct(Resetter $decorated)
+    public function __construct(private Resetter $decorated)
     {
-        $this->decorated = $decorated;
     }
 
     public function reset(object $service): void

@@ -12,7 +12,7 @@ final class EntityManagerResetter implements Resetter
     public function reset(object $service): void
     {
         if (!$service instanceof ObjectManager) {
-            throw new \UnexpectedValueException(\sprintf('Invalid service - expected %s, got %s', ObjectManager::class, \get_class($service)));
+            throw new \UnexpectedValueException(\sprintf('Invalid service - expected %s, got %s', ObjectManager::class, $service::class));
         }
 
         $service->clear();

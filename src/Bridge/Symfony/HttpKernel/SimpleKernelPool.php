@@ -8,11 +8,8 @@ use Symfony\Component\HttpKernel\KernelInterface;
 
 final class SimpleKernelPool implements KernelPoolInterface
 {
-    private $kernel;
-
-    public function __construct(KernelInterface $kernel)
+    public function __construct(private KernelInterface $kernel)
     {
-        $this->kernel = $kernel;
     }
 
     public function boot(): void

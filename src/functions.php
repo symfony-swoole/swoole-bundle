@@ -8,10 +8,9 @@ namespace K911\Swoole;
  * Replaces object property with provided value.
  * Property may not be public.
  *
- * @param mixed       $newValue
- * @param null|string $scope    class scope useful when property is inherited
+ * @param null|string $scope class scope useful when property is inherited
  */
-function replace_object_property(object $obj, string $propertyName, $newValue, ?string $scope = null): void
+function replace_object_property(object $obj, string $propertyName, mixed $newValue, ?string $scope = null): void
 {
     \Closure::bind(function (string $propertyName, $newValue): void {
         $this->$propertyName = $newValue;

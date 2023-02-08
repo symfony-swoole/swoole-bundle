@@ -18,19 +18,11 @@ final class ServerStopCommand extends Command
 {
     use ParametersHelperTrait;
 
-    private $server;
-    private $serverConfiguration;
-    private $parameterBag;
-
     public function __construct(
-        HttpServer $server,
-        HttpServerConfiguration $serverConfiguration,
-        ParameterBagInterface $parameterBag
+        private HttpServer $server,
+        private HttpServerConfiguration $serverConfiguration,
+        private ParameterBagInterface $parameterBag
     ) {
-        $this->server = $server;
-        $this->serverConfiguration = $serverConfiguration;
-        $this->parameterBag = $parameterBag;
-
         parent::__construct();
     }
 

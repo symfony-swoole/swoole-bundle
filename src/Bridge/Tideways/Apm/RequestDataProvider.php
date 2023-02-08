@@ -10,11 +10,8 @@ use Symfony\Component\HttpFoundation\Request as SymfonyRequest;
 
 final class RequestDataProvider
 {
-    private RequestFactoryInterface $requestFactory;
-
-    public function __construct(RequestFactoryInterface $requestFactory)
+    public function __construct(private RequestFactoryInterface $requestFactory)
     {
-        $this->requestFactory = $requestFactory;
     }
 
     public function getSymfonyRequest(SwooleRequest $request): SymfonyRequest

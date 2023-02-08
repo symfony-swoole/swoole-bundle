@@ -1,5 +1,5 @@
-ARG PHP_TAG="7.4-cli-alpine3.16"
-ARG COMPOSER_TAG="2.3.10"
+ARG PHP_TAG="8.0-cli-alpine3.16"
+ARG COMPOSER_TAG="2.5.2"
 
 FROM php:$PHP_TAG as ext-builder
 RUN apk add --no-cache linux-headers
@@ -33,13 +33,13 @@ RUN apk add --no-cache libffi-dev unzip \
     && docker-php-ext-install ffi
 
 FROM ext-builder as ext-xdebug
-ARG XDEBUG_TAG="3.1.6"
+ARG XDEBUG_TAG="3.2.0"
 RUN pecl install "xdebug-$XDEBUG_TAG" && \
     docker-php-ext-enable xdebug
 
 FROM ext-builder as ext-openswoole
 RUN apk add --no-cache git
-ARG SWOOLE_VERSION="4.10.0"
+ARG SWOOLE_VERSION="4.12.1"
 RUN if $(echo "$SWOOLE_VERSION" | grep -qE '^[4-9]\.[0-9]+\.[0-9]+$'); then SWOOLE_GIT_REF="v$SWOOLE_VERSION"; else SWOOLE_GIT_REF="$SWOOLE_VERSION"; fi && \
     git clone https://github.com/openswoole/swoole-src.git --branch "$SWOOLE_GIT_REF" --depth 1 && \
     cd swoole-src && \
@@ -62,7 +62,7 @@ RUN addgroup -g 1000 -S runner && \
     chown app:runner /usr/src/app
 RUN apk add --no-cache libstdc++ icu lsof libffi vim
 # php -i | grep 'PHP API' | sed -e 's/PHP API => //'
-ARG PHP_API_VERSION="20190902"
+ARG PHP_API_VERSION="20200930"
 COPY --from=ext-openswoole /usr/local/lib/php/extensions/no-debug-non-zts-${PHP_API_VERSION}/openswoole.so /usr/local/lib/php/extensions/no-debug-non-zts-${PHP_API_VERSION}/openswoole.so
 COPY --from=ext-openswoole /usr/local/etc/php/conf.d/docker-php-ext-openswoole.ini /usr/local/etc/php/conf.d/docker-php-ext-openswoole.ini
 COPY --from=ext-inotify /usr/local/lib/php/extensions/no-debug-non-zts-${PHP_API_VERSION}/inotify.so /usr/local/lib/php/extensions/no-debug-non-zts-${PHP_API_VERSION}/inotify.so
@@ -92,7 +92,7 @@ RUN composer dump-autoload --classmap-authoritative --ansi
 
 FROM base as base-coverage-xdebug
 RUN apk add --no-cache bash
-ARG PHP_API_VERSION="20190902"
+ARG PHP_API_VERSION="20200930"
 COPY --from=ext-xdebug /usr/local/lib/php/extensions/no-debug-non-zts-${PHP_API_VERSION}/xdebug.so /usr/local/lib/php/extensions/no-debug-non-zts-${PHP_API_VERSION}/xdebug.so
 COPY --from=ext-xdebug /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
 USER app:runner
@@ -103,7 +103,7 @@ COPY --chown=app:runner --from=composer-bin /usr/bin/composer /usr/local/bin/com
 COPY --chown=app:runner --from=app-installer /usr/src/app ./
 
 FROM base as base-coverage-pcov
-ARG PHP_API_VERSION="20190902"
+ARG PHP_API_VERSION="20200930"
 COPY --from=ext-pcov /usr/local/lib/php/extensions/no-debug-non-zts-${PHP_API_VERSION}/pcov.so /usr/local/lib/php/extensions/no-debug-non-zts-${PHP_API_VERSION}/pcov.so
 COPY --from=ext-pcov /usr/local/etc/php/conf.d/docker-php-ext-pcov.ini /usr/local/etc/php/conf.d/docker-php-ext-pcov.ini
 USER app:runner
@@ -113,7 +113,7 @@ COPY --chown=app:runner --from=composer-bin /usr/bin/composer /usr/local/bin/com
 COPY --chown=app:runner --from=app-installer /usr/src/app ./
 
 FROM base as base-pcov-xdebug
-ARG PHP_API_VERSION="20190902"
+ARG PHP_API_VERSION="20200930"
 COPY --from=ext-pcov /usr/local/lib/php/extensions/no-debug-non-zts-${PHP_API_VERSION}/pcov.so /usr/local/lib/php/extensions/no-debug-non-zts-${PHP_API_VERSION}/pcov.so
 COPY --from=ext-pcov /usr/local/etc/php/conf.d/docker-php-ext-pcov.ini /usr/local/etc/php/conf.d/docker-php-ext-pcov.ini
 COPY --from=ext-xdebug /usr/local/lib/php/extensions/no-debug-non-zts-${PHP_API_VERSION}/xdebug.so /usr/local/lib/php/extensions/no-debug-non-zts-${PHP_API_VERSION}/xdebug.so

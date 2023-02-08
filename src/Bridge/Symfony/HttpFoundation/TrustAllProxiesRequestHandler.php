@@ -14,13 +14,10 @@ final class TrustAllProxiesRequestHandler implements RequestHandlerInterface, Bo
 {
     public const HEADER_X_FORWARDED_ALL = SymfonyRequest::HEADER_X_FORWARDED_FOR | SymfonyRequest::HEADER_X_FORWARDED_HOST | SymfonyRequest::HEADER_X_FORWARDED_PORT | SymfonyRequest::HEADER_X_FORWARDED_PROTO;
 
-    private $decorated;
-    private $trustAllProxies;
-
-    public function __construct(RequestHandlerInterface $decorated, bool $trustAllProxies = false)
-    {
-        $this->decorated = $decorated;
-        $this->trustAllProxies = $trustAllProxies;
+    public function __construct(
+        private RequestHandlerInterface $decorated,
+        private bool $trustAllProxies = false
+    ) {
     }
 
     /**

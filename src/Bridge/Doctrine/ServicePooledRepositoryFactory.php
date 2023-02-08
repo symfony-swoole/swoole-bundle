@@ -10,14 +10,10 @@ use Doctrine\Persistence\ObjectRepository;
 
 final class ServicePooledRepositoryFactory implements RepositoryFactory
 {
-    private RepositoryFactory $decorated;
-
-    private EntityManagerInterface $pooledEm;
-
-    public function __construct(RepositoryFactory $decorated, EntityManagerInterface $pooledEm)
-    {
-        $this->decorated = $decorated;
-        $this->pooledEm = $pooledEm;
+    public function __construct(
+        private RepositoryFactory $decorated,
+        private EntityManagerInterface $pooledEm
+    ) {
     }
 
     public function getRepository(EntityManagerInterface $entityManager, $entityName): ObjectRepository

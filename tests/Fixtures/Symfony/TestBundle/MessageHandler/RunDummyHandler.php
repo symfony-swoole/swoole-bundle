@@ -10,14 +10,10 @@ use Psr\Log\LoggerInterface;
 
 final class RunDummyHandler
 {
-    private LoggerInterface $logger;
-
-    private DummyService $dummyService;
-
-    public function __construct(DummyService $dummyService, LoggerInterface $logger)
-    {
-        $this->dummyService = $dummyService;
-        $this->logger = $logger;
+    public function __construct(
+        private DummyService $dummyService,
+        private LoggerInterface $logger
+    ) {
     }
 
     public function __invoke(RunDummy $message): void

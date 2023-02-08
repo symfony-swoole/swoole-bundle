@@ -8,16 +8,13 @@ use Symfony\Component\HttpKernel\KernelInterface;
 
 final class CoroutineKernelPool implements KernelPoolInterface
 {
-    private KernelInterface $kernel;
-
     /**
      * @var array<KernelInterface>
      */
     private array $kernels = [];
 
-    public function __construct(KernelInterface $kernel)
+    public function __construct(private KernelInterface $kernel)
     {
-        $this->kernel = $kernel;
     }
 
     public function boot(): void

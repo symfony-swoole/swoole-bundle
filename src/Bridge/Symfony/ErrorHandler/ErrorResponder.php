@@ -10,20 +10,10 @@ use Symfony\Component\HttpFoundation\Response;
 
 final class ErrorResponder
 {
-    /**
-     * @var ErrorHandler
-     */
-    private $errorHandler;
-
-    /**
-     * @var ExceptionHandlerFactory
-     */
-    private $handlerFactory;
-
-    public function __construct(ErrorHandler $errorHandler, ExceptionHandlerFactory $handlerFactory)
-    {
-        $this->errorHandler = $errorHandler;
-        $this->handlerFactory = $handlerFactory;
+    public function __construct(
+        private ErrorHandler $errorHandler,
+        private ExceptionHandlerFactory $handlerFactory
+    ) {
     }
 
     public function processErroredRequest(Request $request, \Throwable $throwable): Response

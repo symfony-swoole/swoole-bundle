@@ -6,17 +6,11 @@ namespace K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Message;
 
 final class SleepAndAppend
 {
-    private string $fileName;
-
-    private int $sleepMs;
-
-    private string $append;
-
-    public function __construct(string $fileName, int $sleepMs, string $append)
-    {
-        $this->fileName = $fileName;
-        $this->sleepMs = $sleepMs;
-        $this->append = $append;
+    public function __construct(
+        private string $fileName,
+        private int $sleepMs,
+        private string $append
+    ) {
     }
 
     public function getFileName(): string

@@ -14,7 +14,7 @@ services:
     public: false
 
   K911\Swoole\Component\AtomicCounter:
-    factory: [ 'K911\Swoole\Component\AtomicCounter', fromZero ]
+    factory: [ 'K911\Swoole\Component\AtomicCounter', 'fromZero' ]
 
   K911\Swoole\Component\ExceptionArrayTransformer:
 
@@ -94,7 +94,7 @@ services:
 
   K911\Swoole\Server\Runtime\BootableInterface:
     class: K911\Swoole\Server\Runtime\CallableBootManager
-    factory: [ '@K911\Swoole\Server\Runtime\CallableBootManagerFactory', make ]
+    factory: [ '@K911\Swoole\Server\Runtime\CallableBootManagerFactory', 'make' ]
     arguments: [ !tagged 'swoole_bundle.bootable_service' ]
     autoconfigure: false
 
@@ -140,7 +140,7 @@ services:
   K911\Swoole\Server\Api\ApiServerClientFactory:
 
   K911\Swoole\Server\Api\ApiServerClient:
-    factory: K911\Swoole\Server\Api\ApiServerClientFactory:newClient
+    factory: ['@K911\Swoole\Server\Api\ApiServerClientFactory', 'newClient']
 
   K911\Swoole\Server\Api\ApiServerInterface:
     class: K911\Swoole\Server\Api\ApiServer

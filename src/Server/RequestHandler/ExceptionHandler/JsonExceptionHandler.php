@@ -11,13 +11,10 @@ use Swoole\Http\Response;
 
 final class JsonExceptionHandler implements ExceptionHandlerInterface
 {
-    private $exceptionArrayTransformer;
-    private $verbosity;
-
-    public function __construct(ExceptionArrayTransformer $exceptionArrayTransformer, string $verbosity = 'default')
-    {
-        $this->exceptionArrayTransformer = $exceptionArrayTransformer;
-        $this->verbosity = $verbosity;
+    public function __construct(
+        private ExceptionArrayTransformer $exceptionArrayTransformer,
+        private string $verbosity = 'default'
+    ) {
     }
 
     public function handle(Request $request, \Throwable $exception, Response $response): void

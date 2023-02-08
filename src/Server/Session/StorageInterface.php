@@ -9,10 +9,9 @@ interface StorageInterface
     /**
      * Add or update session storage storage by key.
      *
-     * @param mixed $data
-     * @param int   $ttl  lifetime in seconds
+     * @param int $ttl lifetime in seconds
      */
-    public function set(string $key, $data, int $ttl): void;
+    public function set(string $key, mixed $data, int $ttl): void;
 
     /**
      * Delete session storage by key.

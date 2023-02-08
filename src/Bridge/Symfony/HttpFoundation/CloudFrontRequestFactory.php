@@ -9,11 +9,8 @@ use Symfony\Component\HttpFoundation\Request as HttpFoundationRequest;
 
 final class CloudFrontRequestFactory implements RequestFactoryInterface
 {
-    private $decorated;
-
-    public function __construct(RequestFactoryInterface $decorated)
+    public function __construct(private RequestFactoryInterface $decorated)
     {
-        $this->decorated = $decorated;
     }
 
     /**

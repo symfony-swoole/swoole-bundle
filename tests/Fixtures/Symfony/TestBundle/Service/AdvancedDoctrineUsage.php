@@ -10,14 +10,10 @@ use Ramsey\Uuid\UuidFactoryInterface;
 
 final class AdvancedDoctrineUsage
 {
-    private UuidFactoryInterface $uuidFactory;
-
-    private Registry $doctrine;
-
-    public function __construct(UuidFactoryInterface $uuidFactory, Registry $doctrine)
-    {
-        $this->uuidFactory = $uuidFactory;
-        $this->doctrine = $doctrine;
+    public function __construct(
+        private UuidFactoryInterface $uuidFactory,
+        private Registry $doctrine
+    ) {
     }
 
     public function run(): int

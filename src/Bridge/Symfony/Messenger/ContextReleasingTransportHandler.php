@@ -10,13 +10,10 @@ use Swoole\Server;
 
 final class ContextReleasingTransportHandler implements TaskHandlerInterface
 {
-    private TaskHandlerInterface $decorated;
-    private CoWrapper $coWrapper;
-
-    public function __construct(TaskHandlerInterface $decorated, CoWrapper $coWrapper)
-    {
-        $this->decorated = $decorated;
-        $this->coWrapper = $coWrapper;
+    public function __construct(
+        private TaskHandlerInterface $decorated,
+        private CoWrapper $coWrapper
+    ) {
     }
 
     /**

@@ -11,14 +11,10 @@ final class WorkerStartedEvent extends Event
 {
     public const NAME = 'swoole_bundle.worker.started';
 
-    private Server $server;
-
-    private int $workerId;
-
-    public function __construct(Server $server, int $workerId)
-    {
-        $this->server = $server;
-        $this->workerId = $workerId;
+    public function __construct(
+        private Server $server,
+        private int $workerId
+    ) {
     }
 
     public function getServer(): Server

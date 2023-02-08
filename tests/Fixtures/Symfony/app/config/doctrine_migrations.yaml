@@ -1,3 +1,4 @@
 doctrine_migrations:
-    migrations_paths:
-        TestBundleDoctrineMigrations: '%kernel.project_dir%/../TestBundle/Migrations'
+  migrations_paths:
+    TestBundleDoctrineMigrations: '%kernel.project_dir%/../TestBundle/Migrations'
+  transactional: false

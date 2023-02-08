@@ -9,11 +9,8 @@ use K911\Swoole\Bridge\Symfony\Container\ServicePool\ServicePoolContainer;
 
 final class NonSharedSvcPoolConfigurator
 {
-    private ServicePoolContainer $container;
-
-    public function __construct(ServicePoolContainer $container)
+    public function __construct(private ServicePoolContainer $container)
     {
-        $this->container = $container;
     }
 
     public function configure(BaseServicePool $servicePool): void

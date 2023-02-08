@@ -13,12 +13,11 @@ final class ProfilingMiddleware implements Middleware
 {
     private \Closure $nextMiddleware;
 
-    private RequestProfiler $profiler;
-
-    public function __construct(callable $nextMiddleware, RequestProfiler $profiler)
-    {
+    public function __construct(
+        callable $nextMiddleware,
+        private RequestProfiler $profiler
+    ) {
         $this->nextMiddleware = \Closure::fromCallable($nextMiddleware);
-        $this->profiler = $profiler;
     }
 
     public function __invoke(Request $request, Response $response): void

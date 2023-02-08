@@ -14,24 +14,12 @@ use Symfony\Component\HttpFoundation\Session\Storage\SessionStorageInterface;
 
 final class SwooleSessionStorageFactory implements SessionStorageFactoryInterface
 {
-    private ?MetadataBag $metadataBag;
-
-    private StorageInterface $storage;
-
-    private EventDispatcherInterface $dispatcher;
-
-    private int $lifetimeSeconds;
-
     public function __construct(
-        StorageInterface $storage,
-        EventDispatcherInterface $dispatcher,
-        ?MetadataBag $metadataBag = null,
-        int $lifetimeSeconds = 86400
+        private StorageInterface $storage,
+        private EventDispatcherInterface $dispatcher,
+        private ?MetadataBag $metadataBag = null,
+        private int $lifetimeSeconds = 86400
     ) {
-        $this->storage = $storage;
-        $this->dispatcher = $dispatcher;
-        $this->metadataBag = $metadataBag;
-        $this->lifetimeSeconds = $lifetimeSeconds;
     }
 
     /**

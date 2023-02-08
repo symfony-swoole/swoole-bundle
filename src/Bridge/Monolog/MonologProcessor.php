@@ -15,7 +15,7 @@ final class MonologProcessor implements CompileProcessor
     {
         $loggerAliases = array_filter(
             $container->getAliases(),
-            fn (Alias $alias): bool => 0 === strpos((string) $alias, 'monolog.logger')
+            fn (Alias $alias): bool => str_starts_with((string) $alias, 'monolog.logger')
         );
         $loggerSvcIds = array_map(fn (Alias $alias): string => (string) $alias, $loggerAliases);
         $loggerSvcIds = array_unique($loggerSvcIds);

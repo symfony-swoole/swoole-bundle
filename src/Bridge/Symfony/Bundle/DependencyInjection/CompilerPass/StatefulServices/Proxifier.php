@@ -22,10 +22,6 @@ final class Proxifier
         EntityManager::class => EntityManagerStabilityChecker::class,
     ];
 
-    private ContainerBuilder $container;
-
-    private FinalClassesProcessor $finalProcessor;
-
     /**
      * @var array<Reference>
      */
@@ -40,12 +36,10 @@ final class Proxifier
      * @param array<class-string, class-string<StabilityChecker>|string> $stabilityCheckers
      */
     public function __construct(
-        ContainerBuilder $container,
-        FinalClassesProcessor $finalProcessor,
+        private ContainerBuilder $container,
+        private FinalClassesProcessor $finalProcessor,
         array $stabilityCheckers = []
     ) {
-        $this->container = $container;
-        $this->finalProcessor = $finalProcessor;
         $this->stabilityCheckers = array_merge(self::DEFAULT_STABILITY_CHECKERS, $stabilityCheckers);
     }
 
@@ -150,7 +144,12 @@ final class Proxifier
         $svcPoolDef->setArgument(0, $wrappedServiceId);
         $svcPoolDef->setArgument(1, new Reference('service_container'));
         $svcPoolDef->setArgument(2, new Reference('swoole_bundle.service_pool.locking'));
-        $instanceLimit = (int) $this->container->getParameter(ContainerConstants::PARAM_COROUTINES_MAX_SVC_INSTANCES);
+        $instanceLimit = $this->container->getParameter(ContainerConstants::PARAM_COROUTINES_MAX_SVC_INSTANCES);
+
+        if (!is_int($instanceLimit)) {
+            throw new \UnexpectedValueException(sprintf('Parameter %s must be an integer', ContainerConstants::PARAM_COROUTINES_MAX_SVC_INSTANCES));
+        }
+
         /** @var class-string $serviceClass */
         $serviceClass = $serviceDef->getClass();
         $serviceTags = new Tags($serviceClass, $serviceDef->getTags());

@@ -9,11 +9,8 @@ use Swoole\Http\Server;
 
 final class WithHttpServerConfiguration implements ConfiguratorInterface
 {
-    private $configuration;
-
-    public function __construct(HttpServerConfiguration $configuration)
+    public function __construct(private HttpServerConfiguration $configuration)
     {
-        $this->configuration = $configuration;
     }
 
     /**

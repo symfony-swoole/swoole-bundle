@@ -10,25 +10,14 @@ use Symfony\Component\HttpKernel\HttpKernelInterface;
 final class ExceptionHandlerFactory
 {
     /**
-     * @var HttpKernelInterface
-     */
-    private $kernel;
-
-    /**
-     * @var \ReflectionMethod
-     */
-    private $throwableHandler;
-
-    /**
      * @var bool
      */
     private $isSymfony4 = false;
 
-    public function __construct(HttpKernelInterface $kernel, \ReflectionMethod $throwableHandler)
-    {
-        $this->kernel = $kernel;
-        $this->throwableHandler = $throwableHandler;
-
+    public function __construct(
+        private HttpKernelInterface $kernel,
+        private \ReflectionMethod $throwableHandler
+    ) {
         if ('handleException' === $throwableHandler->getName()) {
             $this->isSymfony4 = true;
         }

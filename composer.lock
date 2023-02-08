@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "b4eae318bd21c2e0120bef14e219aa26",
+    "content-hash": "54f5403e68af5abb358cd1324f9b4856",
     "packages": [
         {
             "name": "beberlei/assert",
@@ -4903,20 +4903,20 @@
         },
         {
             "name": "phpspec/prophecy",
-            "version": "v1.16.0",
+            "version": "v1.17.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpspec/prophecy.git",
-                "reference": "be8cac52a0827776ff9ccda8c381ac5b71aeb359"
+                "reference": "15873c65b207b07765dbc3c95d20fdf4a320cbe2"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpspec/prophecy/zipball/be8cac52a0827776ff9ccda8c381ac5b71aeb359",
-                "reference": "be8cac52a0827776ff9ccda8c381ac5b71aeb359",
+                "url": "https://api.github.com/repos/phpspec/prophecy/zipball/15873c65b207b07765dbc3c95d20fdf4a320cbe2",
+                "reference": "15873c65b207b07765dbc3c95d20fdf4a320cbe2",
                 "shasum": ""
             },
             "require": {
-                "doctrine/instantiator": "^1.2",
+                "doctrine/instantiator": "^1.2 || ^2.0",
                 "php": "^7.2 || 8.0.* || 8.1.* || 8.2.*",
                 "phpdocumentor/reflection-docblock": "^5.2",
                 "sebastian/comparator": "^3.0 || ^4.0",
@@ -4924,6 +4924,7 @@
             },
             "require-dev": {
                 "phpspec/phpspec": "^6.0 || ^7.0",
+                "phpstan/phpstan": "^1.9",
                 "phpunit/phpunit": "^8.0 || ^9.0"
             },
             "type": "library",
@@ -4964,9 +4965,9 @@
             ],
             "support": {
                 "issues": "https://github.com/phpspec/prophecy/issues",
-                "source": "https://github.com/phpspec/prophecy/tree/v1.16.0"
+                "source": "https://github.com/phpspec/prophecy/tree/v1.17.0"
             },
-            "time": "2022-11-29T15:06:56+00:00"
+            "time": "2023-02-02T15:41:36+00:00"
         },
         {
             "name": "phpspec/prophecy-phpunit",
@@ -5958,24 +5959,24 @@
         },
         {
             "name": "pixelfederation/z-engine",
-            "version": "7.4.0",
+            "version": "8.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/pixelfederation/z-engine.git",
-                "reference": "665355e0f1e28d367b3b193a308acd45891786f2"
+                "reference": "53898db8451cc1acf687dd6463c94f1e59c44b23"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/pixelfederation/z-engine/zipball/665355e0f1e28d367b3b193a308acd45891786f2",
-                "reference": "665355e0f1e28d367b3b193a308acd45891786f2",
+                "url": "https://api.github.com/repos/pixelfederation/z-engine/zipball/53898db8451cc1acf687dd6463c94f1e59c44b23",
+                "reference": "53898db8451cc1acf687dd6463c94f1e59c44b23",
                 "shasum": ""
             },
             "require": {
                 "ext-ffi": "*",
-                "php": "~7.4"
+                "php": "8.0.*"
             },
             "require-dev": {
-                "phpunit/phpunit": "^8.5.15"
+                "phpunit/phpunit": "^8.5.15 || ^9.0.0"
             },
             "type": "library",
             "autoload": {
@@ -5995,9 +5996,9 @@
             ],
             "description": "Library that provides direct access to native PHP structures",
             "support": {
-                "source": "https://github.com/pixelfederation/z-engine/tree/7.4.0"
+                "source": "https://github.com/pixelfederation/z-engine/tree/8.0.0"
             },
-            "time": "2022-10-14T12:37:47+00:00"
+            "time": "2022-10-18T11:29:30+00:00"
         },
         {
             "name": "ramsey/collection",
@@ -9189,12 +9190,12 @@
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
-        "php": "^7.4|^8.0",
+        "php": "^8.0",
         "ext-json": "*",
         "ext-openswoole": "^4.10.0"
     },
     "platform-dev": {
-        "ext-ffi": "^7.4|^8.0"
+        "ext-ffi": "^8.0"
     },
     "platform-overrides": {
         "ext-openswoole": "4.10.00"
