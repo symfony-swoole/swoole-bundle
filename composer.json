@@ -42,6 +42,7 @@
     },
     "require-dev": {
         "ext-ffi": "^8.0",
+        "blackfire/php-sdk": "^1.30",
         "doctrine/annotations": "^1.13",
         "doctrine/doctrine-bundle": "^2.7",
         "doctrine/doctrine-migrations-bundle": "^3.2",
@@ -59,7 +60,6 @@
         "phpunit/phpcov": "^8.0",
         "phpunit/phpunit": "^9.5",
         "pixelfederation/doctrine-resettable-em-bundle": "^7.0",
-        "pixelfederation/openswoole-blackfire": "^1.0",
         "pixelfederation/z-engine": "~8.0|~8.1|~8.2",
         "ramsey/uuid": "^4.1",
         "swoole/ide-helper": "^4.8",
@@ -74,7 +74,8 @@
         "symfony/twig-bundle": "^5.4|^6.0",
         "symfony/var-dumper": "^5.4|^6.0",
         "symfony/yaml": "^5.4|^6.0",
-        "tideways/ext-tideways-stubs": "^5.5"
+        "tideways/ext-tideways-stubs": "^5.5",
+        "upscale/swoole-blackfire": "^4.0"
     },
     "suggest": {
         "ext-inotify": "To enable HMR",
