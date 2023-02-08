@@ -9,13 +9,16 @@ use Ramsey\Uuid\UuidInterface;
 
 /**
  * @ORM\Entity()
+ *
  * @ORM\Table(name="test")
  */
 class Test
 {
     /**
      * @ORM\Id()
+     *
      * @ORM\Column(type="integer")
+     *
      * @ORM\GeneratedValue
      */
     private int $id;

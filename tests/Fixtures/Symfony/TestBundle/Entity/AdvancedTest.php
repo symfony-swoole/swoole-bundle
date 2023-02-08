@@ -9,6 +9,7 @@ use Ramsey\Uuid\UuidInterface;
 
 /**
  * @ORM\Entity()
+ *
  * @ORM\Table(name="advanced_test")
  */
 class AdvancedTest
@@ -21,6 +22,7 @@ class AdvancedTest
     public function __construct(
         /**
          * @ORM\Id()
+         *
          * @ORM\Column(type="guid")
          */
         private UuidInterface $uuid
