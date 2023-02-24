@@ -7,12 +7,15 @@ namespace K911\Swoole\Bridge\Symfony\Container\ServicePool;
 final class ServicePoolContainer
 {
     /**
-     * @param array<ServicePool> $pools
+     * @param array<ServicePool<object>> $pools
      */
     public function __construct(private array $pools)
     {
     }
 
+    /**
+     * @param ServicePool<object> $pool
+     */
     public function addPool(ServicePool $pool): void
     {
         $this->pools[] = $pool;

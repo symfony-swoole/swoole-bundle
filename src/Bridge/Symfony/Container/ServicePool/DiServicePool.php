@@ -9,6 +9,11 @@ use K911\Swoole\Bridge\Symfony\Container\StabilityChecker;
 use K911\Swoole\Component\Locking\Locking;
 use Symfony\Component\DependencyInjection\Container;
 
+/**
+ * @template T of object
+ *
+ * @template-extends BaseServicePool<T>
+ */
 final class DiServicePool extends BaseServicePool
 {
     public function __construct(
@@ -22,8 +27,18 @@ final class DiServicePool extends BaseServicePool
         parent::__construct($wrappedServiceId, $locking, $instancesLimit, $resetter, $stabilityChecker);
     }
 
+    /**
+     * @return T
+     */
     protected function newServiceInstance(): object
     {
-        return $this->container->get($this->wrappedServiceId);
+        /** @var null|T $instance */
+        $instance = $this->container->get($this->wrappedServiceId);
+
+        if (null === $instance) {
+            throw new \RuntimeException(\sprintf('Service "%s" is not defined.', $this->wrappedServiceId));
+        }
+
+        return $instance;
     }
 }

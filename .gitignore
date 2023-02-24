@@ -9,3 +9,5 @@ mutagen.yml.lock
 tests/Fixtures/Symfony/app/data/*
 docker-compose.override.yml
 Dockerfile.override
+ext
+!ext/.gitignore

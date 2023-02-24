@@ -13,6 +13,9 @@ final class NonSharedSvcPoolConfigurator
     {
     }
 
+    /**
+     * @param BaseServicePool<object> $servicePool
+     */
     public function configure(BaseServicePool $servicePool): void
     {
         $this->container->addPool($servicePool);

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Controller;
 
 use Doctrine\DBAL\Connection;
+use K911\Swoole\Bridge\Symfony\Container\Proxy\ContextualProxy;
 use K911\Swoole\Bridge\Symfony\Container\ServicePool\BaseServicePool;
 use K911\Swoole\Bridge\Symfony\Container\ServicePool\ServicePoolContainer;
 use K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Service\DefaultDummyService;
@@ -14,7 +15,6 @@ use K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Service\ShouldBeProxified;
 use K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Service\ShouldBeProxified2;
 use K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Service\SleepingCounter;
 use K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Service\SleepingCounterChecker;
-use ProxyManager\Proxy\VirtualProxyInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -57,13 +57,11 @@ final class SleepController
         $check = $this->checker->wasChecked() ? 'true' : 'false';
         $checks = $this->checker->getChecks();
         /** @phpstan-ignore-next-line */
-        $isProxified = $this->shouldBeProxified instanceof VirtualProxyInterface ? 'was' : 'WAS NOT';
+        $isProxified = $this->shouldBeProxified instanceof ContextualProxy ? 'was' : 'WAS NOT';
         /** @phpstan-ignore-next-line */
-        $isProxified2 = $this->shouldBeProxified2 instanceof VirtualProxyInterface ? 'was' : 'WAS NOT';
+        $isProxified2 = $this->shouldBeProxified2 instanceof ContextualProxy ? 'was' : 'WAS NOT';
         /** @phpstan-ignore-next-line */
-        $initializer = $this->shouldBeProxified2->getProxyInitializer();
-        $rf = new \ReflectionFunction($initializer);
-        $servicePool = $rf->getStaticVariables()['servicePool'];
+        $servicePool = $this->shouldBeProxified2->getServicePool();
         $rc = new \ReflectionClass(BaseServicePool::class);
         $limitProperty = $rc->getProperty('instancesLimit');
         $limitProperty->setAccessible(true);
@@ -71,7 +69,7 @@ final class SleepController
         $alwaysResetWorks = $this->shouldBeProxified->wasDummyReset();
         $alwaysResetSafe = $this->shouldBeProxified->getSafeDummy();
         /** @phpstan-ignore-next-line */
-        $safeDummyIsProxy = $alwaysResetSafe instanceof VirtualProxyInterface ? 'IS' : 'is not';
+        $safeDummyIsProxy = $alwaysResetSafe instanceof ContextualProxy ? 'IS' : 'is not';
         $safeAlwaysResetWorks = $alwaysResetSafe->getWasReset();
 
         $rc2 = new \ReflectionClass(DefaultDummyService::class);
@@ -80,16 +78,12 @@ final class SleepController
         /** @phpstan-ignore-next-line */
         $realDummyService = $this->dummyService->getDecorated();
         $tmpRepo = $realDummyService->getTmpRepository();
-        $isProxified3 = $tmpRepo instanceof VirtualProxyInterface ? 'was' : 'WAS NOT';
-        $initializer2 = $tmpRepo->getProxyInitializer();
-        $rf2 = new \ReflectionFunction($initializer2);
-        $connServicePool = $rf2->getStaticVariables()['servicePool'];
+        $isProxified3 = $tmpRepo instanceof ContextualProxy ? 'was' : 'WAS NOT';
+        $connServicePool = $tmpRepo->getServicePool();
         $limit2 = $limitProperty->getValue($connServicePool);
 
         /** @phpstan-ignore-next-line */
-        $connInitializer = $this->connection->getProxyInitializer();
-        $rf3 = new \ReflectionFunction($connInitializer);
-        $connServicePool = $rf3->getStaticVariables()['servicePool'];
+        $connServicePool = $this->connection->getServicePool();
         $connlimit = $limitProperty->getValue($connServicePool);
 
         return new Response(

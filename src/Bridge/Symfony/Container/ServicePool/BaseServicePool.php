@@ -9,6 +9,11 @@ use K911\Swoole\Bridge\Symfony\Container\StabilityChecker;
 use K911\Swoole\Component\Locking\Lock;
 use K911\Swoole\Component\Locking\Locking;
 
+/**
+ * @template T of object
+ *
+ * @template-implements ServicePool<T>
+ */
 abstract class BaseServicePool implements ServicePool
 {
     private ?Lock $lock = null;
@@ -16,12 +21,12 @@ abstract class BaseServicePool implements ServicePool
     private int $assignedCount = 0;
 
     /**
-     * @var array<int, object>
+     * @var array<int, T>
      */
     private array $freePool = [];
 
     /**
-     * @var array<int, object>
+     * @var array<int, T>
      */
     private array $assignedPool = [];
 
@@ -34,6 +39,9 @@ abstract class BaseServicePool implements ServicePool
     ) {
     }
 
+    /**
+     * @return T
+     */
     public function get(): object
     {
         $cId = $this->getCoroutineId();
@@ -82,6 +90,9 @@ abstract class BaseServicePool implements ServicePool
         $this->unlockPool();
     }
 
+    /**
+     * @return T
+     */
     abstract protected function newServiceInstance(): object;
 
     private function getCoroutineId(): int

@@ -231,7 +231,7 @@ services:
 
   K911\Swoole\Bridge\Symfony\Container\Proxy\Instantiator:
     arguments:
-      $proxyFactory: '@swoole_bundle.service_proxy_factory'
+      $proxyGenerator: '@K911\Swoole\Bridge\Symfony\Container\Proxy\Generator'
 
   K911\Swoole\Bridge\Symfony\Container\Proxy\UnmanagedFactoryInstantiator:
     arguments:
@@ -244,8 +244,7 @@ services:
   swoole_bundle.filesystem:
     class: 'Symfony\Component\Filesystem\Filesystem'
 
-  swoole_bundle.service_proxy_factory:
-    class: 'ProxyManager\Factory\LazyLoadingValueHolderFactory'
+  K911\Swoole\Bridge\Symfony\Container\Proxy\Generator:
     arguments:
       $configuration: '@swoole_bundle.service_proxy_configuration'
 

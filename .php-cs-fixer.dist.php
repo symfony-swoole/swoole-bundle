@@ -9,6 +9,7 @@ $finder = PhpCsFixer\Finder::create()
         'tests/Unit/Server/Php8',
         'vendor',
         'hack',
+        'ext',
     ]);
 
 $config = new PhpCsFixer\Config();
