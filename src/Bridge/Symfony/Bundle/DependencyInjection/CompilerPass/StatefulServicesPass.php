@@ -12,6 +12,7 @@ use K911\Swoole\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulS
 use K911\Swoole\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices\Tags;
 use K911\Swoole\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices\UnmanagedFactoryProxifier;
 use K911\Swoole\Bridge\Symfony\Bundle\DependencyInjection\ContainerConstants;
+use K911\Swoole\Bridge\Symfony\Cache\CacheAdapterProcessor;
 use K911\Swoole\Bridge\Symfony\Container\BlockingContainer;
 use K911\Swoole\Bridge\Symfony\Container\ServicePool\ServicePoolContainer;
 use K911\Swoole\Bridge\Symfony\Container\StabilityChecker;
@@ -44,6 +45,10 @@ final class StatefulServicesPass implements CompilerPassInterface
         ],
         MonologProcessor::class => [
             'class' => MonologProcessor::class,
+            'priority' => 0,
+        ],
+        CacheAdapterProcessor::class => [
+            'class' => CacheAdapterProcessor::class,
             'priority' => 0,
         ],
     ];
