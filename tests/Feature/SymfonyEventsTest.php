@@ -38,6 +38,9 @@ final class SymfonyEventsTest extends ServerTestCase
                 [
                     'serverStarted' => false,
                     'workerStarted' => true,
+                    'workerStopped' => false,
+                    'workerExited' => false,
+                    'workerError' => false,
                 ],
                 $data
             );
