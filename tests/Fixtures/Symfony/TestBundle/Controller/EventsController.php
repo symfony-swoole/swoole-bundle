@@ -26,6 +26,9 @@ final class EventsController
             [
                 'serverStarted' => $this->eventHandler->isServerStarted(),
                 'workerStarted' => $this->eventHandler->isWorkerStarted(),
+                'workerStopped' => $this->eventHandler->isWorkerStopped(),
+                'workerExited' => $this->eventHandler->isWorkerExited(),
+                'workerError' => $this->eventHandler->isWorkerError(),
             ],
             200
         );

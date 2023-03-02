@@ -102,9 +102,27 @@ services:
 
   K911\Swoole\Server\WorkerHandler\WorkerStartHandlerInterface: '@K911\Swoole\Bridge\Symfony\Bundle\EventDispatcher\EventDispatchingWorkerStartHandler'
 
+  K911\Swoole\Server\WorkerHandler\WorkerStopHandlerInterface: '@K911\Swoole\Bridge\Symfony\Bundle\EventDispatcher\EventDispatchingWorkerStopHandler'
+
+  K911\Swoole\Server\WorkerHandler\WorkerErrorHandlerInterface: '@K911\Swoole\Bridge\Symfony\Bundle\EventDispatcher\EventDispatchingWorkerErrorHandler'
+
+  K911\Swoole\Server\WorkerHandler\WorkerExitHandlerInterface: '@K911\Swoole\Bridge\Symfony\Bundle\EventDispatcher\EventDispatchingWorkerExitHandler'
+
   K911\Swoole\Server\LifecycleHandler\ServerStartHandlerInterface: '@K911\Swoole\Bridge\Symfony\Bundle\EventDispatcher\EventDispatchingServerStartHandler'
 
   K911\Swoole\Bridge\Symfony\Bundle\EventDispatcher\EventDispatchingWorkerStartHandler:
+    arguments:
+      $eventDispatcher: '@event_dispatcher'
+
+  K911\Swoole\Bridge\Symfony\Bundle\EventDispatcher\EventDispatchingWorkerStopHandler:
+    arguments:
+      $eventDispatcher: '@event_dispatcher'
+
+  K911\Swoole\Bridge\Symfony\Bundle\EventDispatcher\EventDispatchingWorkerExitHandler:
+    arguments:
+      $eventDispatcher: '@event_dispatcher'
+
+  K911\Swoole\Bridge\Symfony\Bundle\EventDispatcher\EventDispatchingWorkerErrorHandler:
     arguments:
       $eventDispatcher: '@event_dispatcher'
 
@@ -165,6 +183,12 @@ services:
   K911\Swoole\Server\Configurator\WithServerManagerStopHandler:
 
   K911\Swoole\Server\Configurator\WithWorkerStartHandler:
+
+  K911\Swoole\Server\Configurator\WithWorkerStopHandler:
+
+  K911\Swoole\Server\Configurator\WithWorkerErrorHandler:
+
+  K911\Swoole\Server\Configurator\WithWorkerExitHandler:
 
   K911\Swoole\Server\Configurator\WithTaskHandler:
 
