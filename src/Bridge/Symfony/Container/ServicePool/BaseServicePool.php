@@ -6,8 +6,7 @@ namespace K911\Swoole\Bridge\Symfony\Container\ServicePool;
 
 use K911\Swoole\Bridge\Symfony\Container\Resetter;
 use K911\Swoole\Bridge\Symfony\Container\StabilityChecker;
-use K911\Swoole\Component\Locking\Lock;
-use K911\Swoole\Component\Locking\Locking;
+use K911\Swoole\Component\Locking\Mutex;
 
 /**
  * @template T of object
@@ -16,8 +15,6 @@ use K911\Swoole\Component\Locking\Locking;
  */
 abstract class BaseServicePool implements ServicePool
 {
-    private ?Lock $lock = null;
-
     private int $assignedCount = 0;
 
     /**
@@ -31,8 +28,7 @@ abstract class BaseServicePool implements ServicePool
     private array $assignedPool = [];
 
     public function __construct(
-        private string $lockingKey,
-        private Locking $locking,
+        private Mutex $mutex,
         private int $instancesLimit = 50,
         private ?Resetter $resetter = null,
         private ?StabilityChecker $stabilityChecker = null
@@ -107,17 +103,15 @@ abstract class BaseServicePool implements ServicePool
 
     private function lockPool(): void
     {
-        $this->lock = $this->locking->acquire($this->lockingKey);
+        $this->mutex->acquire();
     }
 
     private function unlockPool(): void
     {
-        if (null === $this->lock) {
+        if (!$this->mutex->isAcquired()) {
             return;
         }
 
-        $lock = $this->lock;
-        $this->lock = null;
-        $lock->release();
+        $this->mutex->release();
     }
 }

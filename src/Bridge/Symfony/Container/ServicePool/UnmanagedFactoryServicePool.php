@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace K911\Swoole\Bridge\Symfony\Container\ServicePool;
 
 use K911\Swoole\Bridge\Symfony\Container\Resetter;
-use K911\Swoole\Component\Locking\Locking;
+use K911\Swoole\Component\Locking\Mutex;
 
 /**
  * @template T of object
@@ -24,14 +24,13 @@ final class UnmanagedFactoryServicePool extends BaseServicePool
      */
     public function __construct(
         \Closure $instantiator,
-        string $lockingKey,
-        Locking $locking,
+        Mutex $mutex,
         int $instancesLimit = 50,
         ?Resetter $resetter = null
     ) {
         $this->instantiator = $instantiator;
 
-        parent::__construct($lockingKey, $locking, $instancesLimit, $resetter);
+        parent::__construct($mutex, $instancesLimit, $resetter);
     }
 
     /**

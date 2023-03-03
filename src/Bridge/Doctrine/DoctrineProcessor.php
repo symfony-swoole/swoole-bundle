@@ -84,6 +84,7 @@ final class DoctrineProcessor implements CompileProcessor
         $newConfiguratorDefSvcId = sprintf('%s.swoole_coop.blocking', (string) $configuratorRef);
         $newConfiguratorDef = new Definition(BlockingProxyFactoryOverridingManagerConfigurator::class);
         $newConfiguratorDef->setArgument(0, $configuratorRef);
+        $newConfiguratorDef->setArgument(1, new Reference('swoole_bundle.unmanaged_factory_first_time.locking'));
         $container->setDefinition($newConfiguratorDefSvcId, $newConfiguratorDef);
         $emDef->setConfigurator([new Reference($newConfiguratorDefSvcId), 'configure']);
     }

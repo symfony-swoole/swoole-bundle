@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace K911\Swoole\Component\Locking;
 
-interface Locking
+interface MutexFactory
 {
-    public function acquire(string $key): Lock;
+    public function newMutex(): Mutex;
 }

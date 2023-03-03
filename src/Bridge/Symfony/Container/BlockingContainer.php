@@ -4,25 +4,21 @@ declare(strict_types=1);
 
 namespace K911\Swoole\Bridge\Symfony\Container;
 
-use K911\Swoole\Component\Locking\ContainerLocking;
+use K911\Swoole\Component\Locking\Channel\ChannelMutexFactory;
+use K911\Swoole\Component\Locking\RecursiveOwner\RecursiveOwnerMutex;
+use K911\Swoole\Component\Locking\RecursiveOwner\RecursiveOwnerMutexFactory;
 use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 
 class BlockingContainer extends Container
 {
-    protected static ContainerLocking $locking;
+    protected static RecursiveOwnerMutex $mutex;
 
     protected static string $buildContainerNs = '';
 
     public function __construct(ParameterBagInterface $parameterBag = null)
     {
-        $locking = ContainerLocking::init();
-
-        if (!$locking instanceof ContainerLocking) {
-            throw new \UnexpectedValueException(sprintf('Invalid locking class: %s', $locking::class));
-        }
-
-        self::$locking = $locking;
+        self::$mutex = (new RecursiveOwnerMutexFactory(new ChannelMutexFactory()))->newMutex();
 
         parent::__construct($parameterBag);
     }
@@ -32,12 +28,11 @@ class BlockingContainer extends Container
      */
     public function get(string $id, int $invalidBehavior = self::EXCEPTION_ON_INVALID_REFERENCE): ?object
     {
-        $lock = self::$locking->acquireContainerLock();
-
         try {
+            self::$mutex->acquire();
             $service = parent::get($id, $invalidBehavior);
         } finally {
-            $lock->release();
+            self::$mutex->release();
         }
 
         return $service;

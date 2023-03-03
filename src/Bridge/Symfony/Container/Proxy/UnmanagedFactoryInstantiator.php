@@ -7,7 +7,7 @@ namespace K911\Swoole\Bridge\Symfony\Container\Proxy;
 use K911\Swoole\Bridge\Symfony\Container\Resetter;
 use K911\Swoole\Bridge\Symfony\Container\ServicePool\ServicePoolContainer;
 use K911\Swoole\Bridge\Symfony\Container\ServicePool\UnmanagedFactoryServicePool;
-use K911\Swoole\Component\Locking\Locking;
+use K911\Swoole\Component\Locking\MutexFactory;
 use ProxyManager\Factory\AccessInterceptorValueHolderFactory;
 use ProxyManager\Proxy\AccessInterceptorInterface;
 use ProxyManager\Proxy\AccessInterceptorValueHolderInterface;
@@ -19,8 +19,8 @@ final class UnmanagedFactoryInstantiator
         private AccessInterceptorValueHolderFactory $proxyFactory,
         private Instantiator $instantiator,
         private ServicePoolContainer $servicePoolContainer,
-        private Locking $limitLocking,
-        private Locking $newInstanceLocking
+        private MutexFactory $limitLocking,
+        private MutexFactory $newInstanceLocking
     ) {
     }
 
@@ -66,7 +66,7 @@ final class UnmanagedFactoryInstantiator
                 throw new \RuntimeException(sprintf('Missing method %s in class %s', $factoryMethod, $instance::class));
             }
 
-            $lockingKey = sprintf('%s::%s', $instance::class, $factoryMethod);
+            $mutex = $this->newInstanceLocking->newMutex();
             /**
              * @var callable(
              *  AccessInterceptorInterface<RealObjectType>&RealObjectType=,
@@ -82,15 +82,15 @@ final class UnmanagedFactoryInstantiator
                 string $method,
                 array $params,
                 bool &$returnEarly
-            ) use ($servicePoolContainer, $instantiator, $factoryConfig, $lockingKey, $globalInstancesLimit) {
+            ) use ($servicePoolContainer, $instantiator, $factoryConfig, $mutex, $globalInstancesLimit) {
                 $returnEarly = true;
-                $factoryInstantiator = function () use ($instance, $method, $params, $lockingKey): object {
-                    $lock = $this->newInstanceLocking->acquire($lockingKey);
+                $factoryInstantiator = function () use ($instance, $method, $params, $mutex): object {
+                    $mutex->acquire();
 
                     try {
                         $service = $instance->{$method}(...array_values($params));
                     } finally {
-                        $lock->release();
+                        $mutex->release();
                     }
 
                     return $service;
@@ -99,13 +99,12 @@ final class UnmanagedFactoryInstantiator
                 // mess with the instances limit when same service instance is being created
                 // this might need refactoring later...
                 // unique locking key for each managed instance of the new service pool
-                $limitLockingKey = sprintf('%s::limit::%s', $lockingKey, uniqid());
+                $limitMutex = $this->limitLocking->newMutex();
                 $instancesLimit = $factoryConfig['limit'] ?? $globalInstancesLimit;
                 $resetter = $factoryConfig['resetter'] ?? null;
                 $servicePool = new UnmanagedFactoryServicePool(
                     $factoryInstantiator,
-                    $limitLockingKey,
-                    $this->limitLocking,
+                    $limitMutex,
                     $instancesLimit,
                     $resetter
                 );

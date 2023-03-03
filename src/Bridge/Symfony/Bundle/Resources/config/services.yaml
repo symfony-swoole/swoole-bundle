@@ -222,12 +222,12 @@ services:
       $directoryHandler: '@K911\Swoole\Bridge\Symfony\Container\Proxy\ProxyDirectoryHandler'
 
   swoole_bundle.service_pool.locking:
-    class: K911\Swoole\Component\Locking\CoroutineLocking
-    factory: ['K911\Swoole\Component\Locking\CoroutineLocking', 'init']
+    class: K911\Swoole\Component\Locking\Channel\ChannelMutexFactory
 
   swoole_bundle.unmanaged_factory_first_time.locking:
-    class: K911\Swoole\Component\Locking\CoroutineLocking
-    factory: [ 'K911\Swoole\Component\Locking\CoroutineLocking', 'init' ]
+    class: K911\Swoole\Component\Locking\FirstTimeOnly\FirstTimeOnlyMutexFactory
+    arguments:
+      $wrapped: '@swoole_bundle.service_pool.locking'
 
   K911\Swoole\Bridge\Symfony\Container\Proxy\Instantiator:
     arguments:

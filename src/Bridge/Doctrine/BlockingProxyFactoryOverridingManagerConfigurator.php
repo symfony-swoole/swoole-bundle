@@ -7,13 +7,16 @@ namespace K911\Swoole\Bridge\Doctrine;
 use Doctrine\Bundle\DoctrineBundle\ManagerConfigurator;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
+use K911\Swoole\Component\Locking\FirstTimeOnly\FirstTimeOnlyMutexFactory;
 
 final class BlockingProxyFactoryOverridingManagerConfigurator
 {
     private static ?\ReflectionProperty $emProxyFactoryPropRefl = null;
 
-    public function __construct(private ManagerConfigurator $wrapped)
-    {
+    public function __construct(
+        private ManagerConfigurator $wrapped,
+        private FirstTimeOnlyMutexFactory $mutexFactory
+    ) {
     }
 
     public function configure(EntityManagerInterface $entityManager): void
@@ -28,7 +31,7 @@ final class BlockingProxyFactoryOverridingManagerConfigurator
 
     private function replaceProxyFactory(EntityManager $entityManager): void
     {
-        $proxyFactory = new BlockingProxyFactory($entityManager->getProxyFactory());
+        $proxyFactory = new BlockingProxyFactory($entityManager->getProxyFactory(), $this->mutexFactory);
         $proxyFactoryProp = $this->getEmProxyFactoryReflectionProperty();
         $proxyFactoryProp->setValue($entityManager, $proxyFactory);
     }

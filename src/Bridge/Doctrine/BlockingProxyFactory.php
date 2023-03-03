@@ -6,18 +6,20 @@ namespace K911\Swoole\Bridge\Doctrine;
 
 use Doctrine\Common\Proxy\Proxy;
 use Doctrine\ORM\Proxy\ProxyFactory;
-use K911\Swoole\Component\Locking\FirstTimeOnlyLocking;
-use K911\Swoole\Component\Locking\Locking;
+use K911\Swoole\Component\Locking\FirstTimeOnly\FirstTimeOnlyMutex;
+use K911\Swoole\Component\Locking\FirstTimeOnly\FirstTimeOnlyMutexFactory;
 
 final class BlockingProxyFactory extends ProxyFactory
 {
-    private static ?Locking $locking = null;
+    /**
+     * @var array<string, FirstTimeOnlyMutex>
+     */
+    private array $mutexes = [];
 
-    public function __construct(private ProxyFactory $wrapped)
-    {
-        if (null === self::$locking) {
-            self::$locking = FirstTimeOnlyLocking::init();
-        }
+    public function __construct(
+        private ProxyFactory $wrapped,
+        private FirstTimeOnlyMutexFactory $mutexFactory
+    ) {
     }
 
     /**
@@ -29,12 +31,13 @@ final class BlockingProxyFactory extends ProxyFactory
      */
     public function getProxy($className, array $identifier)
     {
-        $lock = self::$locking->acquire($className);
+        $mutex = $this->getMutex($className);
 
         try {
+            $mutex->acquire();
             $proxy = $this->wrapped->getProxy($className, $identifier);
         } finally {
-            $lock->release();
+            $mutex->release();
         }
 
         return $proxy;
@@ -60,5 +63,14 @@ final class BlockingProxyFactory extends ProxyFactory
     public function resetUninitializedProxy(Proxy $proxy)
     {
         return $this->wrapped->resetUninitializedProxy($proxy);
+    }
+
+    private function getMutex(string $className): FirstTimeOnlyMutex
+    {
+        if (!isset($this->mutexes[$className])) {
+            $this->mutexes[$className] = $this->mutexFactory->newMutex();
+        }
+
+        return $this->mutexes[$className];
     }
 }

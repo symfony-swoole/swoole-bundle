@@ -11,6 +11,7 @@ use K911\Swoole\Bridge\Symfony\Container\Proxy\Instantiator;
 use K911\Swoole\Bridge\Symfony\Container\ServicePool\DiServicePool;
 use K911\Swoole\Bridge\Symfony\Container\SimpleResetter;
 use K911\Swoole\Bridge\Symfony\Container\StabilityChecker;
+use K911\Swoole\Component\Locking\Channel\ChannelMutex;
 use Symfony\Component\DependencyInjection\Argument\IteratorArgument;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
@@ -143,7 +144,7 @@ final class Proxifier
 
         $svcPoolDef->setArgument(0, $wrappedServiceId);
         $svcPoolDef->setArgument(1, new Reference('service_container'));
-        $svcPoolDef->setArgument(2, new Reference('swoole_bundle.service_pool.locking'));
+        $svcPoolDef->setArgument(2, $this->prepareServicePoolMutex());
         $instanceLimit = $this->container->getParameter(ContainerConstants::PARAM_COROUTINES_MAX_SVC_INSTANCES);
 
         if (!is_int($instanceLimit)) {
@@ -192,6 +193,14 @@ final class Proxifier
         $svcPoolDef->setArgument(5, new Reference($checkerSvcId));
 
         return $svcPoolDef;
+    }
+
+    private function prepareServicePoolMutex(): Definition
+    {
+        $mutexDef = new Definition(ChannelMutex::class);
+        $mutexDef->setFactory([new Reference('swoole_bundle.service_pool.locking'), 'newMutex']);
+
+        return $mutexDef;
     }
 
     private function prepareProxy(string $svcPoolServiceId, Definition $serviceDef): Definition

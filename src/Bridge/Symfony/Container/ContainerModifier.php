@@ -104,12 +104,12 @@ final class ContainerModifier
         return <<<EOF
                         protected function createProxy(\$class, \Closure \$factory)
                         {
-                            \$lock = self::\$locking->acquireContainerLock();
+                            self::\$mutex->acquire();
 
                             try {
                                 \$return = parent::createProxy(\$class, \$factory);
                             } finally {
-                                \$lock->release();
+                                self::\$mutex->release();
                             }
 
                             return \$return;
@@ -133,7 +133,7 @@ final class ContainerModifier
         return <<<EOF
                 protected function load(string \$file)
                 {
-                    \$lock = self::\$locking->acquireContainerLock();
+                    self::\$mutex->acquire();
 
                     try {
                         \$overriddenLoad = str_replace('.php', '__Overridden.php', \$file);
@@ -141,7 +141,7 @@ final class ContainerModifier
 
                         \$return = parent::load(\$file);
                     } finally {
-                        \$lock->release();
+                        self::\$mutex->release();
                     }
 
                     return \$return;
@@ -154,7 +154,7 @@ final class ContainerModifier
         return <<<EOF
                 protected function load(\$file, \$lazyLoad = true)
                 {
-                    \$lock = self::\$locking->acquireContainerLock();
+                    self::\$mutex->acquire();
 
                     try {
                         \$fileToLoad = \$file;
@@ -170,7 +170,7 @@ final class ContainerModifier
 
                         \$return = parent::load(\$file, \$lazyLoad);
                     } finally {
-                        \$lock->release();
+                        self::\$mutex->release();
                     }
 
                     return \$return;
@@ -247,14 +247,14 @@ final class ContainerModifier
 
             {$sharedCheck}
                         try {
-                            \$lock = self::\$locking->acquireContainerLock();
+                            self::\$mutex->acquire();
             {$sharedCheck}
 
                             \$return = parent::{$methodName}(\$lazyLoad);
 
                             if (!\$lazyLoad) \$this->lazyInitializedShared['$methodName'] = \$return;
                         } finally {
-                            \$lock->release();
+                            self::\$mutex->release();
                         }
 
                         return \$return;
@@ -281,11 +281,11 @@ final class ContainerModifier
                     protected function $methodName() {
             {$sharedCheck}
                         try {
-                            \$lock = self::\$locking->acquireContainerLock();
+                            self::\$mutex->acquire();
             {$sharedCheck}
                             \$return = parent::{$methodName}();
                         } finally {
-                            \$lock->release();
+                            self::\$mutex->release();
                         }
 
                         return \$return;
@@ -376,14 +376,14 @@ final class ContainerModifier
                     $sharedCheck
 
                     try {
-                        \$lock = \$container::\$locking->acquireContainerLock();
+                        \$container::\$mutex->acquire();
 
                         $sharedCheck
 
                         \$return = parent::do(\$container, \$lazyLoad);
                         if (!\$lazyLoad) \$container->lazyInitializedShared['$overriddenClass'] = \$return;
                     } finally {
-                        \$lock->release();
+                        \$container::\$mutex->release();
                     }
 
                     return \$return;
