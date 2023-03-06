@@ -229,7 +229,7 @@ final class ContainerModifier
                                         if (isset(\$this->{$internals['type']}{$arrayKey})) {
                                             if (\$lazyLoad) {
                                                 return \$this->{$internals['type']}{$arrayKey};
-                                            } elseif (\$this->{$internals['type']}{$arrayKey}->isProxyInitialized() && isset(\$this->lazyInitializedShared['$methodName'])) {
+                                            } elseif (isset(\$this->lazyInitializedShared['$methodName'])) {
                                                 return \$this->lazyInitializedShared['$methodName'];
                                             }
                                         }
@@ -353,7 +353,7 @@ final class ContainerModifier
                 if (isset(\$container->{$internals['type']}{$arrayKey})) {
                     if (\$lazyLoad) {
                         return \$container->{$internals['type']}{$arrayKey};
-                    } elseif (\$container->{$internals['type']}{$arrayKey}->isProxyInitialized() && isset(\$container->lazyInitializedShared['$overriddenClass'])) {
+                    } elseif (isset(\$container->lazyInitializedShared['$overriddenClass'])) {
                         return \$container->lazyInitializedShared['$overriddenClass'];
                     }
                 }
