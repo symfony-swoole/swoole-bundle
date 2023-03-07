@@ -16,6 +16,11 @@ final class ChannelMutex implements Mutex
      */
     private array $channels = [];
 
+    /**
+     * @var array<Channel>
+     */
+    private static array $spareChannels = [];
+
     public function acquire(): void
     {
         if (!$this->isAcquired) {
@@ -26,7 +31,6 @@ final class ChannelMutex implements Mutex
 
         $channel = $this->provideBlockingChannel();
         $channel->pop();
-        $channel->close();
     }
 
     public function release(): void
@@ -38,6 +42,7 @@ final class ChannelMutex implements Mutex
         }
 
         $nextChannel = array_shift($this->channels);
+        self::$spareChannels[] = $nextChannel;
         $nextChannel->push(true);
     }
 
@@ -48,7 +53,12 @@ final class ChannelMutex implements Mutex
 
     private function provideBlockingChannel(): Channel
     {
-        $channel = new Channel(1);
+        $channel = array_shift(self::$spareChannels);
+
+        if (null === $channel) {
+            $channel = new Channel(1);
+        }
+
         $this->channels[] = $channel;
 
         return $channel;
