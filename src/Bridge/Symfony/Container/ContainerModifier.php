@@ -24,12 +24,15 @@ final class ContainerModifier
             return;
         }
 
-        self::overrideGeneratedContainer($reflContainer, $cacheDir, $isDebug);
-        self::overrideGeneratedContainerGetters($reflContainer, $cacheDir);
+        $nonShareable = self::overrideGeneratedContainerGetters($reflContainer, $cacheDir);
+        self::overrideGeneratedContainer($reflContainer, $cacheDir, $isDebug, $nonShareable);
         self::$alreadyOverridden[$reflContainer->getName()] = true;
     }
 
-    private static function overrideGeneratedContainer(ReflectionClass $reflContainer, string $cacheDir, bool $isDebug): void
+    /**
+     * @param array<string, bool> $nonShareable
+     */
+    private static function overrideGeneratedContainer(ReflectionClass $reflContainer, string $cacheDir, bool $isDebug, array $nonShareable): void
     {
         $fs = new Filesystem();
         $containerFqcn = $reflContainer->getName();
@@ -72,11 +75,27 @@ final class ContainerModifier
                 continue;
             }
 
-            $methodsCodes[] = self::generateOverriddenGetter($method, $codeExtractor);
+            $internals = $codeExtractor->getContainerInternalsForMethod($method);
+
+            if (isset($internals['type']) && 'throw' === $internals['type']) {
+                $internals = [];
+            }
+
+            if (isset($internals['type']) && 'factories' === $internals['type']) {
+                $nonShareable[stripslashes($internals['key'])] = true;
+                $internals = [];
+            }
+
+            if (empty($internals)) {
+                continue;
+            }
+
+            $methodsCodes[] = self::generateOverriddenGetter($method, $internals);
         }
 
         $namespace = $reflContainer->getNamespaceName();
         $modifierClassToUse = __CLASS__;
+        $nonShareableExported = var_export($nonShareable, true);
         $methodsCode = implode(PHP_EOL.PHP_EOL, $methodsCodes);
         $newContainerSource = <<<EOF
             <?php
@@ -87,6 +106,8 @@ final class ContainerModifier
 
             class $containerClass extends $overriddenClass
             {
+                protected static array \$nonShareableServices = $nonShareableExported;
+
                 protected \$lazyInitializedShared = [];
 
             $methodsCode
@@ -206,10 +227,12 @@ final class ContainerModifier
         $fs->dumpFile($cachePath, $replacedContent);
     }
 
-    private static function generateOverriddenGetter(ReflectionMethod $method, ContainerSourceCodeExtractor $extractor): ?string
+    /**
+     * @param array{type: string, key: string, key2?: string} $internals
+     */
+    private static function generateOverriddenGetter(ReflectionMethod $method, array $internals): ?string
     {
         $methodName = $method->getName();
-        $internals = $extractor->getContainerInternalsForMethod($method);
 
         if (isset($internals['type']) && 'factories' === $internals['type']) {
             $internals = [];
@@ -219,23 +242,22 @@ final class ContainerModifier
             self::generateLazyGetter($methodName, $internals) : self::generateCasualGetter($methodName, $internals);
     }
 
+    /**
+     * @param array{type: string, key: string, key2?: string} $internals
+     */
     private static function generateLazyGetter(string $methodName, array $internals): string
     {
-        $sharedCheck = PHP_EOL;
+        $arrayKey = "['{$internals['key']}']".(isset($internals['key2']) ? "['{$internals['key2']}']" : '');
+        $sharedCheck = <<<EOF
+                            if (isset(\$this->{$internals['type']}{$arrayKey})) {
+                                if (\$lazyLoad) {
+                                    return \$this->{$internals['type']}{$arrayKey};
+                                } elseif (isset(\$this->lazyInitializedShared['$methodName'])) {
+                                    return \$this->lazyInitializedShared['$methodName'];
+                                }
+                            }
 
-        if (!empty($internals)) {
-            $arrayKey = "['{$internals['key']}']".(isset($internals['key2']) ? "['{$internals['key2']}']" : '');
-            $sharedCheck = <<<EOF
-                                        if (isset(\$this->{$internals['type']}{$arrayKey})) {
-                                            if (\$lazyLoad) {
-                                                return \$this->{$internals['type']}{$arrayKey};
-                                            } elseif (isset(\$this->lazyInitializedShared['$methodName'])) {
-                                                return \$this->lazyInitializedShared['$methodName'];
-                                            }
-                                        }
-
-                EOF;
-        }
+            EOF;
 
         return <<<EOF
                     protected function $methodName(\$lazyLoad = true) {
@@ -245,10 +267,10 @@ final class ContainerModifier
                             \$lazyLoad = true;
                         }
 
-            {$sharedCheck}
+                        {$sharedCheck}
                         try {
                             self::\$mutex->acquire();
-            {$sharedCheck}
+                            {$sharedCheck}
 
                             \$return = parent::{$methodName}(\$lazyLoad);
 
@@ -262,27 +284,26 @@ final class ContainerModifier
             EOF;
     }
 
+    /**
+     * @param array{type: string, key: string, key2?: string} $internals
+     */
     private static function generateCasualGetter(string $methodName, array $internals): string
     {
-        $sharedCheck = PHP_EOL;
+        $arrayKey = "['{$internals['key']}']".(isset($internals['key2']) ? "['{$internals['key2']}']" : '');
+        $sharedCheck = <<<EOF
 
-        if (!empty($internals)) {
-            $arrayKey = "['{$internals['key']}']".(isset($internals['key2']) ? "['{$internals['key2']}']" : '');
-            $sharedCheck = <<<EOF
+                            if (isset(\$this->{$internals['type']}{$arrayKey})) {
+                                return \$this->{$internals['type']}{$arrayKey};
+                            }
 
-                                        if (isset(\$this->{$internals['type']}{$arrayKey})) {
-                                            return \$this->{$internals['type']}{$arrayKey};
-                                        }
-
-                EOF;
-        }
+            EOF;
 
         return <<<EOF
                     protected function $methodName() {
-            {$sharedCheck}
+                        {$sharedCheck}
                         try {
                             self::\$mutex->acquire();
-            {$sharedCheck}
+                            {$sharedCheck}
                             \$return = parent::{$methodName}();
                         } finally {
                             self::\$mutex->release();
@@ -293,24 +314,36 @@ final class ContainerModifier
             EOF;
     }
 
-    private static function overrideGeneratedContainerGetters(ReflectionClass $reflContainer, string $cacheDir): void
+    /**
+     * @return array<string, bool>
+     */
+    private static function overrideGeneratedContainerGetters(ReflectionClass $reflContainer, string $cacheDir): array
     {
         $fs = new Filesystem();
         $containerNamespace = $reflContainer->getNamespaceName();
         $containerDirectory = $cacheDir.DIRECTORY_SEPARATOR.$containerNamespace;
         $files = scandir($containerDirectory);
         $filteredFiles = array_filter($files, fn (string $fileName): bool => str_starts_with($fileName, 'get'));
+        $nonShareable = [];
 
         foreach ($filteredFiles as $fileName) {
             $class = str_replace('.php', '', $fileName);
-            self::generateOverriddenDoInExtension(
+            $nonShareableSvcId = self::generateOverriddenDoInExtension(
                 $fs,
                 $containerDirectory,
                 $fileName,
                 $class,
                 $containerNamespace
             );
+
+            if ($nonShareableSvcId === null) {
+                continue;
+            }
+
+            $nonShareable[$nonShareableSvcId] = true;
         }
+
+        return $nonShareable;
     }
 
     private static function generateOverriddenDoInExtension(
@@ -319,17 +352,17 @@ final class ContainerModifier
         string $fileToLoad,
         string $class,
         string $namespace
-    ): void {
+    ): ?string {
         $fullPath = $containerDir.\DIRECTORY_SEPARATOR.$fileToLoad;
 
         if (str_contains($fullPath, '__Overridden.php') || str_contains($class, '__Overridden')) {
-            return;
+            return null;
         }
 
         $fullOverriddenPath = str_replace('.php', '__Overridden.php', $fullPath);
 
         if (file_exists($fullOverriddenPath)) {
-            return;
+            return null;
         }
 
         $overriddenClass = $class.'__Overridden';
@@ -338,28 +371,43 @@ final class ContainerModifier
         $codeExtractor = new ContainerSourceCodeExtractor($origContent);
         $overriddenContent = str_replace($class, $overriddenClass, $origContent);
         $overriddenContent = str_replace('self::do(', 'static::do(', $overriddenContent);
-        $fs->rename($fullPath, $fullOverriddenPath, true);
+        $fs->copy($fullPath, $fullOverriddenPath, true);
         $fs->dumpFile($fullOverriddenPath, $overriddenContent);
         require_once $fullOverriddenPath;
         $reflClass = new ReflectionClass($overriddenFqcn);
         $reflMethod = $reflClass->getMethod('do');
         $codeExtractor = new ContainerSourceCodeExtractor($overriddenContent);
         $internals = $codeExtractor->getContainerInternalsForMethod($reflMethod, true);
-        $sharedCheck = '';
+        $nonShareableSvcId = null;
 
-        if (!empty($internals)) {
-            $arrayKey = "['{$internals['key']}']".(isset($internals['key2']) ? "['{$internals['key2']}']" : '');
-            $sharedCheck = <<<EOF
-                if (isset(\$container->{$internals['type']}{$arrayKey})) {
-                    if (\$lazyLoad) {
-                        return \$container->{$internals['type']}{$arrayKey};
-                    } elseif (isset(\$container->lazyInitializedShared['$overriddenClass'])) {
-                        return \$container->lazyInitializedShared['$overriddenClass'];
-                    }
-                }
-
-                EOF;
+        if (isset($internals['type']) && 'throw' === $internals['type']) {
+            $internals = [];
         }
+
+        if (isset($internals['type']) && 'factories' === $internals['type']) {
+            $nonShareableSvcId = stripslashes($internals['key']);
+            $internals = [];
+        }
+
+        if (empty($internals)) {
+            $fs->remove($overriddenFqcn);
+
+            return $nonShareableSvcId;
+        }
+
+        $fs->remove($fullPath);
+        $arrayKey = "['{$internals['key']}']".(isset($internals['key2']) ? "['{$internals['key2']}']" : '');
+        $sharedCheck = <<<EOF
+
+                        if (isset(\$container->{$internals['type']}{$arrayKey})) {
+                            if (\$lazyLoad) {
+                                return \$container->{$internals['type']}{$arrayKey};
+                            } elseif (isset(\$container->lazyInitializedShared['$overriddenClass'])) {
+                                return \$container->lazyInitializedShared['$overriddenClass'];
+                            }
+                        }
+
+            EOF;
 
         $newContent = <<<EOF
             <?php
@@ -392,8 +440,9 @@ final class ContainerModifier
             EOF;
         $fs->dumpFile($fullPath, $newContent);
 
-        require_once $fullOverriddenPath;
         require_once $fullPath;
+
+        return null;
     }
 
     private static function getIgnoredGetters(): array

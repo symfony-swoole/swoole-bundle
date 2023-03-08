@@ -16,6 +16,11 @@ class BlockingContainer extends Container
 
     protected static string $buildContainerNs = '';
 
+    /**
+     * @var array<string, bool>
+     */
+    protected static array $nonShareableServices = [];
+
     public function __construct(ParameterBagInterface $parameterBag = null)
     {
         self::$mutex = (new RecursiveOwnerMutexFactory(new ChannelMutexFactory()))->newMutex();
@@ -28,6 +33,16 @@ class BlockingContainer extends Container
      */
     public function get(string $id, int $invalidBehavior = self::EXCEPTION_ON_INVALID_REFERENCE): ?object
     {
+        if (isset(static::$nonShareableServices[$id])) {
+            return parent::get($id, $invalidBehavior);
+        }
+
+        $service = $this->services[$id] ?? $this->services[$id = $this->aliases[$id] ?? $id] ?? null;
+
+        if (null !== $service) {
+            return $service;
+        }
+
         try {
             self::$mutex->acquire();
             $service = parent::get($id, $invalidBehavior);

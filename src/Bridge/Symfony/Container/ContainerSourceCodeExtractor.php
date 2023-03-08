@@ -15,20 +15,46 @@ final class ContainerSourceCodeExtractor
         $this->sourceCode = explode(PHP_EOL, $sourceCode);
     }
 
+    /**
+     * @return array{}|array{type: string, key: string, key2?: string}
+     */
     public function getContainerInternalsForMethod(ReflectionMethod $method, bool $isExtension = false): array
     {
         $code = $this->getMethodCode($method);
         $variable = $isExtension ? 'container' : 'this';
 
-        if (!preg_match(
-            '/return \\$'.$variable.'->(?P<type>[a-z]+)\[\'(?P<key>[^\']+)\'\](\[\'(?P<key2>[^\']+)\'\])? \=/',
+        if (preg_match(
+            '/return \\$'.$variable.'->(?P<type>[a-z]+)\[\'(?P<key>[^\']+)\'\](\[\'(?P<key2>[^\']+)\'\])?((\(\))|( \=))/',
             $code,
             $matches
         )) {
-            return [];
+            if ($matches['key2'] === '') {
+                unset($matches['key2']);
+            }
+
+            return $matches;
         }
 
-        return $matches;
+        if (preg_match(
+            '/\\$'.$variable.'->(?P<type>[a-z]+)\[\'(?P<key>[^\']+)\'\] \= \\$instance/',
+            $code,
+            $matches
+        )) {
+            return $matches;
+        }
+
+        if (preg_match(
+            '/\\$'.$variable.'->throw\(/',
+            $code,
+            $matches
+        )) {
+            $matches['type'] = 'throw';
+            $matches['key'] = 'nevermind';
+
+            return $matches;
+        }
+
+        return [];
     }
 
     public function getMethodCode(ReflectionMethod $method): string
