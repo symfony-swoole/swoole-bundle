@@ -234,4 +234,9 @@ class ServerTestCase extends KernelTestCase
         $fs = new Filesystem();
         $fs->remove(self::WORKING_DIRECTORY.'/var');
     }
+
+    protected function getVarDirectoryPath(): string
+    {
+        return self::WORKING_DIRECTORY.'/var';
+    }
 }

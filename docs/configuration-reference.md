@@ -47,11 +47,19 @@ swoole:
     #       sqlite: 'application/x-sqlite3'
 
     # enables hot module reload using inotify
-    hmr: auto
-    # hmr can be one of: off, (default) auto, inotify
+    hmr: 
+      enabled: auto
+    # hmr enabled can be one of: off, (default) auto, inotify, external
     #   - off: turn off feature
     #   - auto: use inotify if installed in the system
     #   - inotify: use inotify
+    #   - external: dump files included before server start to text files, 
+    # files are parsed and used in swoole entrypoint command to decide if hard/soft reload is needed
+    # files location, usually %kernel.cache_dir%/swoole_bundle/
+    #
+    #    hmr:
+    #        enabled: external
+    #        file_path: '%swoole_bundle.cache_dir%'
 
     # enables api server on specific port
     # by default it is disabled (can be also enabled using --api flag via cli)

@@ -37,6 +37,7 @@ use K911\Swoole\Server\RequestHandler\RequestHandlerInterface;
 use K911\Swoole\Server\Runtime\BootableInterface;
 use K911\Swoole\Server\Runtime\HMR\HotModuleReloaderInterface;
 use K911\Swoole\Server\Runtime\HMR\InotifyHMR;
+use K911\Swoole\Server\Runtime\HMR\NonReloadableFiles;
 use K911\Swoole\Server\TaskHandler\TaskHandlerInterface;
 use K911\Swoole\Server\WorkerHandler\HMRWorkerStartHandler;
 use K911\Swoole\Server\WorkerHandler\WorkerStartHandlerInterface;
@@ -47,6 +48,7 @@ use Symfony\Component\DependencyInjection\Extension\PrependExtensionInterface;
 use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\ErrorHandler\ErrorHandler;
+use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
 use Tideways\Profiler as TidewaysProfiler;
 use Upscale\Swoole\Blackfire\Profiler as BlackfireProfiler;
@@ -281,8 +283,8 @@ final class SwooleExtension extends Extension implements PrependExtensionInterfa
             $container->setAlias(KernelPoolInterface::class, CoroutineKernelPool::class);
         }
 
-        if ('auto' === $hmr) {
-            $hmr = $this->resolveAutoHMR();
+        if ('auto' === $hmr['enabled']) {
+            $hmr['enabled'] = $this->resolveAutoHMR();
         }
 
         $sockets = $container->getDefinition(Sockets::class)
@@ -298,13 +300,24 @@ final class SwooleExtension extends Extension implements PrependExtensionInterfa
         return $settings;
     }
 
-    private function configureHttpServerHMR(string $hmr, ContainerBuilder $container): void
+    private function configureHttpServerHMR(array $hmr, ContainerBuilder $container): void
     {
-        if ('off' === $hmr || !$this->isDebug($container)) {
+        if ('off' === $hmr['enabled'] || !$this->isDebug($container)) {
             return;
         }
 
-        if ('inotify' === $hmr) {
+        if ('external' === $hmr['enabled']) {
+            $container->register(NonReloadableFiles::class)
+                ->addTag('swoole_bundle.bootable_service')
+                ->setArgument('$kernelCacheDir', $container->getParameter('kernel.cache_dir'))
+                ->setArgument('$filePathDir', $hmr['file_path'] ?? $container->getParameter('swoole_bundle.cache_dir'))
+                ->setArgument('$fileSystem', new Reference(Filesystem::class))
+            ;
+
+            return;
+        }
+
+        if ('inotify' === $hmr['enabled']) {
             $container->register(HotModuleReloaderInterface::class, InotifyHMR::class)
                 ->addTag('swoole_bundle.bootable_service')
             ;

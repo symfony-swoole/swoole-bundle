@@ -111,3 +111,118 @@ cd swoole-bundle-symfony-demo
 docker-compose build
 docker-compose up
 ```
+
+## Local development
+
+For easy local realtime app development use entry point file bellow. For non test/development env script will run server with standard command `bin/console swoole:server:run`.
+After swoole server start, script will watch for file changes and perform soft or hard swoole server reload.
+
+Requirements:
+
+- In swoole configuration set `hmr: enabled: ` to `external`.
+- You can configure `file_path`, don forget to reflect this path in shell script bellow.
+- For `inotifywait` command you need to install lib `inotify-tools` (standard lib available in official repositories).
+- In some cases, big/more projects inotify watch limit can be reached, then you need just increase `max_user_watches`.
+
+Configuration:
+
+- Edit: `appDir`, `cacheDir` base on your app configuration
+- `inotifywait` line with folders to watch for changes can be adjusted too
+
+```shell
+#!/bin/bash
+
+# not compatible with: set -e
+set -o pipefail
+
+if [[ $ENV != "test" && $ENV != "development" ]]; then
+
+    # production, staging, feature, ...
+    exec bin/console swoole:server:run;
+
+else
+
+  envCache='test';
+  if [[ $ENV == "development" ]]; then
+    envCache='dev';
+  fi
+
+  # edit paths to your app needs
+  appDir="/var/www";
+  appCacheDir="${appDir}/var/cache";
+  cacheDir="${appCacheDir}/${envCache}/swoole_bundle";
+  # pid file must be outside env cache to prevent deletion (cache:clear, ...)
+  pidFile="${appCacheDir}/swoole_${ENV}.pid";
+
+  if [ -z "$(which inotifywait)" ]; then
+      echo "inotifywait not installed. Running swoole without reload.";
+      echo "In most distros, it is available in the inotify-tools package.";
+      exec bin/console swoole:server:run;
+  fi
+
+  # start server in detached mode
+  # --pid-file is used to distinct pid file for local test/dev environment
+  bin/console swoole:server:start --open-console --pid-file="$pidFile";
+
+  # files included before server start cannot be reloaded - server hard restart
+  IFS=$'\n' read -d '' -r -a nonReloadableFiles < ${cacheDir}/nonReloadableFiles.txt;
+  IFS=$'\n' read -d '' -r -a nonReloadableAppFiles < ${cacheDir}/nonReloadableAppFiles.txt;
+  #echo "${nonReloadableFiles[@]}"
+
+  # https://linux.die.net/man/1/inotifywait
+  # -r recursively
+  # -q quiet
+  # -e events
+  # -m monitor, execute indefinitely
+
+  lastModificationTime=0;
+
+  # %w%f - full path with file name
+  # %T - timestamp
+  inotifywait -rmq -e modify -e delete ${appDir}/config ${appDir}/src ${appDir}/vendor/composer ${appDir}/tests --format %w%f:%T --timefmt %s | while IFS=':' read -r changedFile changedTime; do
+
+    # skip if file contains ~ on end (can be changed below in array comparison somehow)
+    if [[ $changedFile == *~ ]]; then
+        continue ;
+    fi
+
+    # if modification time is different, there are more events/files in same sec, we want only first
+    if [[ ${lastModificationTime} < "$changedTime" ]]; then
+
+      lastModificationTime=$changedTime;
+
+      if [[ "${nonReloadableFiles[*]}" =~ $changedFile ]]; then
+
+        echo "Changed file:timestamp:  $changedFile:$changedTime";
+
+        # check if application files are valid by php lint
+        if time printf "%s\0" "${nonReloadableAppFiles[@]}" | xargs -0 -n 1 -P $(nproc) php -l &> /dev/null; then
+          if ! time bin/console swoole:server:stop --no-delay --pid-file="$pidFile"; then
+              # in some cases (invalid app settings) stop command is failing
+              continue ;
+          fi
+
+          # wait until port is available again, close connection coroutine has 3 sec timeout (can be configured)
+          while timeout 1 bash -c "(echo > /dev/tcp/0.0.0.0/80) &>/dev/null"; do sleep 0.05; done
+
+          bin/console swoole:server:start --open-console --pid-file="$pidFile";
+          # refresh arrays of files
+          IFS=$'\n' read -d '' -r -a nonReloadableFiles < ${cacheDir}/nonReloadableFiles.txt;
+          IFS=$'\n' read -d '' -r -a nonReloadableAppFiles < ${cacheDir}/nonReloadableAppFiles.txt;
+
+        else
+          echo "Status code: ${PIPESTATUS[0]}, skip hard reload server, php files are not valid";
+        fi
+
+      else
+
+        bin/console swoole:server:reload --pid-file="$pidFile";
+
+      fi
+    fi
+  done
+
+fi
+
+```
+
