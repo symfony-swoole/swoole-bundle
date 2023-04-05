@@ -4,7 +4,7 @@ orbs:
 executors:
   pixelfederation-docker-client:
     docker:
-      - image: pixelfederation/docker-client:20.10.17-compose
+      - image: pixelfederation/docker-client:23.0.2-compose
     working_directory: ~/workdir
 
   pixelfederation-release-version:
