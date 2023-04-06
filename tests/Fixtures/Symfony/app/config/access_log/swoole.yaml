@@ -1,0 +1,11 @@
+services:
+  _defaults:
+    autowire: true
+    autoconfigure: true
+    public: false
+
+swoole:
+  http_server:
+    services:
+      access_log:
+        enabled: true
