@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace K911\Swoole\Bridge\Symfony\Bundle\DependencyInjection;
 
+use K911\Swoole\Bridge\Log\AccessLogFormatter;
+use K911\Swoole\Bridge\Log\AccessLogFormatterInterface;
 use K911\Swoole\Bridge\Symfony\Container\StabilityChecker;
 use K911\Swoole\Bridge\Symfony\ErrorHandler\ErrorResponder;
 use K911\Swoole\Bridge\Symfony\ErrorHandler\ExceptionHandlerFactory;
 use K911\Swoole\Bridge\Symfony\ErrorHandler\SymfonyExceptionHandler;
 use K911\Swoole\Bridge\Symfony\ErrorHandler\ThrowableHandlerFactory;
+use K911\Swoole\Bridge\Symfony\HttpFoundation\AccessLogOnKernelTerminate;
 use K911\Swoole\Bridge\Symfony\HttpFoundation\CloudFrontRequestFactory;
 use K911\Swoole\Bridge\Symfony\HttpFoundation\RequestFactoryInterface;
 use K911\Swoole\Bridge\Symfony\HttpFoundation\TrustAllProxiesRequestHandler;
@@ -41,6 +44,7 @@ use K911\Swoole\Server\Runtime\HMR\NonReloadableFiles;
 use K911\Swoole\Server\TaskHandler\TaskHandlerInterface;
 use K911\Swoole\Server\WorkerHandler\HMRWorkerStartHandler;
 use K911\Swoole\Server\WorkerHandler\WorkerStartHandlerInterface;
+use Monolog\Formatter\LineFormatter;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
@@ -443,6 +447,46 @@ final class SwooleExtension extends Extension implements PrependExtensionInterfa
             $def->addArgument(new Reference(WithApm::class));
             $def = $container->getDefinition('swoole_bundle.server.http_server.configurator.for_server_start_command');
             $def->addArgument(new Reference(WithApm::class));
+        }
+
+        if ($config['access_log']['enabled']) {
+            $accessLogFormatter = $container->register(AccessLogFormatterInterface::class)
+                ->setClass(AccessLogFormatter::class)
+                ->setAutowired(false)
+                ->setAutoconfigured(false)
+                ->setPublic(false)
+            ;
+            if (null !== $config['access_log']['format']) {
+                $accessLogFormatter->setArgument('$format', $config['access_log']['format']);
+            }
+
+            $container->register(AccessLogOnKernelTerminate::class)
+                ->setClass(AccessLogOnKernelTerminate::class)
+                ->addTag('kernel.event_subscriber')
+                ->addTag('monolog.logger', ['channel' => 'swoole.access_log'])
+                ->setAutowired(false)
+                ->setAutoconfigured(false)
+                ->setPublic(false)
+                ->setArgument('$formatter', new Reference(AccessLogFormatterInterface::class))
+            ;
+
+            if ($config['access_log']['register_monolog_formatter_service']) {
+                $lineFormatterServiceName = 'monolog.formatter.line.swoole.access_log';
+                if (isset($config['access_log']['monolog_formatter_service_name'])) {
+                    $lineFormatterServiceName = $config['access_log']['monolog_formatter_service_name'];
+                }
+                $lineFormatterFormat = "%%message%% %%context%% %%extra%%\n";
+                if (isset($config['access_log']['monolog_formatter_format'])) {
+                    $lineFormatterFormat = $config['access_log']['monolog_formatter_format'];
+                }
+                $container->register($lineFormatterServiceName)
+                    ->setClass(LineFormatter::class)
+                    ->setAutowired(false)
+                    ->setAutoconfigured(false)
+                    ->setPublic(false)
+                    ->setArgument('$format', $lineFormatterFormat)
+                ;
+            }
         }
     }
 

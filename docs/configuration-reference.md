@@ -91,6 +91,18 @@ swoole:
         enabled: true
         service_name: 'app_name' # service name for Tideways APM UI
 
+      # enable swoole logging
+      access_log:
+          enabled: false
+          # define custom format or use some from AccessLogFormatter
+          format: !php/const K911\Swoole\Bridge\Log\AccessLogFormatter::FORMAT_COMMON_TIME
+          # whatever register monolog line formatter service
+          register_monolog_formatter_service: true
+          # service id, can be used in monolog -> handlers -> formatter
+          monolog_formatter_service_name: 'monolog.formatter.line.swoole.access_log'
+          # custom line formatter format, extra section is used by monolog processors
+          monolog_formatter_format: "%%message%% %%context%% %%extra%%\n"
+
     # swoole http server settings
     # see https://openswoole.com/docs/modules/swoole-server/configuration
     settings:
