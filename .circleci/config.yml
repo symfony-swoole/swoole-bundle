@@ -504,6 +504,7 @@ workflows:
           requires:
             - docker-buildx-bake-80
       - swoole-bundle-80-code-coverage:
+          context: swoole-bundle-dockerhub
           requires:
             - docker-buildx-bake-80
       - docker-buildx-bake-81-latest:
