@@ -2,34 +2,20 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Bridge\Symfony\Container;
+namespace K911\Swoole\Bridge\Symfony\Container\Modifier\Builder;
 
 use K911\Swoole\Bridge\Symfony\Bundle\DependencyInjection\ContainerConstants;
+use K911\Swoole\Bridge\Symfony\Container\BlockingContainer;
+use K911\Swoole\Bridge\Symfony\Container\ContainerSourceCodeExtractor;
 use Symfony\Component\Config\ConfigCache;
 use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\Filesystem\Filesystem;
 use ZEngine\Reflection\ReflectionClass;
 use ZEngine\Reflection\ReflectionMethod;
 
-final class ContainerModifier
+final class Symfony54PlusBuilder implements Builder
 {
-    private static $alreadyOverridden = [];
-
-    public static function modifyContainer(BlockingContainer $container, string $cacheDir, bool $isDebug): void
-    {
-        $reflContainer = new ReflectionClass($container);
-        BlockingContainer::setBuildContainerNs($reflContainer->getNamespaceName());
-
-        if (isset(self::$alreadyOverridden[$reflContainer->getName()])) {
-            return;
-        }
-
-        self::overrideGeneratedContainer($reflContainer, $cacheDir, $isDebug);
-        self::overrideGeneratedContainerGetters($reflContainer, $cacheDir);
-        self::$alreadyOverridden[$reflContainer->getName()] = true;
-    }
-
-    private static function overrideGeneratedContainer(ReflectionClass $reflContainer, string $cacheDir, bool $isDebug): void
+    public function overrideGeneratedContainer(ReflectionClass $reflContainer, string $cacheDir, bool $isDebug): void
     {
         $fs = new Filesystem();
         $containerFqcn = $reflContainer->getName();
@@ -45,6 +31,11 @@ final class ContainerModifier
         }
 
         $containerSource = file_get_contents($containerFile);
+
+        if (false === $containerSource) {
+            throw new \RuntimeException(sprintf('Could not read container file "%s".', $containerFile));
+        }
+
         $codeExtractor = new ContainerSourceCodeExtractor($containerSource);
         $overriddenSource = str_replace('class '.$containerClass, 'class '.$overriddenClass, $containerSource);
 
@@ -55,15 +46,15 @@ final class ContainerModifier
         $fs->dumpFile($blacklistFile, $blacklistFileContent);
 
         // methods override
-        $ignoredMethods = self::getIgnoredGetters();
+        $ignoredMethods = $this->getIgnoredGetters();
         $methods = $reflContainer->getMethods(\ReflectionMethod::IS_PROTECTED);
         $methodsCodes = [];
 
         if (!$reflContainer->hasMethod('createProxy')) {
-            $methodsCodes[] = self::generateOverriddenCreateProxy();
+            $methodsCodes[] = $this->generateOverriddenCreateProxy();
         }
 
-        $methodsCodes[] = self::generateOverridenLoad($reflContainer);
+        $methodsCodes[] = $this->generateOverridenLoad($reflContainer);
 
         foreach ($methods as $method) {
             $methodName = $method->getName();
@@ -72,7 +63,7 @@ final class ContainerModifier
                 continue;
             }
 
-            $methodsCodes[] = self::generateOverriddenGetter($method, $codeExtractor);
+            $methodsCodes[] = $this->generateOverriddenGetter($method, $codeExtractor);
         }
 
         $namespace = $reflContainer->getNamespaceName();
@@ -96,10 +87,35 @@ final class ContainerModifier
         $fs->copy($containerFile, $overriddenFile);
         $fs->dumpFile($overriddenFile, $overriddenSource);
         $fs->dumpFile($containerFile, $newContainerSource);
-        self::overrideCachedEntrypoint($fs, $cacheDir, $containerClass, $overriddenFqcn, $isDebug);
+        $this->overrideCachedEntrypoint($fs, $cacheDir, $containerClass, $overriddenFqcn, $isDebug);
     }
 
-    private static function generateOverriddenCreateProxy(): string
+    public function overrideGeneratedContainerGetters(ReflectionClass $reflContainer, string $cacheDir): void
+    {
+        $fs = new Filesystem();
+        $containerNamespace = $reflContainer->getNamespaceName();
+        $containerDirectory = $cacheDir.DIRECTORY_SEPARATOR.$containerNamespace;
+        $files = scandir($containerDirectory);
+
+        if (false === $files) {
+            throw new \RuntimeException(sprintf('Could not read container directory "%s".', $containerDirectory));
+        }
+
+        $filteredFiles = array_filter($files, fn (string $fileName): bool => str_starts_with($fileName, 'get'));
+
+        foreach ($filteredFiles as $fileName) {
+            $class = str_replace('.php', '', $fileName);
+            $this->generateOverriddenDoInExtension(
+                $fs,
+                $containerDirectory,
+                $fileName,
+                $class,
+                $containerNamespace
+            );
+        }
+    }
+
+    private function generateOverriddenCreateProxy(): string
     {
         return <<<EOF
                         protected function createProxy(\$class, \Closure \$factory)
@@ -117,7 +133,7 @@ final class ContainerModifier
             EOF;
     }
 
-    private static function generateOverridenLoad(ReflectionClass $reflContainer): string
+    private function generateOverridenLoad(ReflectionClass $reflContainer): string
     {
         $loadRefl = $reflContainer->getMethod('load');
 
@@ -178,7 +194,7 @@ final class ContainerModifier
             EOF;
     }
 
-    private static function overrideCachedEntrypoint(Filesystem $fs, string $cacheDir, string $containerClass, string $overriddenFqcn, bool $isDebug): void
+    private function overrideCachedEntrypoint(Filesystem $fs, string $cacheDir, string $containerClass, string $overriddenFqcn, bool $isDebug): void
     {
         $cache = new ConfigCache($cacheDir.'/'.$containerClass.'.php', $isDebug);
         $cachePath = $cache->getPath();
@@ -188,6 +204,11 @@ final class ContainerModifier
         }
 
         $content = file_get_contents($cachePath);
+
+        if (false === $content) {
+            throw new \RuntimeException('Could not read generated cached file.');
+        }
+
         $overriddenFile = str_replace('\\', DIRECTORY_SEPARATOR, $overriddenFqcn).'.php';
 
         $header = <<<EOF
@@ -206,7 +227,7 @@ final class ContainerModifier
         $fs->dumpFile($cachePath, $replacedContent);
     }
 
-    private static function generateOverriddenGetter(ReflectionMethod $method, ContainerSourceCodeExtractor $extractor): ?string
+    private function generateOverriddenGetter(ReflectionMethod $method, ContainerSourceCodeExtractor $extractor): string
     {
         $methodName = $method->getName();
         $internals = $extractor->getContainerInternalsForMethod($method);
@@ -293,27 +314,7 @@ final class ContainerModifier
             EOF;
     }
 
-    private static function overrideGeneratedContainerGetters(ReflectionClass $reflContainer, string $cacheDir): void
-    {
-        $fs = new Filesystem();
-        $containerNamespace = $reflContainer->getNamespaceName();
-        $containerDirectory = $cacheDir.DIRECTORY_SEPARATOR.$containerNamespace;
-        $files = scandir($containerDirectory);
-        $filteredFiles = array_filter($files, fn (string $fileName): bool => str_starts_with($fileName, 'get'));
-
-        foreach ($filteredFiles as $fileName) {
-            $class = str_replace('.php', '', $fileName);
-            self::generateOverriddenDoInExtension(
-                $fs,
-                $containerDirectory,
-                $fileName,
-                $class,
-                $containerNamespace
-            );
-        }
-    }
-
-    private static function generateOverriddenDoInExtension(
+    private function generateOverriddenDoInExtension(
         Filesystem $fs,
         string $containerDir,
         string $fileToLoad,
@@ -335,6 +336,11 @@ final class ContainerModifier
         $overriddenClass = $class.'__Overridden';
         $overriddenFqcn = $namespace.'\\'.$overriddenClass;
         $origContent = file_get_contents($fullPath);
+
+        if (false === $origContent) {
+            throw new \RuntimeException('Could not read original generated cached file.');
+        }
+
         $codeExtractor = new ContainerSourceCodeExtractor($origContent);
         $overriddenContent = str_replace($class, $overriddenClass, $origContent);
         $overriddenContent = str_replace('self::do(', 'static::do(', $overriddenContent);
@@ -342,6 +348,7 @@ final class ContainerModifier
         $fs->dumpFile($fullOverriddenPath, $overriddenContent);
         require_once $fullOverriddenPath;
         $reflClass = new ReflectionClass($overriddenFqcn);
+        /** @var ReflectionMethod $reflMethod */
         $reflMethod = $reflClass->getMethod('do');
         $codeExtractor = new ContainerSourceCodeExtractor($overriddenContent);
         $internals = $codeExtractor->getContainerInternalsForMethod($reflMethod, true);
@@ -396,7 +403,7 @@ final class ContainerModifier
         require_once $fullPath;
     }
 
-    private static function getIgnoredGetters(): array
+    private function getIgnoredGetters(): array
     {
         $reflBlockingContainer = new ReflectionClass(BlockingContainer::class);
         $methods = $reflBlockingContainer->getMethods(\ReflectionMethod::IS_PROTECTED);

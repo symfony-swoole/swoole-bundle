@@ -143,7 +143,7 @@ class TestAppKernel extends Kernel
         return (bool) $this->debug;
     }
 
-    protected function build(ContainerBuilder $container)
+    protected function build(ContainerBuilder $container): void
     {
         $container->addCompilerPass(new OverrideDoctrineCompilerPass());
     }
@@ -206,6 +206,6 @@ class TestAppKernel extends Kernel
             return;
         }
 
-        $loader->load($envPackageConfigurationDir.'/**/*'.self::CONFIG_EXTENSIONS, 'glob');
+        $loader->load($envPackageConfigurationDir.'/*'.self::CONFIG_EXTENSIONS, 'glob');
     }
 }
