@@ -6,7 +6,7 @@ namespace K911\Swoole\Bridge\Symfony\Kernel;
 
 use K911\Swoole\Bridge\Symfony\Bundle\DependencyInjection\ContainerConstants;
 use K911\Swoole\Bridge\Symfony\Container\BlockingContainer;
-use K911\Swoole\Bridge\Symfony\Container\ContainerModifier;
+use K911\Swoole\Bridge\Symfony\Container\Modifier\Modifier;
 use K911\Swoole\Reflection\FinalClassModifier;
 
 trait CoroutinesSupportingKernelTrait
@@ -33,7 +33,7 @@ trait CoroutinesSupportingKernelTrait
     /**
      * this initializes logic which removes the final flag from proxified classes (if they are final).
      */
-    protected function initializeContainer()
+    protected function initializeContainer(): void
     {
         FinalClassModifier::initialize($this->getCacheDir());
         $cacheDir = $this->getCacheDir();
@@ -44,7 +44,7 @@ trait CoroutinesSupportingKernelTrait
             return;
         }
 
-        ContainerModifier::modifyContainer($this->container, $cacheDir, $this->isDebug());
+        Modifier::modifyContainer($this->container, $cacheDir, $this->isDebug());
     }
 
     private function areCoroutinesEnabled(): bool
