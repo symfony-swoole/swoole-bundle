@@ -9,6 +9,7 @@ namespace K911\Swoole\Tests\Unit\Functions;
  *
  * @property string $dynamicProp
  */
+#[\AllowDynamicProperties]
 class TestObject
 {
     public const GOOD_VALUE = 'good';

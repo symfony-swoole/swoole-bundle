@@ -20,7 +20,8 @@ final class ErrorResponder
     {
         $exceptionHandler = $this->handlerFactory->newExceptionHandler($request);
         $this->errorHandler->setExceptionHandler($exceptionHandler);
+        $this->errorHandler->handleException($throwable);
 
-        return $this->errorHandler->handleException($throwable);
+        return $exceptionHandler->getResponse();
     }
 }

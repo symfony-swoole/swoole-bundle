@@ -11,8 +11,7 @@ final class ThrowableHandlerFactory
     public static function newThrowableHandler(): \ReflectionMethod
     {
         $kernelReflection = new \ReflectionClass(HttpKernel::class);
-        $method = $kernelReflection->hasMethod('handleThrowable') ?
-            $kernelReflection->getMethod('handleThrowable') : $kernelReflection->getMethod('handleException');
+        $method = $kernelReflection->getMethod('handleThrowable');
         $method->setAccessible(true);
 
         return $method;
