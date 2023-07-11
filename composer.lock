@@ -75,22 +75,22 @@
         },
         {
             "name": "friendsofphp/proxy-manager-lts",
-            "version": "v1.0.14",
+            "version": "v1.0.16",
             "source": {
                 "type": "git",
                 "url": "https://github.com/FriendsOfPHP/proxy-manager-lts.git",
-                "reference": "a527c9d9d5348e012bd24482d83a5cd643bcbc9e"
+                "reference": "ecadbdc9052e4ad08c60c8a02268712e50427f7c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/FriendsOfPHP/proxy-manager-lts/zipball/a527c9d9d5348e012bd24482d83a5cd643bcbc9e",
-                "reference": "a527c9d9d5348e012bd24482d83a5cd643bcbc9e",
+                "url": "https://api.github.com/repos/FriendsOfPHP/proxy-manager-lts/zipball/ecadbdc9052e4ad08c60c8a02268712e50427f7c",
+                "reference": "ecadbdc9052e4ad08c60c8a02268712e50427f7c",
                 "shasum": ""
             },
             "require": {
                 "laminas/laminas-code": "~3.4.1|^4.0",
                 "php": ">=7.1",
-                "symfony/filesystem": "^4.4.17|^5.0|^6.0"
+                "symfony/filesystem": "^4.4.17|^5.0|^6.0|^7.0"
             },
             "conflict": {
                 "laminas/laminas-stdlib": "<3.2.1",
@@ -101,7 +101,7 @@
             },
             "require-dev": {
                 "ext-phar": "*",
-                "symfony/phpunit-bridge": "^5.4|^6.0"
+                "symfony/phpunit-bridge": "^5.4|^6.0|^7.0"
             },
             "type": "library",
             "extra": {
@@ -141,7 +141,7 @@
             ],
             "support": {
                 "issues": "https://github.com/FriendsOfPHP/proxy-manager-lts/issues",
-                "source": "https://github.com/FriendsOfPHP/proxy-manager-lts/tree/v1.0.14"
+                "source": "https://github.com/FriendsOfPHP/proxy-manager-lts/tree/v1.0.16"
             },
             "funding": [
                 {
@@ -153,7 +153,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2023-01-30T10:40:19+00:00"
+            "time": "2023-05-24T07:17:17+00:00"
         },
         {
             "name": "laminas/laminas-code",
@@ -3365,16 +3365,16 @@
         },
         {
             "name": "doctrine/doctrine-bundle",
-            "version": "2.9.1",
+            "version": "2.10.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/doctrine/DoctrineBundle.git",
-                "reference": "7539b3c8bd620f7df6c2c6d510204bd2ce0064e3"
+                "reference": "f9d59c90b6f525dfc2a2064a695cb56e0ab40311"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/doctrine/DoctrineBundle/zipball/7539b3c8bd620f7df6c2c6d510204bd2ce0064e3",
-                "reference": "7539b3c8bd620f7df6c2c6d510204bd2ce0064e3",
+                "url": "https://api.github.com/repos/doctrine/DoctrineBundle/zipball/f9d59c90b6f525dfc2a2064a695cb56e0ab40311",
+                "reference": "f9d59c90b6f525dfc2a2064a695cb56e0ab40311",
                 "shasum": ""
             },
             "require": {
@@ -3461,7 +3461,7 @@
             ],
             "support": {
                 "issues": "https://github.com/doctrine/DoctrineBundle/issues",
-                "source": "https://github.com/doctrine/DoctrineBundle/tree/2.9.1"
+                "source": "https://github.com/doctrine/DoctrineBundle/tree/2.10.1"
             },
             "funding": [
                 {
@@ -3477,20 +3477,20 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2023-04-14T05:39:34+00:00"
+            "time": "2023-06-28T07:47:41+00:00"
         },
         {
             "name": "doctrine/doctrine-migrations-bundle",
-            "version": "3.2.2",
+            "version": "3.2.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/doctrine/DoctrineMigrationsBundle.git",
-                "reference": "3393f411ba25ade21969c33f2053220044854d01"
+                "reference": "94e6b0fe1a50901d52f59dbb9b4b0737718b2c1e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/doctrine/DoctrineMigrationsBundle/zipball/3393f411ba25ade21969c33f2053220044854d01",
-                "reference": "3393f411ba25ade21969c33f2053220044854d01",
+                "url": "https://api.github.com/repos/doctrine/DoctrineMigrationsBundle/zipball/94e6b0fe1a50901d52f59dbb9b4b0737718b2c1e",
+                "reference": "94e6b0fe1a50901d52f59dbb9b4b0737718b2c1e",
                 "shasum": ""
             },
             "require": {
@@ -3500,15 +3500,15 @@
                 "symfony/framework-bundle": "~3.4|~4.0|~5.0|~6.0"
             },
             "require-dev": {
-                "doctrine/coding-standard": "^8.0",
+                "doctrine/coding-standard": "^9",
                 "doctrine/orm": "^2.6",
                 "doctrine/persistence": "^1.3||^2.0",
-                "phpstan/phpstan": "^0.12",
-                "phpstan/phpstan-deprecation-rules": "^0.12",
-                "phpstan/phpstan-phpunit": "^0.12",
-                "phpstan/phpstan-strict-rules": "^0.12",
-                "phpunit/phpunit": "^8.0|^9.0",
-                "vimeo/psalm": "^4.11"
+                "phpstan/phpstan": "^1.4",
+                "phpstan/phpstan-deprecation-rules": "^1",
+                "phpstan/phpstan-phpunit": "^1",
+                "phpstan/phpstan-strict-rules": "^1.1",
+                "phpunit/phpunit": "^8.5|^9.5",
+                "vimeo/psalm": "^4.22"
             },
             "type": "symfony-bundle",
             "autoload": {
@@ -3546,7 +3546,7 @@
             ],
             "support": {
                 "issues": "https://github.com/doctrine/DoctrineMigrationsBundle/issues",
-                "source": "https://github.com/doctrine/DoctrineMigrationsBundle/tree/3.2.2"
+                "source": "https://github.com/doctrine/DoctrineMigrationsBundle/tree/3.2.4"
             },
             "funding": [
                 {
@@ -3562,7 +3562,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2022-02-01T18:08:07+00:00"
+            "time": "2023-06-02T08:19:26+00:00"
         },
         {
             "name": "doctrine/event-manager",
@@ -3897,23 +3897,23 @@
         },
         {
             "name": "doctrine/migrations",
-            "version": "3.5.2",
+            "version": "3.5.5",
             "source": {
                 "type": "git",
                 "url": "https://github.com/doctrine/migrations.git",
-                "reference": "61c6ef3a10b7df43c3b6388a184754f26e58700a"
+                "reference": "4b1e2b6ba71d21d0c5be22ed03b6fc954d20b204"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/doctrine/migrations/zipball/61c6ef3a10b7df43c3b6388a184754f26e58700a",
-                "reference": "61c6ef3a10b7df43c3b6388a184754f26e58700a",
+                "url": "https://api.github.com/repos/doctrine/migrations/zipball/4b1e2b6ba71d21d0c5be22ed03b6fc954d20b204",
+                "reference": "4b1e2b6ba71d21d0c5be22ed03b6fc954d20b204",
                 "shasum": ""
             },
             "require": {
                 "composer-runtime-api": "^2",
-                "doctrine/dbal": "^3.3",
+                "doctrine/dbal": "^3.5.1",
                 "doctrine/deprecations": "^0.5.3 || ^1",
-                "doctrine/event-manager": "^1.0",
+                "doctrine/event-manager": "^1.2 || ^2.0",
                 "friendsofphp/proxy-manager-lts": "^1.0",
                 "php": "^7.4 || ^8.0",
                 "psr/log": "^1.1.3 || ^2 || ^3",
@@ -3925,10 +3925,9 @@
             },
             "require-dev": {
                 "doctrine/coding-standard": "^9",
-                "doctrine/orm": "^2.12",
+                "doctrine/orm": "^2.13",
                 "doctrine/persistence": "^2 || ^3",
                 "doctrine/sql-formatter": "^1.0",
-                "ergebnis/composer-normalize": "^2.9",
                 "ext-pdo_sqlite": "*",
                 "phpstan/phpstan": "^1.5",
                 "phpstan/phpstan-deprecation-rules": "^1",
@@ -3948,12 +3947,6 @@
                 "bin/doctrine-migrations"
             ],
             "type": "library",
-            "extra": {
-                "composer-normalize": {
-                    "indent-size": 4,
-                    "indent-style": "space"
-                }
-            },
             "autoload": {
                 "psr-4": {
                     "Doctrine\\Migrations\\": "lib/Doctrine/Migrations"
@@ -3986,7 +3979,7 @@
             ],
             "support": {
                 "issues": "https://github.com/doctrine/migrations/issues",
-                "source": "https://github.com/doctrine/migrations/tree/3.5.2"
+                "source": "https://github.com/doctrine/migrations/tree/3.5.5"
             },
             "funding": [
                 {
@@ -4002,7 +3995,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2022-08-04T14:29:49+00:00"
+            "time": "2023-01-18T12:44:30+00:00"
         },
         {
             "name": "doctrine/orm",
@@ -4107,16 +4100,16 @@
         },
         {
             "name": "doctrine/persistence",
-            "version": "3.1.4",
+            "version": "3.2.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/doctrine/persistence.git",
-                "reference": "8bf8ab15960787f1a49d405f6eb8c787b4841119"
+                "reference": "63fee8c33bef740db6730eb2a750cd3da6495603"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/doctrine/persistence/zipball/8bf8ab15960787f1a49d405f6eb8c787b4841119",
-                "reference": "8bf8ab15960787f1a49d405f6eb8c787b4841119",
+                "url": "https://api.github.com/repos/doctrine/persistence/zipball/63fee8c33bef740db6730eb2a750cd3da6495603",
+                "reference": "63fee8c33bef740db6730eb2a750cd3da6495603",
                 "shasum": ""
             },
             "require": {
@@ -4185,7 +4178,7 @@
             ],
             "support": {
                 "issues": "https://github.com/doctrine/persistence/issues",
-                "source": "https://github.com/doctrine/persistence/tree/3.1.4"
+                "source": "https://github.com/doctrine/persistence/tree/3.2.0"
             },
             "funding": [
                 {
@@ -4201,7 +4194,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2023-02-03T11:13:07+00:00"
+            "time": "2023-05-17T18:32:04+00:00"
         },
         {
             "name": "doctrine/sql-formatter",
@@ -7400,16 +7393,16 @@
         },
         {
             "name": "symfony/doctrine-bridge",
-            "version": "v5.4.22",
+            "version": "v5.4.25",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/doctrine-bridge.git",
-                "reference": "decc4801e2ecc4b72334ef472ed82e4d640492ec"
+                "reference": "708ed45fbe672536f1d54692d133ea696189b237"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/doctrine-bridge/zipball/decc4801e2ecc4b72334ef472ed82e4d640492ec",
-                "reference": "decc4801e2ecc4b72334ef472ed82e4d640492ec",
+                "url": "https://api.github.com/repos/symfony/doctrine-bridge/zipball/708ed45fbe672536f1d54692d133ea696189b237",
+                "reference": "708ed45fbe672536f1d54692d133ea696189b237",
                 "shasum": ""
             },
             "require": {
@@ -7426,7 +7419,6 @@
                 "doctrine/dbal": "<2.13.1",
                 "doctrine/lexer": "<1.1",
                 "doctrine/orm": "<2.7.4",
-                "phpunit/phpunit": "<5.4.3",
                 "symfony/cache": "<5.4",
                 "symfony/dependency-injection": "<4.4",
                 "symfony/form": "<5.4.21|>=6,<6.2.7",
@@ -7436,7 +7428,7 @@
                 "symfony/proxy-manager-bridge": "<4.4.19",
                 "symfony/security-bundle": "<5",
                 "symfony/security-core": "<5.3",
-                "symfony/validator": "<5.2"
+                "symfony/validator": "<5.4.25|>=6,<6.2.12|>=6.3,<6.3.1"
             },
             "require-dev": {
                 "doctrine/annotations": "^1.10.4|^2",
@@ -7460,7 +7452,7 @@
                 "symfony/stopwatch": "^4.4|^5.0|^6.0",
                 "symfony/translation": "^4.4|^5.0|^6.0",
                 "symfony/uid": "^5.1|^6.0",
-                "symfony/validator": "^5.2|^6.0",
+                "symfony/validator": "^5.4.25|~6.2.12|^6.3.1",
                 "symfony/var-dumper": "^4.4|^5.0|^6.0"
             },
             "suggest": {
@@ -7497,7 +7489,7 @@
             "description": "Provides integration for Doctrine with various Symfony components",
             "homepage": "https://symfony.com",
             "support": {
-                "source": "https://github.com/symfony/doctrine-bridge/tree/v5.4.22"
+                "source": "https://github.com/symfony/doctrine-bridge/tree/v5.4.25"
             },
             "funding": [
                 {
@@ -7513,7 +7505,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2023-03-06T21:29:33+00:00"
+            "time": "2023-06-06T12:36:44+00:00"
         },
         {
             "name": "symfony/doctrine-messenger",
@@ -8408,16 +8400,16 @@
         },
         {
             "name": "symfony/stopwatch",
-            "version": "v5.4.19",
+            "version": "v5.4.21",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/stopwatch.git",
-                "reference": "bd2b066090fd6a67039371098fa25a84cb2679ec"
+                "reference": "f83692cd869a6f2391691d40a01e8acb89e76fee"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/stopwatch/zipball/bd2b066090fd6a67039371098fa25a84cb2679ec",
-                "reference": "bd2b066090fd6a67039371098fa25a84cb2679ec",
+                "url": "https://api.github.com/repos/symfony/stopwatch/zipball/f83692cd869a6f2391691d40a01e8acb89e76fee",
+                "reference": "f83692cd869a6f2391691d40a01e8acb89e76fee",
                 "shasum": ""
             },
             "require": {
@@ -8450,7 +8442,7 @@
             "description": "Provides a way to profile code",
             "homepage": "https://symfony.com",
             "support": {
-                "source": "https://github.com/symfony/stopwatch/tree/v5.4.19"
+                "source": "https://github.com/symfony/stopwatch/tree/v5.4.21"
             },
             "funding": [
                 {
@@ -8466,7 +8458,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2023-01-01T08:32:19+00:00"
+            "time": "2023-02-14T08:03:56+00:00"
         },
         {
             "name": "symfony/translation-contracts",
