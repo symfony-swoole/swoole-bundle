@@ -1,7 +1,7 @@
-# Swoole Bundle
+# OpenSwoole Bundle
 
-[![Maintainability](https://api.codeclimate.com/v1/badges/1d73a214622bba769171/maintainability)](https://codeclimate.com/github/pixelfederation/swoole-bundle/maintainability)
-[![Test Coverage](https://api.codeclimate.com/v1/badges/1d73a214622bba769171/test_coverage)](https://codeclimate.com/github/pixelfederation/swoole-bundle/test_coverage)
+[![Maintainability](https://api.codeclimate.com/v1/badges/1d73a214622bba769171/maintainability)](https://codeclimate.com/github/openswoole-bundle/openswoole-bundle/maintainability)
+[![Test Coverage](https://api.codeclimate.com/v1/badges/1d73a214622bba769171/test_coverage)](https://codeclimate.com/github/openswoole-bundle/openswoole-bundle/test_coverage)
 [![Open Source Love](https://badges.frapsoft.com/os/v1/open-source.svg?v=103)](https://github.com/ellerbrock/open-source-badges/)
 [![MIT Licence](https://badges.frapsoft.com/os/mit/mit.svg?v=103)](https://opensource.org/licenses/mit-license.php)
 
@@ -15,11 +15,11 @@ Symfony integration with [Open Swoole](https://openswoole.com/) to speed up your
 
 ## Build Matrix
 
-| CI Job  | Branch [`master`](https://github.com/pixelfederation/swoole-bundle/tree/master)                                                                                   | Branch [`develop`](https://github.com/pixelfederation/swoole-bundle/tree/develop)                                                                                   |
-| ------- |-------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Circle  | [![CircleCI](https://circleci.com/gh/pixelfederation/swoole-bundle/tree/master.svg?style=svg)](https://circleci.com/gh/pixelfederation/swoole-bundle/tree/master) | [![CircleCI](https://circleci.com/gh/pixelfederation/swoole-bundle/tree/develop.svg?style=svg)](https://circleci.com/gh/pixelfederation/swoole-bundle/tree/develop) |
-| CodeCov | [![codecov](https://codecov.io/gh/pixelfederation/swoole-bundle/branch/master/graph/badge.svg)](https://codecov.io/gh/pixelfederation/swoole-bundle)              | [![codecov](https://codecov.io/gh/pixelfederation/swoole-bundle/branch/develop/graph/badge.svg)](https://codecov.io/gh/pixelfederation/swoole-bundle)               |
-| Travis  | [![Build Status](https://app.travis-ci.com/pixelfederation/swoole-bundle.svg?branch=master)](https://travis-ci.com/pixelfederation/swoole-bundle)                     | [![Build Status](https://app.travis-ci.com/pixelfederation/swoole-bundle.svg?branch=develop)](https://travis-ci.com/pixelfederation/swoole-bundle)                      |
+| CI Job  | Branch [`master`](https://github.com/openswoole-bundle/openswoole-bundle/tree/master)                                                                                   | Branch [`develop`](https://github.com/openswoole-bundle/openswoole-bundle/tree/develop)                                                                             |
+| ------- |-------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Circle  | [![CircleCI](https://circleci.com/gh/openswoole-bundle/openswoole-bundle/tree/master.svg?style=svg)](https://circleci.com/gh/openswoole-bundle/openswoole-bundle/tree/master) | [![CircleCI](https://circleci.com/gh/openswoole-bundle/openswoole-bundle/tree/develop.svg?style=svg)](https://circleci.com/gh/openswoole-bundle/openswoole-bundle/tree/develop) |
+| CodeCov | [![codecov](https://codecov.io/gh/openswoole-bundle/openswoole-bundle/branch/master/graph/badge.svg)](https://codecov.io/gh/openswoole-bundle/openswoole-bundle)                    | [![codecov](https://codecov.io/gh/openswoole-bundle/openswoole-bundle/branch/develop/graph/badge.svg)](https://codecov.io/gh/openswoole-bundle/openswoole-bundle)               |
+| Travis  | [![Build Status](https://app.travis-ci.com/openswoole-bundle/openswoole-bundle.svg?branch=master)](https://travis-ci.com/openswoole-bundle/openswoole-bundle)                       | [![Build Status](https://app.travis-ci.com/openswoole-bundle/openswoole-bundle.svg?branch=develop)](https://travis-ci.com/openswoole-bundle/openswoole-bundle)                  |
 
 ## Table of Contents
 
@@ -50,7 +50,7 @@ Symfony integration with [Open Swoole](https://openswoole.com/) to speed up your
 3. Install bundle in your Symfony application
 
     ```bash
-    composer require pixelfederation/swoole-bundle
+    composer require openswoole-bundle/openswoole-bundle
     ```
 
 4. Edit `config/bundles.php`

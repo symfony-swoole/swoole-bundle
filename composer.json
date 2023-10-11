@@ -1,7 +1,7 @@
 {
-    "name": "pixelfederation/swoole-bundle",
+    "name": "openswoole-bundle/openswoole-bundle",
     "type": "library",
-    "description": "Swoole Symfony Bundle",
+    "description": "Open/Swoole Symfony Bundle",
     "keywords": [
         "PHP",
         "Bundle",
@@ -11,7 +11,7 @@
         "Server"
     ],
     "license": "MIT",
-    "homepage": "https://github.com/pixelfederation/swoole-bundle",
+    "homepage": "https://github.com/openswoole-bundle/openswoole-bundle",
     "authors": [
         {
             "name": "Konrad Obal",
@@ -20,7 +20,7 @@
         },
         {
             "name": "Martin Fris",
-            "email": "mfris@pixelfederation.com",
+            "email": "rasta@lj.sk",
             "homepage": "https://github.com/Rastusik"
         }
     ],
@@ -49,6 +49,7 @@
         "doctrine/orm": "^2.11",
         "friendsofphp/php-cs-fixer": "^3.7",
         "jangregor/phpstan-prophecy": "^1.0",
+        "openswoole-bundle/z-engine": "^8.0.1|^8.1.1|^8.2.1",
         "phpspec/prophecy": "^1.17",
         "phpspec/prophecy-phpunit": "^2.0",
         "phpstan/extension-installer": "^1.0.2",
@@ -60,7 +61,6 @@
         "phpunit/phpcov": "^8.0",
         "phpunit/phpunit": "^9.5",
         "pixelfederation/doctrine-resettable-em-bundle": "^7.0",
-        "pixelfederation/z-engine": "~8.0|~8.1|~8.2",
         "ramsey/uuid": "^4.1",
         "swoole/ide-helper": "^4.8",
         "symfony/debug-pack": "^1.0",
