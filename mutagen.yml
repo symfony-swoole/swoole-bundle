@@ -1,13 +1,15 @@
 sync:
   defaults:
     ignore:
-      vcs: true
+      vcs: false
       paths:
         - .DS_Store # macOS files
         - .idea
     permissions:
       defaultFileMode: 644
       defaultDirectoryMode: 755
-  swoolebundle:
+    # https://mutagen.io/documentation/synchronization#modes
+    mode: two-way-resolved
+  openswoolebundle:
     alpha: "."
-    beta: "docker://app@swoole-bundle-cli-80/usr/src/app"
+    beta: "docker://app@openswoole-bundle-cli-80/usr/src/app"

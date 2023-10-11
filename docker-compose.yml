@@ -14,13 +14,14 @@ volumes:
 
 services:
   releaser:
-    image: "docker.io/pixelfederation/release-version-script:latest"
+    image: "docker.io/openswoolebundle/release-version-script:latest"
     environment:
       DEBUG: "${DEBUG:-0}"
       DRY_RUN: "${DRY_RUN:-1}"
-      GH_REPOSITORY: "${GH_REPOSITORY:-pixelfederation/swoole-bundle}"
-      GH_COMMITER_NAME: "${GH_COMMITER_NAME:-pf-releaser-bot}"
-      GH_COMMITER_EMAIL: "${GH_COMMITER_EMAIL:-mfris2011@gmail.com}"
+      GH_REPOSITORY: "${GH_REPOSITORY:-openswoole-bundle/openswoole-bundle}"
+      GH_COMMITER_NAME: "${GH_COMMITER_NAME:-openswoole-bundle-bot}"
+      GH_COMMITER_EMAIL: "${GH_COMMITER_EMAIL:-147276322+openswoole-bundle-bot@users.noreply.github.com}"
+      GH_COMMITER_SIGNING_KEY: "${GH_COMMITER_SIGNING_KEY:-xxxx}"
       GH_TOKEN: "${GH_TOKEN:-xxxxxxxx}"
       GH_RELEASE_DRAFT: "${GH_RELEASE_DRAFT:-false}"
       GH_RELEASE_PRERELEASE: "${GH_RELEASE_PRERELEASE:-false}"
@@ -29,8 +30,8 @@ services:
       - "./CHANGELOG.md:/usr/src/app/CHANGELOG.md:rw"
 
   cli:
-    image: "${REGISTRY:-docker.io}/${NAMESPACE:-pixelfederation}/${IMAGE:-swoole-bundle}-cli:${TAG:-local}"
-    container_name: swoole-bundle-cli
+    image: "${REGISTRY:-docker.io}/${NAMESPACE:-openswoolebundle}/${IMAGE:-openswoole-bundle}-cli:${TAG:-local}"
+    container_name: openswoole-bundle-cli
     build:
       context: .
       target: cli
@@ -42,7 +43,7 @@ services:
       - 9501:9501
 
   composer:
-    image: "${REGISTRY:-docker.io}/${NAMESPACE:-pixelfederation}/${IMAGE:-swoole-bundle}-composer:${TAG:-local}"
+    image: "${REGISTRY:-docker.io}/${NAMESPACE:-openswoolebundle}/${IMAGE:-openswoole-bundle}-composer:${TAG:-local}"
     build:
       context: .
       target: Composer
@@ -52,7 +53,7 @@ services:
       DATABASE_HOST: 'db'
 
   coverage-xdebug:
-    image: "${REGISTRY:-docker.io}/${NAMESPACE:-pixelfederation}/${IMAGE:-swoole-bundle}-coverage-xdebug:${TAG:-local}"
+    image: "${REGISTRY:-docker.io}/${NAMESPACE:-openswoolebundle}/${IMAGE:-openswoole-bundle}-coverage-xdebug:${TAG:-local}"
     build:
       context: .
       target: CoverageXdebug
@@ -64,7 +65,7 @@ services:
       - coverage:/usr/src/app/cov
 
   coverage-pcov:
-    image: "${REGISTRY:-docker.io}/${NAMESPACE:-pixelfederation}/${IMAGE:-swoole-bundle}-coverage-pcov:${TAG:-local}"
+    image: "${REGISTRY:-docker.io}/${NAMESPACE:-openswoolebundle}/${IMAGE:-openswoole-bundle}-coverage-pcov:${TAG:-local}"
     build:
       context: .
       target: CoveragePcov
@@ -76,7 +77,7 @@ services:
       - coverage:/usr/src/app/cov
 
   coverage-xdebug-feature-with-retry:
-    image: "${REGISTRY:-docker.io}/${NAMESPACE:-pixelfederation}/${IMAGE:-swoole-bundle}-coverage-xdebug:${TAG:-local}"
+    image: "${REGISTRY:-docker.io}/${NAMESPACE:-openswoolebundle}/${IMAGE:-openswoole-bundle}-coverage-xdebug:${TAG:-local}"
     entrypoint:
       - /bin/bash
     command:
@@ -92,7 +93,7 @@ services:
       - coverage:/usr/src/app/cov
 
   merge-code-coverage:
-    image: "${REGISTRY:-docker.io}/${NAMESPACE:-pixelfederation}/${IMAGE:-swoole-bundle}-merge-code-coverage:${TAG:-local}"
+    image: "${REGISTRY:-docker.io}/${NAMESPACE:-openswoolebundle}/${IMAGE:-openswoole-bundle}-merge-code-coverage:${TAG:-local}"
     command: merge-code-coverage
     build:
       context: .
@@ -113,8 +114,6 @@ services:
   db:
     container_name: swoole-bundle-db
     image: mysql:8
-    ports:
-      - 3306:3306
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_USER: user

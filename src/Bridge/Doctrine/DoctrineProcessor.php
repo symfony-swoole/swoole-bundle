@@ -137,6 +137,12 @@ final class DoctrineProcessor implements CompileProcessor
             return;
         }
 
+        $dataHolderDef = $container->findDefinition('doctrine.debug_data_holder');
+
+        if ($dataHolderDef->hasTag('kernel.reset')) {
+            return;
+        }
+
         $proxifier->proxifyService('doctrine.debug_data_holder');
         $resetterDef = $container->findDefinition('services_resetter');
 
