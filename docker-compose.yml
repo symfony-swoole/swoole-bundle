@@ -26,6 +26,7 @@ services:
       GH_RELEASE_DRAFT: "${GH_RELEASE_DRAFT:-false}"
       GH_RELEASE_PRERELEASE: "${GH_RELEASE_PRERELEASE:-false}"
     volumes:
+      - "~/.gnupg:/root/.gnupg_host:r"
       - "./.git:/usr/src/app/.git:rw"
       - "./CHANGELOG.md:/usr/src/app/CHANGELOG.md:rw"
 
