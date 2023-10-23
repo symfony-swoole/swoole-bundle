@@ -16,9 +16,6 @@ final class CoverageStartOnServerManagerStop implements ServerManagerStopHandler
     ) {
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function handle(Server $server): void
     {
         if ($this->decorated instanceof ServerManagerStopHandlerInterface) {

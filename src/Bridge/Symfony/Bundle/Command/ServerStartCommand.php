@@ -20,9 +20,6 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 
 final class ServerStartCommand extends AbstractServerStartCommand
 {
-    /**
-     * {@inheritdoc}
-     */
     protected function configure(): void
     {
         $this->setDescription('Run Swoole HTTP server in the background.')
@@ -32,9 +29,6 @@ final class ServerStartCommand extends AbstractServerStartCommand
         parent::configure();
     }
 
-    /**
-     * {@inheritdoc}
-     */
     protected function prepareServerConfiguration(HttpServerConfiguration $serverConfiguration, InputInterface $input): void
     {
         /** @var null|string $pidFile */
@@ -44,9 +38,6 @@ final class ServerStartCommand extends AbstractServerStartCommand
         parent::prepareServerConfiguration($serverConfiguration, $input);
     }
 
-    /**
-     * {@inheritdoc}
-     */
     protected function startServer(HttpServerConfiguration $serverConfiguration, HttpServer $server, SymfonyStyle $io): void
     {
         $pidFile = $serverConfiguration->getPidFile();

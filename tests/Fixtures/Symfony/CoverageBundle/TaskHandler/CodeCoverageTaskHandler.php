@@ -16,9 +16,6 @@ final class CodeCoverageTaskHandler implements TaskHandlerInterface
     ) {
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function handle(Server $server, Server\Task $task): void
     {
         $testName = sprintf('test_task_%d_%d_%s', $task->id, $task->worker_id, bin2hex(random_bytes(4)));

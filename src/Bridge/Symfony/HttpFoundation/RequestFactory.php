@@ -9,9 +9,6 @@ use Symfony\Component\HttpFoundation\Request as HttpFoundationRequest;
 
 final class RequestFactory implements RequestFactoryInterface
 {
-    /**
-     * {@inheritdoc}
-     */
     public function make(SwooleRequest $request): HttpFoundationRequest
     {
         $server = array_change_key_case($request->server, \CASE_UPPER);

@@ -18,8 +18,6 @@ final class ContextReleasingHttpKernelRequestHandler implements RequestHandlerIn
     }
 
     /**
-     * {@inheritdoc}
-     *
      * @throws \Exception
      */
     public function handle(SwooleRequest $request, SwooleResponse $response): void

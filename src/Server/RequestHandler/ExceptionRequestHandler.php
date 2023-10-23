@@ -16,9 +16,6 @@ final class ExceptionRequestHandler implements RequestHandlerInterface
     ) {
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function handle(Request $request, Response $response): void
     {
         try {

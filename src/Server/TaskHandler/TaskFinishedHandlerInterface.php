@@ -13,8 +13,5 @@ use Swoole\Server;
  */
 interface TaskFinishedHandlerInterface
 {
-    /**
-     * @param mixed $data
-     */
-    public function handle(Server $server, int $taskId, $data): void;
+    public function handle(Server $server, int $taskId, mixed $data): void;
 }

@@ -15,9 +15,6 @@ final class StreamedResponseProcessor implements ResponseProcessorInterface
     {
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function process(HttpFoundationResponse $httpFoundationResponse, SwooleResponse $swooleResponse): void
     {
         Assertion::isInstanceOf($httpFoundationResponse, StreamedResponse::class);

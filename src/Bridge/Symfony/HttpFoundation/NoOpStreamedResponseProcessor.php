@@ -14,9 +14,6 @@ final class NoOpStreamedResponseProcessor implements ResponseProcessorInterface
     {
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function process(HttpFoundationResponse $httpFoundationResponse, SwooleResponse $swooleResponse): void
     {
         if ($httpFoundationResponse instanceof StreamedResponse) {

@@ -48,8 +48,6 @@ abstract class AbstractServerStartCommand extends Command
     }
 
     /**
-     * {@inheritdoc}
-     *
      * @throws \Symfony\Component\Console\Exception\InvalidArgumentException
      * @throws \Assert\AssertionFailedException
      */
@@ -69,8 +67,6 @@ abstract class AbstractServerStartCommand extends Command
     }
 
     /**
-     * {@inheritdoc}
-     *
      * @throws \Symfony\Component\Console\Exception\InvalidArgumentException
      * @throws \InvalidArgumentException
      * @throws \Exception
@@ -94,7 +90,7 @@ abstract class AbstractServerStartCommand extends Command
         $this->server->attach($swooleServer);
 
         // TODO: Lock server configuration here
-//        $this->serverConfiguration->lock();
+        //        $this->serverConfiguration->lock();
 
         $runtimeConfiguration = ['symfonyStyle' => $io] + $this->prepareRuntimeConfiguration($this->serverConfiguration, $input);
         $this->bootManager->boot($runtimeConfiguration);

@@ -15,9 +15,6 @@ final class CallableChainConfigurator implements ConfiguratorInterface
     {
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function configure(Server $server): void
     {
         /** @var callable $configurator */

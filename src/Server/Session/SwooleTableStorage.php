@@ -40,8 +40,6 @@ final class SwooleTableStorage implements StorageInterface
     }
 
     /**
-     * {@inheritdoc}
-     *
      * @throws \Assert\AssertionFailedException
      */
     public function set(string $key, mixed $data, int $ttl): void
@@ -69,17 +67,11 @@ final class SwooleTableStorage implements StorageInterface
         ]);
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function delete(string $key): void
     {
         $this->sharedMemory->del($key);
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function garbageCollect(): void
     {
         foreach ($this->sharedMemory as $key => $row) {
@@ -92,8 +84,6 @@ final class SwooleTableStorage implements StorageInterface
     }
 
     /**
-     * {@inheritdoc}
-     *
      * @return null|string Session storage data as string or null when data is not available or expired
      */
     public function get(string $key, ?callable $expired = null): ?string

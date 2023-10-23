@@ -13,9 +13,6 @@ final class WithRequestHandler implements ConfiguratorInterface
     {
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function configure(Server $server): void
     {
         $server->on('request', [$this->requestHandler, 'handle']);

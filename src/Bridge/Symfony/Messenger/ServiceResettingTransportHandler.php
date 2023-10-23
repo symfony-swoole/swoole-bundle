@@ -17,8 +17,6 @@ final class ServiceResettingTransportHandler implements TaskHandlerInterface
     }
 
     /**
-     * {@inheritdoc}
-     *
      * @throws \Exception
      */
     public function handle(Server $server, Server\Task $task): void

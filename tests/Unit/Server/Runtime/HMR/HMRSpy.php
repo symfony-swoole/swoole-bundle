@@ -11,9 +11,6 @@ class HMRSpy implements HotModuleReloaderInterface
 {
     public $tick = false;
 
-    /**
-     * {@inheritdoc}
-     */
     public function tick(Server $server): void
     {
         $this->tick = true;

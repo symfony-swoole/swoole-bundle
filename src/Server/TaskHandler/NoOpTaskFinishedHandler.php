@@ -8,10 +8,7 @@ use Swoole\Server;
 
 final class NoOpTaskFinishedHandler implements TaskFinishedHandlerInterface
 {
-    /**
-     * {@inheritdoc}
-     */
-    public function handle(Server $server, int $taskId, $data): void
+    public function handle(Server $server, int $taskId, mixed $data): void
     {
         // noop
     }

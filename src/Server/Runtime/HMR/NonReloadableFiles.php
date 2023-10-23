@@ -16,9 +16,6 @@ final class NonReloadableFiles implements BootableInterface
     ) {
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function boot(array $runtimeConfiguration = []): void
     {
         // Files included before server start cannot be reloaded due to PHP limitations

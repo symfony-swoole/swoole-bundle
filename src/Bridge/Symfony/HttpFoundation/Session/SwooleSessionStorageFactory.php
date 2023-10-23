@@ -22,9 +22,6 @@ final class SwooleSessionStorageFactory implements SessionStorageFactoryInterfac
     ) {
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function createStorage(?Request $request): SessionStorageInterface
     {
         $storage = new SwooleSessionStorage(

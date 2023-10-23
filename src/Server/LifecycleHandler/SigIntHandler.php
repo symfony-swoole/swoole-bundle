@@ -16,9 +16,6 @@ final class SigIntHandler implements ServerStartHandlerInterface
         $this->signalInterrupt = \defined('SIGINT') ? (int) \constant('SIGINT') : 2;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function handle(Server $server): void
     {
         // 2 => SIGINT

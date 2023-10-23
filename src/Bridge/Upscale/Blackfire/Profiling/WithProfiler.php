@@ -13,9 +13,6 @@ final class WithProfiler implements ConfiguratorInterface
     {
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function configure(Server $server): void
     {
         $this->profilerActivator->activate($server);

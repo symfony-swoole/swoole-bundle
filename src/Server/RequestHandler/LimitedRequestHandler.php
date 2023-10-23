@@ -25,9 +25,6 @@ final class LimitedRequestHandler implements RequestHandlerInterface, BootableIn
         $this->requestLimit = -1;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function boot(array $runtimeConfiguration = []): void
     {
         $this->requestLimit = (int) ($runtimeConfiguration['requestLimit'] ?? -1);
@@ -35,8 +32,6 @@ final class LimitedRequestHandler implements RequestHandlerInterface, BootableIn
     }
 
     /**
-     * {@inheritdoc}
-     *
      * @throws \Assert\AssertionFailedException
      */
     public function handle(Request $request, Response $response): void

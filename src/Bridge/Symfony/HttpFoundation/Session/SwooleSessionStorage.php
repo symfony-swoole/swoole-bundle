@@ -47,8 +47,6 @@ final class SwooleSessionStorage implements SessionStorageInterface
     }
 
     /**
-     * {@inheritdoc}
-     *
      * @throws \Assert\AssertionFailedException
      * @throws \Exception
      */
@@ -71,8 +69,6 @@ final class SwooleSessionStorage implements SessionStorageInterface
     }
 
     /**
-     * {@inheritdoc}
-     *
      * @throws \Exception
      *
      * @SuppressWarnings(PHPMD.BooleanArgumentFlag)
@@ -93,9 +89,6 @@ final class SwooleSessionStorage implements SessionStorageInterface
         return true;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function save(): void
     {
         if (!$this->started) {
@@ -120,26 +113,17 @@ final class SwooleSessionStorage implements SessionStorageInterface
         $this->data = [];
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function clear(): void
     {
         $this->storage->delete($this->currentId);
         $this->reset();
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function isStarted(): bool
     {
         return $this->started;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getId(): string
     {
         return $this->isStarted() ? $this->currentId : '';
@@ -186,9 +170,6 @@ final class SwooleSessionStorage implements SessionStorageInterface
         return $this->bags[$name];
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function registerBag(SessionBagInterface $bag): void
     {
         if ($this->started) {
@@ -198,9 +179,6 @@ final class SwooleSessionStorage implements SessionStorageInterface
         $this->bags[$bag->getName()] = $bag;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getMetadataBag(): MetadataBag
     {
         return $this->metadataBag;

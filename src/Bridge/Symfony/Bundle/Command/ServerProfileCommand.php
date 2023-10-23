@@ -11,9 +11,6 @@ use Symfony\Component\Console\Input\InputInterface;
 
 final class ServerProfileCommand extends AbstractServerStartCommand
 {
-    /**
-     * {@inheritdoc}
-     */
     protected function configure(): void
     {
         $this->setDescription('Handle specified amount of requests to Swoole HTTP server. Useful for profiling.')
@@ -24,8 +21,6 @@ final class ServerProfileCommand extends AbstractServerStartCommand
     }
 
     /**
-     * {@inheritdoc}
-     *
      * @throws \Assert\AssertionFailedException
      */
     protected function prepareRuntimeConfiguration(HttpServerConfiguration $serverConfiguration, InputInterface $input): array
@@ -37,9 +32,6 @@ final class ServerProfileCommand extends AbstractServerStartCommand
         return ['requestLimit' => $requestLimit] + parent::prepareRuntimeConfiguration($serverConfiguration, $input);
     }
 
-    /**
-     * {@inheritdoc}
-     */
     protected function prepareConfigurationRowsToPrint(HttpServerConfiguration $serverConfiguration, array $runtimeConfiguration): array
     {
         $rows = parent::prepareConfigurationRowsToPrint($serverConfiguration, $runtimeConfiguration);

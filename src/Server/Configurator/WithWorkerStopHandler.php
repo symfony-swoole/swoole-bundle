@@ -16,9 +16,6 @@ final class WithWorkerStopHandler implements ConfiguratorInterface
         $this->handler = $handler;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function configure(Server $server): void
     {
         $server->on('WorkerStop', [$this->handler, 'handle']);

@@ -49,9 +49,6 @@ final class InotifyHMR implements HotModuleReloaderInterface, BootableInterface
         }
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function tick(Server $server): void
     {
         $events = inotify_read($this->inotify);
@@ -64,8 +61,6 @@ final class InotifyHMR implements HotModuleReloaderInterface, BootableInterface
     }
 
     /**
-     * {@inheritdoc}
-     *
      * @throws AssertionFailedException
      */
     public function boot(array $runtimeConfiguration = []): void

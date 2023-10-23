@@ -10,9 +10,6 @@ use Swoole\Http\Response;
 
 final class RequestHandlerDummy implements RequestHandlerInterface
 {
-    /**
-     * {@inheritdoc}
-     */
     public function handle(Request $request, Response $response): void
     {
     }

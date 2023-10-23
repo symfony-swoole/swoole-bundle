@@ -8,9 +8,6 @@ use Swoole\Server;
 
 final class NoOpWorkerExitHandler implements WorkerExitHandlerInterface
 {
-    /**
-     * {@inheritdoc}
-     */
     public function handle(Server $worker, int $workerId): void
     {
         // noop

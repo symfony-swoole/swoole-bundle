@@ -10,9 +10,6 @@ use Symfony\Component\HttpFoundation\Response as HttpFoundationResponse;
 
 final class ResponseProcessor implements ResponseProcessorInterface
 {
-    /**
-     * {@inheritdoc}
-     */
     public function process(HttpFoundationResponse $httpFoundationResponse, SwooleResponse $swooleResponse): void
     {
         if ($httpFoundationResponse instanceof BinaryFileResponse) {

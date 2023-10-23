@@ -16,9 +16,6 @@ final class CoverageFinishOnServerShutdown implements ServerShutdownHandlerInter
     ) {
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function handle(Server $server): void
     {
         if ($this->decorated instanceof ServerShutdownHandlerInterface) {

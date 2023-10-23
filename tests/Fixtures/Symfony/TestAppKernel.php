@@ -69,25 +69,16 @@ class TestAppKernel extends Kernel
         parent::__construct($environment, $debug);
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getCacheDir(): string
     {
         return $this->getVarDir().'/cache/'.$this->environment;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getLogDir(): string
     {
         return $this->getVarDir().'/log';
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function registerBundles(): \Generator
     {
         yield new FrameworkBundle();
@@ -108,17 +99,11 @@ class TestAppKernel extends Kernel
         }
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getProjectDir(): string
     {
         return __DIR__.'/app';
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function handle(Request $request, int $type = HttpKernelInterface::MAIN_REQUEST, bool $catch = true): Response
     {
         // Use CacheKernel if available.
@@ -149,8 +134,6 @@ class TestAppKernel extends Kernel
     }
 
     /**
-     * {@inheritdoc}
-     *
      * @param RoutingConfigurator $routes
      *
      * @throws \Symfony\Component\Config\Exception\LoaderLoadException
@@ -167,8 +150,6 @@ class TestAppKernel extends Kernel
     }
 
     /**
-     * {@inheritdoc}
-     *
      * @throws \Exception
      */
     protected function configureContainer(ContainerBuilder $c, LoaderInterface $loader): void

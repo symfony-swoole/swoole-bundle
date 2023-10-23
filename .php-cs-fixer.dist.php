@@ -28,6 +28,7 @@ return $config->setRules([
         'linebreak_after_opening_tag' => true,
         'list_syntax' => ['syntax' => 'short'],
         'no_null_property_initialization' => true,
+        'nullable_type_declaration_for_default_null_value' => false,
         'no_useless_else' => true,
         'no_useless_return' => true,
         'ordered_imports' => ['sort_algorithm' => 'alpha'],

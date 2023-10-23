@@ -14,8 +14,6 @@ final class CloudFrontRequestFactory implements RequestFactoryInterface
     }
 
     /**
-     * {@inheritdoc}
-     *
      * @see https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/header-caching.html#header-caching-web-protocol
      */
     public function make(SwooleRequest $request): HttpFoundationRequest

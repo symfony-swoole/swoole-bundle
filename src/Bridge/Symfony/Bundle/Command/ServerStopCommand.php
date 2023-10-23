@@ -26,9 +26,6 @@ final class ServerStopCommand extends Command
         parent::__construct();
     }
 
-    /**
-     * {@inheritdoc}
-     */
     protected function configure(): void
     {
         $this->setDescription('Stop Swoole HTTP server running in the background.')
@@ -38,8 +35,6 @@ final class ServerStopCommand extends Command
     }
 
     /**
-     * {@inheritdoc}
-     *
      * @throws \Assert\AssertionFailedException
      */
     protected function execute(InputInterface $input, OutputInterface $output): int

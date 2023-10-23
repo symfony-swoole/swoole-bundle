@@ -57,8 +57,6 @@ final class GeneratedCollection implements \IteratorAggregate
     }
 
     /**
-     * {@inheritdoc}
-     *
      * @return \Generator<T>
      */
     public function getIterator(): \Generator
