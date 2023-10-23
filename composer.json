@@ -30,52 +30,63 @@
         "ext-openswoole": "^4.10.0",
         "beberlei/assert": "^3.3",
         "laminas/laminas-code": "^4.7||^4.8",
-        "symfony/cache": "^5.4|^6.0",
-        "symfony/config": "^5.4|^6.0",
-        "symfony/console": "^5.4|^6.0",
-        "symfony/dependency-injection": "^5.4|^6.0",
-        "symfony/filesystem": "^5.4|^6.0",
-        "symfony/http-foundation": "^5.4|^6.0",
-        "symfony/http-kernel": "^5.4|^6.0",
-        "symfony/process": "^5.4|^6.0",
-        "symfony/proxy-manager-bridge": "^5.4|^6.0"
+        "monolog/monolog": "^2.3.3|^3.0",
+        "symfony/cache": "^5.4.30|^6.3",
+        "symfony/config": "^5.4.26|^6.3",
+        "symfony/console": "^5.4.28|^6.3",
+        "symfony/dependency-injection": "^5.4.29|^6.3",
+        "symfony/filesystem": "^5.4.25|^6.3",
+        "symfony/http-foundation": "^5.4.30|^6.3",
+        "symfony/http-kernel": "^5.4.30|^6.3",
+        "symfony/process": "^5.4.28|^6.3",
+        "symfony/proxy-manager-bridge": "^5.4.21|^6.3"
     },
     "require-dev": {
         "ext-ffi": "^8.0",
         "blackfire/php-sdk": "^1.30",
         "doctrine/annotations": "^1.13",
+        "doctrine/dbal": "^3.4",
         "doctrine/doctrine-bundle": "^2.7",
-        "doctrine/doctrine-migrations-bundle": "^3.2",
-        "doctrine/orm": "^2.11",
+        "doctrine/doctrine-migrations-bundle": "^3.2.4",
+        "doctrine/migrations": "^3.5",
+        "doctrine/orm": "^2.13",
+        "doctrine/persistence": "^3.2",
         "friendsofphp/php-cs-fixer": "^3.7",
         "jangregor/phpstan-prophecy": "^1.0",
         "openswoole-bundle/z-engine": "^8.0.1|^8.1.1|^8.2.1",
+        "phpro/grumphp": "^1.16",
         "phpspec/prophecy": "^1.17",
         "phpspec/prophecy-phpunit": "^2.0",
         "phpstan/extension-installer": "^1.0.2",
-        "phpstan/phpstan": "^1.4",
+        "phpstan/phpstan": "^1.10",
         "phpstan/phpstan-beberlei-assert": "^1.0",
         "phpstan/phpstan-doctrine": "^1.0",
         "phpstan/phpstan-phpunit": "^1.0",
         "phpunit/php-code-coverage": "^9.1.0",
         "phpunit/phpcov": "^8.0",
-        "phpunit/phpunit": "^9.5",
-        "pixelfederation/doctrine-resettable-em-bundle": "^7.0",
-        "ramsey/uuid": "^4.1",
+        "phpunit/phpunit": "^9.6",
+        "pixelfederation/doctrine-resettable-em-bundle": "^7.0|^8.0",
+        "ramsey/uuid": "^4.7",
         "swoole/ide-helper": "^4.8",
-        "symfony/debug-pack": "^1.0",
-        "symfony/doctrine-messenger": "^5.4|^6.0",
-        "symfony/error-handler": "^5.4|^6.0",
-        "symfony/framework-bundle": "^5.4|^6.0",
-        "symfony/messenger": "^5.4|^6.0",
-        "symfony/monolog-bridge": "^5.4|^6.0",
+        "symfony/debug-bundle": "^5.4.26|^6.3",
+        "symfony/doctrine-messenger": "^5.4.30|^6.3",
+        "symfony/error-handler": "^5.4.29|^6.3",
+        "symfony/flex": "^2.4",
+        "symfony/framework-bundle": "^5.4.30|^6.3",
+        "symfony/messenger": "^5.4.30|^6.3",
+        "symfony/monolog-bridge": "^5.4.22|^6.3",
         "symfony/monolog-bundle": "^3.3",
-        "symfony/profiler-pack": "^1.0",
-        "symfony/twig-bundle": "^5.4|^6.0",
-        "symfony/var-dumper": "^5.4|^6.0",
-        "symfony/yaml": "^5.4|^6.0",
+        "symfony/stopwatch": "^5.4.21|^6.3",
+        "symfony/twig-bridge": "^5.4.29|^6.3",
+        "symfony/twig-bundle": "^5.4.27|^6.3",
+        "symfony/var-dumper": "^5.4.29|^6.3",
+        "symfony/var-exporter": "^5.4.26|^6.3",
+        "symfony/web-profiler-bundle": "^5.4.30|^6.3",
+        "symfony/yaml": "^5.4.30|^6.3",
         "tideways/ext-tideways-stubs": "^5.5",
-        "upscale/swoole-blackfire": "^4.0"
+        "twig/twig": "^3.4.3",
+        "upscale/swoole-blackfire": "^4.0",
+        "webmozart/assert": "^1.11.0"
     },
     "suggest": {
         "ext-inotify": "To enable HMR",
@@ -107,10 +118,10 @@
             "php tests/Fixtures/Symfony/app/console --ansi"
         ],
         "static-analyse-src": [
-            "phpstan analyze src -l 7 -c phpstan.neon.dist --ansi --memory-limit=512M"
+            "phpstan analyze -c phpstan.neon --ansi --memory-limit=512M"
         ],
         "static-analyse-tests": [
-            "phpstan analyze tests -l 4 -c phpstan.tests.neon --ansi --memory-limit=512M"
+            "phpstan analyze -c phpstan.tests.neon --ansi --memory-limit=512M"
         ],
         "cs-analyse": [
             "php-cs-fixer fix -v --dry-run --diff --stop-on-violation --ansi"
@@ -137,7 +148,7 @@
             "COVERAGE=1 phpunit tests/Feature --coverage-php cov/feature-tests.cov --colors=always --process-isolation"
         ],
         "merge-code-coverage": [
-            "php -dmemory_limit=512M ./vendor/bin/phpcov merge cov --clover=cov/clover.xml"
+            "php -dmemory_limit=512M ./vendor/bin/phpcov merge cov --clover=clover.xml"
         ],
         "fix": "php-cs-fixer fix -v --ansi",
         "unit-tests": [
@@ -145,11 +156,16 @@
         ],
         "unit-tests-junit": [
             "phpunit tests/Unit --colors=always --log-junit phpunit/junit.xml"
-        ]
+        ],
+        "grumphp_complete": "grumphp run --testsuite=complete",
+        "grumphp_tests": "grumphp run --testsuite=tests"
     },
     "extra": {
         "branch-alias": {
             "dev-develop": "v0.8.x-dev"
+        },
+        "symfony": {
+            "require": "^5.4.21"
         }
     },
     "config": {
@@ -159,7 +175,9 @@
             "ext-openswoole": "4.10.00"
         },
         "allow-plugins": {
-            "phpstan/extension-installer": true
+            "phpstan/extension-installer": true,
+            "phpro/grumphp": false,
+            "symfony/flex": true
         }
     }
 }

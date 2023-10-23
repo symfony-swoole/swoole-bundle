@@ -5,6 +5,7 @@
     xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.3/phpunit.xsd"
     colors="true"
     bootstrap="vendor/autoload.php"
+    processIsolation="true"
 >
   <coverage processUncoveredFiles="true">
     <include>
@@ -12,8 +13,8 @@
     </include>
   </coverage>
   <testsuites>
-    <testsuite name="UnitTests">
-      <directory>tests/Unit</directory>
+    <testsuite name="FeatureTests">
+      <directory>tests/Feature</directory>
     </testsuite>
   </testsuites>
 </phpunit>

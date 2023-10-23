@@ -18,6 +18,6 @@ final class CoverageFinishOnConsoleTerminate
         $this->coverageManager->stop();
 
         $slug = str_replace(['-', ':'], '_', $commandEvent->getCommand()->getName());
-        $this->coverageManager->finish(sprintf('test_cmd_%s', $slug));
+        $this->coverageManager->finish(sprintf('test_cmd_%s_%s', $slug, gethostname()));
     }
 }

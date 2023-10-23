@@ -1,0 +1,54 @@
+grumphp:
+  stop_on_failure: true
+  process_timeout: 900
+  hide_circumvention_tip: true
+  testsuites:
+    complete:
+      tasks:
+        - phpcsfixer
+        - phpstan_src
+        - phpstan_tests
+        - phpunit_unit
+        - phpunit_feature
+    tests:
+      tasks:
+        - phpunit_unit
+        - phpunit_feature
+  tasks:
+    phpcsfixer:
+      cache_file: '.php-cs-fixer.cache'
+      allow_risky: true
+      config: '.php-cs-fixer.dist.php'
+      using_cache: true
+      config_contains_finder: true
+      verbose: false
+      diff: true
+      triggered_by: ['php']
+    phpstan_src:
+      autoload_file: ~
+      configuration: 'phpstan.neon'
+      memory_limit: '512M'
+      use_grumphp_paths: false
+      triggered_by: [ 'php' ]
+      metadata:
+        task: phpstan
+    phpstan_tests:
+      autoload_file: ~
+      configuration: 'phpstan.tests.neon'
+      memory_limit: '512M'
+      use_grumphp_paths: false
+      triggered_by: [ 'php' ]
+      metadata:
+        task: phpstan
+    phpunit_unit:
+      config_file: phpunit.xml
+      testsuite: UnitTests
+      always_execute: true
+      metadata:
+        task: phpunit
+    phpunit_feature:
+      config_file: phpunit.feature.xml
+      testsuite: FeatureTests
+      always_execute: true
+      metadata:
+        task: phpunit
