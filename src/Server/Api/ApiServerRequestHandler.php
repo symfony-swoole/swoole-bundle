@@ -41,8 +41,6 @@ final class ApiServerRequestHandler implements RequestHandlerInterface
     }
 
     /**
-     * {@inheritdoc}
-     *
      * @throws \Exception
      */
     public function handle(Request $request, Response $response): void

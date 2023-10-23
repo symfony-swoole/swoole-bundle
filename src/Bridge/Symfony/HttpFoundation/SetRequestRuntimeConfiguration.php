@@ -12,9 +12,6 @@ use Symfony\Component\HttpFoundation\Request;
  */
 final class SetRequestRuntimeConfiguration implements BootableInterface
 {
-    /**
-     * {@inheritdoc}
-     */
     public function boot(array $runtimeConfiguration = []): void
     {
         if (\array_key_exists('trustedHosts', $runtimeConfiguration)) {

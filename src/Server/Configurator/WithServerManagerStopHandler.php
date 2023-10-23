@@ -13,9 +13,6 @@ final class WithServerManagerStopHandler implements ConfiguratorInterface
     {
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function configure(Server $server): void
     {
         $server->on('ManagerStop', [$this->handler, 'handle']);

@@ -11,9 +11,6 @@ final class ConfiguratorSpy implements ConfiguratorInterface
 {
     public $configured = false;
 
-    /**
-     * {@inheritdoc}
-     */
     public function configure(Server $server): void
     {
         $this->configured = true;

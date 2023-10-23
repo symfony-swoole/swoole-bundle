@@ -20,9 +20,6 @@ final class ApiServer implements ApiServerInterface
     ) {
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function metrics(): array
     {
         $metrics = $this->server->metrics();
@@ -41,25 +38,16 @@ final class ApiServer implements ApiServerInterface
         ];
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function shutdown(): void
     {
         $this->server->shutdown();
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function reload(): void
     {
         $this->server->reload();
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function status(): array
     {
         $swooleServer = $this->server->getServer();

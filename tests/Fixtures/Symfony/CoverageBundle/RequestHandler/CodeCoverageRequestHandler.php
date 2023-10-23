@@ -17,9 +17,6 @@ final class CodeCoverageRequestHandler implements RequestHandlerInterface
     ) {
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function handle(Request $request, Response $response): void
     {
         $testName = sprintf('test_request_%s', bin2hex(random_bytes(8)));

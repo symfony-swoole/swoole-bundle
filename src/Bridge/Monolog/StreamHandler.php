@@ -74,9 +74,6 @@ if (version_compare(InstalledVersions::getVersion('monolog/monolog'), '3.0.0') >
             $this->useLocking = $useLocking;
         }
 
-        /**
-         * {@inheritDoc}
-         */
         public function close(): void
         {
             if (null !== $this->url && is_resource($this->stream)) {
@@ -121,9 +118,6 @@ if (version_compare(InstalledVersions::getVersion('monolog/monolog'), '3.0.0') >
             return true;
         }
 
-        /**
-         * {@inheritDoc}
-         */
         protected function write(LogRecord $record): void
         {
             if (!is_resource($this->stream)) {
@@ -290,9 +284,6 @@ if (version_compare(InstalledVersions::getVersion('monolog/monolog'), '3.0.0') >
             $this->useLocking = $useLocking;
         }
 
-        /**
-         * {@inheritDoc}
-         */
         public function close(): void
         {
             if ($this->url && is_resource($this->stream)) {
@@ -337,9 +328,6 @@ if (version_compare(InstalledVersions::getVersion('monolog/monolog'), '3.0.0') >
             return true;
         }
 
-        /**
-         * {@inheritDoc}
-         */
         protected function write(array $record): void
         {
             if (!is_resource($this->stream)) {
@@ -486,9 +474,6 @@ if (version_compare(InstalledVersions::getVersion('monolog/monolog'), '3.0.0') >
             $this->useLocking = $useLocking;
         }
 
-        /**
-         * {@inheritdoc}
-         */
         public function close(): void
         {
             if ($this->url && is_resource($this->stream)) {
@@ -521,9 +506,6 @@ if (version_compare(InstalledVersions::getVersion('monolog/monolog'), '3.0.0') >
             $this->mutex = $mutex;
         }
 
-        /**
-         * {@inheritdoc}
-         */
         protected function write(array $record): void
         {
             if (!is_resource($this->stream)) {

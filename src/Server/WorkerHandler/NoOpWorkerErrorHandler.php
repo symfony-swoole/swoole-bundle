@@ -8,9 +8,6 @@ use Swoole\Server;
 
 final class NoOpWorkerErrorHandler implements WorkerErrorHandlerInterface
 {
-    /**
-     * {@inheritdoc}
-     */
     public function handle(Server $worker, int $workerId): void
     {
         // noop

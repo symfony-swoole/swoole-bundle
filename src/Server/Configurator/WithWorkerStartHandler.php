@@ -13,9 +13,6 @@ final class WithWorkerStartHandler implements ConfiguratorInterface
     {
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function configure(Server $server): void
     {
         $server->on('WorkerStart', [$this->handler, 'handle']);

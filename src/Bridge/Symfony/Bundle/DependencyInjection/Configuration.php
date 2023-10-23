@@ -22,8 +22,6 @@ final class Configuration implements ConfigurationInterface
     }
 
     /**
-     * {@inheritdoc}
-     *
      * @throws \InvalidArgumentException
      * @throws \RuntimeException
      */

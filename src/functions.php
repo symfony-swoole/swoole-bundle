@@ -22,10 +22,8 @@ function replace_object_property(object $obj, string $propertyName, mixed $newVa
  * Property may not be public.
  *
  * @param null|string $scope class scope useful when property is inherited
- *
- * @return mixed
  */
-function &get_object_property(object $obj, string $propertyName, ?string $scope = null)
+function &get_object_property(object $obj, string $propertyName, ?string $scope = null): mixed
 {
     return \Closure::bind(fn &(string $propertyName) => $this->$propertyName, $obj, $scope ?? $obj)($propertyName);
 }

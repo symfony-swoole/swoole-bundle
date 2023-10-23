@@ -16,9 +16,6 @@ final class SwooleServerTaskSender implements SenderInterface
     {
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function send(Envelope $envelope): Envelope
     {
         /** @var null|SentStamp $sentStamp */

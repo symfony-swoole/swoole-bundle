@@ -16,9 +16,6 @@ final class CoverageStartOnServerManagerStart implements ServerManagerStartHandl
     ) {
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function handle(Server $server): void
     {
         $this->codeCoverageManager->start('test_manager');

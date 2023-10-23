@@ -53,9 +53,6 @@ final class StatefulServicesPass implements CompilerPassInterface
         ],
     ];
 
-    /**
-     * {@inheritDoc}
-     */
     public function process(ContainerBuilder $container): void
     {
         if (!$container->hasParameter(ContainerConstants::PARAM_COROUTINES_ENABLED)) {

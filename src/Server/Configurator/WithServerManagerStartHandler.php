@@ -13,9 +13,6 @@ final class WithServerManagerStartHandler implements ConfiguratorInterface
     {
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function configure(Server $server): void
     {
         $server->on('ManagerStart', [$this->handler, 'handle']);

@@ -16,9 +16,6 @@ final class WithApm implements ConfiguratorInterface
         $this->apm = $apm;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function configure(Server $server): void
     {
         $this->apm->instrument($server);

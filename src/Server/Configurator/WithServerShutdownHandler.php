@@ -13,9 +13,6 @@ final class WithServerShutdownHandler implements ConfiguratorInterface
     {
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function configure(Server $server): void
     {
         $server->on('shutdown', [$this->handler, 'handle']);

@@ -26,9 +26,6 @@ final class ServerReloadCommand extends Command
         parent::__construct();
     }
 
-    /**
-     * {@inheritdoc}
-     */
     protected function configure(): void
     {
         $this->setDescription("Reload Swoole HTTP server's workers running in the background. It will reload only classes not loaded before server initialization.")
@@ -37,8 +34,6 @@ final class ServerReloadCommand extends Command
     }
 
     /**
-     * {@inheritdoc}
-     *
      * @throws \Assert\AssertionFailedException
      */
     protected function execute(InputInterface $input, OutputInterface $output): int

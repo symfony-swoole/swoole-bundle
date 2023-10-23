@@ -60,16 +60,11 @@ use ZEngine\Core;
 
 final class SwooleExtension extends Extension implements PrependExtensionInterface
 {
-    /**
-     * {@inheritdoc}
-     */
     public function prepend(ContainerBuilder $container): void
     {
     }
 
     /**
-     * {@inheritdoc}
-     *
      * @throws \Exception
      */
     public function load(array $configs, ContainerBuilder $container): void
@@ -107,17 +102,11 @@ final class SwooleExtension extends Extension implements PrependExtensionInterfa
         $this->assignSwooleConfiguration($swooleSettings, $runningMode, $maxConcurrency, $container);
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getAlias(): string
     {
         return 'swoole';
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getConfiguration(array $config, ContainerBuilder $container): Configuration
     {
         return Configuration::fromTreeBuilder();

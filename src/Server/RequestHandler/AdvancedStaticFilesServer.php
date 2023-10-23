@@ -112,8 +112,6 @@ final class AdvancedStaticFilesServer implements RequestHandlerInterface, Bootab
     }
 
     /**
-     * {@inheritdoc}
-     *
      * @throws AssertionFailedException
      */
     public function boot(array $runtimeConfiguration = []): void
@@ -125,9 +123,6 @@ final class AdvancedStaticFilesServer implements RequestHandlerInterface, Bootab
         $this->publicDir = $this->configuration->getPublicDir();
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function handle(Request $request, Response $response): void
     {
         if ('GET' === $request->server['request_method']) {

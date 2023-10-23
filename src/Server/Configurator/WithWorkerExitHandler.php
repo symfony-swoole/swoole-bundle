@@ -16,9 +16,6 @@ final class WithWorkerExitHandler implements ConfiguratorInterface
         $this->handler = $handler;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function configure(Server $server): void
     {
         $server->on('WorkerExit', [$this->handler, 'handle']);

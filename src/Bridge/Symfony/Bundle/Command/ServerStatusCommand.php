@@ -27,9 +27,6 @@ final class ServerStatusCommand extends Command
         parent::__construct();
     }
 
-    /**
-     * {@inheritdoc}
-     */
     protected function configure(): void
     {
         $this->setDescription('Get current status of the Swoole HTTP Server by querying running API Server.')
@@ -39,8 +36,6 @@ final class ServerStatusCommand extends Command
     }
 
     /**
-     * {@inheritdoc}
-     *
      * @throws \Assert\AssertionFailedException
      * @throws \Throwable
      */

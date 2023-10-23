@@ -16,9 +16,6 @@ final class WithTaskFinishedHandler implements ConfiguratorInterface
     ) {
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function configure(Server $server): void
     {
         if ($this->configuration->getTaskWorkerCount() > 0) {

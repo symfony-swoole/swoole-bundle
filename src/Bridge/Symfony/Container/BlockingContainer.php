@@ -23,9 +23,6 @@ class BlockingContainer extends Container
         parent::__construct($parameterBag);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function get(string $id, int $invalidBehavior = self::EXCEPTION_ON_INVALID_REFERENCE): ?object
     {
         try {

@@ -26,7 +26,7 @@ class Test
     /**
      * @ORM\Column(type="guid")
      */
-    private string  $uuid;
+    private string $uuid;
 
     public function __construct(UuidInterface $uuid)
     {

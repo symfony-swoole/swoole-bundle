@@ -16,9 +16,6 @@ final class HMRWorkerStartHandler implements WorkerStartHandlerInterface
     ) {
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function handle(Server $worker, int $workerId): void
     {
         if ($this->decorated instanceof WorkerStartHandlerInterface) {

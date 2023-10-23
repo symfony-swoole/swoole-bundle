@@ -16,9 +16,6 @@ final class CoverageStartOnServerStart implements ServerStartHandlerInterface
     ) {
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function handle(Server $server): void
     {
         $this->codeCoverageManager->start('test_server');

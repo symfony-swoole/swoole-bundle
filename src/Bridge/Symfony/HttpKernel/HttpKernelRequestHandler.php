@@ -23,17 +23,12 @@ final class HttpKernelRequestHandler implements RequestHandlerInterface, Bootabl
     ) {
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function boot(array $runtimeConfiguration = []): void
     {
         $this->kernelPool->boot();
     }
 
     /**
-     * {@inheritdoc}
-     *
      * @throws \Exception
      */
     public function handle(SwooleRequest $request, SwooleResponse $response): void

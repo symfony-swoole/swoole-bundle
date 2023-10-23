@@ -20,9 +20,6 @@ final class TrustAllProxiesRequestHandler implements RequestHandlerInterface, Bo
     ) {
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function boot(array $runtimeConfiguration = []): void
     {
         if (isset($runtimeConfiguration['trustAllProxies']) && true === $runtimeConfiguration['trustAllProxies']) {
@@ -35,9 +32,6 @@ final class TrustAllProxiesRequestHandler implements RequestHandlerInterface, Bo
         return $this->trustAllProxies;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function handle(SwooleRequest $request, SwooleResponse $response): void
     {
         if ($this->trustAllProxies()) {

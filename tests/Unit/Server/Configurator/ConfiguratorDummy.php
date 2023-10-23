@@ -9,9 +9,6 @@ use Swoole\Http\Server;
 
 final class ConfiguratorDummy implements ConfiguratorInterface
 {
-    /**
-     * {@inheritdoc}
-     */
     public function configure(Server $server): void
     {
         // noop

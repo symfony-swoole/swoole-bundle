@@ -25,8 +25,8 @@ class StreamedResponseListener implements EventSubscriberInterface
         $response = $event->getResponse();
         $attributes = $event->getRequest()->attributes;
 
-        if ($response instanceof StreamedResponse &&
-            $attributes->has(ResponseProcessorInjectorInterface::ATTR_KEY_RESPONSE_PROCESSOR)
+        if ($response instanceof StreamedResponse
+            && $attributes->has(ResponseProcessorInjectorInterface::ATTR_KEY_RESPONSE_PROCESSOR)
         ) {
             $processor = $attributes->get(ResponseProcessorInjectorInterface::ATTR_KEY_RESPONSE_PROCESSOR);
             $processor($response);
