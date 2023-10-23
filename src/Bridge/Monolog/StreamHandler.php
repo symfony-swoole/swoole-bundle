@@ -213,7 +213,7 @@ if (version_compare(InstalledVersions::getVersion('monolog/monolog'), '3.0.0') >
             $this->dirCreated = true;
         }
     }
-} elseif (version_compare(InstalledVersions::getVersion('monolog/monolog'), '2.1.0') >= 0) {
+} elseif (version_compare(InstalledVersions::getVersion('monolog/monolog'), '2.3.3') >= 0) {
     /**
      * Stores to any stream resource.
      *

@@ -47,7 +47,17 @@ services:
     image: "${REGISTRY:-docker.io}/${NAMESPACE:-openswoolebundle}/${IMAGE:-openswoole-bundle}-composer:${TAG:-local}"
     build:
       context: .
-      target: Composer
+      target: composer
+      args:
+        <<: *DEFAULT_BUILD_ARGS
+    environment:
+      DATABASE_HOST: 'db'
+
+  ci:
+    image: "${REGISTRY:-docker.io}/${NAMESPACE:-openswoolebundle}/${IMAGE:-openswoole-bundle}-ci:${TAG:-local}"
+    build:
+      context: .
+      target: ci
       args:
         <<: *DEFAULT_BUILD_ARGS
     environment:
@@ -62,8 +72,6 @@ services:
         <<: *DEFAULT_BUILD_ARGS
     environment:
       DATABASE_HOST: 'db'
-    volumes:
-      - coverage:/usr/src/app/cov
 
   coverage-pcov:
     image: "${REGISTRY:-docker.io}/${NAMESPACE:-openswoolebundle}/${IMAGE:-openswoole-bundle}-coverage-pcov:${TAG:-local}"
@@ -74,8 +82,6 @@ services:
         <<: *DEFAULT_BUILD_ARGS
     environment:
       DATABASE_HOST: 'db'
-    volumes:
-      - coverage:/usr/src/app/cov
 
   coverage-xdebug-feature-with-retry:
     image: "${REGISTRY:-docker.io}/${NAMESPACE:-openswoolebundle}/${IMAGE:-openswoole-bundle}-coverage-xdebug:${TAG:-local}"
@@ -90,8 +96,6 @@ services:
         <<: *DEFAULT_BUILD_ARGS
     environment:
       DATABASE_HOST: 'db'
-    volumes:
-      - coverage:/usr/src/app/cov
 
   merge-code-coverage:
     image: "${REGISTRY:-docker.io}/${NAMESPACE:-openswoolebundle}/${IMAGE:-openswoole-bundle}-merge-code-coverage:${TAG:-local}"
@@ -101,16 +105,6 @@ services:
       target: MergeCodeCoverage
       args:
         <<: *DEFAULT_BUILD_ARGS
-    volumes:
-      - coverage:/usr/src/app/cov
-
-  coverage-volume-helper:
-    image: "alpine:${ALPINE_VERSION:-3.16}"
-    entrypoint: sleep
-    command: infinity
-    working_dir: /usr/src/app
-    volumes:
-      - coverage:/usr/src/app/cov
 
   db:
     container_name: swoole-bundle-db

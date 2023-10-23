@@ -24,7 +24,7 @@ return $config->setRules([
         'array_syntax' => ['syntax' => 'short'],
         'combine_consecutive_issets' => true,
         'combine_consecutive_unsets' => true,
-        'compact_nullable_typehint' => true,
+        'compact_nullable_type_declaration' => true,
         'linebreak_after_opening_tag' => true,
         'list_syntax' => ['syntax' => 'short'],
         'no_null_property_initialization' => true,

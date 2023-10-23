@@ -79,18 +79,14 @@ COPY --from=ext-ffi /usr/local/lib/php/extensions/no-debug-non-zts-${PHP_API_VER
 COPY --from=ext-ffi /usr/local/etc/php/conf.d/docker-php-ext-ffi.ini /usr/local/etc/php/conf.d/docker-php-ext-ffi.ini
 
 FROM composer:${COMPOSER_TAG} AS composer-bin
-FROM base as app-installer
+FROM base as composer
 ENV COMPOSER_ALLOW_SUPERUSER="1"
 COPY --chown=app:runner --from=composer-bin /usr/bin/composer /usr/local/bin/composer
-COPY composer.json composer.lock ./
-RUN composer validate
-ARG COMPOSER_ARGS="install"
-ARG COMPOSER_AUTH
-RUN composer ${COMPOSER_ARGS} --prefer-dist --no-progress --no-autoloader --ansi
-COPY . ./
-RUN composer dump-autoload --classmap-authoritative --ansi
 
-FROM base as base-coverage-xdebug
+FROM composer as ci
+RUN apk add --no-cache git gpg gpg-agent gpgv
+
+FROM composer as base-coverage-xdebug
 RUN apk add --no-cache bash
 ARG PHP_API_VERSION="20200930"
 COPY --from=ext-xdebug /usr/local/lib/php/extensions/no-debug-non-zts-${PHP_API_VERSION}/xdebug.so /usr/local/lib/php/extensions/no-debug-non-zts-${PHP_API_VERSION}/xdebug.so
@@ -99,20 +95,16 @@ USER app:runner
 ENV COVERAGE="1" \
     COMPOSER_ALLOW_SUPERUSER="1" \
     XDEBUG_MODE="coverage"
-COPY --chown=app:runner --from=composer-bin /usr/bin/composer /usr/local/bin/composer
-COPY --chown=app:runner --from=app-installer /usr/src/app ./
 
-FROM base as base-coverage-pcov
+FROM composer as base-coverage-pcov
 ARG PHP_API_VERSION="20200930"
 COPY --from=ext-pcov /usr/local/lib/php/extensions/no-debug-non-zts-${PHP_API_VERSION}/pcov.so /usr/local/lib/php/extensions/no-debug-non-zts-${PHP_API_VERSION}/pcov.so
 COPY --from=ext-pcov /usr/local/etc/php/conf.d/docker-php-ext-pcov.ini /usr/local/etc/php/conf.d/docker-php-ext-pcov.ini
 USER app:runner
 ENV COVERAGE="1" \
     COMPOSER_ALLOW_SUPERUSER="1"
-COPY --chown=app:runner --from=composer-bin /usr/bin/composer /usr/local/bin/composer
-COPY --chown=app:runner --from=app-installer /usr/src/app ./
 
-FROM base as base-pcov-xdebug
+FROM ci as base-pcov-xdebug
 ARG PHP_API_VERSION="20200930"
 COPY --from=ext-pcov /usr/local/lib/php/extensions/no-debug-non-zts-${PHP_API_VERSION}/pcov.so /usr/local/lib/php/extensions/no-debug-non-zts-${PHP_API_VERSION}/pcov.so
 COPY --from=ext-pcov /usr/local/etc/php/conf.d/docker-php-ext-pcov.ini /usr/local/etc/php/conf.d/docker-php-ext-pcov.ini
@@ -122,20 +114,12 @@ USER app:runner
 ENV COVERAGE="1" \
     COMPOSER_ALLOW_SUPERUSER="1" \
     XDEBUG_MODE="coverage"
-COPY --chown=app:runner --from=composer-bin /usr/bin/composer /usr/local/bin/composer
-COPY --chown=app:runner --from=app-installer /usr/src/app ./
 
-FROM base as cli
+FROM composer as cli
 USER app:runner
-COPY --chown=app:runner --from=app-installer /usr/src/app ./
+COPY --chown=app:runner --from=composer /usr/src/app ./
 ENTRYPOINT ["./tests/Fixtures/Symfony/app/console"]
 CMD ["swoole:server:run"]
-
-FROM cli as Composer
-ENV COMPOSER_ALLOW_SUPERUSER="1"
-COPY --chown=app:runner --from=composer-bin /usr/bin/composer /usr/local/bin/composer
-ENTRYPOINT ["composer"]
-CMD ["test"]
 
 FROM base-coverage-xdebug as CoverageXdebug
 ENTRYPOINT ["composer"]

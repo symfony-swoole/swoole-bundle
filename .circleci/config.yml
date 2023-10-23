@@ -1,6 +1,60 @@
 version: 2.1
+
+aliases:
+  # Supported lowest PHP version
+  - &lowest-php-version
+    php-version: [ '8.0' ]
+
+  # Supported PHP versions
+  - &php-versions
+    php-version: ['8.0', '8.1', '8.2']
+
+  # CI matrix - combinations of PHP version with Symfony versions
+  # and composer dependencies (std/locked, latest, lowest)
+  - &ci-matrix
+    parameters:
+      <<: *php-versions
+      symfony-version: [ '^5.4.21', '6.3.*' ]
+      composer-build: [ 'std', 'lowest', 'latest' ]
+    exclude:
+      - composer-build: 'std'
+        php-version: '8.0'
+        symfony-version: '6.3.*'
+      - composer-build: 'std'
+        php-version: '8.1'
+        symfony-version: '^5.4.21'
+      - composer-build: 'std'
+        php-version: '8.1'
+        symfony-version: '6.3.*'
+      - composer-build: 'std'
+        php-version: '8.2'
+        symfony-version: '^5.4.21'
+      - composer-build: 'std'
+        php-version: '8.2'
+        symfony-version: '6.3.*'
+
+  # Remote Docker config
+  - &docker-remote-version
+    setup_remote_docker:
+      # https://circleci.com/docs/2.0/building-docker-images/#docker-version
+      version: 20.10.14
+
+  # Filters
+  - &filter-run-on-local-branches
+    filters:
+      branches:
+        # Forked pull requests have CIRCLE_BRANCH set to pull/XXX
+        ignore: /pull\/[0-9]+/
+
+  - &filter-run-on-forked-pull-requests
+    filters:
+      branches:
+        # Forked pull requests have CIRCLE_BRANCH set to pull/XXX
+        only: /pull\/[0-9]+/
+
 orbs:
   codecov: codecov/codecov@3.2.4
+
 executors:
   openswoole-bundle-docker-client:
     docker:
@@ -12,23 +66,53 @@ executors:
       - image: docker.io/openswoolebundle/release-version-script:0.4.0
     working_directory: /usr/src/app
 
-aliases:
-    # Remote Docker config
-  - &docker-remote-version
-    setup_remote_docker:
-      # https://circleci.com/docs/2.0/building-docker-images/#docker-version
-      version: 20.10.14
+jobs:
+  releaser-dry-run:
+    executor: openswoole-bundle-release-version
+    environment:
+      DEBUG: "1"
+      DRY_RUN: "1"
+      GH_TOKEN: "xxx"
+      GH_REPOSITORY: "openswoole-bundle/openswoole-bundle"
+    steps:
+      - checkout
+      - run:
+          name: Dry run release-version script
+          command: release-version
+      - run:
+          name: Dry run release-version script with debug
+          when: on_fail
+          environment:
+            DEBUG: "1"
+          command: release-version
 
-  - &docker-bake
+  releaser:
+    executor: openswoole-bundle-release-version
+    environment:
+      DEBUG: "1"
+      DRY_RUN: "0"
+      GH_RELEASE_DRAFT: "false"
+      GH_REPOSITORY: "openswoole-bundle/openswoole-bundle"
+    steps:
+      - checkout
+      - run:
+          name: Run release-version script
+          command: release-version
+
+  docker-buildx-bake:
     executor: openswoole-bundle-docker-client
+    parameters:
+      php-version:
+        type: string
     steps:
       - checkout
       - *docker-remote-version
       - run:
           name: Export required dynamic env variables
           command: |-
-            TAG="$PHP_VERSION-${BUILD_TYPE:-std}-$CIRCLE_SHA1"
+            TAG="$PHP_VERSION-$CIRCLE_SHA1"
             echo "export TAG='$TAG'" >> $BASH_ENV
+            echo "export PHP_API_VERSION=$(docker run --rm php:$PHP_VERSION php -i | grep 'PHP API' | sed -e 's/PHP API => //')" >> $BASH_ENV
 
             if [ "latest" = "$SWOOLE_VERSION" ]; then
               # LATEST_SWOOLE_VERSION="$(wget -q -O /dev/stdout https://api.github.com/repos/openswoole/swoole-src/releases/latest | grep '"tag_name":' | sed -E 's/.*"v([^"]+)".*/\1/')"
@@ -62,304 +146,219 @@ aliases:
           command: docker-use-buildx
       - run:
           name: Docker Buildx Bake all required images
-          command:
+          command: |-
+            if [ "8.0" = "$PHP_VERSION" ]; then
+              export SERVICES="ci coverage-xdebug coverage-pcov merge-code-coverage"
+            fi
+
             docker buildx bake --progress=plain $SERVICES
-
-  # Filters
-  - &filter-run-on-local-branches
-    filters:
-      branches:
-        # Forked pull requests have CIRCLE_BRANCH set to pull/XXX
-        ignore: /pull\/[0-9]+/
-
-  - &filter-run-on-forked-pull-requests
-    filters:
-      branches:
-        # Forked pull requests have CIRCLE_BRANCH set to pull/XXX
-        only: /pull\/[0-9]+/
-
-  # Job templates
-  - &job-composer-code-style
-    working_directory: /usr/src/app
-    steps:
-      - run:
-          name: Run code style checks
-          command: composer cs-analyse
-      - run:
-          name: Run static anlaysis
-          command: composer static-analyse-src
-      - run:
-          name: Run static anlaysis
-          command: composer static-analyse-tests
-
-  - &job-composer-unit-tests
-    working_directory: /usr/src/app
-    steps:
-      - run:
-          name: Prepare dir for test results
-          command: mkdir -p phpunit
-      - run:
-          name: Run unit tests
-          command: composer unit-tests-junit
-      - store_test_results:
-          path: phpunit
-      - store_artifacts:
-          path: phpunit
-
-  - &mysql-for-feature-tests
-    image: cimg/mysql:8.0
-    auth:
-      username: $DOCKER_HUB_USERNAME
-      password: $DOCKER_HUB_TOKEN
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: db
-      MYSQL_USER: user
-      MYSQL_PASSWORD: pass
-
-  - &mysql-for-feature-tests-wait-for-init
-    run:
-      # Our primary container isn't MYSQL so run a sleep command until it's ready.
-      name: Waiting for MySQL to be ready
-      command: |
-        for i in `seq 1 30`;
-        do
-          nc -z $DATABASE_HOST 3306 && echo Success && exit 0
-          echo -n .
-          sleep 1
-        done
-        echo Failed waiting for MySQL && exit 1
-
-  - &job-composer-feature-tests
-    working_directory: /usr/src/app
-    steps:
-      - *mysql-for-feature-tests-wait-for-init
-      - run:
-          name: Prepare dir for test results
-          command: mkdir -p phpunit
-      - run:
-          name: Run feature tests
-          command: composer feature-tests-junit
-      - store_test_results:
-          path: phpunit
-      - store_artifacts:
-          path: phpunit
-
-jobs:
-  openswoole-bundle-composer-80-code-style:
-    <<: *job-composer-code-style
-    docker:
-      - image: docker.io/openswoolebundle/openswoole-bundle-composer:8.0-std-$CIRCLE_SHA1
-
-  openswoole-bundle-composer-80-unit-tests:
-    <<: *job-composer-unit-tests
-    docker:
-      - image: docker.io/openswoolebundle/openswoole-bundle-composer:8.0-std-$CIRCLE_SHA1
-
-  openswoole-bundle-composer-80-lowest-unit-tests:
-    <<: *job-composer-unit-tests
-    docker:
-      - image: docker.io/openswoolebundle/openswoole-bundle-composer:8.0-lowest-$CIRCLE_SHA1
-
-  openswoole-bundle-composer-81-latest-unit-tests:
-    <<: *job-composer-unit-tests
-    docker:
-      - image: docker.io/openswoolebundle/openswoole-bundle-composer:8.1-latest-$CIRCLE_SHA1
-
-  openswoole-bundle-composer-82-latest-unit-tests:
-    <<: *job-composer-unit-tests
-    docker:
-      - image: docker.io/openswoolebundle/openswoole-bundle-composer:8.2-latest-$CIRCLE_SHA1
-
-  openswoole-bundle-composer-80-lowest-feature-tests:
-    <<: *job-composer-feature-tests
-    docker:
-      - image: docker.io/openswoolebundle/openswoole-bundle-composer:8.0-lowest-$CIRCLE_SHA1
-        environment:
-          DATABASE_HOST: '127.0.0.1'
-      - *mysql-for-feature-tests
-
-  openswoole-bundle-composer-80-feature-tests:
-    <<: *job-composer-feature-tests
-    docker:
-      - image: docker.io/openswoolebundle/openswoole-bundle-composer:8.0-std-$CIRCLE_SHA1
-        environment:
-          DATABASE_HOST: '127.0.0.1'
-      - *mysql-for-feature-tests
-
-  openswoole-bundle-composer-81-latest-feature-tests:
-    <<: *job-composer-feature-tests
-    docker:
-      - image: docker.io/openswoolebundle/openswoole-bundle-composer:8.1-latest-$CIRCLE_SHA1
-        environment:
-          DATABASE_HOST: '127.0.0.1'
-      - *mysql-for-feature-tests
-
-  openswoole-bundle-composer-82-latest-feature-tests:
-    <<: *job-composer-feature-tests
-    docker:
-      - image: docker.io/openswoolebundle/openswoole-bundle-composer:8.2-latest-$CIRCLE_SHA1
-        environment:
-          DATABASE_HOST: '127.0.0.1'
-      - *mysql-for-feature-tests
-
-  openswoole-bundle-80-code-coverage:
-    executor: openswoole-bundle-docker-client
-    environment:
+      PHP_VERSION: << parameters.php-version >>
+      SWOOLE_VERSION: "4.12.1"
       REGISTRY: docker.io
       NAMESPACE: openswoolebundle
       IMAGE: openswoole-bundle
-      PHP_VERSION: "8.0"
-      CC_TEST_REPORTER_ID: 77af0c58a2646fe49fb7df502c38a56560e074fbc8b3086f2d33032b44c885a8
-      DATABASE_HOST: 127.0.0.1
+      SERVICES: ci
+
+  grumphp-ci:
+    working_directory: /usr/src/app
+    parameters:
+      php-version:
+        type: string
+      symfony-version:
+        type: string
+      composer-build:
+        type: string
     steps:
-      - checkout
-      - *docker-remote-version
+      - checkout:
+          path: /usr/src/app
       - run:
-          name: Export required dynamic env variables
+          name: Export required dynamic env variables for Composer
           command: |-
-            TAG="$PHP_VERSION-${BUILD_TYPE:-std}-$CIRCLE_SHA1"
-            echo "export TAG='$TAG'" >> $BASH_ENV
-            echo $TAG
+            if [ "std" = "$BUILD_TYPE" ]; then
+              echo "export COMPOSER_ARGS=install" >> $BASH_ENV
+              echo "export GRUMPHP_COMMAND=grumphp_complete" >> $BASH_ENV
+            elif [ "latest" = "$BUILD_TYPE" ]; then
+              echo "export COMPOSER_ARGS=update" >> $BASH_ENV
+              echo "export GRUMPHP_COMMAND=grumphp_tests" >> $BASH_ENV
+            elif [ "lowest" = "$BUILD_TYPE" ]; then
+              echo "export COMPOSER_ARGS='update --prefer-lowest'" >> $BASH_ENV
+              echo "export GRUMPHP_COMMAND=grumphp_tests" >> $BASH_ENV
+            fi
       - run:
-          name: Print env
-          command: env
+          name: Run Composer
+          command: |
+            source "$BASH_ENV"
+            composer config extra.symfony.require ${SYMFONY_VERSION}
+            composer ${COMPOSER_ARGS} --no-progress --no-interaction --ansi
       - run:
-          name: Print docker info
-          command: docker info
+          # Our primary container isn't MYSQL so run a sleep command until it's ready.
+          name: Waiting for MySQL to be ready
+          command: |
+            for i in `seq 1 30`;
+            do
+              nc -z $DATABASE_HOST 3306 && echo Success && exit 0
+              echo -n .
+              sleep 1
+            done
+            echo Failed waiting for MySQL && exit 1
       - run:
-          name: Login to Docker Hub
-          command: >-
-            DOCKER_REGISTRY="docker.io"
-            DOCKER_USERNAME="$DOCKER_HUB_USERNAME"
-            DOCKER_PASSWORD="$DOCKER_HUB_TOKEN"
-            docker-registry-login
+          name: Run GrumPHP
+          command: |
+            source "$BASH_ENV"
+            composer run ${GRUMPHP_COMMAND}
+    docker:
+      - image: docker.io/openswoolebundle/openswoole-bundle-ci:<< parameters.php-version >>-$CIRCLE_SHA1
+        auth:
+          username: $DOCKER_HUB_USERNAME
+          password: $DOCKER_HUB_TOKEN
+        user: app
+        environment:
+          DATABASE_HOST: '127.0.0.1'
+          SYMFONY_VERSION: << parameters.symfony-version >>
+          BUILD_TYPE: << parameters.composer-build >>
+      - image: cimg/mysql:8.0
+        auth:
+          username: $DOCKER_HUB_USERNAME
+          password: $DOCKER_HUB_TOKEN
+        environment:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: db
+          MYSQL_USER: user
+          MYSQL_PASSWORD: pass
+
+  code-coverage-pcov-php-lowest:
+    working_directory: /usr/src/app
+    parameters:
+      php-version:
+        type: string
+    steps:
+      - checkout:
+          path: /usr/src/app
       - run:
-          name: Pull required docker images
-          command: docker-compose pull composer coverage-pcov coverage-xdebug merge-code-coverage db
+          name: Run Composer
+          command: |
+            composer install --no-progress --no-interaction --ansi
       - run:
-          name: Run MySql database
-          command: docker-compose up -d db
+          # Our primary container isn't MYSQL so run a sleep command until it's ready.
+          name: Waiting for MySQL to be ready
+          command: |
+            for i in `seq 1 30`;
+            do
+              nc -z $DATABASE_HOST 3306 && echo Success && exit 0
+              echo -n .
+              sleep 1
+            done
+            echo Failed waiting for MySQL && exit 1
+      - run:
+          name: Run unit tests with coverage (pcov)
+          command: composer run unit-code-coverage
+      - run:
+          name: Run feature tests with coverage (pcov)
+          command: composer run feature-code-coverage
+      - persist_to_workspace:
+          root: /usr/src/app
+          paths:
+            - ./cov/*
+    docker:
+      - image: docker.io/openswoolebundle/openswoole-bundle-coverage-pcov:<< parameters.php-version >>-$CIRCLE_SHA1
+        auth:
+          username: $DOCKER_HUB_USERNAME
+          password: $DOCKER_HUB_TOKEN
+        user: app
+        environment:
+          DATABASE_HOST: '127.0.0.1'
+      - image: cimg/mysql:8.0
+        auth:
+          username: $DOCKER_HUB_USERNAME
+          password: $DOCKER_HUB_TOKEN
+        environment:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: db
+          MYSQL_USER: user
+          MYSQL_PASSWORD: pass
+
+  code-coverage-xdebug-php-lowest:
+    working_directory: /usr/src/app
+    parameters:
+      php-version:
+        type: string
+    steps:
+      - checkout:
+          path: /usr/src/app
+      - run:
+          name: Run Composer
+          command: |
+            composer install --no-progress --no-interaction --ansi
+      - run:
+          # Our primary container isn't MYSQL so run a sleep command until it's ready.
+          name: Waiting for MySQL to be ready
+          command: |
+            for i in `seq 1 30`;
+            do
+              nc -z $DATABASE_HOST 3306 && echo Success && exit 0
+              echo -n .
+              sleep 1
+            done
+            echo Failed waiting for MySQL && exit 1
+      - run:
+          name: Run feature tests with coverage (xdebug) and retry
+          command: /usr/src/app/tests/run-feature-tests-code-coverage.sh
+      - persist_to_workspace:
+          root: /usr/src/app
+          paths:
+            - ./cov/*
+    docker:
+      - image: docker.io/openswoolebundle/openswoole-bundle-coverage-xdebug:<< parameters.php-version >>-$CIRCLE_SHA1
+        auth:
+          username: $DOCKER_HUB_USERNAME
+          password: $DOCKER_HUB_TOKEN
+        user: app
+        environment:
+          DATABASE_HOST: '127.0.0.1'
+      - image: cimg/mysql:8.0
+        auth:
+          username: $DOCKER_HUB_USERNAME
+          password: $DOCKER_HUB_TOKEN
+        environment:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: db
+          MYSQL_USER: user
+          MYSQL_PASSWORD: pass
+
+  process-coverage-results:
+    working_directory: /usr/src/app
+    steps:
+      - checkout:
+          path: /usr/src/app
+      - run:
+          name: Run Composer
+          command: |
+            composer install --no-progress --no-interaction --ansi
       - run:
           name: Prepare CodeClimate Code Coverage reporter
           command: |-
             wget -O cc-test-reporter https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64
             chmod +x ./cc-test-reporter
             ./cc-test-reporter before-build
-          when: always
-      - run:
-          name: Prepare coverage results volume
-          command: |-
-            docker-compose up -d coverage-volume-helper
-            docker-compose exec coverage-volume-helper chown 1000:1000 cov
-          when: always
-      - run:
-          name: Run unit tests with coverage (pcov)
-          command: docker-compose run --rm coverage-pcov
-          when: always
-      - run:
-          name: Run feature tests with coverage (xdebug) and retry
-          command: docker-compose run --rm coverage-xdebug-feature-with-retry
-          when: always
-      - run:
-          name: Run feature tests with coverage (pcov)
-          command: docker-compose run --rm coverage-pcov feature-code-coverage
-          when: always
+      - attach_workspace:
+          at: /usr/src/app/cov
       - run:
           name: Merge code coverage files generated across test suites
-          command: docker-compose run --rm merge-code-coverage
-          when: always
-      - run:
-          name: Extract code coverage from container volume
-          command: docker cp $(docker-compose ps -q coverage-volume-helper):/usr/src/app/cov/clover.xml clover.xml
-          when: always
+          command: composer run merge-code-coverage
       - run:
           name: Send Code Coverage report to CodeClimate
           command: ./cc-test-reporter after-build -t clover --exit-code 0 --prefix /usr/src/app
-          when: always
       - codecov/upload:
           file: clover.xml
-
-  releaser-dry-run:
-    executor: openswoole-bundle-release-version
-    environment:
-      DEBUG: "1"
-      DRY_RUN: "1"
-      GH_TOKEN: "xxx"
-      GH_REPOSITORY: "openswoole-bundle/openswoole-bundle"
-    steps:
-      - checkout
-      - run:
-          name: Dry run release-version script
-          command: release-version
-      - run:
-          name: Dry run release-version script with debug
-          when: on_fail
-          environment:
-            DEBUG: "1"
-          command: release-version
-
-  releaser:
-    executor: openswoole-bundle-release-version
-    environment:
-      DEBUG: "1"
-      DRY_RUN: "0"
-      GH_RELEASE_DRAFT: "false"
-      GH_REPOSITORY: "openswoole-bundle/openswoole-bundle"
-    steps:
-      - checkout
-      - run:
-          name: Run release-version script
-          command: release-version
-
-  docker-buildx-bake-80-lowest:
-    <<: *docker-bake
-    environment:
-      PHP_VERSION: "8.0"
-      PHP_API_VERSION: "20200930"
-      COMPOSER_ARGS: update --prefer-lowest
-      SWOOLE_VERSION: "4.12.1"
-      REGISTRY: docker.io
-      NAMESPACE: openswoolebundle
-      IMAGE: openswoole-bundle
-      SERVICES: composer
-      BUILD_TYPE: lowest
-
-  docker-buildx-bake-80:
-    <<: *docker-bake
-    environment:
-      PHP_VERSION: "8.0"
-      PHP_API_VERSION: "20200930"
-      REGISTRY: docker.io
-      NAMESPACE: openswoolebundle
-      IMAGE: openswoole-bundle
-      SERVICES: composer coverage-xdebug coverage-pcov merge-code-coverage
-
-  docker-buildx-bake-81-latest:
-    <<: *docker-bake
-    environment:
-      PHP_VERSION: "8.1"
-      PHP_API_VERSION: "20210902"
-      COMPOSER_ARGS: update
-      SWOOLE_VERSION: latest
-      REGISTRY: docker.io
-      NAMESPACE: openswoolebundle
-      IMAGE: openswoole-bundle
-      SERVICES: composer
-      BUILD_TYPE: latest
-
-  docker-buildx-bake-82-latest:
-    <<: *docker-bake
-    environment:
-      PHP_VERSION: "8.2"
-      PHP_API_VERSION: "20220829"
-      COMPOSER_ARGS: update
-      SWOOLE_VERSION: latest
-      REGISTRY: docker.io
-      NAMESPACE: openswoolebundle
-      IMAGE: openswoole-bundle
-      SERVICES: composer
-      BUILD_TYPE: latest
+    docker:
+      - image: docker.io/openswoolebundle/openswoole-bundle-merge-code-coverage:8.0-$CIRCLE_SHA1
+        auth:
+          username: $DOCKER_HUB_USERNAME
+          password: $DOCKER_HUB_TOKEN
+        user: app
+        environment:
+          CC_TEST_REPORTER_ID: 77af0c58a2646fe49fb7df502c38a56560e074fbc8b3086f2d33032b44c885a8
 
   check-composer-config:
     docker:
@@ -371,7 +370,7 @@ jobs:
           command: composer validate
       - run:
           name: Check if there are any out of date dependencies
-          command: echo $COMPOSER_AUTH && composer outdated --locked
+          command: composer outdated --locked
   shellcheck:
     docker:
       - image: koalaman/shellcheck-alpine:stable
@@ -411,55 +410,42 @@ workflows:
           <<: *filter-run-on-local-branches
       - releaser-dry-run:
           <<: *filter-run-on-local-branches
-      - docker-buildx-bake-80:
+      - docker-buildx-bake:
+          name: docker-buildx-bake-<< matrix.php-version >>
           context: openswoole-bundle-dockerhub
+          matrix:
+            parameters:
+              <<: *php-versions
           requires:
             - shellcheck
             - check-composer-config
             - validate-commit-message
-      - openswoole-bundle-composer-80-code-style:
+      - grumphp-ci:
+          name: grumphp-ci-php-<< matrix.php-version >>-symfony-<< matrix.symfony-version >>-<< matrix.composer-build >>
+          context: openswoole-bundle-github
+          matrix:
+            <<: *ci-matrix
           requires:
-            - docker-buildx-bake-80
-      - openswoole-bundle-composer-80-unit-tests:
+            - docker-buildx-bake-<< matrix.php-version >>
+      - code-coverage-pcov-php-lowest:
+          context: openswoole-bundle-dockerhub
+          matrix:
+            parameters:
+              <<: *lowest-php-version
           requires:
-            - docker-buildx-bake-80
-      - docker-buildx-bake-80-lowest:
+            - docker-buildx-bake-<< matrix.php-version >>
+      - code-coverage-xdebug-php-lowest:
+          context: openswoole-bundle-dockerhub
+          matrix:
+            parameters:
+              <<: *lowest-php-version
+          requires:
+            - docker-buildx-bake-<< matrix.php-version >>
+      - process-coverage-results:
           context: openswoole-bundle-dockerhub
           requires:
-            - docker-buildx-bake-80
-      - openswoole-bundle-composer-80-lowest-unit-tests:
-          requires:
-            - docker-buildx-bake-80-lowest
-      - openswoole-bundle-composer-80-lowest-feature-tests:
-          requires:
-            - docker-buildx-bake-80-lowest
-      - openswoole-bundle-composer-80-feature-tests:
-          requires:
-            - docker-buildx-bake-80
-      - openswoole-bundle-80-code-coverage:
-          context: openswoole-bundle-dockerhub
-          requires:
-            - docker-buildx-bake-80
-      - docker-buildx-bake-81-latest:
-          context: openswoole-bundle-dockerhub
-          requires:
-            - docker-buildx-bake-80
-      - openswoole-bundle-composer-81-latest-unit-tests:
-          requires:
-            - docker-buildx-bake-81-latest
-      - openswoole-bundle-composer-81-latest-feature-tests:
-          requires:
-            - docker-buildx-bake-81-latest
-      - docker-buildx-bake-82-latest:
-          context: openswoole-bundle-dockerhub
-          requires:
-            - docker-buildx-bake-80
-      - openswoole-bundle-composer-82-latest-unit-tests:
-          requires:
-            - docker-buildx-bake-82-latest
-      - openswoole-bundle-composer-82-latest-feature-tests:
-          requires:
-            - docker-buildx-bake-82-latest
+            - code-coverage-pcov-php-lowest
+            - code-coverage-xdebug-php-lowest
 
   pull-request-checks-untrusted:
     when:
@@ -480,53 +466,40 @@ workflows:
             - shellcheck
             - check-composer-config
             - validate-commit-message
-      - docker-buildx-bake-80:
+      - docker-buildx-bake:
+          name: docker-buildx-bake-<< matrix.php-version >>
           context: openswoole-bundle-dockerhub
+          matrix:
+            parameters:
+              <<: *php-versions
           requires:
             - approve-docker-bake
-      - openswoole-bundle-composer-80-code-style:
+      - grumphp-ci:
+          name: grumphp-ci-php-<< matrix.php-version >>-symfony-<< matrix.symfony-version >>-<< matrix.composer-build >>
+          context: openswoole-bundle-github
+          matrix:
+            <<: *ci-matrix
           requires:
-            - docker-buildx-bake-80
-      - openswoole-bundle-composer-80-unit-tests:
+            - docker-buildx-bake-<< matrix.php-version >>
+      - code-coverage-pcov-php-lowest:
+          context: openswoole-bundle-dockerhub
+          matrix:
+            parameters:
+              <<: *lowest-php-version
           requires:
-            - docker-buildx-bake-80
-      - docker-buildx-bake-80-lowest:
+            - docker-buildx-bake-<< matrix.php-version >>
+      - code-coverage-xdebug-php-lowest:
+          context: openswoole-bundle-dockerhub
+          matrix:
+            parameters:
+              <<: *lowest-php-version
+          requires:
+            - docker-buildx-bake-<< matrix.php-version >>
+      - process-coverage-results:
           context: openswoole-bundle-dockerhub
           requires:
-            - docker-buildx-bake-80
-      - openswoole-bundle-composer-80-lowest-unit-tests:
-          requires:
-            - docker-buildx-bake-80-lowest
-      - openswoole-bundle-composer-80-lowest-feature-tests:
-          requires:
-            - docker-buildx-bake-80-lowest
-      - openswoole-bundle-composer-80-feature-tests:
-          requires:
-            - docker-buildx-bake-80
-      - openswoole-bundle-80-code-coverage:
-          context: openswoole-bundle-dockerhub
-          requires:
-            - docker-buildx-bake-80
-      - docker-buildx-bake-81-latest:
-          context: openswoole-bundle-dockerhub
-          requires:
-            - docker-buildx-bake-80
-      - openswoole-bundle-composer-81-latest-unit-tests:
-          requires:
-            - docker-buildx-bake-81-latest
-      - openswoole-bundle-composer-81-latest-feature-tests:
-          requires:
-            - docker-buildx-bake-81-latest
-      - docker-buildx-bake-82-latest:
-          context: openswoole-bundle-dockerhub
-          requires:
-            - docker-buildx-bake-80
-      - openswoole-bundle-composer-82-latest-unit-tests:
-          requires:
-            - docker-buildx-bake-82-latest
-      - openswoole-bundle-composer-82-latest-feature-tests:
-          requires:
-            - docker-buildx-bake-82-latest
+            - code-coverage-pcov-php-lowest
+            - code-coverage-xdebug-php-lowest
 
   release:
     when:
@@ -536,69 +509,48 @@ workflows:
       - check-composer-config
       - validate-commit-message
       - releaser-dry-run
-      - docker-buildx-bake-80:
+      - docker-buildx-bake:
+          name: docker-buildx-bake-<< matrix.php-version >>
+          context: openswoole-bundle-dockerhub
+          matrix:
+            parameters:
+              <<: *php-versions
+          requires:
+            - approve-docker-bake
+      - grumphp-ci:
+          name: grumphp-ci-php-<< matrix.php-version >>-symfony-<< matrix.symfony-version >>-<< matrix.composer-build >>
+          context: openswoole-bundle-github
+          matrix:
+            <<: *ci-matrix
+          requires:
+            - docker-buildx-bake-<< matrix.php-version >>
+      - code-coverage-pcov-php-lowest:
+          context: openswoole-bundle-dockerhub
+          matrix:
+            parameters:
+              <<: *lowest-php-version
+          requires:
+            - docker-buildx-bake-<< matrix.php-version >>
+      - code-coverage-xdebug-php-lowest:
+          context: openswoole-bundle-dockerhub
+          matrix:
+            parameters:
+              <<: *lowest-php-version
+          requires:
+            - docker-buildx-bake-<< matrix.php-version >>
+      - process-coverage-results:
           context: openswoole-bundle-dockerhub
           requires:
-            - shellcheck
-            - check-composer-config
-            - validate-commit-message
-      - openswoole-bundle-composer-80-code-style:
-          requires:
-            - docker-buildx-bake-80
-      - openswoole-bundle-composer-80-unit-tests:
-          requires:
-            - docker-buildx-bake-80
-      - docker-buildx-bake-80-lowest:
-          context: openswoole-bundle-dockerhub
-          requires:
-            - docker-buildx-bake-80
-      - openswoole-bundle-composer-80-lowest-unit-tests:
-          requires:
-            - docker-buildx-bake-80-lowest
-      - openswoole-bundle-composer-80-lowest-feature-tests:
-          requires:
-            - docker-buildx-bake-80-lowest
-      - openswoole-bundle-composer-80-feature-tests:
-          requires:
-            - docker-buildx-bake-80
-      - openswoole-bundle-80-code-coverage:
-          context: openswoole-bundle-dockerhub
-          requires:
-            - docker-buildx-bake-80
-      - docker-buildx-bake-81-latest:
-          context: openswoole-bundle-dockerhub
-          requires:
-            - docker-buildx-bake-80
-      - openswoole-bundle-composer-81-latest-unit-tests:
-          requires:
-            - docker-buildx-bake-81-latest
-      - openswoole-bundle-composer-81-latest-feature-tests:
-          requires:
-            - docker-buildx-bake-81-latest
-      - docker-buildx-bake-82-latest:
-          context: openswoole-bundle-dockerhub
-          requires:
-            - docker-buildx-bake-80
-      - openswoole-bundle-composer-82-latest-unit-tests:
-          requires:
-            - docker-buildx-bake-82-latest
-      - openswoole-bundle-composer-82-latest-feature-tests:
-          requires:
-            - docker-buildx-bake-82-latest
+            - code-coverage-pcov-php-lowest
+            - code-coverage-xdebug-php-lowest
       - approve-release:
           type: approval
           requires:
             - releaser-dry-run
-            - openswoole-bundle-80-code-coverage
-            - openswoole-bundle-composer-80-lowest-feature-tests
-            - openswoole-bundle-composer-80-feature-tests
-            - openswoole-bundle-composer-80-lowest-unit-tests
-            - openswoole-bundle-composer-80-unit-tests
-            - openswoole-bundle-composer-80-code-style
-            - openswoole-bundle-composer-81-latest-unit-tests
-            - openswoole-bundle-composer-81-latest-feature-tests
-            - openswoole-bundle-composer-82-latest-unit-tests
-            - openswoole-bundle-composer-82-latest-feature-tests
+            - grumphp-ci
+            - code-coverage-pcov-php-lowest
+            - code-coverage-xdebug-php-lowest
+            - process-coverage-results
       - releaser:
           context: openswoole-bundle-github
           requires:
