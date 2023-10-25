@@ -8962,16 +8962,16 @@
         },
         {
             "name": "tideways/ext-tideways-stubs",
-            "version": "v5.5.14",
+            "version": "v5.6.0.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/tideways/ext-tideways-stubs.git",
-                "reference": "229ebc82d69d6f19ac50245e8eadababec1b27db"
+                "reference": "da75ea4198ddcd28d9074fde18e605787651c8d3"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tideways/ext-tideways-stubs/zipball/229ebc82d69d6f19ac50245e8eadababec1b27db",
-                "reference": "229ebc82d69d6f19ac50245e8eadababec1b27db",
+                "url": "https://api.github.com/repos/tideways/ext-tideways-stubs/zipball/da75ea4198ddcd28d9074fde18e605787651c8d3",
+                "reference": "da75ea4198ddcd28d9074fde18e605787651c8d3",
                 "shasum": ""
             },
             "type": "library",
@@ -8982,9 +8982,9 @@
             "description": "IDE stubs for Tideways Profiler PHP extension",
             "support": {
                 "issues": "https://github.com/tideways/ext-tideways-stubs/issues",
-                "source": "https://github.com/tideways/ext-tideways-stubs/tree/v5.5.14"
+                "source": "https://github.com/tideways/ext-tideways-stubs/tree/v5.6.0.1"
             },
-            "time": "2023-02-01T12:11:56+00:00"
+            "time": "2023-10-20T18:10:32+00:00"
         },
         {
             "name": "twig/twig",
