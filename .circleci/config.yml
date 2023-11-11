@@ -2,35 +2,75 @@ version: 2.1
 
 aliases:
   # Supported lowest PHP version
-  - &lowest-php-version
+  - &coverage-php-version
     php-version: [ '8.0' ]
+
+  # Supported lowest Swoole versions
+  - &coverage-swooles
+    swoole: [ 'openswoole-4.12.1', 'swoole-4.8.13' ]
 
   # Supported PHP versions
   - &php-versions
     php-version: ['8.0', '8.1', '8.2']
+
+  # Supported Swoole/OpenSwoole versions
+  - &swooles
+    swoole: [ 'openswoole-4.12.1', 'swoole-4.8.13' ]
+
+  # Docker bake matrix - combinations of PHP version with Swoole extension and version
+  - &bake-matrix
+    parameters:
+      <<: *php-versions
+      <<: *swooles
 
   # CI matrix - combinations of PHP version with Symfony versions
   # and composer dependencies (std/locked, latest, lowest)
   - &ci-matrix
     parameters:
       <<: *php-versions
+      <<: *swooles
       symfony-version: [ '^5.4.21', '6.3.*' ]
       composer-build: [ 'std', 'lowest', 'latest' ]
     exclude:
       - composer-build: 'std'
         php-version: '8.0'
+        swoole: 'openswoole-4.12.1'
+        symfony-version: '6.3.*'
+      - composer-build: 'std'
+        php-version: '8.0'
+        swoole: 'swoole-4.8.13'
         symfony-version: '6.3.*'
       - composer-build: 'std'
         php-version: '8.1'
+        swoole: 'openswoole-4.12.1'
         symfony-version: '^5.4.21'
       - composer-build: 'std'
         php-version: '8.1'
+        swoole: 'swoole-4.8.13'
+        symfony-version: '^5.4.21'
+      - composer-build: 'std'
+        php-version: '8.1'
+        swoole: 'openswoole-4.12.1'
+        symfony-version: '6.3.*'
+      - composer-build: 'std'
+        php-version: '8.1'
+        swoole: 'swoole-4.8.13'
         symfony-version: '6.3.*'
       - composer-build: 'std'
         php-version: '8.2'
+        swoole: 'openswoole-4.12.1'
         symfony-version: '^5.4.21'
       - composer-build: 'std'
         php-version: '8.2'
+        swoole: 'swoole-4.8.13'
+        symfony-version: '^5.4.21'
+      - composer-build: 'std'
+        php-version: '8.2'
+        swoole: 'openswoole-4.12.1'
+        symfony-version: '6.3.*'
+      - composer-build: 'std'
+        php-version: '8.2'
+        swoole: 'swoole-4.8.13'
         symfony-version: '6.3.*'
 
   # Remote Docker config
@@ -104,22 +144,29 @@ jobs:
     parameters:
       php-version:
         type: string
+      swoole:
+        type: string
     steps:
       - checkout
       - *docker-remote-version
       - run:
           name: Export required dynamic env variables
           command: |-
-            TAG="$PHP_VERSION-$CIRCLE_SHA1"
+            TAG="$PHP_VERSION-$SWOOLE-$CIRCLE_SHA1"
             echo "export TAG='$TAG'" >> $BASH_ENV
             echo "export PHP_API_VERSION=$(docker run --rm php:$PHP_VERSION php -i | grep 'PHP API' | sed -e 's/PHP API => //')" >> $BASH_ENV
 
-            if [ "latest" = "$SWOOLE_VERSION" ]; then
-              # LATEST_SWOOLE_VERSION="$(wget -q -O /dev/stdout https://api.github.com/repos/openswoole/swoole-src/releases/latest | grep '"tag_name":' | sed -E 's/.*"v([^"]+)".*/\1/')"
-              LATEST_SWOOLE_VERSION=4.12.1
-              echo "LATEST_SWOOLE_VERSION=$LATEST_SWOOLE_VERSION"
-              echo "export SWOOLE_VERSION='$LATEST_SWOOLE_VERSION'" >> $BASH_ENV
-            fi;
+            #if [ "latest" = "$SWOOLE_VERSION" ]; then
+            #  # LATEST_SWOOLE_VERSION="$(wget -q -O /dev/stdout https://api.github.com/repos/openswoole/swoole-src/releases/latest | grep '"tag_name":' | sed -E 's/.*"v([^"]+)".*/\1/')"
+            #  LATEST_SWOOLE_VERSION=4.12.1
+            #  echo "LATEST_SWOOLE_VERSION=$LATEST_SWOOLE_VERSION"
+            #  echo "export SWOOLE_VERSION='$LATEST_SWOOLE_VERSION'" >> $BASH_ENV
+            #fi;
+
+            SWOOLE_EXTENSION=$(echo $SWOOLE | tr '-' '\n' | head -n 1)
+            echo "export SWOOLE_EXTENSION='$SWOOLE_EXTENSION'" >> $BASH_ENV
+            SWOOLE_VERSION=$(echo $SWOOLE | tr '-' '\n' | tail -n 1)
+            echo "export SWOOLE_VERSION='$SWOOLE_VERSION'" >> $BASH_ENV
 
             echo "export XDEBUG_TAG='3.2.0'" >> $BASH_ENV
       - run:
@@ -148,13 +195,14 @@ jobs:
           name: Docker Buildx Bake all required images
           command: |-
             if [ "8.0" = "$PHP_VERSION" ]; then
+              export MERGE_COVERAGE_TAG="$PHP_VERSION-$CIRCLE_SHA1"
               export SERVICES="ci coverage-xdebug coverage-pcov merge-code-coverage"
             fi
 
             docker buildx bake --progress=plain $SERVICES
     environment:
       PHP_VERSION: << parameters.php-version >>
-      SWOOLE_VERSION: "4.12.1"
+      SWOOLE: << parameters.swoole >>
       REGISTRY: docker.io
       NAMESPACE: openswoolebundle
       IMAGE: openswoole-bundle
@@ -164,6 +212,8 @@ jobs:
     working_directory: /usr/src/app
     parameters:
       php-version:
+        type: string
+      swoole:
         type: string
       symfony-version:
         type: string
@@ -208,7 +258,7 @@ jobs:
             source "$BASH_ENV"
             composer run ${GRUMPHP_COMMAND}
     docker:
-      - image: docker.io/openswoolebundle/openswoole-bundle-ci:<< parameters.php-version >>-$CIRCLE_SHA1
+      - image: docker.io/openswoolebundle/openswoole-bundle-ci:<< parameters.php-version >>-<< parameters.swoole >>-$CIRCLE_SHA1
         auth:
           username: $DOCKER_HUB_USERNAME
           password: $DOCKER_HUB_TOKEN
@@ -231,6 +281,8 @@ jobs:
     working_directory: /usr/src/app
     parameters:
       php-version:
+        type: string
+      swoole:
         type: string
     steps:
       - checkout:
@@ -261,13 +313,14 @@ jobs:
           paths:
             - ./cov/*
     docker:
-      - image: docker.io/openswoolebundle/openswoole-bundle-coverage-pcov:<< parameters.php-version >>-$CIRCLE_SHA1
+      - image: docker.io/openswoolebundle/openswoole-bundle-coverage-pcov:<< parameters.php-version >>-<< parameters.swoole >>-$CIRCLE_SHA1
         auth:
           username: $DOCKER_HUB_USERNAME
           password: $DOCKER_HUB_TOKEN
         user: app
         environment:
           DATABASE_HOST: '127.0.0.1'
+          SWOOLE: << parameters.swoole >>
       - image: cimg/mysql:8.0
         auth:
           username: $DOCKER_HUB_USERNAME
@@ -282,6 +335,8 @@ jobs:
     working_directory: /usr/src/app
     parameters:
       php-version:
+        type: string
+      swoole:
         type: string
     steps:
       - checkout:
@@ -309,13 +364,14 @@ jobs:
           paths:
             - ./cov/*
     docker:
-      - image: docker.io/openswoolebundle/openswoole-bundle-coverage-xdebug:<< parameters.php-version >>-$CIRCLE_SHA1
+      - image: docker.io/openswoolebundle/openswoole-bundle-coverage-xdebug:<< parameters.php-version >>-<< parameters.swoole >>-$CIRCLE_SHA1
         auth:
           username: $DOCKER_HUB_USERNAME
           password: $DOCKER_HUB_TOKEN
         user: app
         environment:
           DATABASE_HOST: '127.0.0.1'
+          SWOOLE: << parameters.swoole >>
       - image: cimg/mysql:8.0
         auth:
           username: $DOCKER_HUB_USERNAME
@@ -411,36 +467,37 @@ workflows:
       - releaser-dry-run:
           <<: *filter-run-on-local-branches
       - docker-buildx-bake:
-          name: docker-buildx-bake-<< matrix.php-version >>
+          name: docker-buildx-bake-<< matrix.php-version >>-<< matrix.swoole >>
           context: openswoole-bundle-dockerhub
           matrix:
-            parameters:
-              <<: *php-versions
+            <<: *bake-matrix
           requires:
             - shellcheck
             - check-composer-config
             - validate-commit-message
       - grumphp-ci:
-          name: grumphp-ci-php-<< matrix.php-version >>-symfony-<< matrix.symfony-version >>-<< matrix.composer-build >>
+          name: grumphp-ci-php-<< matrix.php-version >>-<< matrix.swoole >>-symfony-<< matrix.symfony-version >>-<< matrix.composer-build >>
           context: openswoole-bundle-github
           matrix:
             <<: *ci-matrix
           requires:
-            - docker-buildx-bake-<< matrix.php-version >>
+            - docker-buildx-bake-<< matrix.php-version >>-<< matrix.swoole >>
       - code-coverage-pcov-php-lowest:
           context: openswoole-bundle-dockerhub
           matrix:
             parameters:
-              <<: *lowest-php-version
+              <<: *coverage-php-version
+              <<: *coverage-swooles
           requires:
-            - docker-buildx-bake-<< matrix.php-version >>
+            - docker-buildx-bake-<< matrix.php-version >>-<< matrix.swoole >>
       - code-coverage-xdebug-php-lowest:
           context: openswoole-bundle-dockerhub
           matrix:
             parameters:
-              <<: *lowest-php-version
+              <<: *coverage-php-version
+              <<: *coverage-swooles
           requires:
-            - docker-buildx-bake-<< matrix.php-version >>
+            - docker-buildx-bake-<< matrix.php-version >>-<< matrix.swoole >>
       - process-coverage-results:
           context: openswoole-bundle-dockerhub
           requires:
@@ -467,34 +524,35 @@ workflows:
             - check-composer-config
             - validate-commit-message
       - docker-buildx-bake:
-          name: docker-buildx-bake-<< matrix.php-version >>
+          name: docker-buildx-bake-<< matrix.php-version >>-<< matrix.swoole >>
           context: openswoole-bundle-dockerhub
           matrix:
-            parameters:
-              <<: *php-versions
+            <<: *bake-matrix
           requires:
             - approve-docker-bake
       - grumphp-ci:
-          name: grumphp-ci-php-<< matrix.php-version >>-symfony-<< matrix.symfony-version >>-<< matrix.composer-build >>
+          name: grumphp-ci-php-<< matrix.php-version >>-<< matrix.swoole >>-symfony-<< matrix.symfony-version >>-<< matrix.composer-build >>
           context: openswoole-bundle-github
           matrix:
             <<: *ci-matrix
           requires:
-            - docker-buildx-bake-<< matrix.php-version >>
+            - docker-buildx-bake-<< matrix.php-version >>-<< matrix.swoole >>
       - code-coverage-pcov-php-lowest:
           context: openswoole-bundle-dockerhub
           matrix:
             parameters:
-              <<: *lowest-php-version
+              <<: *coverage-php-version
+              <<: *coverage-swooles
           requires:
-            - docker-buildx-bake-<< matrix.php-version >>
+            - docker-buildx-bake-<< matrix.php-version >>-<< matrix.swoole >>
       - code-coverage-xdebug-php-lowest:
           context: openswoole-bundle-dockerhub
           matrix:
             parameters:
-              <<: *lowest-php-version
+              <<: *coverage-php-version
+              <<: *coverage-swooles
           requires:
-            - docker-buildx-bake-<< matrix.php-version >>
+            - docker-buildx-bake-<< matrix.php-version >>-<< matrix.swoole >>
       - process-coverage-results:
           context: openswoole-bundle-dockerhub
           requires:
@@ -510,34 +568,35 @@ workflows:
       - validate-commit-message
       - releaser-dry-run
       - docker-buildx-bake:
-          name: docker-buildx-bake-<< matrix.php-version >>
+          name: docker-buildx-bake-<< matrix.php-version >>-<< matrix.swoole >>
           context: openswoole-bundle-dockerhub
           matrix:
-            parameters:
-              <<: *php-versions
+            <<: *bake-matrix
           requires:
             - approve-docker-bake
       - grumphp-ci:
-          name: grumphp-ci-php-<< matrix.php-version >>-symfony-<< matrix.symfony-version >>-<< matrix.composer-build >>
+          name: grumphp-ci-php-<< matrix.php-version >>-<< matrix.swoole >>-symfony-<< matrix.symfony-version >>-<< matrix.composer-build >>
           context: openswoole-bundle-github
           matrix:
             <<: *ci-matrix
           requires:
-            - docker-buildx-bake-<< matrix.php-version >>
+            - docker-buildx-bake-<< matrix.php-version >>-<< matrix.swoole >>
       - code-coverage-pcov-php-lowest:
           context: openswoole-bundle-dockerhub
           matrix:
             parameters:
-              <<: *lowest-php-version
+              <<: *coverage-php-version
+              <<: *coverage-swooles
           requires:
-            - docker-buildx-bake-<< matrix.php-version >>
+            - docker-buildx-bake-<< matrix.php-version >>-<< matrix.swoole >>
       - code-coverage-xdebug-php-lowest:
           context: openswoole-bundle-dockerhub
           matrix:
             parameters:
-              <<: *lowest-php-version
+              <<: *coverage-php-version
+              <<: *coverage-swooles
           requires:
-            - docker-buildx-bake-<< matrix.php-version >>
+            - docker-buildx-bake-<< matrix.php-version >>-<< matrix.swoole >>
       - process-coverage-results:
           context: openswoole-bundle-dockerhub
           requires:

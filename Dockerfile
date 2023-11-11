@@ -37,17 +37,19 @@ ARG XDEBUG_TAG="3.2.0"
 RUN pecl install "xdebug-$XDEBUG_TAG" && \
     docker-php-ext-enable xdebug
 
-FROM ext-builder as ext-openswoole
+FROM ext-builder as ext-swoole
 RUN apk add --no-cache git
+ARG SWOOLE_EXTENSION="openswoole"
 ARG SWOOLE_VERSION="4.12.1"
-RUN if $(echo "$SWOOLE_VERSION" | grep -qE '^[4-9]\.[0-9]+\.[0-9]+$'); then SWOOLE_GIT_REF="v$SWOOLE_VERSION"; else SWOOLE_GIT_REF="$SWOOLE_VERSION"; fi && \
-    git clone https://github.com/openswoole/swoole-src.git --branch "$SWOOLE_GIT_REF" --depth 1 && \
-    cd swoole-src && \
+RUN if $(echo "${SWOOLE_VERSION}" | grep -qE '^[4-9]\.[0-9]+\.[0-9]+$'); then SWOOLE_GIT_REF="v${SWOOLE_VERSION}"; else SWOOLE_GIT_REF="${SWOOLE_VERSION}"; fi && \
+    if [ "$SWOOLE_EXTENSION" == "openswoole" ]; then SWOOLE_GIT_REPOSITORY="openswoole/ext-openswoole"; else SWOOLE_GIT_REPOSITORY="swoole/swoole-src"; fi && \
+    git clone "https://github.com/${SWOOLE_GIT_REPOSITORY}.git" --branch "${SWOOLE_GIT_REF}" --depth 1 src && \
+    cd src && \
     phpize && \
     ./configure && \
     make && \
     make install && \
-    docker-php-ext-enable openswoole
+    docker-php-ext-enable "${SWOOLE_EXTENSION}"
 
 FROM ext-builder as ext-pcov
 RUN pecl install pcov && \
@@ -63,8 +65,9 @@ RUN addgroup -g 1000 -S runner && \
 RUN apk add --no-cache libstdc++ icu lsof libffi vim
 # php -i | grep 'PHP API' | sed -e 's/PHP API => //'
 ARG PHP_API_VERSION="20200930"
-COPY --from=ext-openswoole /usr/local/lib/php/extensions/no-debug-non-zts-${PHP_API_VERSION}/openswoole.so /usr/local/lib/php/extensions/no-debug-non-zts-${PHP_API_VERSION}/openswoole.so
-COPY --from=ext-openswoole /usr/local/etc/php/conf.d/docker-php-ext-openswoole.ini /usr/local/etc/php/conf.d/docker-php-ext-openswoole.ini
+ARG SWOOLE_EXTENSION="openswoole"
+COPY --from=ext-swoole /usr/local/lib/php/extensions/no-debug-non-zts-${PHP_API_VERSION}/${SWOOLE_EXTENSION}.so /usr/local/lib/php/extensions/no-debug-non-zts-${PHP_API_VERSION}/${SWOOLE_EXTENSION}.so
+COPY --from=ext-swoole /usr/local/etc/php/conf.d/docker-php-ext-${SWOOLE_EXTENSION}.ini /usr/local/etc/php/conf.d/docker-php-ext-${SWOOLE_EXTENSION}.ini
 COPY --from=ext-inotify /usr/local/lib/php/extensions/no-debug-non-zts-${PHP_API_VERSION}/inotify.so /usr/local/lib/php/extensions/no-debug-non-zts-${PHP_API_VERSION}/inotify.so
 COPY --from=ext-inotify /usr/local/etc/php/conf.d/docker-php-ext-inotify.ini /usr/local/etc/php/conf.d/docker-php-ext-inotify.ini
 COPY --from=ext-pcntl /usr/local/lib/php/extensions/no-debug-non-zts-${PHP_API_VERSION}/pcntl.so /usr/local/lib/php/extensions/no-debug-non-zts-${PHP_API_VERSION}/pcntl.so

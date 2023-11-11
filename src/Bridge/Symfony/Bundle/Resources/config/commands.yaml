@@ -5,51 +5,53 @@ services:
         public: false
 
     'K911\Swoole\Bridge\Symfony\Bundle\Command\ServerStatusCommand':
-        tags: [ { name: console.command, command: 'swoole:server:status' } ]
+      arguments:
+        $metricsProvider: '@K911\Swoole\Metrics\MetricsProvider'
+      tags: [ { name: console.command, command: 'swoole:server:status' } ]
 
     'K911\Swoole\Bridge\Symfony\Bundle\Command\ServerStopCommand':
-        tags: [ { name: console.command, command: 'swoole:server:stop' } ]
+      tags: [ { name: console.command, command: 'swoole:server:stop' } ]
 
     'K911\Swoole\Bridge\Symfony\Bundle\Command\ServerReloadCommand':
-        tags: [ { name: console.command, command: 'swoole:server:reload' } ]
+      tags: [ { name: console.command, command: 'swoole:server:reload' } ]
 
     'swoole_bundle.server.http_server.configurator.for_server_start_command':
-        class: K911\Swoole\Server\Configurator\CallableChainConfigurator
-        factory: ['@K911\Swoole\Server\Configurator\CallableChainConfiguratorFactory', 'make']
-        arguments:
-            - '@swoole_bundle.server.http_server.configurator_collection'
-            - '@swoole_bundle.server.http_server.configurator.with_request_handler'
-        autoconfigure: false
+      class: K911\Swoole\Server\Configurator\CallableChainConfigurator
+      factory: ['@K911\Swoole\Server\Configurator\CallableChainConfiguratorFactory', 'make']
+      arguments:
+          - '@swoole_bundle.server.http_server.configurator_collection'
+          - '@swoole_bundle.server.http_server.configurator.with_request_handler'
+      autoconfigure: false
 
     'K911\Swoole\Bridge\Symfony\Bundle\Command\ServerStartCommand':
-        tags: [ { name: console.command, command: 'swoole:server:start' } ]
-        arguments:
-            $serverConfigurator: '@swoole_bundle.server.http_server.configurator.for_server_start_command'
+      tags: [ { name: console.command, command: 'swoole:server:start' } ]
+      arguments:
+        $serverConfigurator: '@swoole_bundle.server.http_server.configurator.for_server_start_command'
 
     'swoole_bundle.server.http_server.configurator.for_server_run_command':
-        class: K911\Swoole\Server\Configurator\CallableChainConfigurator
-        factory: ['@K911\Swoole\Server\Configurator\CallableChainConfiguratorFactory', 'make']
-        arguments:
-            - '@swoole_bundle.server.http_server.configurator_collection'
-            - '@swoole_bundle.server.http_server.configurator.with_request_handler'
-            - '@swoole_bundle.server.http_server.configurator.with_sigint_handler'
-        autoconfigure: false
+      class: K911\Swoole\Server\Configurator\CallableChainConfigurator
+      factory: ['@K911\Swoole\Server\Configurator\CallableChainConfiguratorFactory', 'make']
+      arguments:
+        - '@swoole_bundle.server.http_server.configurator_collection'
+        - '@swoole_bundle.server.http_server.configurator.with_request_handler'
+        - '@swoole_bundle.server.http_server.configurator.with_sigint_handler'
+      autoconfigure: false
 
     'K911\Swoole\Bridge\Symfony\Bundle\Command\ServerRunCommand':
-        tags: [ { name: console.command, command: 'swoole:server:run' } ]
-        arguments:
-            $serverConfigurator: '@swoole_bundle.server.http_server.configurator.for_server_run_command'
+      tags: [ { name: console.command, command: 'swoole:server:run' } ]
+      arguments:
+        $serverConfigurator: '@swoole_bundle.server.http_server.configurator.for_server_run_command'
 
     'swoole_bundle.server.http_server.configurator.for_server_profile_command':
-        class: K911\Swoole\Server\Configurator\CallableChainConfigurator
-        factory: ['@K911\Swoole\Server\Configurator\CallableChainConfiguratorFactory', 'make']
-        arguments:
-            - '@swoole_bundle.server.http_server.configurator_collection'
-            - '@swoole_bundle.server.http_server.configurator.with_limited_request_handler'
-            - '@swoole_bundle.server.http_server.configurator.with_sigint_handler'
-        autoconfigure: false
+      class: K911\Swoole\Server\Configurator\CallableChainConfigurator
+      factory: ['@K911\Swoole\Server\Configurator\CallableChainConfiguratorFactory', 'make']
+      arguments:
+        - '@swoole_bundle.server.http_server.configurator_collection'
+        - '@swoole_bundle.server.http_server.configurator.with_limited_request_handler'
+        - '@swoole_bundle.server.http_server.configurator.with_sigint_handler'
+      autoconfigure: false
 
     'K911\Swoole\Bridge\Symfony\Bundle\Command\ServerProfileCommand':
-        tags: [ { name: console.command, command: 'swoole:server:profile' } ]
-        arguments:
-            $serverConfigurator: '@swoole_bundle.server.http_server.configurator.for_server_profile_command'
+      tags: [ { name: console.command, command: 'swoole:server:profile' } ]
+      arguments:
+        $serverConfigurator: '@swoole_bundle.server.http_server.configurator.for_server_profile_command'

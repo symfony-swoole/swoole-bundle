@@ -6,7 +6,7 @@ namespace K911\Swoole\Tests\Unit\Server\Configurator;
 
 use K911\Swoole\Server\Configurator\WithServerShutdownHandler;
 use K911\Swoole\Server\LifecycleHandler\NoOpServerShutdownHandler;
-use K911\Swoole\Tests\Unit\Server\SwooleHttpServerMock;
+use K911\Swoole\Tests\Unit\Server\SwooleHttpServerMockFactory;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -33,7 +33,7 @@ class WithServerShutdownHandlerTest extends TestCase
 
     public function testConfigure(): void
     {
-        $swooleServerOnEventSpy = SwooleHttpServerMock::make();
+        $swooleServerOnEventSpy = SwooleHttpServerMockFactory::make();
 
         $this->configurator->configure($swooleServerOnEventSpy);
 
