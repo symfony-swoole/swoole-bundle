@@ -1,3 +1,16 @@
+# [0.15.0](https://github.com/openswoole-bundle/openswoole-bundle/compare/v0.14.0...v0.15.0) (2023-11-11)
+
+[Full changelog](https://github.com/openswoole-bundle/openswoole-bundle/compare/v0.14.0...v0.15.0)
+
+### Bug Fixes
+
+* **coding-standards:** changes according to update of php-cs-fixer to 3.35.1 ([3dd9143](https://github.com/openswoole-bundle/openswoole-bundle/commit/3dd914363cb328fd8acd36fd131edbb6732c850a))
+
+
+### Features
+
+* **ci:** added matrix to php builds, to simplify upgrades and extension of jobs, PHP support lock to 8.0-8.2, Symfony support lock to 5.4.22+ and 6.3 ([cc0f4b6](https://github.com/openswoole-bundle/openswoole-bundle/commit/cc0f4b604540d20fd95e44c194ccd2cf13e8fc3b))
+
 # [0.14.0](https://github.com/openswoole-bundle/openswoole-bundle/compare/v0.13.1...v0.14.0) (2023-10-14)
 
 [Full changelog](https://github.com/openswoole-bundle/openswoole-bundle/compare/v0.13.1...v0.14.0)
