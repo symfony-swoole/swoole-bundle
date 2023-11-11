@@ -7,7 +7,7 @@ namespace K911\Swoole\Tests\Unit\Server\WorkerHandler;
 use K911\Swoole\Server\WorkerHandler\HMRWorkerStartHandler;
 use K911\Swoole\Tests\Unit\Server\IntMother;
 use K911\Swoole\Tests\Unit\Server\Runtime\HMR\HMRSpy;
-use K911\Swoole\Tests\Unit\Server\SwooleServerMock;
+use K911\Swoole\Tests\Unit\Server\SwooleServerMockFactory;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -34,7 +34,7 @@ class HMRWorkerStartHandlerTest extends TestCase
 
     public function testTaskWorkerNotRegisterTick(): void
     {
-        $serverMock = SwooleServerMock::make(true);
+        $serverMock = SwooleServerMockFactory::make(true);
 
         $this->hmrWorkerStartHandler->handle($serverMock, IntMother::random());
 
@@ -43,7 +43,7 @@ class HMRWorkerStartHandlerTest extends TestCase
 
     public function testWorkerRegisterTick(): void
     {
-        $serverMock = SwooleServerMock::make();
+        $serverMock = SwooleServerMockFactory::make();
 
         $this->hmrWorkerStartHandler->handle($serverMock, IntMother::random());
 

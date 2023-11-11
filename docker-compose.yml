@@ -5,6 +5,7 @@ x-env-aliases:
     PHP_API_VERSION: "${PHP_API_VERSION:-20200930}"
     COMPOSER_ARGS: "${COMPOSER_ARGS:-install}"
     COMPOSER_AUTH: "${COMPOSER_AUTH:-}"
+    SWOOLE_EXTENSION: "${SWOOLE_EXTENSION:-openswoole}"
     SWOOLE_VERSION: "${SWOOLE_VERSION:-4.12.1}"
     COMPOSER_TAG: "${COMPOSER_TAG:-2.5.2}"
     XDEBUG_TAG: "${XDEBUG_TAG:-3.2.0}"
@@ -98,7 +99,7 @@ services:
       DATABASE_HOST: 'db'
 
   merge-code-coverage:
-    image: "${REGISTRY:-docker.io}/${NAMESPACE:-openswoolebundle}/${IMAGE:-openswoole-bundle}-merge-code-coverage:${TAG:-local}"
+    image: "${REGISTRY:-docker.io}/${NAMESPACE:-openswoolebundle}/${IMAGE:-openswoole-bundle}-merge-code-coverage:${MERGE_COVERAGE_TAG:-local}"
     command: merge-code-coverage
     build:
       context: .

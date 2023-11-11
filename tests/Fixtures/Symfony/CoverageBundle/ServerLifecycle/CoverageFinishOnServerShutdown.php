@@ -6,6 +6,7 @@ namespace K911\Swoole\Tests\Fixtures\Symfony\CoverageBundle\ServerLifecycle;
 
 use K911\Swoole\Server\LifecycleHandler\ServerShutdownHandlerInterface;
 use K911\Swoole\Tests\Fixtures\Symfony\CoverageBundle\Coverage\CodeCoverageManager;
+use K911\Swoole\Tests\Fixtures\Symfony\CoverageBundle\Coverage\NameGenerator;
 use Swoole\Server;
 
 final class CoverageFinishOnServerShutdown implements ServerShutdownHandlerInterface
@@ -23,6 +24,6 @@ final class CoverageFinishOnServerShutdown implements ServerShutdownHandlerInter
         }
 
         $this->codeCoverageManager->stop();
-        $this->codeCoverageManager->finish('test_server');
+        $this->codeCoverageManager->finish(NameGenerator::nameForUseCase('test_server'));
     }
 }

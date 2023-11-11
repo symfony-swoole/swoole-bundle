@@ -27,7 +27,6 @@
     "require": {
         "php": "^8.0",
         "ext-json": "*",
-        "ext-openswoole": "^4.10.0",
         "beberlei/assert": "^3.3",
         "laminas/laminas-code": "^4.7||^4.8",
         "monolog/monolog": "^2.3.3|^3.0",
@@ -39,7 +38,9 @@
         "symfony/http-foundation": "^5.4.30|^6.3",
         "symfony/http-kernel": "^5.4.30|^6.3",
         "symfony/process": "^5.4.28|^6.3",
-        "symfony/proxy-manager-bridge": "^5.4.21|^6.3"
+        "symfony/proxy-manager-bridge": "^5.4.21|^6.3",
+        "upscale/ext-openswoole": "^4.12",
+        "upscale/ext-swoole": "^4.8.13"
     },
     "require-dev": {
         "ext-ffi": "^8.0",
@@ -126,6 +127,9 @@
         "cs-analyse": [
             "php-cs-fixer fix -v --dry-run --diff --stop-on-violation --ansi"
         ],
+        "cs-fix": [
+            "php-cs-fixer fix -v --diff --ansi"
+        ],
         "analyse": [
             "@static-analyse-src",
             "@static-analyse-tests",
@@ -142,10 +146,10 @@
             "phpunit tests/Feature --process-isolation --colors=always --log-junit phpunit/junit.xml"
         ],
         "unit-code-coverage": [
-            "phpunit tests/Unit --coverage-php cov/unit-tests.cov --colors=always"
+            "phpunit tests/Unit --coverage-php cov/unit-tests-${SWOOLE:-unknown}.cov --colors=always"
         ],
         "feature-code-coverage": [
-            "COVERAGE=1 phpunit tests/Feature --coverage-php cov/feature-tests.cov --colors=always --process-isolation"
+            "COVERAGE=1 phpunit tests/Feature --coverage-php cov/feature-tests-${SWOOLE:-unknown}.cov --colors=always --process-isolation"
         ],
         "merge-code-coverage": [
             "php -dmemory_limit=512M ./vendor/bin/phpcov merge cov --clover=clover.xml"
@@ -172,7 +176,7 @@
         "process-timeout": 1200,
         "sort-packages": true,
         "platform": {
-            "ext-openswoole": "4.10.00"
+            "ext-openswoole": "4.12.1"
         },
         "allow-plugins": {
             "phpstan/extension-installer": true,
