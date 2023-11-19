@@ -7,7 +7,7 @@ namespace K911\Swoole\Tests\Unit\Server\Configurator;
 use K911\Swoole\Server\Configurator\WithServerStartHandler;
 use K911\Swoole\Server\HttpServerConfiguration;
 use K911\Swoole\Server\LifecycleHandler\NoOpServerStartHandler;
-use K911\Swoole\Tests\Unit\Server\SwooleHttpServerMock;
+use K911\Swoole\Tests\Unit\Server\SwooleHttpServerMockFactory;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -46,7 +46,7 @@ class WithServerStartHandlerTest extends TestCase
             ->shouldBeCalled()
         ;
 
-        $swooleServerOnEventSpy = SwooleHttpServerMock::make();
+        $swooleServerOnEventSpy = SwooleHttpServerMockFactory::make();
 
         $this->configurator->configure($swooleServerOnEventSpy);
 
@@ -61,7 +61,7 @@ class WithServerStartHandlerTest extends TestCase
             ->shouldBeCalled()
         ;
 
-        $swooleServerOnEventSpy = SwooleHttpServerMock::make();
+        $swooleServerOnEventSpy = SwooleHttpServerMockFactory::make();
 
         $this->configurator->configure($swooleServerOnEventSpy);
 

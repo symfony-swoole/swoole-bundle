@@ -6,7 +6,7 @@ namespace K911\Swoole\Tests\Unit\Server\Configurator;
 
 use K911\Swoole\Server\Configurator\WithRequestHandler;
 use K911\Swoole\Tests\Unit\Server\RequestHandler\RequestHandlerDummy;
-use K911\Swoole\Tests\Unit\Server\SwooleHttpServerMock;
+use K911\Swoole\Tests\Unit\Server\SwooleHttpServerMockFactory;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -33,7 +33,7 @@ class WithRequestHandlerTest extends TestCase
 
     public function testConfigure(): void
     {
-        $serverMock = SwooleHttpServerMock::make();
+        $serverMock = SwooleHttpServerMockFactory::make();
 
         $this->configurator->configure($serverMock);
 

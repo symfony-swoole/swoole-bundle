@@ -7,6 +7,7 @@ namespace K911\Swoole\Bridge\Symfony\Bundle\Command;
 use Assert\Assertion;
 use K911\Swoole\Client\Exception\ClientConnectionErrorException;
 use K911\Swoole\Coroutine\CoroutinePool;
+use K911\Swoole\Metrics\MetricsProvider;
 use K911\Swoole\Server\Api\ApiServerClientFactory;
 use K911\Swoole\Server\Config\Socket;
 use K911\Swoole\Server\Config\Sockets;
@@ -22,7 +23,8 @@ final class ServerStatusCommand extends Command
     public function __construct(
         private Sockets $sockets,
         private ApiServerClientFactory $apiServerClientFactory,
-        private ParameterBagInterface $parameterBag
+        private MetricsProvider $metricsProvider,
+        private ParameterBagInterface $parameterBag,
     ) {
         parent::__construct();
     }
@@ -111,30 +113,22 @@ final class ServerStatusCommand extends Command
         ], $rows);
     }
 
-    private function showMetrics(SymfonyStyle $io, array $metrics): void
+    private function showMetrics(SymfonyStyle $io, array $metricsData): void
     {
-        $date = \DateTimeImmutable::createFromFormat(\DATE_ATOM, $metrics['date']);
-        Assertion::isInstanceOf($date, \DateTimeImmutable::class);
-        $server = $metrics['server'];
-        $runningSeconds = $date->getTimestamp() - $server['start_time'];
-
-        $idleWorkers = $server['workers_idle'];
-        $workers = $server['workers_total'];
-        $activeWorkers = $workers - $idleWorkers;
-
+        $metrics = $this->metricsProvider->fromMetricsData($metricsData);
         $io->table([
             'Metric', 'Quantity', 'Unit',
         ], [
-            ['Requests', $server['request_count'], '1'],
-            ['Up time', $runningSeconds, 'Seconds'],
-            ['Active connections', $server['connections_active'], '1'],
-            ['Accepted connections', $server['connections_accepted'], '1'],
-            ['Closed connections', $server['connections_closed'], '1'],
-            ['All workers', $workers, '1'],
-            ['Active workers', $activeWorkers, '1'],
-            ['Idle workers', $idleWorkers, '1'],
-            ['Running coroutines', $server['coroutine_num'], '1'],
-            ['Tasks in queue', $server['tasking_num'], '1'],
+            ['Requests', $metrics->requestCount(), '1'],
+            ['Up time', $metrics->upTimeInSeconds(), 'Seconds'],
+            ['Active connections', $metrics->activeConnections(), '1'],
+            ['Accepted connections', $metrics->acceptedConnections(), '1'],
+            ['Closed connections', $metrics->closedConnections(), '1'],
+            ['Total workers', $metrics->totalWorkers(), '1'],
+            ['Active workers', $metrics->activeWorkers(), '1'],
+            ['Idle workers', $metrics->idleWorkers(), '1'],
+            ['Running coroutines', $metrics->runningCoroutines(), '1'],
+            ['Tasks in queue', $metrics->tasksInQueue(), '1'],
         ]);
     }
 }

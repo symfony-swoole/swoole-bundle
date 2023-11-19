@@ -6,6 +6,7 @@ namespace K911\Swoole\Tests\Fixtures\Symfony\CoverageBundle\ServerLifecycle;
 
 use K911\Swoole\Server\LifecycleHandler\ServerManagerStopHandlerInterface;
 use K911\Swoole\Tests\Fixtures\Symfony\CoverageBundle\Coverage\CodeCoverageManager;
+use K911\Swoole\Tests\Fixtures\Symfony\CoverageBundle\Coverage\NameGenerator;
 use Swoole\Server;
 
 final class CoverageStartOnServerManagerStop implements ServerManagerStopHandlerInterface
@@ -23,6 +24,6 @@ final class CoverageStartOnServerManagerStop implements ServerManagerStopHandler
         }
 
         $this->codeCoverageManager->stop();
-        $this->codeCoverageManager->finish('test_manager');
+        $this->codeCoverageManager->finish(NameGenerator::nameForUseCase('test_manager'));
     }
 }

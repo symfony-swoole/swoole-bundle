@@ -8,7 +8,7 @@ use K911\Swoole\Server\Configurator\WithTaskHandler;
 use K911\Swoole\Server\HttpServerConfiguration;
 use K911\Swoole\Server\TaskHandler\NoOpTaskHandler;
 use K911\Swoole\Tests\Unit\Server\IntMother;
-use K911\Swoole\Tests\Unit\Server\SwooleHttpServerMock;
+use K911\Swoole\Tests\Unit\Server\SwooleHttpServerMockFactory;
 use PHPUnit\Framework\TestCase;
 use Prophecy\Prophecy\ObjectProphecy;
 
@@ -51,7 +51,7 @@ class WithTaskHandlerTest extends TestCase
             ->shouldBeCalled()
         ;
 
-        $swooleServerOnEventSpy = SwooleHttpServerMock::make();
+        $swooleServerOnEventSpy = SwooleHttpServerMockFactory::make();
 
         $this->configurator->configure($swooleServerOnEventSpy);
 
@@ -66,7 +66,7 @@ class WithTaskHandlerTest extends TestCase
             ->shouldBeCalled()
         ;
 
-        $swooleServerOnEventSpy = SwooleHttpServerMock::make();
+        $swooleServerOnEventSpy = SwooleHttpServerMockFactory::make();
 
         $this->configurator->configure($swooleServerOnEventSpy);
 
