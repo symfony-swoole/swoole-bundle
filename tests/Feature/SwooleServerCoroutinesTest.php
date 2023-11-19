@@ -73,7 +73,7 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
             $this->deferServerStop([], $envs);
 
             $initClient = HttpClient::fromDomain('localhost', 9999, false);
-            $this->assertTrue($initClient->connect());
+            $this->assertTrue($initClient->connect(3, 1, true));
 
             $start = microtime(true);
             $wg = new WaitGroup();
@@ -111,7 +111,7 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
             // this has to be the 10th request becasue PCOV coverage tests run weirdly and don't free svc pool services
             // seems like global instances limit 20 is exhausted
             $client = HttpClient::fromDomain('localhost', 9999, false);
-            $this->assertTrue($client->connect());
+            $this->assertTrue($client->connect(3, 1, true));
             $response = $client->send('/sleep')['response']; // request sleeps for 2 seconds
             $this->assertSame(200, $response['statusCode']);
             $this->assertStringContainsString('text/html', $response['headers']['content-type']);
@@ -182,7 +182,7 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
             $this->deferServerStop([], $envs);
 
             $initClient = HttpClient::fromDomain('localhost', 9999, false);
-            $this->assertTrue($initClient->connect());
+            $this->assertTrue($initClient->connect(3, 1, true));
 
             $start = microtime(true);
             $wg = new WaitGroup();
@@ -286,7 +286,7 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
             $this->deferServerStop([], $envs);
 
             $initClient = HttpClient::fromDomain('localhost', 9999, false);
-            $this->assertTrue($initClient->connect());
+            $this->assertTrue($initClient->connect(3, 1, true));
 
             $start = microtime(true);
             $wg = new WaitGroup();
@@ -348,7 +348,7 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
             $this->deferServerStop([], $envs);
 
             $initClient = HttpClient::fromDomain('localhost', 9999, false);
-            $this->assertTrue($initClient->connect());
+            $this->assertTrue($initClient->connect(3, 1, true));
 
             $start = microtime(true);
             $requestData = [
@@ -445,7 +445,7 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
             $this->deferServerStop([], $envs);
 
             $initClient = HttpClient::fromDomain('localhost', 9999, false);
-            $this->assertTrue($initClient->connect());
+            $this->assertTrue($initClient->connect(3, 1, true));
 
             $start = microtime(true);
             $wg = new WaitGroup();

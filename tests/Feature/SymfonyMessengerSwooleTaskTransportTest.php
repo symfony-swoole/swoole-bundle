@@ -35,7 +35,7 @@ final class SymfonyMessengerSwooleTaskTransportTest extends ServerTestCase
 
         $this->runAsCoroutineAndWait(function () use ($testFile, $testFileContent): void {
             $client = HttpClient::fromDomain('localhost', 9999, false);
-            $this->assertTrue($client->connect());
+            $this->assertTrue($client->connect(3, 1, true));
 
             $response = $client->send('/message/dispatch', 'POST', [
                 'Content-Type' => 'application/x-www-form-urlencoded',

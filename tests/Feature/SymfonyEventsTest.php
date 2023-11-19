@@ -28,7 +28,7 @@ final class SymfonyEventsTest extends ServerTestCase
 
         $this->runAsCoroutineAndWait(function (): void {
             $client = HttpClient::fromDomain('localhost', 9999, false);
-            self::assertTrue($client->connect());
+            self::assertTrue($client->connect(3, 1, true));
 
             $response = $client->send('/list-events')['response'];
             $data = $response['body'];

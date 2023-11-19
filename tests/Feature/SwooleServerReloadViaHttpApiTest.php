@@ -43,7 +43,7 @@ final class SwooleServerReloadViaHttpApiTest extends ServerTestCase
             $this->deferRestoreOriginalTemplateControllerResponse();
 
             $serverClient = HttpClient::fromDomain('localhost', 9999, false);
-            $this->assertTrue($serverClient->connect());
+            $this->assertTrue($serverClient->connect(3, 1, true));
 
             $response1 = $serverClient->send('/test/replaced/content')['response'];
 

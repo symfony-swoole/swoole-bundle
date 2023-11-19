@@ -8,8 +8,6 @@ use Swoole\Server;
 
 class SwooleServerMock extends Server
 {
-    public $registeredTick = false;
-    public $registeredTickTuple = [];
     private static $instance;
 
     private function __construct(bool $taskworker)
@@ -24,14 +22,6 @@ class SwooleServerMock extends Server
             self::$instance = new static($taskworker);
         }
 
-        self::$instance->clean();
-
         return self::$instance;
-    }
-
-    private function clean(): void
-    {
-        $this->registeredTick = false;
-        $this->registeredTickTuple = [];
     }
 }

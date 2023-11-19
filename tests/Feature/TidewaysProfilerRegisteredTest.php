@@ -67,7 +67,7 @@ final class TidewaysProfilerRegisteredTest extends ServerTestCase
 
         $this->runAsCoroutineAndWait(function (): void {
             $client = HttpClient::fromDomain('localhost', 9999, false);
-            $this->assertTrue($client->connect());
+            $this->assertTrue($client->connect(3, 1, true));
 
             $response = $client->send('/tideways/index')['response'];
 
