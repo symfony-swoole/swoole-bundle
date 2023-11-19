@@ -572,8 +572,6 @@ workflows:
           context: openswoole-bundle-dockerhub
           matrix:
             <<: *bake-matrix
-          requires:
-            - approve-docker-bake
       - grumphp-ci:
           name: grumphp-ci-php-<< matrix.php-version >>-<< matrix.swoole >>-symfony-<< matrix.symfony-version >>-<< matrix.composer-build >>
           context: openswoole-bundle-github
