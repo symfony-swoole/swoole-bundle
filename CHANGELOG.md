@@ -1,3 +1,16 @@
+# [0.16.0](https://github.com/openswoole-bundle/openswoole-bundle/compare/v0.15.0...v0.16.0) (2023-11-19)
+
+[Full changelog](https://github.com/openswoole-bundle/openswoole-bundle/compare/v0.15.0...v0.16.0)
+
+### Bug Fixes
+
+* **circleci:** fixed release workflow, removed docker bake approval ([f1086f4](https://github.com/openswoole-bundle/openswoole-bundle/commit/f1086f47208d1f2c2aa31272d194f97b1e22f81e))
+
+
+### Features
+
+* **swoole:** added swoole support for swoole 4.8.13 ([e827e99](https://github.com/openswoole-bundle/openswoole-bundle/commit/e827e9909bc734798873c5d2d37cb7551773b926))
+
 # [0.15.0](https://github.com/openswoole-bundle/openswoole-bundle/compare/v0.14.0...v0.15.0) (2023-11-11)
 
 [Full changelog](https://github.com/openswoole-bundle/openswoole-bundle/compare/v0.14.0...v0.15.0)
