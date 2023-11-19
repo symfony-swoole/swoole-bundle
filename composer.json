@@ -6,6 +6,7 @@
         "PHP",
         "Bundle",
         "Swoole",
+        "OpenSwoole",
         "Async",
         "HTTP",
         "Server"
@@ -40,7 +41,7 @@
         "symfony/process": "^5.4.28|^6.3",
         "symfony/proxy-manager-bridge": "^5.4.21|^6.3",
         "upscale/ext-openswoole": "^4.12",
-        "upscale/ext-swoole": "^4.8.13"
+        "upscale/ext-swoole": "^5.1.0"
     },
     "require-dev": {
         "ext-ffi": "^8.0",
@@ -68,7 +69,7 @@
         "phpunit/phpunit": "^9.6",
         "pixelfederation/doctrine-resettable-em-bundle": "^7.0|^8.0",
         "ramsey/uuid": "^4.7",
-        "swoole/ide-helper": "^4.8",
+        "swoole/ide-helper": "^5.1.0",
         "symfony/debug-bundle": "^5.4.26|^6.3",
         "symfony/doctrine-messenger": "^5.4.30|^6.3",
         "symfony/error-handler": "^5.4.29|^6.3",

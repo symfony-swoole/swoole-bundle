@@ -81,7 +81,7 @@ final class HttpClient
      *
      * @return bool Success
      */
-    public function connect(int $timeout = 3, int $step = 1): bool
+    public function connect(int $timeout = 3, int $step = 1, bool $waitIfNoConnection = false): bool
     {
         $start = \microtime(true);
         $max = $start + $timeout;
@@ -92,10 +92,17 @@ final class HttpClient
 
                 return true;
             } catch (\RuntimeException $ex) {
-                if (!isset(self::ACCEPTABLE_CONNECTING_EXIT_CODES[$ex->getCode()])) {
+                $throw = true;
+
+                if ($waitIfNoConnection && 5001 === $ex->getCode()) { // Connection Failed
+                    $throw = false;
+                }
+
+                if ($throw && !isset(self::ACCEPTABLE_CONNECTING_EXIT_CODES[$ex->getCode()])) {
                     throw $ex;
                 }
             }
+
             Coroutine::sleep($step);
             $now = \microtime(true);
         } while ($now < $max);

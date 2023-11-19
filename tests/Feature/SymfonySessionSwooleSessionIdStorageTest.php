@@ -39,7 +39,7 @@ final class SymfonySessionSwooleSessionIdStorageTest extends ServerTestCase
             $this->deferServerStop([], $envs);
 
             $client = HttpClient::fromDomain('localhost', 9999, false);
-            $this->assertTrue($client->connect());
+            $this->assertTrue($client->connect(3, 1, true));
 
             $response1 = $client->send('/session/1')['response'];
             $this->assertSame(200, $response1['statusCode']);
@@ -81,7 +81,7 @@ final class SymfonySessionSwooleSessionIdStorageTest extends ServerTestCase
             $this->deferServerStop([], $envs);
 
             $client1 = HttpClient::fromDomain('localhost', 9999, false);
-            $this->assertTrue($client1->connect());
+            $this->assertTrue($client1->connect(3, 1, true));
 
             $response1 = $client1->send('/session/1')['response'];
             $this->assertArrayHasKey('SWOOLESSID', $response1['cookies']);
@@ -124,7 +124,7 @@ final class SymfonySessionSwooleSessionIdStorageTest extends ServerTestCase
             $this->deferServerStop([], $envs);
 
             $client = HttpClient::fromDomain('localhost', 9999, false);
-            $this->assertTrue($client->connect());
+            $this->assertTrue($client->connect(3, 1, true));
 
             $response1 = $client->send('/session/1')['response'];
             $this->assertSame(200, $response1['statusCode']);
@@ -173,7 +173,7 @@ final class SymfonySessionSwooleSessionIdStorageTest extends ServerTestCase
             $this->deferServerStop([], $envs);
 
             $client = HttpClient::fromDomain('localhost', 9999, false);
-            $this->assertTrue($client->connect());
+            $this->assertTrue($client->connect(3, 1, true));
 
             $response1 = $client->send('/session/1')['response'];
             $this->assertSame(200, $response1['statusCode']);
@@ -227,7 +227,7 @@ final class SymfonySessionSwooleSessionIdStorageTest extends ServerTestCase
             $this->deferServerStop([], $envs);
 
             $client1 = HttpClient::fromDomain('localhost', 9999, false);
-            $this->assertTrue($client1->connect());
+            $this->assertTrue($client1->connect(3, 1, true));
 
             $response1 = $client1->send('/session/1')['response'];
             $this->assertArrayHasKey('SWOOLESSID', $response1['cookies']);

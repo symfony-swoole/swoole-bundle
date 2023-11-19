@@ -32,7 +32,7 @@ class SymfonyHttpRequestContainsRequestUriTest extends ServerTestCase
 
         $this->runAsCoroutineAndWait(function (): void {
             $client = HttpClient::fromDomain('localhost', 9999, false);
-            $this->assertTrue($client->connect());
+            $this->assertTrue($client->connect(3, 1, true));
 
             $uri = '/http/request/uri?test1=1&test2=test3';
             $response = $client->send('/http/request/uri?test1=1&test2=test3')['response'];
@@ -63,7 +63,7 @@ class SymfonyHttpRequestContainsRequestUriTest extends ServerTestCase
 
         $this->runAsCoroutineAndWait(function (): void {
             $client = HttpClient::fromDomain('localhost', 9999, false);
-            $this->assertTrue($client->connect());
+            $this->assertTrue($client->connect(3, 1, true));
 
             $uri = '/http/request/streamed-uri?test1=1&test2=test3';
             $response = $client->send('/http/request/streamed-uri?test1=1&test2=test3')['response'];

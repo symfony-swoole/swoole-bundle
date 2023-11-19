@@ -37,7 +37,7 @@ final class SwooleServerStatusCommandTest extends ServerTestCase
             $this->deferServerStop();
 
             $client = HttpClient::fromDomain('localhost', 9999, false);
-            $this->assertTrue($client->connect());
+            $this->assertTrue($client->connect(3, 1, true));
 
             $serverStatus = $this->createConsoleProcess([
                 'swoole:server:status',
@@ -84,7 +84,7 @@ final class SwooleServerStatusCommandTest extends ServerTestCase
             $this->deferServerStop();
 
             $client = HttpClient::fromDomain('localhost', 9999, false);
-            $this->assertTrue($client->connect());
+            $this->assertTrue($client->connect(3, 1, true));
 
             $commandTester->execute([
                 'command' => 'swoole:server:status',

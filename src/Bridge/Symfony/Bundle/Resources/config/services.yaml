@@ -19,6 +19,10 @@ services:
   K911\Swoole\Common\System\System:
     factory: [ 'K911\Swoole\Common\System\System', 'create' ]
 
+  K911\Swoole\Common\SwooleFacade: '@K911\Swoole\Common\DefaultSwooleFacade'
+
+  K911\Swoole\Common\DefaultSwooleFacade:
+
   K911\Swoole\Component\ExceptionArrayTransformer:
 
   K911\Swoole\Server\Middleware\MiddlewareInjector:

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace K911\Swoole\Tests\Unit\Server;
 
 use K911\Swoole\Tests\Unit\Server\SwooleHttpServerMock\SwooleHttpServerMockOpenSwoole4;
-use K911\Swoole\Tests\Unit\Server\SwooleHttpServerMock\SwooleHttpServerMockSwoole4;
+use K911\Swoole\Tests\Unit\Server\SwooleHttpServerMock\SwooleHttpServerMockSwoole5;
 
 final class SwooleHttpServerMockFactory
 {
@@ -17,17 +17,13 @@ final class SwooleHttpServerMockFactory
             $extension = 'openswoole';
 
             if (str_starts_with(swoole_version(), '4.')) {
-                require_once __DIR__.'/SwooleHttpServerMock/SwooleHttpServerMockOpenSwoole4.php';
-
                 return SwooleHttpServerMockOpenSwoole4::make();
             }
         } elseif (extension_loaded('swoole')) {
             $extension = 'swoole';
 
-            if (str_starts_with(swoole_version(), '4.')) {
-                require __DIR__.'/SwooleHttpServerMock/SwooleHttpServerMockSwoole4.php';
-
-                return SwooleHttpServerMockSwoole4::make();
+            if (str_starts_with(swoole_version(), '5.')) {
+                return SwooleHttpServerMockSwoole5::make();
             }
         }
 

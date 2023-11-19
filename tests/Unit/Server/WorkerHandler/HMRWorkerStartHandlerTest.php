@@ -7,6 +7,7 @@ namespace K911\Swoole\Tests\Unit\Server\WorkerHandler;
 use K911\Swoole\Server\WorkerHandler\HMRWorkerStartHandler;
 use K911\Swoole\Tests\Unit\Server\IntMother;
 use K911\Swoole\Tests\Unit\Server\Runtime\HMR\HMRSpy;
+use K911\Swoole\Tests\Unit\Server\SwooleFacadeSpy;
 use K911\Swoole\Tests\Unit\Server\SwooleServerMockFactory;
 use PHPUnit\Framework\TestCase;
 
@@ -15,21 +16,17 @@ use PHPUnit\Framework\TestCase;
  */
 class HMRWorkerStartHandlerTest extends TestCase
 {
-    /**
-     * @var HMRSpy
-     */
-    private $hmrSpy;
+    private HMRSpy $hmrSpy;
 
-    /**
-     * @var HMRWorkerStartHandler
-     */
-    private $hmrWorkerStartHandler;
+    private SwooleFacadeSpy $swooleFacade;
+
+    private HMRWorkerStartHandler $hmrWorkerStartHandler;
 
     protected function setUp(): void
     {
         $this->hmrSpy = new HMRSpy();
-
-        $this->hmrWorkerStartHandler = new HMRWorkerStartHandler($this->hmrSpy, 2000);
+        $this->swooleFacade = new SwooleFacadeSpy();
+        $this->hmrWorkerStartHandler = new HMRWorkerStartHandler($this->hmrSpy, $this->swooleFacade, 2000);
     }
 
     public function testTaskWorkerNotRegisterTick(): void
@@ -38,7 +35,7 @@ class HMRWorkerStartHandlerTest extends TestCase
 
         $this->hmrWorkerStartHandler->handle($serverMock, IntMother::random());
 
-        self::assertFalse($serverMock->registeredTick);
+        self::assertFalse($this->swooleFacade->registeredTick);
     }
 
     public function testWorkerRegisterTick(): void
@@ -47,12 +44,12 @@ class HMRWorkerStartHandlerTest extends TestCase
 
         $this->hmrWorkerStartHandler->handle($serverMock, IntMother::random());
 
-        self::assertTrue($serverMock->registeredTick);
-        self::assertSame(2000, $serverMock->registeredTickTuple[0]);
-        $this->assertCallbackTriggersClick($serverMock->registeredTickTuple[1]);
+        self::assertTrue($this->swooleFacade->registeredTick);
+        self::assertSame(2000, $this->swooleFacade->registeredTickTuple[0]);
+        $this->assertCallbackTriggersTick($this->swooleFacade->registeredTickTuple[1]);
     }
 
-    private function assertCallbackTriggersClick(callable $callback): void
+    private function assertCallbackTriggersTick(callable $callback): void
     {
         $callback();
         self::assertTrue($this->hmrSpy->tick);
