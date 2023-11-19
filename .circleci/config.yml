@@ -103,7 +103,7 @@ executors:
 
   openswoole-bundle-release-version:
     docker:
-      - image: docker.io/openswoolebundle/release-version-script:0.4.0
+      - image: docker.io/openswoolebundle/release-version-script:0.4.1
     working_directory: /usr/src/app
 
 jobs:

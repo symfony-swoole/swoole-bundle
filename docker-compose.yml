@@ -15,7 +15,7 @@ volumes:
 
 services:
   releaser:
-    image: "docker.io/openswoolebundle/release-version-script:latest"
+    image: "docker.io/openswoolebundle/release-version-script:0.4.1"
     environment:
       DEBUG: "${DEBUG:-0}"
       DRY_RUN: "${DRY_RUN:-1}"
@@ -23,6 +23,7 @@ services:
       GH_COMMITER_NAME: "${GH_COMMITER_NAME:-openswoole-bundle-bot}"
       GH_COMMITER_EMAIL: "${GH_COMMITER_EMAIL:-147276322+openswoole-bundle-bot@users.noreply.github.com}"
       GH_COMMITER_SIGNING_KEY: "${GH_COMMITER_SIGNING_KEY:-xxxx}"
+      GH_COMMITER_PGP_PRIVATE_KEY: "${GH_COMMITER_PGP_PRIVATE_KEY:-xxxx}"
       GH_TOKEN: "${GH_TOKEN:-xxxxxxxx}"
       GH_RELEASE_DRAFT: "${GH_RELEASE_DRAFT:-false}"
       GH_RELEASE_PRERELEASE: "${GH_RELEASE_PRERELEASE:-false}"
