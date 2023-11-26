@@ -15,26 +15,25 @@ volumes:
 
 services:
   releaser:
-    image: "docker.io/openswoolebundle/release-version-script:0.4.1"
+    image: "docker.io/symfonywithswoole/release-version-script:0.5.0"
     environment:
       DEBUG: "${DEBUG:-0}"
       DRY_RUN: "${DRY_RUN:-1}"
-      GH_REPOSITORY: "${GH_REPOSITORY:-openswoole-bundle/openswoole-bundle}"
-      GH_COMMITER_NAME: "${GH_COMMITER_NAME:-openswoole-bundle-bot}"
-      GH_COMMITER_EMAIL: "${GH_COMMITER_EMAIL:-147276322+openswoole-bundle-bot@users.noreply.github.com}"
+      GH_REPOSITORY: "${GH_REPOSITORY:-symfony-swoole/swoole-bundle}"
+      GH_COMMITER_NAME: "${GH_COMMITER_NAME:-symfony-swoole-bot}"
+      GH_COMMITER_EMAIL: "${GH_COMMITER_EMAIL:-147276322+symfony-swoole-bot@users.noreply.github.com}"
       GH_COMMITER_SIGNING_KEY: "${GH_COMMITER_SIGNING_KEY:-xxxx}"
       GH_COMMITER_PGP_PRIVATE_KEY: "${GH_COMMITER_PGP_PRIVATE_KEY:-xxxx}"
       GH_TOKEN: "${GH_TOKEN:-xxxxxxxx}"
       GH_RELEASE_DRAFT: "${GH_RELEASE_DRAFT:-false}"
       GH_RELEASE_PRERELEASE: "${GH_RELEASE_PRERELEASE:-false}"
     volumes:
-      - "~/.gnupg:/root/.gnupg_host:r"
       - "./.git:/usr/src/app/.git:rw"
       - "./CHANGELOG.md:/usr/src/app/CHANGELOG.md:rw"
 
   cli:
-    image: "${REGISTRY:-docker.io}/${NAMESPACE:-openswoolebundle}/${IMAGE:-openswoole-bundle}-cli:${TAG:-local}"
-    container_name: openswoole-bundle-cli
+    image: "${REGISTRY:-docker.io}/${NAMESPACE:-symfonywithswoole}/${IMAGE:-swoole-bundle}-cli:${TAG:-local}"
+    container_name: swoole-bundle-cli
     build:
       context: .
       target: cli
@@ -46,7 +45,7 @@ services:
       - 9501:9501
 
   composer:
-    image: "${REGISTRY:-docker.io}/${NAMESPACE:-openswoolebundle}/${IMAGE:-openswoole-bundle}-composer:${TAG:-local}"
+    image: "${REGISTRY:-docker.io}/${NAMESPACE:-symfonywithswoole}/${IMAGE:-swoole-bundle}-composer:${TAG:-local}"
     build:
       context: .
       target: composer
@@ -56,7 +55,7 @@ services:
       DATABASE_HOST: 'db'
 
   ci:
-    image: "${REGISTRY:-docker.io}/${NAMESPACE:-openswoolebundle}/${IMAGE:-openswoole-bundle}-ci:${TAG:-local}"
+    image: "${REGISTRY:-docker.io}/${NAMESPACE:-symfonywithswoole}/${IMAGE:-swoole-bundle}-ci:${TAG:-local}"
     build:
       context: .
       target: ci
@@ -66,7 +65,7 @@ services:
       DATABASE_HOST: 'db'
 
   coverage-xdebug:
-    image: "${REGISTRY:-docker.io}/${NAMESPACE:-openswoolebundle}/${IMAGE:-openswoole-bundle}-coverage-xdebug:${TAG:-local}"
+    image: "${REGISTRY:-docker.io}/${NAMESPACE:-symfonywithswoole}/${IMAGE:-swoole-bundle}-coverage-xdebug:${TAG:-local}"
     build:
       context: .
       target: CoverageXdebug
@@ -76,7 +75,7 @@ services:
       DATABASE_HOST: 'db'
 
   coverage-pcov:
-    image: "${REGISTRY:-docker.io}/${NAMESPACE:-openswoolebundle}/${IMAGE:-openswoole-bundle}-coverage-pcov:${TAG:-local}"
+    image: "${REGISTRY:-docker.io}/${NAMESPACE:-symfonywithswoole}/${IMAGE:-swoole-bundle}-coverage-pcov:${TAG:-local}"
     build:
       context: .
       target: CoveragePcov
@@ -86,7 +85,7 @@ services:
       DATABASE_HOST: 'db'
 
   coverage-xdebug-feature-with-retry:
-    image: "${REGISTRY:-docker.io}/${NAMESPACE:-openswoolebundle}/${IMAGE:-openswoole-bundle}-coverage-xdebug:${TAG:-local}"
+    image: "${REGISTRY:-docker.io}/${NAMESPACE:-symfonywithswoole}/${IMAGE:-swoole-bundle}-coverage-xdebug:${TAG:-local}"
     entrypoint:
       - /bin/bash
     command:
@@ -100,7 +99,7 @@ services:
       DATABASE_HOST: 'db'
 
   merge-code-coverage:
-    image: "${REGISTRY:-docker.io}/${NAMESPACE:-openswoolebundle}/${IMAGE:-openswoole-bundle}-merge-code-coverage:${MERGE_COVERAGE_TAG:-local}"
+    image: "${REGISTRY:-docker.io}/${NAMESPACE:-symfonywithswoole}/${IMAGE:-swoole-bundle}-merge-code-coverage:${MERGE_COVERAGE_TAG:-local}"
     command: merge-code-coverage
     build:
       context: .

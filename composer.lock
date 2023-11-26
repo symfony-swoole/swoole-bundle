@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "f2bfa1041df712838def374a92bf0ab6",
+    "content-hash": "ed461fc26f9f8062219229046c8d6328",
     "packages": [
         {
             "name": "beberlei/assert",
@@ -5439,49 +5439,6 @@
             "time": "2021-04-14T09:16:52+00:00"
         },
         {
-            "name": "openswoole-bundle/z-engine",
-            "version": "8.0.1",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/openswoole-bundle/z-engine.git",
-                "reference": "089ac4b4391fa9a6430f83320028575c593a53b8"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/openswoole-bundle/z-engine/zipball/089ac4b4391fa9a6430f83320028575c593a53b8",
-                "reference": "089ac4b4391fa9a6430f83320028575c593a53b8",
-                "shasum": ""
-            },
-            "require": {
-                "ext-ffi": "*",
-                "php": "8.0.*"
-            },
-            "require-dev": {
-                "phpunit/phpunit": "^8.5.15 || ^9.0.0"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "ZEngine\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Alexander Lisachenko",
-                    "email": "lisachenko.it@gmail.com"
-                }
-            ],
-            "description": "Library that provides direct access to native PHP structures",
-            "support": {
-                "source": "https://github.com/openswoole-bundle/z-engine/tree/8.0.1"
-            },
-            "time": "2023-10-07T17:53:02+00:00"
-        },
-        {
             "name": "phar-io/manifest",
             "version": "2.0.3",
             "source": {
@@ -8163,6 +8120,49 @@
             },
             "abandoned": "Symfony",
             "time": "2023-02-24T14:57:12+00:00"
+        },
+        {
+            "name": "swoole-bundle/z-engine",
+            "version": "8.0.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/symfony-swoole/z-engine.git",
+                "reference": "1cb53d9d307bfb569f1b36e2c1338f29e468ba7e"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/symfony-swoole/z-engine/zipball/1cb53d9d307bfb569f1b36e2c1338f29e468ba7e",
+                "reference": "1cb53d9d307bfb569f1b36e2c1338f29e468ba7e",
+                "shasum": ""
+            },
+            "require": {
+                "ext-ffi": "*",
+                "php": "8.0.*"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^8.5.15 || ^9.0.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "ZEngine\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Alexander Lisachenko",
+                    "email": "lisachenko.it@gmail.com"
+                }
+            ],
+            "description": "Library that provides direct access to native PHP structures",
+            "support": {
+                "source": "https://github.com/symfony-swoole/z-engine/tree/8.0.2"
+            },
+            "time": "2023-11-26T20:43:52+00:00"
         },
         {
             "name": "swoole/ide-helper",

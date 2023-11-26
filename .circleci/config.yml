@@ -96,24 +96,24 @@ orbs:
   codecov: codecov/codecov@3.2.4
 
 executors:
-  openswoole-bundle-docker-client:
+  woole-bundle-docker-client:
     docker:
-      - image: openswoolebundle/docker-client:20.10.17-compose
+      - image: symfonywithswoole/docker-client:20.10.17-compose
     working_directory: ~/workdir
 
-  openswoole-bundle-release-version:
+  swoole-bundle-release-version:
     docker:
-      - image: docker.io/openswoolebundle/release-version-script:0.4.1
+      - image: docker.io/symfonywithswoole/release-version-script:0.5.0
     working_directory: /usr/src/app
 
 jobs:
   releaser-dry-run:
-    executor: openswoole-bundle-release-version
+    executor: swoole-bundle-release-version
     environment:
       DEBUG: "1"
       DRY_RUN: "1"
       GH_TOKEN: "xxx"
-      GH_REPOSITORY: "openswoole-bundle/openswoole-bundle"
+      GH_REPOSITORY: "symfony-swoole/swoole-bundle"
     steps:
       - checkout
       - run:
@@ -127,12 +127,12 @@ jobs:
           command: release-version
 
   releaser:
-    executor: openswoole-bundle-release-version
+    executor: swoole-bundle-release-version
     environment:
       DEBUG: "1"
       DRY_RUN: "0"
       GH_RELEASE_DRAFT: "false"
-      GH_REPOSITORY: "openswoole-bundle/openswoole-bundle"
+      GH_REPOSITORY: "symfony-swoole/swoole-bundle"
     steps:
       - checkout
       - run:
@@ -140,7 +140,7 @@ jobs:
           command: release-version
 
   docker-buildx-bake:
-    executor: openswoole-bundle-docker-client
+    executor: woole-bundle-docker-client
     parameters:
       php-version:
         type: string
@@ -157,7 +157,7 @@ jobs:
             echo "export PHP_API_VERSION=$(docker run --rm php:$PHP_VERSION php -i | grep 'PHP API' | sed -e 's/PHP API => //')" >> $BASH_ENV
 
             #if [ "latest" = "$SWOOLE_VERSION" ]; then
-            #  # LATEST_SWOOLE_VERSION="$(wget -q -O /dev/stdout https://api.github.com/repos/openswoole/swoole-src/releases/latest | grep '"tag_name":' | sed -E 's/.*"v([^"]+)".*/\1/')"
+            #  # LATEST_SWOOLE_VERSION="$(wget -q -O /dev/stdout https://api.github.com/repos/swoole/swoole-src/releases/latest | grep '"tag_name":' | sed -E 's/.*"v([^"]+)".*/\1/')"
             #  LATEST_SWOOLE_VERSION=4.12.1
             #  echo "LATEST_SWOOLE_VERSION=$LATEST_SWOOLE_VERSION"
             #  echo "export SWOOLE_VERSION='$LATEST_SWOOLE_VERSION'" >> $BASH_ENV
@@ -204,8 +204,8 @@ jobs:
       PHP_VERSION: << parameters.php-version >>
       SWOOLE: << parameters.swoole >>
       REGISTRY: docker.io
-      NAMESPACE: openswoolebundle
-      IMAGE: openswoole-bundle
+      NAMESPACE: symfonywithswoole
+      IMAGE: swoole-bundle
       SERVICES: ci
 
   grumphp-ci:
@@ -258,7 +258,7 @@ jobs:
             source "$BASH_ENV"
             composer run ${GRUMPHP_COMMAND}
     docker:
-      - image: docker.io/openswoolebundle/openswoole-bundle-ci:<< parameters.php-version >>-<< parameters.swoole >>-$CIRCLE_SHA1
+      - image: docker.io/symfonywithswoole/swoole-bundle-ci:<< parameters.php-version >>-<< parameters.swoole >>-$CIRCLE_SHA1
         auth:
           username: $DOCKER_HUB_USERNAME
           password: $DOCKER_HUB_TOKEN
@@ -313,7 +313,7 @@ jobs:
           paths:
             - ./cov/*
     docker:
-      - image: docker.io/openswoolebundle/openswoole-bundle-coverage-pcov:<< parameters.php-version >>-<< parameters.swoole >>-$CIRCLE_SHA1
+      - image: docker.io/symfonywithswoole/swoole-bundle-coverage-pcov:<< parameters.php-version >>-<< parameters.swoole >>-$CIRCLE_SHA1
         auth:
           username: $DOCKER_HUB_USERNAME
           password: $DOCKER_HUB_TOKEN
@@ -364,7 +364,7 @@ jobs:
           paths:
             - ./cov/*
     docker:
-      - image: docker.io/openswoolebundle/openswoole-bundle-coverage-xdebug:<< parameters.php-version >>-<< parameters.swoole >>-$CIRCLE_SHA1
+      - image: docker.io/symfonywithswoole/swoole-bundle-coverage-xdebug:<< parameters.php-version >>-<< parameters.swoole >>-$CIRCLE_SHA1
         auth:
           username: $DOCKER_HUB_USERNAME
           password: $DOCKER_HUB_TOKEN
@@ -408,13 +408,13 @@ jobs:
       - codecov/upload:
           file: clover.xml
     docker:
-      - image: docker.io/openswoolebundle/openswoole-bundle-merge-code-coverage:8.0-$CIRCLE_SHA1
+      - image: docker.io/symfonywithswoole/swoole-bundle-merge-code-coverage:8.0-$CIRCLE_SHA1
         auth:
           username: $DOCKER_HUB_USERNAME
           password: $DOCKER_HUB_TOKEN
         user: app
         environment:
-          CC_TEST_REPORTER_ID: 77af0c58a2646fe49fb7df502c38a56560e074fbc8b3086f2d33032b44c885a8
+          CC_TEST_REPORTER_ID: bf289560199c71f3aace641542bbe012262dd7c3381558fccf46dff27855a587
 
   check-composer-config:
     docker:
@@ -468,7 +468,7 @@ workflows:
           <<: *filter-run-on-local-branches
       - docker-buildx-bake:
           name: docker-buildx-bake-<< matrix.php-version >>-<< matrix.swoole >>
-          context: openswoole-bundle-dockerhub
+          context: release-version-script-dockerhub
           matrix:
             <<: *bake-matrix
           requires:
@@ -477,13 +477,13 @@ workflows:
             - validate-commit-message
       - grumphp-ci:
           name: grumphp-ci-php-<< matrix.php-version >>-<< matrix.swoole >>-symfony-<< matrix.symfony-version >>-<< matrix.composer-build >>
-          context: openswoole-bundle-github
+          context: release-version-script-github
           matrix:
             <<: *ci-matrix
           requires:
             - docker-buildx-bake-<< matrix.php-version >>-<< matrix.swoole >>
       - code-coverage-pcov-php-lowest:
-          context: openswoole-bundle-dockerhub
+          context: release-version-script-dockerhub
           matrix:
             parameters:
               <<: *coverage-php-version
@@ -491,7 +491,7 @@ workflows:
           requires:
             - docker-buildx-bake-<< matrix.php-version >>-<< matrix.swoole >>
       - code-coverage-xdebug-php-lowest:
-          context: openswoole-bundle-dockerhub
+          context: release-version-script-dockerhub
           matrix:
             parameters:
               <<: *coverage-php-version
@@ -499,7 +499,7 @@ workflows:
           requires:
             - docker-buildx-bake-<< matrix.php-version >>-<< matrix.swoole >>
       - process-coverage-results:
-          context: openswoole-bundle-dockerhub
+          context: release-version-script-dockerhub
           requires:
             - code-coverage-pcov-php-lowest
             - code-coverage-xdebug-php-lowest
@@ -525,20 +525,20 @@ workflows:
             - validate-commit-message
       - docker-buildx-bake:
           name: docker-buildx-bake-<< matrix.php-version >>-<< matrix.swoole >>
-          context: openswoole-bundle-dockerhub
+          context: release-version-script-dockerhub
           matrix:
             <<: *bake-matrix
           requires:
             - approve-docker-bake
       - grumphp-ci:
           name: grumphp-ci-php-<< matrix.php-version >>-<< matrix.swoole >>-symfony-<< matrix.symfony-version >>-<< matrix.composer-build >>
-          context: openswoole-bundle-github
+          context: release-version-script-github
           matrix:
             <<: *ci-matrix
           requires:
             - docker-buildx-bake-<< matrix.php-version >>-<< matrix.swoole >>
       - code-coverage-pcov-php-lowest:
-          context: openswoole-bundle-dockerhub
+          context: release-version-script-dockerhub
           matrix:
             parameters:
               <<: *coverage-php-version
@@ -546,7 +546,7 @@ workflows:
           requires:
             - docker-buildx-bake-<< matrix.php-version >>-<< matrix.swoole >>
       - code-coverage-xdebug-php-lowest:
-          context: openswoole-bundle-dockerhub
+          context: release-version-script-dockerhub
           matrix:
             parameters:
               <<: *coverage-php-version
@@ -554,7 +554,7 @@ workflows:
           requires:
             - docker-buildx-bake-<< matrix.php-version >>-<< matrix.swoole >>
       - process-coverage-results:
-          context: openswoole-bundle-dockerhub
+          context: release-version-script-dockerhub
           requires:
             - code-coverage-pcov-php-lowest
             - code-coverage-xdebug-php-lowest
@@ -569,18 +569,18 @@ workflows:
       - releaser-dry-run
       - docker-buildx-bake:
           name: docker-buildx-bake-<< matrix.php-version >>-<< matrix.swoole >>
-          context: openswoole-bundle-dockerhub
+          context: release-version-script-dockerhub
           matrix:
             <<: *bake-matrix
       - grumphp-ci:
           name: grumphp-ci-php-<< matrix.php-version >>-<< matrix.swoole >>-symfony-<< matrix.symfony-version >>-<< matrix.composer-build >>
-          context: openswoole-bundle-github
+          context: release-version-script-github
           matrix:
             <<: *ci-matrix
           requires:
             - docker-buildx-bake-<< matrix.php-version >>-<< matrix.swoole >>
       - code-coverage-pcov-php-lowest:
-          context: openswoole-bundle-dockerhub
+          context: release-version-script-dockerhub
           matrix:
             parameters:
               <<: *coverage-php-version
@@ -588,7 +588,7 @@ workflows:
           requires:
             - docker-buildx-bake-<< matrix.php-version >>-<< matrix.swoole >>
       - code-coverage-xdebug-php-lowest:
-          context: openswoole-bundle-dockerhub
+          context: release-version-script-dockerhub
           matrix:
             parameters:
               <<: *coverage-php-version
@@ -596,7 +596,7 @@ workflows:
           requires:
             - docker-buildx-bake-<< matrix.php-version >>-<< matrix.swoole >>
       - process-coverage-results:
-          context: openswoole-bundle-dockerhub
+          context: release-version-script-dockerhub
           requires:
             - code-coverage-pcov-php-lowest
             - code-coverage-xdebug-php-lowest
@@ -609,6 +609,6 @@ workflows:
             - code-coverage-xdebug-php-lowest
             - process-coverage-results
       - releaser:
-          context: openswoole-bundle-github
+          context: release-version-script-github
           requires:
             - approve-release

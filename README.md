@@ -1,7 +1,7 @@
-# OpenSwoole Bundle
+# Swoole Bundle
 
-[![Maintainability](https://api.codeclimate.com/v1/badges/1d73a214622bba769171/maintainability)](https://codeclimate.com/github/openswoole-bundle/openswoole-bundle/maintainability)
-[![Test Coverage](https://api.codeclimate.com/v1/badges/1d73a214622bba769171/test_coverage)](https://codeclimate.com/github/openswoole-bundle/openswoole-bundle/test_coverage)
+[![Maintainability](https://api.codeclimate.com/v1/badges/1d73a214622bba769171/maintainability)](https://codeclimate.com/github/symfony-swoole/swoole-bundle/maintainability)
+[![Test Coverage](https://api.codeclimate.com/v1/badges/1d73a214622bba769171/test_coverage)](https://codeclimate.com/github/symfony-swoole/swoole-bundle/test_coverage)
 [![Open Source Love](https://badges.frapsoft.com/os/v1/open-source.svg?v=103)](https://github.com/ellerbrock/open-source-badges/)
 [![MIT Licence](https://badges.frapsoft.com/os/mit/mit.svg?v=103)](https://opensource.org/licenses/mit-license.php)
 
@@ -15,11 +15,11 @@ Symfony integration with [Open Swoole](https://openswoole.com/) to speed up your
 
 ## Build Matrix
 
-| CI Job  | Branch [`master`](https://github.com/openswoole-bundle/openswoole-bundle/tree/master)                                                                                   | Branch [`develop`](https://github.com/openswoole-bundle/openswoole-bundle/tree/develop)                                                                             |
+| CI Job  | Branch [`master`](https://github.com/symfony-swoole/swoole-bundle/tree/master)                                                                                   | Branch [`develop`](https://github.com/symfony-swoole/swoole-bundle/tree/develop)                                                                             |
 | ------- |-------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Circle  | [![CircleCI](https://circleci.com/gh/openswoole-bundle/openswoole-bundle/tree/master.svg?style=svg)](https://circleci.com/gh/openswoole-bundle/openswoole-bundle/tree/master) | [![CircleCI](https://circleci.com/gh/openswoole-bundle/openswoole-bundle/tree/develop.svg?style=svg)](https://circleci.com/gh/openswoole-bundle/openswoole-bundle/tree/develop) |
-| CodeCov | [![codecov](https://codecov.io/gh/openswoole-bundle/openswoole-bundle/branch/master/graph/badge.svg)](https://codecov.io/gh/openswoole-bundle/openswoole-bundle)                    | [![codecov](https://codecov.io/gh/openswoole-bundle/openswoole-bundle/branch/develop/graph/badge.svg)](https://codecov.io/gh/openswoole-bundle/openswoole-bundle)               |
-| Travis  | [![Build Status](https://app.travis-ci.com/openswoole-bundle/openswoole-bundle.svg?branch=master)](https://travis-ci.com/openswoole-bundle/openswoole-bundle)                       | [![Build Status](https://app.travis-ci.com/openswoole-bundle/openswoole-bundle.svg?branch=develop)](https://travis-ci.com/openswoole-bundle/openswoole-bundle)                  |
+| Circle  | [![CircleCI](https://circleci.com/gh/symfony-swoole/swoole-bundle/tree/master.svg?style=svg)](https://circleci.com/gh/symfony-swoole/swoole-bundle/tree/master) | [![CircleCI](https://circleci.com/gh/symfony-swoole/swoole-bundle/tree/develop.svg?style=svg)](https://circleci.com/gh/symfony-swoole/swoole-bundle/tree/develop) |
+| CodeCov | [![codecov](https://codecov.io/gh/symfony-swoole/swoole-bundle/branch/master/graph/badge.svg)](https://codecov.io/gh/symfony-swoole/swoole-bundle)                    | [![codecov](https://codecov.io/gh/symfony-swoole/swoole-bundle/branch/develop/graph/badge.svg)](https://codecov.io/gh/symfony-swoole/swoole-bundle)               |
+| Travis  | [![Build Status](https://app.travis-ci.com/symfony-swoole/swoole-bundle.svg?branch=master)](https://travis-ci.com/symfony-swoole/swoole-bundle)                       | [![Build Status](https://app.travis-ci.com/symfony-swoole/swoole-bundle.svg?branch=develop)](https://travis-ci.com/symfony-swoole/swoole-bundle)                  |
 
 ## Table of Contents
 
@@ -50,7 +50,7 @@ Symfony integration with [Open Swoole](https://openswoole.com/) to speed up your
 3. Install bundle in your Symfony application
 
     ```bash
-    composer require openswoole-bundle/openswoole-bundle
+    composer require swoole-bundle/swoole-bundle
     ```
 
 4. Edit `config/bundles.php`
@@ -122,7 +122,9 @@ Additional requirements to enable specific features:
 
 ### Open Swoole
 
-Bundle requires [Open Swoole PHP Extension](https://github.com/openswoole/swoole-src) version `4.10.0` or higher. Active bug fixes are provided only for the latest version.
+Bundle requires one of those extensions:
+- [Swoole PHP Extension](https://github.com/swoole/swoole-src) version `5.1.0` or higher. Active bug fixes are provided only for the latest version.
+- [Open Swoole PHP Extension](https://github.com/openswoole/ext-openswoole) version `4.10.0` or higher. Active bug fixes are provided only for the latest version.
 
 #### Version check
 
@@ -136,4 +138,8 @@ php -r "echo swoole_version() . \PHP_EOL;"
 
 #### Installation
 
-Official GitHub repository [openswoole/swoole-src](https://github.com/openswoole/swoole-src#installation) contains comprehensive installation guide. The recommended approach is to install it [from source](https://github.com/openswoole/swoole-src#2-compile-from-source).
+##### Swoole
+Official GitHub repository [swoole/swoole-src](https://github.com/swoole/swoole-src#%EF%B8%8F-installation) contains comprehensive installation guide. The recommended approach is to install it [from source](https://github.com/swoole/swoole-src#2-install-from-source-recommended).
+
+##### OpenSwoole
+Official GitHub repository [openswoole/ext-openswoole](https://github.com/openswoole/ext-openswoole#installation) contains comprehensive installation guide. The recommended approach is to install it [from source](https://github.com/openswoole/ext-openswoole#2-compile-from-source).
