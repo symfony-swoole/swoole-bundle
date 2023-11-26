@@ -10,6 +10,6 @@ sync:
       defaultDirectoryMode: 755
     # https://mutagen.io/documentation/synchronization#modes
     mode: two-way-resolved
-  openswoolebundle:
+  swoole-bundle:
     alpha: "."
-    beta: "docker://app@openswoole-bundle-cli-80-openswoole-4.12.1/usr/src/app"
+    beta: "docker://app@swoole-bundle-cli-80-openswoole-4.12.1/usr/src/app"

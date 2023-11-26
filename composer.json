@@ -1,5 +1,5 @@
 {
-    "name": "openswoole-bundle/openswoole-bundle",
+    "name": "swoole-bundle/swoole-bundle",
     "type": "library",
     "description": "Open/Swoole Symfony Bundle",
     "keywords": [
@@ -12,17 +12,17 @@
         "Server"
     ],
     "license": "MIT",
-    "homepage": "https://github.com/openswoole-bundle/openswoole-bundle",
+    "homepage": "https://github.com/symfony-swoole/swoole-bundle",
     "authors": [
-        {
-            "name": "Konrad Obal",
-            "email": "konrad.obal@gmail.com",
-            "homepage": "https://github.com/k911"
-        },
         {
             "name": "Martin Fris",
             "email": "rasta@lj.sk",
             "homepage": "https://github.com/Rastusik"
+        },
+        {
+            "name": "Konrad Obal",
+            "email": "konrad.obal@gmail.com",
+            "homepage": "https://github.com/k911"
         }
     ],
     "require": {
@@ -55,7 +55,6 @@
         "doctrine/persistence": "^3.2",
         "friendsofphp/php-cs-fixer": "^3.7",
         "jangregor/phpstan-prophecy": "^1.0",
-        "openswoole-bundle/z-engine": "^8.0.1|^8.1.1|^8.2.1",
         "phpro/grumphp": "^1.16",
         "phpspec/prophecy": "^1.17",
         "phpspec/prophecy-phpunit": "^2.0",
@@ -69,6 +68,7 @@
         "phpunit/phpunit": "^9.6",
         "pixelfederation/doctrine-resettable-em-bundle": "^7.0|^8.0",
         "ramsey/uuid": "^4.7",
+        "swoole-bundle/z-engine": "^8.0.1|^8.1.1|^8.2.1",
         "swoole/ide-helper": "^5.1.0",
         "symfony/debug-bundle": "^5.4.26|^6.3",
         "symfony/doctrine-messenger": "^5.4.30|^6.3",
@@ -97,7 +97,7 @@
         "upscale/swoole-blackfire": "To enable Blackfire profiling",
         "pixelfederation/doctrine-resettable-em-bundle": "To be able to recover Doctrine Entity Managers from errors",
         "symfony/error-handler": "To use Symfony Error Handler",
-        "lisachenko/z-engine": "To be able to use coroutines."
+        "swoole-bundle/z-engine": "To be able to use coroutines."
     },
     "autoload": {
         "files": [

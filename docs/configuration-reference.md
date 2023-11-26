@@ -207,7 +207,7 @@ for a class, tha class cannot be final by design. This is a working solution for
 libraries. Other solutions are considered, but none of them seems to be better than this one. Any better ideas
 are appreciated.
 
-To work as intended, please use `openswoole-bundle/z-engine`.
+To work as intended, please use `swoole-bundle/z-engine`.
 
 ### Application kernel modification
 
