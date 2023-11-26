@@ -1,3 +1,13 @@
+# [0.17.0](https://github.com/openswoole-bundle/openswoole-bundle/compare/v0.16.0...v0.17.0) (2023-11-26)
+
+[Full changelog](https://github.com/symfony-swoole/swoole-bundle/compare/v0.16.0...v0.17.0)
+
+### Features
+
+* **organisation:** renamed Github organisation to symfony-swoole, Packagist organisation to swoole-bundle, Docker Hub organisation to wymfonywithswoole ([12a965f](https://github.com/openswoole-bundle/openswoole-bundle/commit/12a965f0a436b3e6ad1a4f82a5cef3073d26dc86))
+* **swoole-ext:** support for Swoole 5.1.1 ([a49dd69](https://github.com/openswoole-bundle/openswoole-bundle/commit/a49dd69111b07c8d111a48fed80ec460e0e785fd))
+* **swoole:** added support for swoole 5.1 ([d82b686](https://github.com/openswoole-bundle/openswoole-bundle/commit/d82b686ce9b18c1a3a860b50cfa1ca8e51049ddf))
+
 # [0.16.0](https://github.com/symfony-swoole/swoole-bundle/compare/v0.15.0...v0.16.0) (2023-11-19)
 
 [Full changelog](https://github.com/symfony-swoole/swoole-bundle/compare/v0.15.0...v0.16.0)
