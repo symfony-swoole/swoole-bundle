@@ -11,11 +11,6 @@ final class Version
     ) {
     }
 
-    public static function create(): self
-    {
-        return self::fromVersionString(\swoole_version());
-    }
-
     public static function fromVersionString(string $versionString): self
     {
         if (!\preg_match("/\d+\.\d+\.\d+/i", $versionString, $matches)) {

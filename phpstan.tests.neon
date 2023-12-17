@@ -15,6 +15,9 @@ parameters:
         - tests/Unit/Server/SwooleServerMock
         - tests/Unit/Server/Php8/SwooleServerMock.php
         - tests/Unit/Server/SwooleHttpServerMock
+        # Open/Swoole problems when only one extension installed
+        - tests/Unit/Common/System/SystemTest.php
+        - tests/Unit/Common/System/VersionTest.php
     ignoreErrors:
         # Put false positives here
 

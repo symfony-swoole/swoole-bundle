@@ -19,10 +19,6 @@ services:
   K911\Swoole\Common\System\System:
     factory: [ 'K911\Swoole\Common\System\System', 'create' ]
 
-  K911\Swoole\Common\SwooleFacade: '@K911\Swoole\Common\DefaultSwooleFacade'
-
-  K911\Swoole\Common\DefaultSwooleFacade:
-
   K911\Swoole\Component\ExceptionArrayTransformer:
 
   K911\Swoole\Server\Middleware\MiddlewareInjector:
@@ -331,3 +327,19 @@ services:
 
   K911\Swoole\Metrics\MetricsProvider:
     factory: [ '@K911\Swoole\Metrics\SystemMetricsProviderRegistry', 'get' ]
+
+  K911\Swoole\Bridge\OpenSwoole\OpenSwooleFactory:
+    tags:
+      - { name: 'swoole_bundle.swoole_adapter_factory', extension: !php/const K911\Swoole\Common\System\Extension::OPENSWOOLE }
+
+  K911\Swoole\Bridge\Swoole\SwooleFactory:
+    tags:
+      - { name: 'swoole_bundle.swoole_adapter_factory', extension: !php/const K911\Swoole\Common\System\Extension::SWOOLE }
+
+  K911\Swoole\Common\Adapter\SystemSwooleFactory:
+    arguments:
+      $system: '@K911\Swoole\Common\System\System'
+      $adapterFactories: !tagged_iterator { tag: 'swoole_bundle.swoole_adapter_factory', index_by: 'extension' }
+
+  K911\Swoole\Common\Adapter\Swoole:
+    factory: [ '@K911\Swoole\Common\Adapter\SystemSwooleFactory', 'newInstance' ]

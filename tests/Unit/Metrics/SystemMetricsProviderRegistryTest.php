@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Tests\Unit\Common\System;
+namespace K911\Swoole\Tests\Unit\Metrics;
 
 use K911\Swoole\Common\System\Extension;
 use K911\Swoole\Common\System\System;

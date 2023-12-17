@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace K911\Swoole\Server;
 
 use Assert\Assertion;
+use K911\Swoole\Common\Adapter\Swoole;
 use K911\Swoole\Server\Config\Socket;
 use K911\Swoole\Server\Config\Sockets;
 
@@ -100,6 +101,7 @@ class HttpServerConfiguration
      * @throws \Assert\AssertionFailedException
      */
     public function __construct(
+        private Swoole $swoole,
         private Sockets $sockets,
         private string $runningMode = 'process',
         array $settings = [],
@@ -342,7 +344,7 @@ class HttpServerConfiguration
     private function initializeSettings(array $init): void
     {
         $this->settings = [];
-        $cpuCores = swoole_cpu_num();
+        $cpuCores = $this->swoole->cpuCoresCount();
 
         if (!isset($init[self::SWOOLE_HTTP_SERVER_CONFIG_REACTOR_COUNT])) {
             $init[self::SWOOLE_HTTP_SERVER_CONFIG_REACTOR_COUNT] = $cpuCores;

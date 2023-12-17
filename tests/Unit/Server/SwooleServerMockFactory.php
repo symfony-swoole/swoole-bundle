@@ -4,22 +4,19 @@ declare(strict_types=1);
 
 namespace K911\Swoole\Tests\Unit\Server;
 
+use K911\Swoole\Common\System\System;
+
 final class SwooleServerMockFactory
 {
     public static function make(bool $taskworker = false): SwooleServerMock
     {
-        if (str_starts_with(swoole_version(), '4.') || str_starts_with(swoole_version(), '5.')) {
+        $system = System::create();
+        $versionString = $system->version()->toString();
+
+        if (str_starts_with($versionString, '22.') || str_starts_with($versionString, '5.')) {
             return SwooleServerMock::make($taskworker);
         }
 
-        $extension = '';
-
-        if (extension_loaded('openswoole')) {
-            $extension = 'openswoole';
-        } elseif (extension_loaded('swoole')) {
-            $extension = 'swoole';
-        }
-
-        throw new \RuntimeException(\sprintf('Unsupported Swoole version %s for extension %s.', swoole_version(), $extension));
+        throw new \RuntimeException(\sprintf('Unsupported Swoole version %s for extension %s.', $versionString, $system->extension()->toString()));
     }
 }
