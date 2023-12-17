@@ -1,3 +1,11 @@
+# [0.18.0](https://github.com/openswoole-bundle/openswoole-bundle/compare/v0.17.0...v0.18.0) (2023-12-17)
+
+[Full changelog](https://github.com/symfony-swoole/swoole-bundle/compare/v0.17.0...v0.18.0)
+
+### Features
+
+* **openswoole:** added support for openswoole 22.0.0, dropped support for openswoole 4 ([b213a47](https://github.com/openswoole-bundle/openswoole-bundle/commit/b213a47b9932fc093404b00141a3312352c3c90d))
+
 # [0.17.0](https://github.com/openswoole-bundle/openswoole-bundle/compare/v0.16.0...v0.17.0) (2023-11-26)
 
 [Full changelog](https://github.com/symfony-swoole/swoole-bundle/compare/v0.16.0...v0.17.0)
