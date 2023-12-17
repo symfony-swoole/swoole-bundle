@@ -35,6 +35,16 @@ final class Extension
         return new self(self::SWOOLE);
     }
 
+    public function isSwoole(): bool
+    {
+        return self::SWOOLE === $this->extension;
+    }
+
+    public function isOpenSwoole(): bool
+    {
+        return self::OPENSWOOLE === $this->extension;
+    }
+
     public function toString(): string
     {
         return $this->extension;

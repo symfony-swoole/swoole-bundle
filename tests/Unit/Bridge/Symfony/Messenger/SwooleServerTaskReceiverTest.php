@@ -28,7 +28,7 @@ class SwooleServerTaskReceiverTest extends TestCase
 
         $this->expectException(ReceiverNotAvailableException::class);
 
-        $receiver->reject(new Envelope($this->prophesize('object')->reveal()));
+        $receiver->reject(new Envelope($this->prophesize('stdClass')->reveal()));
     }
 
     public function testThatItThrowsExceptionOnAck(): void
@@ -37,6 +37,6 @@ class SwooleServerTaskReceiverTest extends TestCase
 
         $this->expectException(ReceiverNotAvailableException::class);
 
-        $receiver->ack(new Envelope($this->prophesize('object')->reveal()));
+        $receiver->ack(new Envelope($this->prophesize('stdClass')->reveal()));
     }
 }

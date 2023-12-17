@@ -27,6 +27,7 @@ use K911\Swoole\Bridge\Tideways\Apm\TidewaysMiddlewareFactory;
 use K911\Swoole\Bridge\Tideways\Apm\WithApm;
 use K911\Swoole\Bridge\Upscale\Blackfire\Profiling\ProfilerActivator;
 use K911\Swoole\Bridge\Upscale\Blackfire\Profiling\WithProfiler;
+use K911\Swoole\Common\Adapter\Swoole;
 use K911\Swoole\Server\Config\Socket;
 use K911\Swoole\Server\Config\Sockets;
 use K911\Swoole\Server\Configurator\ConfiguratorInterface;
@@ -559,6 +560,7 @@ final class SwooleExtension extends Extension implements PrependExtensionInterfa
         ContainerBuilder $container
     ): void {
         $container->getDefinition(HttpServerConfiguration::class)
+            ->addArgument(new Reference(Swoole::class))
             ->addArgument(new Reference(Sockets::class))
             ->addArgument($runningMode)
             ->addArgument($swooleSettings)

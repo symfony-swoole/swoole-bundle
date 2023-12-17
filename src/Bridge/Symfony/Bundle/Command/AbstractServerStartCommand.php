@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace K911\Swoole\Bridge\Symfony\Bundle\Command;
 
 use Assert\Assertion;
+use K911\Swoole\Common\System\System;
 use K911\Swoole\Common\XdebugHandler\XdebugHandler;
 
 use function K911\Swoole\decode_string_as_set;
@@ -178,6 +179,7 @@ abstract class AbstractServerStartCommand extends Command
     protected function prepareConfigurationRowsToPrint(HttpServerConfiguration $serverConfiguration, array $runtimeConfiguration): array
     {
         $rows = [
+            ['extension', System::create()->extension()->toString()],
             ['env', $this->parameterBag->get('kernel.environment')],
             ['debug', \var_export($this->parameterBag->get('kernel.debug'), true)],
             ['running_mode', $serverConfiguration->getRunningMode()],

@@ -7,8 +7,8 @@ namespace K911\Swoole\Tests\Unit\Server\WorkerHandler;
 use K911\Swoole\Server\WorkerHandler\HMRWorkerStartHandler;
 use K911\Swoole\Tests\Unit\Server\IntMother;
 use K911\Swoole\Tests\Unit\Server\Runtime\HMR\HMRSpy;
-use K911\Swoole\Tests\Unit\Server\SwooleFacadeSpy;
 use K911\Swoole\Tests\Unit\Server\SwooleServerMockFactory;
+use K911\Swoole\Tests\Unit\Server\SwooleSpy;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -18,14 +18,14 @@ class HMRWorkerStartHandlerTest extends TestCase
 {
     private HMRSpy $hmrSpy;
 
-    private SwooleFacadeSpy $swooleFacade;
+    private SwooleSpy $swooleFacade;
 
     private HMRWorkerStartHandler $hmrWorkerStartHandler;
 
     protected function setUp(): void
     {
         $this->hmrSpy = new HMRSpy();
-        $this->swooleFacade = new SwooleFacadeSpy();
+        $this->swooleFacade = new SwooleSpy();
         $this->hmrWorkerStartHandler = new HMRWorkerStartHandler($this->hmrSpy, $this->swooleFacade, 2000);
     }
 

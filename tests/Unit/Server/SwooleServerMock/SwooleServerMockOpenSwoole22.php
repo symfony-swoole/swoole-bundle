@@ -6,7 +6,7 @@ namespace K911\Swoole\Tests\Unit\Server\SwooleServerMock;
 
 use K911\Swoole\Tests\Unit\Server\SwooleServerMock;
 
-final class SwooleServerMockOpenSwoole4 extends SwooleServerMock
+final class SwooleServerMockOpenSwoole22 extends SwooleServerMock
 {
     public function tick(int $ms, callable $callback, ...$params): int|bool
     {

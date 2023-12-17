@@ -48,19 +48,22 @@ final class ServerStatusCommand extends Command
 
         $this->prepareClientConfiguration($input);
 
-        $coroutinePool = CoroutinePool::fromCoroutines(function () use ($io): void {
-            $status = $this->apiServerClientFactory->newClient()
-                ->status()
-            ;
-            $io->success('Fetched status');
-            $this->showStatus($io, $status);
-        }, function () use ($io): void {
-            $metrics = $this->apiServerClientFactory->newClient()
-                ->metrics()
-            ;
-            $io->success('Fetched metrics');
-            $this->showMetrics($io, $metrics);
-        });
+        $coroutinePool = CoroutinePool::fromCoroutines(
+            function () use ($io): void {
+                $status = $this->apiServerClientFactory->newClient()
+                    ->status()
+                ;
+                $io->success('Fetched status');
+                $this->showStatus($io, $status);
+            },
+            function () use ($io): void {
+                $metrics = $this->apiServerClientFactory->newClient()
+                    ->metrics()
+                ;
+                $io->success('Fetched metrics');
+                $this->showMetrics($io, $metrics);
+            },
+        );
 
         try {
             $coroutinePool->run();

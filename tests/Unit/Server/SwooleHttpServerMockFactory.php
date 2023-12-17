@@ -4,29 +4,26 @@ declare(strict_types=1);
 
 namespace K911\Swoole\Tests\Unit\Server;
 
-use K911\Swoole\Tests\Unit\Server\SwooleHttpServerMock\SwooleHttpServerMockOpenSwoole4;
+use K911\Swoole\Common\System\System;
+use K911\Swoole\Tests\Unit\Server\SwooleHttpServerMock\SwooleHttpServerMockOpenSwoole22;
 use K911\Swoole\Tests\Unit\Server\SwooleHttpServerMock\SwooleHttpServerMockSwoole5;
 
 final class SwooleHttpServerMockFactory
 {
     public static function make(): SwooleHttpServerMock
     {
-        $extension = '';
+        $system = System::create();
 
-        if (extension_loaded('openswoole')) {
-            $extension = 'openswoole';
-
-            if (str_starts_with(swoole_version(), '4.')) {
-                return SwooleHttpServerMockOpenSwoole4::make();
+        if ($system->extension()->isOpenswoole()) {
+            if (str_starts_with($system->version()->toString(), '22.')) {
+                return SwooleHttpServerMockOpenSwoole22::make();
             }
-        } elseif (extension_loaded('swoole')) {
-            $extension = 'swoole';
-
-            if (str_starts_with(swoole_version(), '5.')) {
+        } elseif ($system->extension()->isSwoole()) {
+            if (str_starts_with($system->version()->toString(), '5.')) {
                 return SwooleHttpServerMockSwoole5::make();
             }
         }
 
-        throw new \RuntimeException(\sprintf('Unsupported Swoole version %s for extension %s.', swoole_version(), $extension));
+        throw new \RuntimeException(\sprintf('Unsupported Swoole version %s for extension %s.', $system->version()->toString(), $system->extension()->toString()));
     }
 }

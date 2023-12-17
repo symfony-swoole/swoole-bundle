@@ -53,6 +53,12 @@ Symfony integration with [Open Swoole](https://openswoole.com/) to speed up your
     composer require swoole-bundle/swoole-bundle
     ```
 
+   If using OpenSwoole, you need to also install the core package:
+
+    ```bash
+    composer require openswoole/core
+    ```
+
 4. Edit `config/bundles.php`
 
     ```php
@@ -105,14 +111,14 @@ Symfony integration with [Open Swoole](https://openswoole.com/) to speed up your
 ### Current version
 
 -   PHP version `>= 8.0 && <= 8.2`
--   Open Swoole PHP Extension `^4.12.1`
+-   Open Swoole PHP Extension `^v22.0.0`
 -   Swoole PHP Extension `^5.1.0`
 -   Symfony `^5.4.22 || ^6.3`
 
 ### Future versions
 
 -   PHP version `>= 8.3`
--   Open Swoole PHP Extension `>= v22.0.0`
+-   Open Swoole PHP Extension `>= v23.0.0`
 -   Symfony `^6.4 || ^7.0`
 
 Additional requirements to enable specific features:
@@ -120,20 +126,26 @@ Additional requirements to enable specific features:
 -   [Inotify PHP Extension](https://pecl.php.net/package/inotify) `^2.0.0` to use Hot Module Reload (HMR)
     -   When using PHP 8, inotify version `^3.0.0` is required
 
-### Open Swoole
+### Swoole
 
-Bundle requires one of those extensions:
+The bundle requires one of those extensions:
 - [Swoole PHP Extension](https://github.com/swoole/swoole-src) version `5.1.0` or higher. Active bug fixes are provided only for the latest version.
-- [Open Swoole PHP Extension](https://github.com/openswoole/ext-openswoole) version `4.10.0` or higher. Active bug fixes are provided only for the latest version.
+- [Open Swoole PHP Extension](https://github.com/openswoole/ext-openswoole) version `22.0.0` or higher. Active bug fixes are provided only for the latest version.
 
 #### Version check
 
 To check your installed version you can run the following command:
 
 ```sh
+// Swoole
 php -r "echo swoole_version() . \PHP_EOL;"
 
-# 4.10.0
+# 5.1.0
+
+// OpenSwoole
+php -r "echo OpenSwoole\Util::getVersion() . \PHP_EOL;"
+
+# 22.0.0
 ```
 
 #### Installation
