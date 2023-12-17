@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "fce0366caabd6e66f63d98d7d60e6e6e",
+    "content-hash": "3a8861bc7900a48600ab009b88023980",
     "packages": [
         {
             "name": "beberlei/assert",
@@ -2549,31 +2549,31 @@
             "time": "2023-11-16T19:33:05+00:00"
         },
         {
-            "name": "upscale/ext-openswoole",
-            "version": "v22.0.0",
+            "name": "upscale/ext-swoole",
+            "version": "v5.1.0",
             "source": {
                 "type": "git",
-                "url": "https://github.com/upscalesoftware/ext-openswoole.git",
-                "reference": "201f253d0b5a28fb9d0e45476b64c617d39d5d23"
+                "url": "https://github.com/upscalesoftware/ext-swoole.git",
+                "reference": "8b383646115716d513cf4d11e74eedcb7120df36"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/upscalesoftware/ext-openswoole/zipball/201f253d0b5a28fb9d0e45476b64c617d39d5d23",
-                "reference": "201f253d0b5a28fb9d0e45476b64c617d39d5d23",
+                "url": "https://api.github.com/repos/upscalesoftware/ext-swoole/zipball/8b383646115716d513cf4d11e74eedcb7120df36",
+                "reference": "8b383646115716d513cf4d11e74eedcb7120df36",
                 "shasum": ""
             },
             "require": {
-                "ext-openswoole": "self.version"
+                "ext-swoole": "self.version"
             },
             "replace": {
-                "upscale/ext-swoole": "*"
+                "upscale/ext-openswoole": "*"
             },
             "type": "metapackage",
             "notification-url": "https://packagist.org/downloads/",
             "license": [
                 "Apache-2.0"
             ],
-            "description": "Wrapper for ext-openswoole interchangeable with ext-swoole",
+            "description": "Wrapper for ext-swoole interchangeable with ext-openswoole",
             "keywords": [
                 "Open Swoole",
                 "ext-openswoole",
@@ -2583,10 +2583,10 @@
                 "swoole"
             ],
             "support": {
-                "issues": "https://github.com/upscalesoftware/ext-openswoole/issues",
-                "source": "https://github.com/upscalesoftware/ext-openswoole/tree/v22.0.0"
+                "issues": "https://github.com/upscalesoftware/ext-swoole/issues",
+                "source": "https://github.com/upscalesoftware/ext-swoole/tree/v5.1.0"
             },
-            "time": "2022-11-21T02:18:44+00:00"
+            "time": "2023-02-08T01:45:07+00:00"
         }
     ],
     "packages-dev": [
@@ -5440,22 +5440,22 @@
         },
         {
             "name": "openswoole/core",
-            "version": "22.0.0",
+            "version": "22.1.5",
             "source": {
                 "type": "git",
                 "url": "https://github.com/openswoole/core.git",
-                "reference": "93f171328fc4a8e7b1863b5b262248a7e81f21de"
+                "reference": "06dae68fdac73341ccf565ecef388434bd893141"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/openswoole/core/zipball/93f171328fc4a8e7b1863b5b262248a7e81f21de",
-                "reference": "93f171328fc4a8e7b1863b5b262248a7e81f21de",
+                "url": "https://api.github.com/repos/openswoole/core/zipball/06dae68fdac73341ccf565ecef388434bd893141",
+                "reference": "06dae68fdac73341ccf565ecef388434bd893141",
                 "shasum": ""
             },
             "require": {
                 "ext-openswoole": ">=22.0",
                 "php": ">=7.4",
-                "psr/http-message": "^1.0",
+                "psr/http-message": "^1.0 || ^2.0",
                 "psr/http-server-middleware": "^1.0.0"
             },
             "require-dev": {
@@ -5482,7 +5482,7 @@
             },
             "notification-url": "https://packagist.org/downloads/",
             "license": [
-                "Apache 2"
+                "Apache-2.0"
             ],
             "authors": [
                 {
@@ -5490,7 +5490,7 @@
                     "email": "hello@openswoole.com"
                 }
             ],
-            "description": "Openswoole core addons",
+            "description": "Openswoole core library",
             "homepage": "https://openswoole.com",
             "keywords": [
                 "http",
@@ -5507,7 +5507,7 @@
                 "pull-request": "https://github.com/openswoole/openswoole/pulls",
                 "source": "https://github.com/openswoole/openswoole"
             },
-            "time": "2022-12-13T17:36:25+00:00"
+            "time": "2023-12-10T19:02:13+00:00"
         },
         {
             "name": "openswoole/ide-helper",
@@ -10556,7 +10556,7 @@
         "ext-ffi": "^8.0"
     },
     "platform-overrides": {
-        "ext-openswoole": "v22.0.0",
+        "ext-openswoole": "v22.1.2",
         "ext-swoole": "5.1.0"
     },
     "plugin-api-version": "2.3.0"
