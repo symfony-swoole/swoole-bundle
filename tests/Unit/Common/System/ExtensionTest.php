@@ -20,9 +20,11 @@ class ExtensionTest extends TestCase
 
         $extension = Extension::create();
         $extension2 = Extension::{$extensionName}();
+        $isExtensionMethod = 'is'.$extensionName;
 
         $this->assertSame($extensionName, $extension->toString());
         $this->assertSame($extensionName, $extension2->toString());
+        $this->assertTrue($extension->$isExtensionMethod());
     }
 
     public static function extensions(): array

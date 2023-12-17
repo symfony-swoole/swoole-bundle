@@ -6,7 +6,7 @@ namespace K911\Swoole\Tests\Unit\Server\SwooleHttpServerMock;
 
 use K911\Swoole\Tests\Unit\Server\SwooleHttpServerMock;
 
-final class SwooleHttpServerMockOpenSwoole4 extends SwooleHttpServerMock
+final class SwooleHttpServerMockOpenSwoole22 extends SwooleHttpServerMock
 {
     public function on(string $event, callable $callback): bool
     {

@@ -14,7 +14,10 @@ use Swoole\Coroutine\Scheduler;
  */
 final class CoroutinePool
 {
-    private $coroutines;
+    /**
+     * @var array<callable>
+     */
+    private array $coroutines;
     private $coroutinesCount;
     private $results;
     private $exceptions;
@@ -56,7 +59,7 @@ final class CoroutinePool
         Assertion::false($this->started, 'Single PoolExecutor cannot be run twice.');
         $this->started = true;
 
-        if (self::inCoroutine()) {
+        if ($this->isInCoroutineContext()) {
             $this->startWaitGroup();
 
             return;
@@ -112,8 +115,8 @@ final class CoroutinePool
         };
     }
 
-    private static function inCoroutine(): bool
+    private static function isInCoroutineContext(): bool
     {
-        return -1 !== Coroutine::getuid();
+        return -1 !== Coroutine::getCid();
     }
 }

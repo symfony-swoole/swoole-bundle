@@ -12,6 +12,7 @@ use K911\Swoole\Server\Config\Socket;
 use K911\Swoole\Server\Config\Sockets;
 use K911\Swoole\Server\HttpServer;
 use K911\Swoole\Server\HttpServerConfiguration;
+use K911\Swoole\Tests\Helper\SwooleFactory;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Messenger\Envelope;
 
@@ -25,7 +26,7 @@ class SwooleServerTaskTransportTest extends TestCase
 
         $this->expectException(ReceiverNotAvailableException::class);
 
-        $transport->ack(new Envelope($this->prophesize('object')));
+        $transport->ack(new Envelope($this->prophesize('stdClass')));
     }
 
     public function testThatItThrowsExceptionOnReject(): void
@@ -34,11 +35,11 @@ class SwooleServerTaskTransportTest extends TestCase
 
         $this->expectException(ReceiverNotAvailableException::class);
 
-        $transport->reject(new Envelope($this->prophesize('object')));
+        $transport->reject(new Envelope($this->prophesize('stdClass')));
     }
 
     private function makeHttpServerDummy(): HttpServer
     {
-        return new HttpServer(new HttpServerConfiguration(new Sockets(new Socket())));
+        return new HttpServer(new HttpServerConfiguration(SwooleFactory::newInstance(), new Sockets(new Socket())));
     }
 }

@@ -10,7 +10,6 @@ use K911\Swoole\Tests\Fixtures\Symfony\TestAppKernel;
 use K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Entity\Test;
 use K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Service\NoAutowiring\ResetCountingRegistry;
 use K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Test\ServerTestCase;
-use Swoole\Coroutine\WaitGroup;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 
 final class SwooleServerCoroutinesTest extends ServerTestCase
@@ -76,7 +75,7 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
             $this->assertTrue($initClient->connect(3, 1, true));
 
             $start = microtime(true);
-            $wg = new WaitGroup();
+            $wg = $this->getSwoole()->waitGroup();
 
             for ($i = 0; $i < 9; ++$i) {
                 go(function () use ($wg): void {
@@ -185,7 +184,7 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
             $this->assertTrue($initClient->connect(3, 1, true));
 
             $start = microtime(true);
-            $wg = new WaitGroup();
+            $wg = $this->getSwoole()->waitGroup();
             // PCOV is not compatible with coroutines, so CodeCoverageManager blocks service pools somehow when
             // service limit is 20
             // @todo investigate blocking lock on K911\Swoole\Tests\Fixtures\Symfony\CoverageBundle\Coverage\CodeCoverageManager.swoole_coop.wrapped
@@ -289,7 +288,7 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
             $this->assertTrue($initClient->connect(3, 1, true));
 
             $start = microtime(true);
-            $wg = new WaitGroup();
+            $wg = $this->getSwoole()->waitGroup();
 
             for ($i = 0; $i < 9; ++$i) {
                 go(function () use ($wg): void {
@@ -356,7 +355,7 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
                 '&sleep=100&append=2nd',
                 '&sleep=500&append=3rd',
             ];
-            $wg = new WaitGroup();
+            $wg = $this->getSwoole()->waitGroup();
 
             for ($i = 0; $i < 3; ++$i) {
                 $query = '?fileName='.$fileName.$requestData[$i];
@@ -448,7 +447,7 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
             $this->assertTrue($initClient->connect(3, 1, true));
 
             $start = microtime(true);
-            $wg = new WaitGroup();
+            $wg = $this->getSwoole()->waitGroup();
 
             for ($i = 0; $i < 3; ++$i) {
                 go(function () use ($wg): void {

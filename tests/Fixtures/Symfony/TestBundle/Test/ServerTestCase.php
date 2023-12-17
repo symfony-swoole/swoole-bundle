@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Test;
 
 use K911\Swoole\Client\HttpClient;
+use K911\Swoole\Common\Adapter\Swoole;
 use K911\Swoole\Coroutine\CoroutinePool;
 use K911\Swoole\Tests\Fixtures\Symfony\TestAppKernel;
+use K911\Swoole\Tests\Helper\SwooleFactory;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Component\Filesystem\Filesystem;
@@ -21,6 +23,8 @@ class ServerTestCase extends KernelTestCase
     public const SWOOLE_XDEBUG_CORO_WARNING_MESSAGE = 'go(): Using Xdebug in coroutines is extremely dangerous, please notice that it may lead to coredump!';
     private const COMMAND = './console';
     private const WORKING_DIRECTORY = __DIR__.'/../../app';
+
+    protected ?Swoole $swoole = null;
 
     protected function tearDown(): void
     {
@@ -189,6 +193,15 @@ class ServerTestCase extends KernelTestCase
     protected static function getKernelClass(): string
     {
         return TestAppKernel::class;
+    }
+
+    protected function getSwoole(): Swoole
+    {
+        if (null === $this->swoole) {
+            $this->swoole = SwooleFactory::newInstance();
+        }
+
+        return $this->swoole;
     }
 
     protected function markTestSkippedIfXdebugEnabled(): void

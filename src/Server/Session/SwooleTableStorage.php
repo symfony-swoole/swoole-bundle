@@ -88,7 +88,7 @@ final class SwooleTableStorage implements StorageInterface
      */
     public function get(string $key, ?callable $expired = null): ?string
     {
-        if (!$this->sharedMemory->exist($key)) {
+        if (!$this->sharedMemory->exists($key)) {
             return null;
         }
 

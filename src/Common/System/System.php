@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace K911\Swoole\Common\System;
 
+use OpenSwoole\Util;
+
 final class System
 {
     private function __construct(
@@ -14,7 +16,10 @@ final class System
 
     public static function create(): self
     {
-        return new self(Extension::create(), Version::create());
+        $extension = Extension::create();
+        $version = Version::fromVersionString($extension->isSwoole() ? \swoole_version() : Util::getVersion());
+
+        return new self($extension, $version);
     }
 
     public function extension(): Extension

@@ -14,9 +14,11 @@ class CoroutinePoolTest extends TestCase
         $value = null;
         $expected = 1;
 
-        $pool = CoroutinePool::fromCoroutines(function () use (&$value, $expected): void {
-            $value = $expected;
-        });
+        $pool = CoroutinePool::fromCoroutines(
+            function () use (&$value, $expected): void {
+                $value = $expected;
+            },
+        );
         $pool->run();
 
         self::assertSame($expected, $value);
@@ -59,13 +61,17 @@ class CoroutinePoolTest extends TestCase
         $value2 = null;
         $expected2 = 2;
 
-        $pool1 = CoroutinePool::fromCoroutines(function () use (&$value1, &$value2, $expected1, $expected2): void {
-            $pool2 = CoroutinePool::fromCoroutines(function () use (&$value2, $expected2): void {
-                $value2 = $expected2;
-            });
-            $pool2->run();
-            $value1 = $expected1;
-        });
+        $pool1 = CoroutinePool::fromCoroutines(
+            function () use (&$value1, &$value2, $expected1, $expected2): void {
+                $pool2 = CoroutinePool::fromCoroutines(
+                    function () use (&$value2, $expected2): void {
+                        $value2 = $expected2;
+                    },
+                );
+                $pool2->run();
+                $value1 = $expected1;
+            },
+        );
         $pool1->run();
 
         self::assertSame($expected1, $value1);
