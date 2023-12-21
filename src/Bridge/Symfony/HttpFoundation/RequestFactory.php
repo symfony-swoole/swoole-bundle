@@ -15,7 +15,7 @@ final class RequestFactory implements RequestFactoryInterface
 
         // Add formatted headers to server
         foreach ($request->header as $key => $value) {
-            $server['HTTP_'.mb_strtoupper(str_replace('-', '_', $key))] = $value;
+            $server['HTTP_'.mb_strtoupper(str_replace('-', '_', (string) $key))] = $value;
         }
 
         $queryString = $server['QUERY_STRING'] ?? '';

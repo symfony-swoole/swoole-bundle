@@ -34,7 +34,7 @@ final class CacheAdapterProcessor implements CompileProcessor
                     $definition->addTag(ContainerConstants::TAG_STATEFUL_SERVICE, ['resetter' => $resetterDefId]);
                     ++$taggedCount;
                 }
-            } catch (\Throwable $e) {
+            } catch (\Throwable) {
                 // ignore
             }
         }

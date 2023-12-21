@@ -15,8 +15,8 @@ use Swoole\Server\Port;
 final class ApiServer implements ApiServerInterface
 {
     public function __construct(
-        private HttpServer $server,
-        private HttpServerConfiguration $serverConfiguration
+        private readonly HttpServer $server,
+        private readonly HttpServerConfiguration $serverConfiguration
     ) {
     }
 
@@ -59,12 +59,10 @@ final class ApiServer implements ApiServerInterface
 
     private function extractListenersStatus(HttpServer $server): array
     {
-        return array_values(array_map(function (Port $listener): array {
-            return [
-                'host' => property_exists($listener, 'host') ? $listener->host : '-',
-                'port' => $listener->port,
-            ];
-        }, $server->getListeners()));
+        return array_values(array_map(fn (Port $listener): array => [
+            'host' => property_exists($listener, 'host') ? $listener->host : '-',
+            'port' => $listener->port,
+        ], $server->getListeners()));
     }
 
     private function extractProcessesStatus(HttpServer $server): array

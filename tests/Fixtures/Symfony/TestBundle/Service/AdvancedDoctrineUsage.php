@@ -11,8 +11,8 @@ use Ramsey\Uuid\UuidFactoryInterface;
 final class AdvancedDoctrineUsage
 {
     public function __construct(
-        private UuidFactoryInterface $uuidFactory,
-        private Registry $doctrine
+        private readonly UuidFactoryInterface $uuidFactory,
+        private readonly Registry $doctrine
     ) {
     }
 

@@ -11,7 +11,7 @@ final class SigIntHandler implements ServerStartHandlerInterface
 {
     private $signalInterrupt;
 
-    public function __construct(private ?ServerStartHandlerInterface $decorated = null)
+    public function __construct(private readonly ?ServerStartHandlerInterface $decorated = null)
     {
         $this->signalInterrupt = \defined('SIGINT') ? (int) \constant('SIGINT') : 2;
     }

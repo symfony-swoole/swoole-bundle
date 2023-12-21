@@ -7,7 +7,7 @@ namespace K911\Swoole\Common\System;
 final class Version
 {
     private function __construct(
-        private string $versionString,
+        private readonly string $versionString,
     ) {
     }
 

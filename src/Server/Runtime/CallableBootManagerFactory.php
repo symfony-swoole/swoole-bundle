@@ -26,7 +26,7 @@ final class CallableBootManagerFactory
 
                     return $isAlreadyRegistered(spl_object_id($bootable));
                 })
-                ->map(fn (BootableInterface $bootable): callable => [$bootable, 'boot'])
+                ->map(fn (BootableInterface $bootable): callable => $bootable->boot(...))
         );
     }
 }

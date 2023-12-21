@@ -38,7 +38,7 @@ function get_max_memory(): int
 
     // if no limit
     if ('-1' === $memoryLimit) {
-        return 134217728; // 128 * 1024 * 1024 default 128mb
+        return 134_217_728; // 128 * 1024 * 1024 default 128mb
     }
     // if set to exact byte
     if (\is_numeric($memoryLimit)) {
@@ -49,8 +49,8 @@ function get_max_memory(): int
     $shortHandMemoryLimit = (int) \mb_substr($memoryLimit, 0, -1);
 
     return $shortHandMemoryLimit * [
-        'g' => 1073741824, // 1024 * 1024 * 1024
-        'm' => 1048576, // 1024 * 1024
+        'g' => 1_073_741_824, // 1024 * 1024 * 1024
+        'm' => 1_048_576, // 1024 * 1024
         'k' => 1024,
     ][\mb_strtolower(\mb_substr($memoryLimit, -1))];
 }

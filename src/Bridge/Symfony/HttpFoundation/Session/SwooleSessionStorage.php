@@ -16,34 +16,29 @@ final class SwooleSessionStorage implements SessionStorageInterface
 {
     public const DEFAULT_SESSION_NAME = 'SWOOLESSID';
 
-    private string $currentId;
+    private string $currentId = '';
 
     /**
      * @var SessionBagInterface[]
      */
-    private array $bags;
+    private array $bags = [];
 
-    private array $data;
+    private array $data = [];
 
     private MetadataBag $metadataBag;
 
-    private bool $started;
+    private bool $started = false;
 
     private int $sessionLifetimeSeconds;
 
     public function __construct(
-        private StorageInterface $storage,
+        private readonly StorageInterface $storage,
         private string $name = self::DEFAULT_SESSION_NAME,
         int $lifetimeSeconds = 86400,
         MetadataBag $metadataBag = null
     ) {
         $this->setLifetimeSeconds($lifetimeSeconds);
         $this->setMetadataBag($metadataBag);
-
-        $this->currentId = '';
-        $this->started = false;
-        $this->data = [];
-        $this->bags = [];
     }
 
     /**

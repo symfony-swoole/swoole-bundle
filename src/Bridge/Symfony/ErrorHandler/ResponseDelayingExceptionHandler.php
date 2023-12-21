@@ -13,9 +13,9 @@ final class ResponseDelayingExceptionHandler
     private ?Response $response = null;
 
     public function __construct(
-        private HttpKernelInterface $kernel,
-        private Request $request,
-        private \ReflectionMethod $throwableHandler,
+        private readonly HttpKernelInterface $kernel,
+        private readonly Request $request,
+        private readonly \ReflectionMethod $throwableHandler,
     ) {
     }
 

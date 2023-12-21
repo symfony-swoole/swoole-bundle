@@ -8,7 +8,7 @@ use ZEngine\Reflection\ReflectionMethod;
 
 final class ContainerSourceCodeExtractor
 {
-    private array $sourceCode;
+    private readonly array $sourceCode;
 
     public function __construct(string $sourceCode)
     {

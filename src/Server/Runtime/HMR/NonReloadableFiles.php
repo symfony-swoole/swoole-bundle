@@ -10,9 +10,9 @@ use Symfony\Component\Filesystem\Filesystem;
 final class NonReloadableFiles implements BootableInterface
 {
     public function __construct(
-        private string $kernelCacheDir,
-        private string $filePathDir,
-        private Filesystem $fileSystem,
+        private readonly string $kernelCacheDir,
+        private readonly string $filePathDir,
+        private readonly Filesystem $fileSystem,
     ) {
     }
 

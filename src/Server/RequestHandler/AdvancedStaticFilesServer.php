@@ -104,8 +104,8 @@ final class AdvancedStaticFilesServer implements RequestHandlerInterface, Bootab
     private array $fileExtensionMimeTypeMap;
 
     public function __construct(
-        private RequestHandlerInterface $decorated,
-        private HttpServerConfiguration $configuration,
+        private readonly RequestHandlerInterface $decorated,
+        private readonly HttpServerConfiguration $configuration,
         array $customMimeTypes = []
     ) {
         $this->fileExtensionMimeTypeMap = array_merge(self::FILE_EXTENSION_MIME_TYPE_DEFAULT_MAP, $customMimeTypes);

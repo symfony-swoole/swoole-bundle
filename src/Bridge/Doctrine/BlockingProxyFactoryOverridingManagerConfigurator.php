@@ -14,8 +14,8 @@ final class BlockingProxyFactoryOverridingManagerConfigurator
     private static ?\ReflectionProperty $emProxyFactoryPropRefl = null;
 
     public function __construct(
-        private ManagerConfigurator $wrapped,
-        private FirstTimeOnlyMutexFactory $mutexFactory
+        private readonly ManagerConfigurator $wrapped,
+        private readonly FirstTimeOnlyMutexFactory $mutexFactory
     ) {
     }
 

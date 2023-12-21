@@ -17,8 +17,8 @@ final class BlockingProxyFactory extends ProxyFactory
     private array $mutexes = [];
 
     public function __construct(
-        private ProxyFactory $wrapped,
-        private FirstTimeOnlyMutexFactory $mutexFactory
+        private readonly ProxyFactory $wrapped,
+        private readonly FirstTimeOnlyMutexFactory $mutexFactory
     ) {
     }
 

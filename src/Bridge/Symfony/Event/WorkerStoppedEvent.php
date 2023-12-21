@@ -12,8 +12,8 @@ final class WorkerStoppedEvent extends Event
     public const NAME = 'swoole_bundle.worker.stopped';
 
     public function __construct(
-        private Server $server,
-        private int $workerId
+        private readonly Server $server,
+        private readonly int $workerId
     ) {
     }
 

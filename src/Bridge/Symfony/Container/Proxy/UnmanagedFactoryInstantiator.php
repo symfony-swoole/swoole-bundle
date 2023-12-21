@@ -16,11 +16,11 @@ use ProxyManager\Proxy\ValueHolderInterface;
 final class UnmanagedFactoryInstantiator
 {
     public function __construct(
-        private AccessInterceptorValueHolderFactory $proxyFactory,
+        private readonly AccessInterceptorValueHolderFactory $proxyFactory,
         private Instantiator $instantiator,
         private ServicePoolContainer $servicePoolContainer,
-        private MutexFactory $limitLocking,
-        private MutexFactory $newInstanceLocking
+        private readonly MutexFactory $limitLocking,
+        private readonly MutexFactory $newInstanceLocking
     ) {
     }
 

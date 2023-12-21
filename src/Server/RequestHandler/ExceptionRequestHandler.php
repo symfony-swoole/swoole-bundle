@@ -11,8 +11,8 @@ use Swoole\Http\Response;
 final class ExceptionRequestHandler implements RequestHandlerInterface
 {
     public function __construct(
-        private RequestHandlerInterface $decorated,
-        private ExceptionHandlerInterface $exceptionHandler
+        private readonly RequestHandlerInterface $decorated,
+        private readonly ExceptionHandlerInterface $exceptionHandler
     ) {
     }
 

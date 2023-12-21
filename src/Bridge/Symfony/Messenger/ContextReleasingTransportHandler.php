@@ -11,8 +11,8 @@ use Swoole\Server;
 final class ContextReleasingTransportHandler implements TaskHandlerInterface
 {
     public function __construct(
-        private TaskHandlerInterface $decorated,
-        private CoWrapper $coWrapper
+        private readonly TaskHandlerInterface $decorated,
+        private readonly CoWrapper $coWrapper
     ) {
     }
 

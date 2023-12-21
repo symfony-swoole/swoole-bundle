@@ -11,10 +11,10 @@ use Swoole\Server;
 final class HMRWorkerStartHandler implements WorkerStartHandlerInterface
 {
     public function __construct(
-        private HotModuleReloaderInterface $hmr,
-        private Swoole $swoole,
-        private int $interval = 2000,
-        private ?WorkerStartHandlerInterface $decorated = null,
+        private readonly HotModuleReloaderInterface $hmr,
+        private readonly Swoole $swoole,
+        private readonly int $interval = 2000,
+        private readonly ?WorkerStartHandlerInterface $decorated = null,
     ) {
     }
 

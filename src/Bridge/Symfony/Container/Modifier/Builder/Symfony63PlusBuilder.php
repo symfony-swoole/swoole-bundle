@@ -69,7 +69,7 @@ final class Symfony63PlusBuilder implements Builder
         }
 
         $namespace = $reflContainer->getNamespaceName();
-        $modifierClassToUse = __CLASS__;
+        $modifierClassToUse = self::class;
         $methodsCode = implode(PHP_EOL.PHP_EOL, $methodsCodes);
         $newContainerSource = <<<EOF
             <?php

@@ -10,7 +10,7 @@ use Symfony\Component\HttpFoundation\Request as SymfonyRequest;
 
 final class RequestDataProvider
 {
-    public function __construct(private RequestFactoryInterface $requestFactory)
+    public function __construct(private readonly RequestFactoryInterface $requestFactory)
     {
     }
 

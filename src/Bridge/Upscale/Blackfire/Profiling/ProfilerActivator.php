@@ -11,7 +11,7 @@ use Upscale\Swoole\Reflection\Http\Server as UpscaleServer;
 
 class ProfilerActivator
 {
-    public function __construct(private Profiler $profiler)
+    public function __construct(private readonly Profiler $profiler)
     {
     }
 

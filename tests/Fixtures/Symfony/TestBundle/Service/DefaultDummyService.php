@@ -11,12 +11,12 @@ use Symfony\Contracts\Service\ResetInterface;
 
 final class DefaultDummyService implements ResetInterface, DummyService
 {
-    private InMemoryRepository $tmpRepository;
+    private readonly InMemoryRepository $tmpRepository;
 
     public function __construct(
-        private EntityManagerInterface $entityManager,
-        private UuidFactoryInterface $uuidFactory,
-        private RepositoryFactory $factory
+        private readonly EntityManagerInterface $entityManager,
+        private readonly UuidFactoryInterface $uuidFactory,
+        private readonly RepositoryFactory $factory
     ) {
         $this->tmpRepository = $this->factory->newInstance();
     }

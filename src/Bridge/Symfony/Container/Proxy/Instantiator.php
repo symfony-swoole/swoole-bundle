@@ -8,7 +8,7 @@ use K911\Swoole\Bridge\Symfony\Container\ServicePool\ServicePool;
 
 final class Instantiator
 {
-    public function __construct(private Generator $proxyGenerator)
+    public function __construct(private readonly Generator $proxyGenerator)
     {
     }
 

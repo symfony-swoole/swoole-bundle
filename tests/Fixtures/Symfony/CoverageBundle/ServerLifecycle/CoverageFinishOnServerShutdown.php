@@ -12,8 +12,8 @@ use Swoole\Server;
 final class CoverageFinishOnServerShutdown implements ServerShutdownHandlerInterface
 {
     public function __construct(
-        private CodeCoverageManager $codeCoverageManager,
-        private ?ServerShutdownHandlerInterface $decorated = null
+        private readonly CodeCoverageManager $codeCoverageManager,
+        private readonly ?ServerShutdownHandlerInterface $decorated = null
     ) {
     }
 

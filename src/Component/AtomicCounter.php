@@ -8,7 +8,7 @@ use Swoole\Atomic;
 
 final class AtomicCounter
 {
-    public function __construct(private Atomic $counter)
+    public function __construct(private readonly Atomic $counter)
     {
     }
 

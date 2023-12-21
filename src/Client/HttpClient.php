@@ -216,10 +216,10 @@ final class HttpClient
 
         $this->assertHasContentType($client);
         $fullContentType = $client->headers[Http::HEADER_CONTENT_TYPE];
-        $contentType = \explode(';', $fullContentType)[0];
+        $contentType = \explode(';', (string) $fullContentType)[0];
 
         return match ($contentType) {
-            Http::CONTENT_TYPE_APPLICATION_JSON => \json_decode($client->body, true, 512, \JSON_THROW_ON_ERROR),
+            Http::CONTENT_TYPE_APPLICATION_JSON => \json_decode((string) $client->body, true, 512, \JSON_THROW_ON_ERROR),
             Http::CONTENT_TYPE_TEXT_PLAIN, Http::CONTENT_TYPE_TEXT_HTML => $client->body,
             default => throw UnsupportedContentTypeException::forContentType($contentType, self::SUPPORTED_CONTENT_TYPES),
         };

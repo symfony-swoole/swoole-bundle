@@ -9,7 +9,7 @@ use Swoole\Http\Server;
 
 final class WithApm implements ConfiguratorInterface
 {
-    public function __construct(private Apm $apm)
+    public function __construct(private readonly Apm $apm)
     {
     }
 

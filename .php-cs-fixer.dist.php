@@ -18,9 +18,7 @@ $config = new PhpCsFixer\Config();
  */
 return $config->setRules([
         '@Symfony' => true,
-        '@PHP71Migration' => true,
-        '@PHP73Migration' => true,
-        '@PHP74Migration' => true,
+        '@PHP81Migration' => true,
         'array_syntax' => ['syntax' => 'short'],
         'combine_consecutive_issets' => true,
         'combine_consecutive_unsets' => true,

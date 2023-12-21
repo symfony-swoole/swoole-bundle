@@ -12,7 +12,7 @@ use Symfony\Component\HttpKernel\KernelEvents;
 
 class StreamedResponseListener implements EventSubscriberInterface
 {
-    public function __construct(private ?HttpFoundationStreamedResponseListener $delegate = null)
+    public function __construct(private readonly ?HttpFoundationStreamedResponseListener $delegate = null)
     {
     }
 

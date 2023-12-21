@@ -15,10 +15,10 @@ use Symfony\Component\HttpFoundation\Session\Storage\SessionStorageInterface;
 final class SwooleSessionStorageFactory implements SessionStorageFactoryInterface
 {
     public function __construct(
-        private StorageInterface $storage,
-        private EventDispatcherInterface $dispatcher,
-        private ?MetadataBag $metadataBag = null,
-        private int $lifetimeSeconds = 86400
+        private readonly StorageInterface $storage,
+        private readonly EventDispatcherInterface $dispatcher,
+        private readonly ?MetadataBag $metadataBag = null,
+        private readonly int $lifetimeSeconds = 86400
     ) {
     }
 

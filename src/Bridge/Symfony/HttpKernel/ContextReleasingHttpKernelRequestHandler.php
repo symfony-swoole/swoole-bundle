@@ -12,8 +12,8 @@ use Swoole\Http\Response as SwooleResponse;
 final class ContextReleasingHttpKernelRequestHandler implements RequestHandlerInterface
 {
     public function __construct(
-        private RequestHandlerInterface $decorated,
-        private CoWrapper $coWrapper
+        private readonly RequestHandlerInterface $decorated,
+        private readonly CoWrapper $coWrapper
     ) {
     }
 

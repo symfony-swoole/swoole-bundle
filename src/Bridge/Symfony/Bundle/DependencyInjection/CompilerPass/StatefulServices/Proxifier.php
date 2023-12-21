@@ -37,8 +37,8 @@ final class Proxifier
      * @param array<class-string, class-string<StabilityChecker>|string> $stabilityCheckers
      */
     public function __construct(
-        private ContainerBuilder $container,
-        private FinalClassesProcessor $finalProcessor,
+        private readonly ContainerBuilder $container,
+        private readonly FinalClassesProcessor $finalProcessor,
         array $stabilityCheckers = []
     ) {
         $this->stabilityCheckers = array_merge(self::DEFAULT_STABILITY_CHECKERS, $stabilityCheckers);

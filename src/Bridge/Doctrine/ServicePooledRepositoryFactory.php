@@ -11,8 +11,8 @@ use Doctrine\Persistence\ObjectRepository;
 final class ServicePooledRepositoryFactory implements RepositoryFactory
 {
     public function __construct(
-        private RepositoryFactory $decorated,
-        private EntityManagerInterface $pooledEm
+        private readonly RepositoryFactory $decorated,
+        private readonly EntityManagerInterface $pooledEm
     ) {
     }
 

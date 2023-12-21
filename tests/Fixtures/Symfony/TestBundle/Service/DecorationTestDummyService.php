@@ -6,7 +6,7 @@ namespace K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Service;
 
 final class DecorationTestDummyService implements DummyService
 {
-    public function __construct(private DummyService $decorated)
+    public function __construct(private readonly DummyService $decorated)
     {
     }
 

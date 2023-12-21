@@ -11,7 +11,7 @@ final class UnmanagedFactoryTags
     /**
      * @var array<UnmanagedFactoryTag>
      */
-    private array $tags;
+    private readonly array $tags;
 
     /**
      * @var null|array<array{
@@ -32,8 +32,10 @@ final class UnmanagedFactoryTags
      *     resetter?: string
      * }> $tags
      */
-    public function __construct(private string $serviceClass, array $tags)
-    {
+    public function __construct(
+        private readonly string $serviceClass,
+        array $tags
+    ) {
         $this->tags = array_map(fn (array $tag): UnmanagedFactoryTag => new UnmanagedFactoryTag($tag), $tags);
     }
 

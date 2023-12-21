@@ -16,10 +16,10 @@ use Symfony\Component\HttpKernel\TerminableInterface;
 final class HttpKernelRequestHandler implements RequestHandlerInterface, BootableInterface
 {
     public function __construct(
-        private KernelPoolInterface $kernelPool,
-        private RequestFactoryInterface $requestFactory,
-        private ResponseProcessorInjectorInterface $processorInjector,
-        private ResponseProcessorInterface $responseProcessor
+        private readonly KernelPoolInterface $kernelPool,
+        private readonly RequestFactoryInterface $requestFactory,
+        private readonly ResponseProcessorInjectorInterface $processorInjector,
+        private readonly ResponseProcessorInterface $responseProcessor
     ) {
     }
 

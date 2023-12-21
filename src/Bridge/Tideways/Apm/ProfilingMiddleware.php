@@ -11,11 +11,11 @@ use Tideways\Profiler;
 
 final class ProfilingMiddleware implements Middleware
 {
-    private \Closure $nextMiddleware;
+    private readonly \Closure $nextMiddleware;
 
     public function __construct(
         callable $nextMiddleware,
-        private RequestProfiler $profiler
+        private readonly RequestProfiler $profiler
     ) {
         $this->nextMiddleware = \Closure::fromCallable($nextMiddleware);
     }

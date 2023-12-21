@@ -13,8 +13,8 @@ use Symfony\Component\DependencyInjection\Reference;
 final class UnmanagedFactoryProxifier
 {
     public function __construct(
-        private ContainerBuilder $container,
-        private FinalClassesProcessor $finalProcessor
+        private readonly ContainerBuilder $container,
+        private readonly FinalClassesProcessor $finalProcessor
     ) {
     }
 

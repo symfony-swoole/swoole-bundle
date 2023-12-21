@@ -11,7 +11,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 final class StreamedResponseProcessor implements ResponseProcessorInterface
 {
-    public function __construct(private int $bufferOutputSize = 8192)
+    public function __construct(private readonly int $bufferOutputSize = 8192)
     {
     }
 

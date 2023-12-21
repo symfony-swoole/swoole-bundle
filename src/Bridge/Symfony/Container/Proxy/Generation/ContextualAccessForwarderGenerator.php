@@ -25,7 +25,7 @@ use ProxyManager\ProxyGenerator\Util\ProxiedMethodsFilter;
  */
 class ContextualAccessForwarderGenerator implements ProxyGeneratorInterface
 {
-    public function __construct(private MethodForwarderBuilder $forwarderBuilder)
+    public function __construct(private readonly MethodForwarderBuilder $forwarderBuilder)
     {
     }
 

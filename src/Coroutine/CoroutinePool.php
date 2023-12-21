@@ -17,21 +17,28 @@ final class CoroutinePool
     /**
      * @var array<callable>
      */
-    private array $coroutines;
-    private $coroutinesCount;
-    private $results;
-    private $exceptions;
-    private $started;
+    private readonly array $coroutines;
+
+    private int $coroutinesCount;
+
+    /**
+     * @var array<mixed>
+     */
+    private array $results = [];
+
+    /**
+     * @var array<\Throwable>
+     */
+    private array $exceptions = [];
+
+    private bool $started = false;
 
     public function __construct(
-        private Channel $resultsChannel,
+        private readonly Channel $resultsChannel,
         callable ...$coroutines
     ) {
         $this->coroutines = $coroutines;
         $this->coroutinesCount = \count($coroutines);
-        $this->results = [];
-        $this->exceptions = [];
-        $this->started = false;
     }
 
     public static function fromCoroutines(callable ...$coroutines): self
@@ -59,7 +66,7 @@ final class CoroutinePool
         Assertion::false($this->started, 'Single PoolExecutor cannot be run twice.');
         $this->started = true;
 
-        if ($this->isInCoroutineContext()) {
+        if (self::isInCoroutineContext()) {
             $this->startWaitGroup();
 
             return;

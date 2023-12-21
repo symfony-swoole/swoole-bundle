@@ -15,21 +15,14 @@ use K911\Swoole\Component\Locking\Mutex;
 final class UnmanagedFactoryServicePool extends BaseServicePool
 {
     /**
-     * @var \Closure(): T
-     */
-    private \Closure $instantiator;
-
-    /**
      * @param \Closure(): T $instantiator
      */
     public function __construct(
-        \Closure $instantiator,
+        private \Closure $instantiator,
         Mutex $mutex,
         int $instancesLimit = 50,
         ?Resetter $resetter = null
     ) {
-        $this->instantiator = $instantiator;
-
         parent::__construct($mutex, $instancesLimit, $resetter);
     }
 

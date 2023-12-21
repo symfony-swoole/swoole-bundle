@@ -19,8 +19,10 @@ final class GeneratedCollection implements \IteratorAggregate
      * @param iterable<T> $itemCollection
      * @param T           ...$items
      */
-    public function __construct(private iterable $itemCollection, ...$items)
-    {
+    public function __construct(
+        private readonly iterable $itemCollection,
+        ...$items
+    ) {
         $this->items = $items;
     }
 

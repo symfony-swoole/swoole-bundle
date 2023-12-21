@@ -11,7 +11,7 @@ final class CallableChainConfigurator implements ConfiguratorInterface
     /**
      * @param iterable<callable> $configurators
      */
-    public function __construct(private iterable $configurators)
+    public function __construct(private readonly iterable $configurators)
     {
     }
 

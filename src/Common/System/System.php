@@ -9,8 +9,8 @@ use OpenSwoole\Util;
 final class System
 {
     private function __construct(
-        private Extension $extension,
-        private Version $version,
+        private readonly Extension $extension,
+        private readonly Version $version,
     ) {
     }
 

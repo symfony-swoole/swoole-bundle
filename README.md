@@ -110,14 +110,14 @@ Symfony integration with [Open Swoole](https://openswoole.com/) to speed up your
 
 ### Current version
 
--   PHP version `>= 8.0 && <= 8.2`
+-   PHP version `>= 8.1 && <= 8.3`
 -   Open Swoole PHP Extension `^v22.1.2`
--   Swoole PHP Extension `^5.1.0`
+-   Swoole PHP Extension `^5.1.1`
 -   Symfony `^5.4.22 || ^6.3`
 
 ### Future versions
 
--   PHP version `>= 8.3`
+-   PHP version `> 8.3`
 -   Open Swoole PHP Extension `>= v23.0.0`
 -   Symfony `^6.4 || ^7.0`
 
@@ -129,7 +129,7 @@ Additional requirements to enable specific features:
 ### Swoole
 
 The bundle requires one of those extensions:
-- [Swoole PHP Extension](https://github.com/swoole/swoole-src) version `5.1.0` or higher. Active bug fixes are provided only for the latest version.
+- [Swoole PHP Extension](https://github.com/swoole/swoole-src) version `5.1.1` or higher. Active bug fixes are provided only for the latest version.
 - [Open Swoole PHP Extension](https://github.com/openswoole/ext-openswoole) version `22.0.0` or higher. Active bug fixes are provided only for the latest version.
 
 #### Version check
@@ -140,7 +140,7 @@ To check your installed version you can run the following command:
 // Swoole
 php -r "echo swoole_version() . \PHP_EOL;"
 
-# 5.1.0
+# 5.1.1
 
 // OpenSwoole
 php -r "echo OpenSwoole\Util::getVersion() . \PHP_EOL;"

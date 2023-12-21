@@ -83,7 +83,7 @@ final class SwooleServerCustomPidFileTest extends ServerTestCase
         $readOnlyFile = sprintf('%s/existing-readonly-pid-file-%s.pid', self::FIXTURE_RESOURCES_DIR, $hash);
 
         self::assertNotFalse(file_put_contents($readOnlyFile, '-9999'));
-        self::assertTrue(chmod($readOnlyFile, 0400));
+        self::assertTrue(chmod($readOnlyFile, 0o400));
 
         return $readOnlyFile;
     }

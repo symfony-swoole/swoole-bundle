@@ -11,11 +11,8 @@ use Symfony\Component\HttpFoundation\Request as SymfonyRequest;
 
 final class RequestMonitoring
 {
-    private RequestFactoryInterface $requestFactory;
-
-    public function __construct(RequestFactoryInterface $requestFactory)
+    public function __construct(private readonly RequestFactoryInterface $requestFactory)
     {
-        $this->requestFactory = $requestFactory;
     }
 
     public function monitor(\Closure $fn, Request $request, Response $response): void

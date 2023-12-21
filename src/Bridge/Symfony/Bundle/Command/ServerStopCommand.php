@@ -19,9 +19,9 @@ final class ServerStopCommand extends Command
     use ParametersHelperTrait;
 
     public function __construct(
-        private HttpServer $server,
-        private HttpServerConfiguration $serverConfiguration,
-        private ParameterBagInterface $parameterBag
+        private readonly HttpServer $server,
+        private readonly HttpServerConfiguration $serverConfiguration,
+        private readonly ParameterBagInterface $parameterBag
     ) {
         parent::__construct();
     }

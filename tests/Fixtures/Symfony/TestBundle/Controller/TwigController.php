@@ -15,8 +15,8 @@ use Twig\Error\SyntaxError;
 class TwigController
 {
     public function __construct(
-        private Environment $environment,
-        private LoggerInterface $logger
+        private readonly Environment $environment,
+        private readonly LoggerInterface $logger
     ) {
     }
 

@@ -10,7 +10,7 @@ use Symfony\Component\Routing\Annotation\Route;
 
 final class EventsController
 {
-    public function __construct(private LifecycleEventsEventHandler $eventHandler)
+    public function __construct(private readonly LifecycleEventsEventHandler $eventHandler)
     {
     }
 

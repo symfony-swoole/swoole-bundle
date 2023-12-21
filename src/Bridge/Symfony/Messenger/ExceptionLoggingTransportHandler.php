@@ -11,8 +11,8 @@ use Swoole\Server;
 final class ExceptionLoggingTransportHandler implements TaskHandlerInterface
 {
     public function __construct(
-        private TaskHandlerInterface $decorated,
-        private LoggerInterface $logger
+        private readonly TaskHandlerInterface $decorated,
+        private readonly LoggerInterface $logger
     ) {
     }
 

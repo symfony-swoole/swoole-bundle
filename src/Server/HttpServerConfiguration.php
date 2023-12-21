@@ -101,11 +101,11 @@ class HttpServerConfiguration
      * @throws \Assert\AssertionFailedException
      */
     public function __construct(
-        private Swoole $swoole,
-        private Sockets $sockets,
+        private readonly Swoole $swoole,
+        private readonly Sockets $sockets,
         private string $runningMode = 'process',
         array $settings = [],
-        private ?int $maxConcurrency = null
+        private readonly ?int $maxConcurrency = null
     ) {
         $this->changeRunningMode($runningMode);
         $this->initializeSettings($settings);

@@ -16,7 +16,7 @@ final class CallableChainConfiguratorFactory
                 ->map(function ($configurator): callable {
                     Assertion::isInstanceOf($configurator, ConfiguratorInterface::class);
 
-                    return [$configurator, 'configure'];
+                    return $configurator->configure(...);
                 })
         );
     }

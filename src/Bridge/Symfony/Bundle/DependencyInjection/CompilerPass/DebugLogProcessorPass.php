@@ -44,7 +44,7 @@ final class DebugLogProcessorPass implements CompilerPassInterface
 
         if (\PHP_SAPI === 'cli') {
             foreach ($_SERVER['argv'] as $arg) {
-                if (false !== mb_strpos($arg, 'swoole:server:')) {
+                if (false !== mb_strpos((string) $arg, 'swoole:server:')) {
                     return;
                 }
             }

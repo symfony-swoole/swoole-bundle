@@ -9,9 +9,9 @@ final class ExceptionArrayTransformer
     public function transform(\Throwable $exception, string $verbosity = 'default'): array
     {
         return match ($verbosity) {
-            'trace' => $this->transformWithFn($exception, [$this, 'transformFnVerboseWithTrace']),
-            'verbose' => $this->transformWithFn($exception, [$this, 'transformFnVerbose']),
-            default => $this->transformWithFn($exception, [$this, 'transformFnDefault']),
+            'trace' => $this->transformWithFn($exception, $this->transformFnVerboseWithTrace(...)),
+            'verbose' => $this->transformWithFn($exception, $this->transformFnVerbose(...)),
+            default => $this->transformWithFn($exception, $this->transformFnDefault(...)),
         };
     }
 

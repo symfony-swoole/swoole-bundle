@@ -9,7 +9,7 @@ use Swoole\Http\Server;
 
 final class WithRequestHandler implements ConfiguratorInterface
 {
-    public function __construct(private RequestHandlerInterface $requestHandler)
+    public function __construct(private readonly RequestHandlerInterface $requestHandler)
     {
     }
 

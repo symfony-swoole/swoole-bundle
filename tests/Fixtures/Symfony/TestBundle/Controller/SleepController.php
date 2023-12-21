@@ -25,14 +25,14 @@ final class SleepController
     private array $nonShared = [];
 
     public function __construct(
-        private SleepingCounter $sleepingCounter,
-        private SleepingCounterChecker $checker,
-        private ShouldBeProxified $shouldBeProxified,
-        private ShouldBeProxified2 $shouldBeProxified2,
-        private DummyService $dummyService,
-        private Connection $connection,
-        private ContainerInterface $container,
-        private ServicePoolContainer $servicePoolContainer
+        private readonly SleepingCounter $sleepingCounter,
+        private readonly SleepingCounterChecker $checker,
+        private readonly ShouldBeProxified $shouldBeProxified,
+        private readonly ShouldBeProxified2 $shouldBeProxified2,
+        private readonly DummyService $dummyService,
+        private readonly Connection $connection,
+        private readonly ContainerInterface $container,
+        private readonly ServicePoolContainer $servicePoolContainer
     ) {
     }
 

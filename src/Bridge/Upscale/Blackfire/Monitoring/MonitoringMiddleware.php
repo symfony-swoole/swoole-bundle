@@ -10,14 +10,11 @@ use Swoole\Http\Response;
 
 final class MonitoringMiddleware implements Middleware
 {
-    private \Closure $nextMiddleware;
+    private readonly \Closure $nextMiddleware;
 
-    private RequestMonitoring $monitoring;
-
-    public function __construct(callable $nextMiddleware, RequestMonitoring $monitoring)
+    public function __construct(callable $nextMiddleware, private readonly RequestMonitoring $monitoring)
     {
         $this->nextMiddleware = \Closure::fromCallable($nextMiddleware);
-        $this->monitoring = $monitoring;
     }
 
     public function __invoke(Request $request, Response $response): void

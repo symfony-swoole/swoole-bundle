@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "3a8861bc7900a48600ab009b88023980",
+    "content-hash": "6bec8c7c0d7dfee37cf4ec9e538defac",
     "packages": [
         {
             "name": "beberlei/assert",
@@ -876,16 +876,16 @@
         },
         {
             "name": "symfony/dependency-injection",
-            "version": "v5.4.32",
+            "version": "v5.4.33",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/dependency-injection.git",
-                "reference": "d5d48f215ed73f7973d01256b9a2fac729bef759"
+                "reference": "14969a558cd6382b2a12b14b20ef9a851a02da79"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/dependency-injection/zipball/d5d48f215ed73f7973d01256b9a2fac729bef759",
-                "reference": "d5d48f215ed73f7973d01256b9a2fac729bef759",
+                "url": "https://api.github.com/repos/symfony/dependency-injection/zipball/14969a558cd6382b2a12b14b20ef9a851a02da79",
+                "reference": "14969a558cd6382b2a12b14b20ef9a851a02da79",
                 "shasum": ""
             },
             "require": {
@@ -945,7 +945,7 @@
             "description": "Allows you to standardize and centralize the way objects are constructed in your application",
             "homepage": "https://symfony.com",
             "support": {
-                "source": "https://github.com/symfony/dependency-injection/tree/v5.4.32"
+                "source": "https://github.com/symfony/dependency-injection/tree/v5.4.33"
             },
             "funding": [
                 {
@@ -961,7 +961,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2023-11-29T06:58:28+00:00"
+            "time": "2023-11-30T08:15:37+00:00"
         },
         {
             "name": "symfony/deprecation-contracts",
@@ -2477,24 +2477,23 @@
         },
         {
             "name": "symfony/var-exporter",
-            "version": "v5.4.32",
+            "version": "v6.3.10",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/var-exporter.git",
-                "reference": "fdb022f0d3d41df240c18e2eb9a117c430f06add"
+                "reference": "7bfcf232a9c7e4acad00e96774e340eb86d10bf0"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/var-exporter/zipball/fdb022f0d3d41df240c18e2eb9a117c430f06add",
-                "reference": "fdb022f0d3d41df240c18e2eb9a117c430f06add",
+                "url": "https://api.github.com/repos/symfony/var-exporter/zipball/7bfcf232a9c7e4acad00e96774e340eb86d10bf0",
+                "reference": "7bfcf232a9c7e4acad00e96774e340eb86d10bf0",
                 "shasum": ""
             },
             "require": {
-                "php": ">=7.2.5",
-                "symfony/polyfill-php80": "^1.16"
+                "php": ">=8.1"
             },
             "require-dev": {
-                "symfony/var-dumper": "^4.4.9|^5.0.9|^6.0"
+                "symfony/var-dumper": "^5.4|^6.0"
             },
             "type": "library",
             "autoload": {
@@ -2527,10 +2526,12 @@
                 "export",
                 "hydrate",
                 "instantiate",
+                "lazy-loading",
+                "proxy",
                 "serialize"
             ],
             "support": {
-                "source": "https://github.com/symfony/var-exporter/tree/v5.4.32"
+                "source": "https://github.com/symfony/var-exporter/tree/v6.3.10"
             },
             "funding": [
                 {
@@ -2546,7 +2547,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2023-11-16T19:33:05+00:00"
+            "time": "2023-11-29T16:00:50+00:00"
         },
         {
             "name": "upscale/ext-swoole",
@@ -8400,21 +8401,21 @@
         },
         {
             "name": "swoole-bundle/z-engine",
-            "version": "8.0.2",
+            "version": "8.1.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony-swoole/z-engine.git",
-                "reference": "1cb53d9d307bfb569f1b36e2c1338f29e468ba7e"
+                "reference": "8176e0773623f4c736b1b293b803db0d72039ecd"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony-swoole/z-engine/zipball/1cb53d9d307bfb569f1b36e2c1338f29e468ba7e",
-                "reference": "1cb53d9d307bfb569f1b36e2c1338f29e468ba7e",
+                "url": "https://api.github.com/repos/symfony-swoole/z-engine/zipball/8176e0773623f4c736b1b293b803db0d72039ecd",
+                "reference": "8176e0773623f4c736b1b293b803db0d72039ecd",
                 "shasum": ""
             },
             "require": {
                 "ext-ffi": "*",
-                "php": "8.0.*"
+                "php": "8.1.*"
             },
             "require-dev": {
                 "phpunit/phpunit": "^8.5.15 || ^9.0.0"
@@ -8437,9 +8438,9 @@
             ],
             "description": "Library that provides direct access to native PHP structures",
             "support": {
-                "source": "https://github.com/symfony-swoole/z-engine/tree/8.0.2"
+                "source": "https://github.com/symfony-swoole/z-engine/tree/8.1.2"
             },
-            "time": "2023-11-26T20:43:52+00:00"
+            "time": "2023-11-26T20:44:24+00:00"
         },
         {
             "name": "swoole/ide-helper",
@@ -8739,16 +8740,16 @@
         },
         {
             "name": "symfony/doctrine-messenger",
-            "version": "v5.4.31",
+            "version": "v5.4.33",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/doctrine-messenger.git",
-                "reference": "1ff223f53c5f33b03756779a059b5411b76b8005"
+                "reference": "3a5ef7be3f21ba72f0c498280dd6b022cb6f33b5"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/doctrine-messenger/zipball/1ff223f53c5f33b03756779a059b5411b76b8005",
-                "reference": "1ff223f53c5f33b03756779a059b5411b76b8005",
+                "url": "https://api.github.com/repos/symfony/doctrine-messenger/zipball/3a5ef7be3f21ba72f0c498280dd6b022cb6f33b5",
+                "reference": "3a5ef7be3f21ba72f0c498280dd6b022cb6f33b5",
                 "shasum": ""
             },
             "require": {
@@ -8792,7 +8793,7 @@
             "description": "Symfony Doctrine Messenger Bridge",
             "homepage": "https://symfony.com",
             "support": {
-                "source": "https://github.com/symfony/doctrine-messenger/tree/v5.4.31"
+                "source": "https://github.com/symfony/doctrine-messenger/tree/v5.4.33"
             },
             "funding": [
                 {
@@ -8808,7 +8809,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2023-11-07T09:59:10+00:00"
+            "time": "2023-11-30T11:57:55+00:00"
         },
         {
             "name": "symfony/dotenv",
@@ -10550,15 +10551,15 @@
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
-        "php": "^8.0",
+        "php": "^8.1",
         "ext-json": "*"
     },
     "platform-dev": {
-        "ext-ffi": "^8.0"
+        "ext-ffi": "^8.1"
     },
     "platform-overrides": {
         "ext-openswoole": "v22.1.2",
         "ext-swoole": "5.1.0"
     },
-    "plugin-api-version": "2.6.0"
+    "plugin-api-version": "2.3.0"
 }

@@ -11,8 +11,8 @@ use Psr\Log\LoggerInterface;
 final class RunDummyHandler
 {
     public function __construct(
-        private DummyService $dummyService,
-        private LoggerInterface $logger
+        private readonly DummyService $dummyService,
+        private readonly LoggerInterface $logger
     ) {
     }
 

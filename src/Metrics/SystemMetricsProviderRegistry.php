@@ -17,7 +17,7 @@ final class SystemMetricsProviderRegistry
      * @param \Traversable<string, MetricsProvider> $metricsProviders
      */
     public function __construct(
-        private System $system,
+        private readonly System $system,
         \Traversable $metricsProviders,
     ) {
         $this->metricsProviders = \iterator_to_array($metricsProviders);

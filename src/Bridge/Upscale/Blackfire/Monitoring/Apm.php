@@ -9,14 +9,10 @@ use Swoole\Http\Server;
 
 final class Apm
 {
-    private MiddlewareInjector $injector;
-
-    private BlackfireMiddlewareFactory $middlewareFactory;
-
-    public function __construct(MiddlewareInjector $injector, BlackfireMiddlewareFactory $middlewareFactory)
-    {
-        $this->injector = $injector;
-        $this->middlewareFactory = $middlewareFactory;
+    public function __construct(
+        private readonly MiddlewareInjector $injector,
+        private readonly BlackfireMiddlewareFactory $middlewareFactory
+    ) {
     }
 
     /**

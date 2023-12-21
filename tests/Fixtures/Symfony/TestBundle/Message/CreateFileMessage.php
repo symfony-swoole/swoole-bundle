@@ -7,8 +7,8 @@ namespace K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Message;
 final class CreateFileMessage
 {
     public function __construct(
-        private string $fileName,
-        private string $content
+        private readonly string $fileName,
+        private readonly string $content
     ) {
     }
 

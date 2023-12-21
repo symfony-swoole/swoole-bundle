@@ -10,7 +10,7 @@ final class RequestWithSessionFinishedEvent extends Event
 {
     public const NAME = 'swoole_bundle.request.with.session.finished';
 
-    public function __construct(private string $sessionId)
+    public function __construct(private readonly string $sessionId)
     {
     }
 

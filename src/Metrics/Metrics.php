@@ -7,16 +7,16 @@ namespace K911\Swoole\Metrics;
 final class Metrics
 {
     public function __construct(
-        private int $requestCount,
-        private int $upTimeInSeconds,
-        private int $activeConnections,
-        private int $acceptedConnections,
-        private int $closedConnections,
-        private int $totalWorkers,
-        private int $activeWorkers,
-        private int $idleWorkers,
-        private int $runningCoroutines,
-        private int $tasksInQueue,
+        private readonly int $requestCount,
+        private readonly int $upTimeInSeconds,
+        private readonly int $activeConnections,
+        private readonly int $acceptedConnections,
+        private readonly int $closedConnections,
+        private readonly int $totalWorkers,
+        private readonly int $activeWorkers,
+        private readonly int $idleWorkers,
+        private readonly int $runningCoroutines,
+        private readonly int $tasksInQueue,
     ) {
     }
 
