@@ -17,8 +17,8 @@ use Symfony\Component\DependencyInjection\Container;
 final class DiServicePool extends BaseServicePool
 {
     public function __construct(
-        private string $wrappedServiceId,
-        private Container $container,
+        private readonly string $wrappedServiceId,
+        private readonly Container $container,
         Mutex $mutex,
         int $instancesLimit = 50,
         ?Resetter $resetter = null,

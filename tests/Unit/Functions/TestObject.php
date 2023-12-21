@@ -12,19 +12,16 @@ namespace K911\Swoole\Tests\Unit\Functions;
 #[\AllowDynamicProperties]
 class TestObject
 {
-    public const GOOD_VALUE = 'good';
-    public const WRONG_VALUE = 'wrong';
+    final public const GOOD_VALUE = 'good';
+    final public const WRONG_VALUE = 'wrong';
     public $publicProp;
     protected $protectedProp;
 
-    private $privateProp;
-
-    public function __construct(string $value = self::WRONG_VALUE)
+    public function __construct(private string $privateProp = self::WRONG_VALUE)
     {
-        $this->privateProp = $value;
-        $this->protectedProp = $value;
-        $this->publicProp = $value;
-        $this->dynamicProp = $value;
+        $this->protectedProp = $privateProp;
+        $this->publicProp = $privateProp;
+        $this->dynamicProp = $privateProp;
     }
 
     public function getPrivateProp(): string

@@ -28,10 +28,10 @@ abstract class BaseServicePool implements ServicePool
     private array $assignedPool = [];
 
     public function __construct(
-        private Mutex $mutex,
-        private int $instancesLimit = 50,
-        private ?Resetter $resetter = null,
-        private ?StabilityChecker $stabilityChecker = null
+        private readonly Mutex $mutex,
+        private readonly int $instancesLimit = 50,
+        private readonly ?Resetter $resetter = null,
+        private readonly ?StabilityChecker $stabilityChecker = null
     ) {
     }
 

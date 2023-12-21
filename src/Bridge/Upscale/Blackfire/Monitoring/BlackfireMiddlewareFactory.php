@@ -8,11 +8,8 @@ use K911\Swoole\Server\Middleware\MiddlewareFactory;
 
 final class BlackfireMiddlewareFactory implements MiddlewareFactory
 {
-    private RequestMonitoring $monitoring;
-
-    public function __construct(RequestMonitoring $monitoring)
+    public function __construct(private readonly RequestMonitoring $monitoring)
     {
-        $this->monitoring = $monitoring;
     }
 
     public function createMiddleware(callable $nextMiddleware): callable

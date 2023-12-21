@@ -19,8 +19,8 @@ use Symfony\Component\Process\Process;
 
 class ServerTestCase extends KernelTestCase
 {
-    public const FIXTURE_RESOURCES_DIR = __DIR__.'/../../../resources';
-    public const SWOOLE_XDEBUG_CORO_WARNING_MESSAGE = 'go(): Using Xdebug in coroutines is extremely dangerous, please notice that it may lead to coredump!';
+    final public const FIXTURE_RESOURCES_DIR = __DIR__.'/../../../resources';
+    final public const SWOOLE_XDEBUG_CORO_WARNING_MESSAGE = 'go(): Using Xdebug in coroutines is extremely dangerous, please notice that it may lead to coredump!';
     private const COMMAND = './console';
     private const WORKING_DIRECTORY = __DIR__.'/../../app';
 

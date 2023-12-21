@@ -27,15 +27,15 @@ final class ApiServerRequestHandler implements RequestHandlerInterface
                 Http::METHOD_GET => $this->composeSimpleRouteDefinition(200, fn (): array => ['ok' => true]),
             ],
             '/api' => [
-                Http::METHOD_GET => $this->composeSimpleRouteDefinition(200, [$this, 'getRouteMap']),
+                Http::METHOD_GET => $this->composeSimpleRouteDefinition(200, $this->getRouteMap(...)),
             ],
             '/api/server' => [
-                Http::METHOD_GET => $this->composeSimpleRouteDefinition(200, [$apiServer, 'status']),
-                Http::METHOD_PATCH => $this->composeSimpleRouteDefinition(204, [$apiServer, 'reload']),
-                Http::METHOD_DELETE => $this->composeSimpleRouteDefinition(204, [$apiServer, 'shutdown']),
+                Http::METHOD_GET => $this->composeSimpleRouteDefinition(200, $apiServer->status(...)),
+                Http::METHOD_PATCH => $this->composeSimpleRouteDefinition(204, $apiServer->reload(...)),
+                Http::METHOD_DELETE => $this->composeSimpleRouteDefinition(204, $apiServer->shutdown(...)),
             ],
             '/api/server/metrics' => [
-                Http::METHOD_GET => $this->composeSimpleRouteDefinition(200, [$apiServer, 'metrics']),
+                Http::METHOD_GET => $this->composeSimpleRouteDefinition(200, $apiServer->metrics(...)),
             ],
         ];
     }
@@ -94,8 +94,8 @@ final class ApiServerRequestHandler implements RequestHandlerInterface
 
     private function parseRequestInfo(Request $request): array
     {
-        $method = mb_strtoupper($request->server['request_method']);
-        $path = mb_strtolower(rtrim($request->server['path_info'], '/'));
+        $method = mb_strtoupper((string) $request->server['request_method']);
+        $path = mb_strtolower(rtrim((string) $request->server['path_info'], '/'));
         $path = '' === $path ? '/' : $path;
 
         return [$method, $path];

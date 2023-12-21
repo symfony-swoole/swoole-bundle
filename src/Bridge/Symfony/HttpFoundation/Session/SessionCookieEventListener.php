@@ -26,9 +26,9 @@ final class SessionCookieEventListener implements EventSubscriberInterface
     private array $sessionCookieParameters;
 
     public function __construct(
-        private RequestStack $requestStack,
-        private EventDispatcherInterface $dispatcher,
-        private StorageInterface $swooleStorage,
+        private readonly RequestStack $requestStack,
+        private readonly EventDispatcherInterface $dispatcher,
+        private readonly StorageInterface $swooleStorage,
         array $sessionOptions = []
     ) {
         $this->sessionCookieParameters = $this->mergeCookieParams($sessionOptions);

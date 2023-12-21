@@ -14,7 +14,7 @@ final class RecursiveOwnerMutex implements Mutex
 
     private int $currentOwnerUsageCount = 0;
 
-    public function __construct(private ?Mutex $wrapped)
+    public function __construct(private readonly ?Mutex $wrapped)
     {
     }
 

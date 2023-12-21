@@ -17,7 +17,7 @@ final class Tags implements \IteratorAggregate
      * @param array<string, array<array<string, mixed>>> $tags
      */
     public function __construct(
-        private string $serviceClass,
+        private readonly string $serviceClass,
         private array $tags
     ) {
     }

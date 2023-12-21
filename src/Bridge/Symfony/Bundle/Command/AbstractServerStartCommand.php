@@ -34,11 +34,11 @@ abstract class AbstractServerStartCommand extends Command
     private bool $testing = false;
 
     public function __construct(
-        private HttpServer $server,
-        private HttpServerConfiguration $serverConfiguration,
-        private ConfiguratorInterface $serverConfigurator,
+        private readonly HttpServer $server,
+        private readonly HttpServerConfiguration $serverConfiguration,
+        private readonly ConfiguratorInterface $serverConfigurator,
         protected ParameterBagInterface $parameterBag,
-        private BootableInterface $bootManager
+        private readonly BootableInterface $bootManager
     ) {
         parent::__construct();
     }

@@ -11,8 +11,8 @@ use Swoole\Http\Server;
 final class WithTaskFinishedHandler implements ConfiguratorInterface
 {
     public function __construct(
-        private TaskFinishedHandlerInterface $handler,
-        private HttpServerConfiguration $configuration
+        private readonly TaskFinishedHandlerInterface $handler,
+        private readonly HttpServerConfiguration $configuration
     ) {
     }
 

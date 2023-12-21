@@ -20,7 +20,7 @@ final class XdebugHandler
         12 => 'SIGUSR2',
     ];
 
-    public function __construct(private string $allowXdebugEnvName = 'SWOOLE_ALLOW_XDEBUG')
+    public function __construct(private readonly string $allowXdebugEnvName = 'SWOOLE_ALLOW_XDEBUG')
     {
     }
 

@@ -8,7 +8,7 @@ use Swoole\Atomic;
 
 final class AtomicStub extends Atomic
 {
-    public function __construct(private int $value)
+    public function __construct(private readonly int $value)
     {
         parent::__construct(0);
     }

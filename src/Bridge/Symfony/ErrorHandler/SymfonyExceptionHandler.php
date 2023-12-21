@@ -15,10 +15,10 @@ use Symfony\Component\HttpKernel\TerminableInterface;
 final class SymfonyExceptionHandler implements ExceptionHandlerInterface
 {
     public function __construct(
-        private HttpKernelInterface $kernel,
-        private RequestFactoryInterface $requestFactory,
-        private ResponseProcessorInterface $responseProcessor,
-        private ErrorResponder $errorResponder
+        private readonly HttpKernelInterface $kernel,
+        private readonly RequestFactoryInterface $requestFactory,
+        private readonly ResponseProcessorInterface $responseProcessor,
+        private readonly ErrorResponder $errorResponder
     ) {
     }
 

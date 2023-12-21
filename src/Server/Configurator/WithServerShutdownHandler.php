@@ -9,7 +9,7 @@ use Swoole\Http\Server;
 
 final class WithServerShutdownHandler implements ConfiguratorInterface
 {
-    public function __construct(private ServerShutdownHandlerInterface $handler)
+    public function __construct(private readonly ServerShutdownHandlerInterface $handler)
     {
     }
 

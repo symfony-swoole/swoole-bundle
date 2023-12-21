@@ -21,10 +21,10 @@ use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 final class ServerStatusCommand extends Command
 {
     public function __construct(
-        private Sockets $sockets,
-        private ApiServerClientFactory $apiServerClientFactory,
-        private MetricsProvider $metricsProvider,
-        private ParameterBagInterface $parameterBag,
+        private readonly Sockets $sockets,
+        private readonly ApiServerClientFactory $apiServerClientFactory,
+        private readonly MetricsProvider $metricsProvider,
+        private readonly ParameterBagInterface $parameterBag,
     ) {
         parent::__construct();
     }

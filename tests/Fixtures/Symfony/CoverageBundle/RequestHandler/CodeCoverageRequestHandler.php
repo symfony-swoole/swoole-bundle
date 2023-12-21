@@ -12,8 +12,8 @@ use Swoole\Http\Response;
 final class CodeCoverageRequestHandler implements RequestHandlerInterface
 {
     public function __construct(
-        private RequestHandlerInterface $decorated,
-        private CodeCoverageManager $codeCoverageManager
+        private readonly RequestHandlerInterface $decorated,
+        private readonly CodeCoverageManager $codeCoverageManager
     ) {
     }
 

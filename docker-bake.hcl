@@ -1,9 +1,9 @@
 variable "PHP_VERSION" {
-    default = "8.0"
+    default = "8.1"
 }
 
 variable "SWOOLE" {
-    default = "openswoole-4.12.1"
+    default = "openswoole-v22.1.2"
 }
 
 variable "COMPOSER_AUTH" {

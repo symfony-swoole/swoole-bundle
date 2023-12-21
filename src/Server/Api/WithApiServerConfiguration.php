@@ -15,8 +15,8 @@ use Swoole\Http\Server;
 final class WithApiServerConfiguration implements ConfiguratorInterface
 {
     public function __construct(
-        private Sockets $sockets,
-        private RequestHandlerInterface $requestHandler
+        private readonly Sockets $sockets,
+        private readonly RequestHandlerInterface $requestHandler
     ) {
     }
 
@@ -29,7 +29,7 @@ final class WithApiServerConfiguration implements ConfiguratorInterface
         $apiSocketPort = $this->sockets->getApiSocket()->port();
         foreach ($server->ports as $port) {
             if ($port->port === $apiSocketPort) {
-                $port->on('request', [$this->requestHandler, 'handle']);
+                $port->on('request', $this->requestHandler->handle(...));
 
                 return;
             }

@@ -21,15 +21,13 @@ use Monolog\Utils;
 if (version_compare(InstalledVersions::getVersion('monolog/monolog'), '3.0.0') >= 0) {
     class StreamHandler extends AbstractProcessingHandler
     {
-        protected const MAX_CHUNK_SIZE = 2147483647;
+        protected const MAX_CHUNK_SIZE = 2_147_483_647;
         /** 10MB */
         protected const DEFAULT_CHUNK_SIZE = 10 * 1024 * 1024;
         protected int $streamChunkSize;
         /** @var null|resource */
         protected $stream;
         protected string|null $url = null;
-        protected int|null $filePermission;
-        protected bool $useLocking;
         private string|null $errorMessage = null;
         /** @var null|true */
         private bool|null $dirCreated = null;
@@ -43,8 +41,13 @@ if (version_compare(InstalledVersions::getVersion('monolog/monolog'), '3.0.0') >
          *
          * @throws \InvalidArgumentException If stream is not a resource or string
          */
-        public function __construct($stream, int|string|Level $level = Level::Debug, bool $bubble = true, ?int $filePermission = null, bool $useLocking = false)
-        {
+        public function __construct(
+            $stream,
+            int|string|Level $level = Level::Debug,
+            bool $bubble = true,
+            protected int|null $filePermission = null,
+            protected bool $useLocking = false,
+        ) {
             parent::__construct($level, $bubble);
 
             if (($phpMemoryLimit = Utils::expandIniShorthandBytes(ini_get('memory_limit'))) !== false) {
@@ -69,9 +72,6 @@ if (version_compare(InstalledVersions::getVersion('monolog/monolog'), '3.0.0') >
             } else {
                 throw new \InvalidArgumentException('A stream must either be a resource or a string.');
             }
-
-            $this->filePermission = $filePermission;
-            $this->useLocking = $useLocking;
         }
 
         public function close(): void
@@ -130,7 +130,7 @@ if (version_compare(InstalledVersions::getVersion('monolog/monolog'), '3.0.0') >
 
                 try {
                     $this->mutex->acquire();
-                    set_error_handler([$this, 'customErrorHandler']);
+                    set_error_handler($this->customErrorHandler(...));
                     $stream = fopen($url, 'a');
                     if (null !== $this->filePermission) {
                         @chmod($url, $this->filePermission);
@@ -179,7 +179,7 @@ if (version_compare(InstalledVersions::getVersion('monolog/monolog'), '3.0.0') >
                 return dirname($stream);
             }
 
-            if ('file://' === substr($stream, 0, 7)) {
+            if (str_starts_with($stream, 'file://')) {
                 return dirname(substr($stream, 7));
             }
 
@@ -199,14 +199,14 @@ if (version_compare(InstalledVersions::getVersion('monolog/monolog'), '3.0.0') >
 
                 try {
                     $this->mutex->acquire();
-                    set_error_handler([$this, 'customErrorHandler']);
-                    $status = mkdir($dir, 0777, true);
+                    set_error_handler($this->customErrorHandler(...));
+                    $status = mkdir($dir, 0o777, true);
                     restore_error_handler();
                 } finally {
                     $this->mutex->release();
                 }
 
-                if (false === $status && !is_dir($dir) && false === strpos((string) $this->errorMessage, 'File exists')) {
+                if (false === $status && !is_dir($dir) && !str_contains((string) $this->errorMessage, 'File exists')) {
                     throw new \UnexpectedValueException(sprintf('There is no existing directory at "%s" and it could not be created: '.$this->errorMessage, $dir));
                 }
             }
@@ -226,7 +226,7 @@ if (version_compare(InstalledVersions::getVersion('monolog/monolog'), '3.0.0') >
     class StreamHandler extends AbstractProcessingHandler
     {
         /** @const int */
-        protected const MAX_CHUNK_SIZE = 2147483647;
+        protected const MAX_CHUNK_SIZE = 2_147_483_647;
         /** @const int 10MB */
         protected const DEFAULT_CHUNK_SIZE = 10 * 1024 * 1024;
         /** @var int */
@@ -340,7 +340,7 @@ if (version_compare(InstalledVersions::getVersion('monolog/monolog'), '3.0.0') >
 
                 try {
                     $this->mutex->acquire();
-                    set_error_handler([$this, 'customErrorHandler']);
+                    set_error_handler($this->customErrorHandler(...));
                     $stream = fopen($url, 'a');
                     if (null !== $this->filePermission) {
                         @chmod($url, $this->filePermission);
@@ -394,7 +394,7 @@ if (version_compare(InstalledVersions::getVersion('monolog/monolog'), '3.0.0') >
                 return dirname($stream);
             }
 
-            if ('file://' === substr($stream, 0, 7)) {
+            if (str_starts_with($stream, 'file://')) {
                 return dirname(substr($stream, 7));
             }
 
@@ -414,14 +414,14 @@ if (version_compare(InstalledVersions::getVersion('monolog/monolog'), '3.0.0') >
 
                 try {
                     $this->mutex->acquire();
-                    set_error_handler([$this, 'customErrorHandler']);
-                    $status = mkdir($dir, 0777, true);
+                    set_error_handler($this->customErrorHandler(...));
+                    $status = mkdir($dir, 0o777, true);
                     restore_error_handler();
                 } finally {
                     $this->mutex->release();
                 }
 
-                if (false === $status && !is_dir($dir) && false === strpos((string) $this->errorMessage, 'File exists')) {
+                if (false === $status && !is_dir($dir) && !str_contains((string) $this->errorMessage, 'File exists')) {
                     throw new \UnexpectedValueException(sprintf('There is no existing directory at "%s" and it could not be created: '.$this->errorMessage, $dir));
                 }
             }
@@ -517,7 +517,7 @@ if (version_compare(InstalledVersions::getVersion('monolog/monolog'), '3.0.0') >
 
                 try {
                     $this->mutex->acquire();
-                    set_error_handler([$this, 'customErrorHandler']);
+                    set_error_handler($this->customErrorHandler(...));
                     $this->stream = fopen($this->url, 'a');
                     if (null !== $this->filePermission) {
                         @chmod($this->url, $this->filePermission);
@@ -557,7 +557,7 @@ if (version_compare(InstalledVersions::getVersion('monolog/monolog'), '3.0.0') >
 
         private function customErrorHandler($code, $msg): bool
         {
-            $this->errorMessage = preg_replace('{^(fopen|mkdir)\(.*?\): }', '', $msg);
+            $this->errorMessage = preg_replace('{^(fopen|mkdir)\(.*?\): }', '', (string) $msg);
 
             return true;
         }
@@ -569,7 +569,7 @@ if (version_compare(InstalledVersions::getVersion('monolog/monolog'), '3.0.0') >
                 return dirname($stream);
             }
 
-            if ('file://' === substr($stream, 0, 7)) {
+            if (str_starts_with($stream, 'file://')) {
                 return dirname(substr($stream, 7));
             }
 
@@ -589,8 +589,8 @@ if (version_compare(InstalledVersions::getVersion('monolog/monolog'), '3.0.0') >
 
                 try {
                     $this->mutex->acquire();
-                    set_error_handler([$this, 'customErrorHandler']);
-                    $status = mkdir($dir, 0777, true);
+                    set_error_handler($this->customErrorHandler(...));
+                    $status = mkdir($dir, 0o777, true);
                     restore_error_handler();
                 } finally {
                     $this->mutex->release();

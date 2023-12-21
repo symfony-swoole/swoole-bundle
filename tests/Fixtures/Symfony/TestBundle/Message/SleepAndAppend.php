@@ -7,9 +7,9 @@ namespace K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Message;
 final class SleepAndAppend
 {
     public function __construct(
-        private string $fileName,
-        private int $sleepMs,
-        private string $append
+        private readonly string $fileName,
+        private readonly int $sleepMs,
+        private readonly string $append
     ) {
     }
 

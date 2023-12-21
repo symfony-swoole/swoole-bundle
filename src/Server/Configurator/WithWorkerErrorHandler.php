@@ -9,11 +9,8 @@ use Swoole\Http\Server;
 
 final class WithWorkerErrorHandler implements ConfiguratorInterface
 {
-    private $handler;
-
-    public function __construct(WorkerErrorHandlerInterface $handler)
+    public function __construct(private readonly WorkerErrorHandlerInterface $handler)
     {
-        $this->handler = $handler;
     }
 
     public function configure(Server $server): void

@@ -11,8 +11,8 @@ use Swoole\Http\Server;
 final class WithServerStartHandler implements ConfiguratorInterface
 {
     public function __construct(
-        private ServerStartHandlerInterface $handler,
-        private HttpServerConfiguration $configuration
+        private readonly ServerStartHandlerInterface $handler,
+        private readonly HttpServerConfiguration $configuration
     ) {
     }
 

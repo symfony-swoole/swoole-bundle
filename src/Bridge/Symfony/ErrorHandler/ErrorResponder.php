@@ -11,8 +11,8 @@ use Symfony\Component\HttpFoundation\Response;
 final class ErrorResponder
 {
     public function __construct(
-        private ErrorHandler $errorHandler,
-        private ExceptionHandlerFactory $handlerFactory
+        private readonly ErrorHandler $errorHandler,
+        private readonly ExceptionHandlerFactory $handlerFactory
     ) {
     }
 

@@ -466,7 +466,7 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
             $end = microtime(true);
 
             self::assertLessThan(self::coverageEnabled() ? 2 : 1.5, $end - $start);
-            usleep(1200000);
+            usleep(1_200_000);
         });
 
         $container = static::getContainer();

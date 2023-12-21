@@ -8,7 +8,7 @@ use Symfony\Component\HttpKernel\KernelInterface;
 
 final class SimpleKernelPool implements KernelPoolInterface
 {
-    public function __construct(private KernelInterface $kernel)
+    public function __construct(private readonly KernelInterface $kernel)
     {
     }
 

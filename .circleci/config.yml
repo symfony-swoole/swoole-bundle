@@ -3,7 +3,7 @@ version: 2.1
 aliases:
   # Supported lowest PHP version
   - &coverage-php-version
-    php-version: [ '8.0' ]
+    php-version: [ '8.1' ]
 
   # Supported lowest Swoole versions
   - &coverage-swooles
@@ -11,7 +11,7 @@ aliases:
 
   # Supported PHP versions
   - &php-versions
-    php-version: ['8.0', '8.1', '8.2']
+    php-version: ['8.1', '8.2', '8.3']
 
   # Supported Swoole/OpenSwoole versions
   - &swooles
@@ -33,22 +33,6 @@ aliases:
       composer-build: [ 'std', 'lowest', 'latest' ]
     exclude:
       - composer-build: 'std'
-        php-version: '8.0'
-        swoole: 'openswoole-v22.1.2'
-        symfony-version: '6.3.*'
-      - composer-build: 'std'
-        php-version: '8.0'
-        swoole: 'swoole-5.1.1'
-        symfony-version: '6.3.*'
-      - composer-build: 'std'
-        php-version: '8.1'
-        swoole: 'openswoole-v22.1.2'
-        symfony-version: '^5.4.21'
-      - composer-build: 'std'
-        php-version: '8.1'
-        swoole: 'swoole-5.1.1'
-        symfony-version: '^5.4.21'
-      - composer-build: 'std'
         php-version: '8.1'
         swoole: 'openswoole-v22.1.2'
         symfony-version: '6.3.*'
@@ -70,6 +54,22 @@ aliases:
         symfony-version: '6.3.*'
       - composer-build: 'std'
         php-version: '8.2'
+        swoole: 'swoole-5.1.1'
+        symfony-version: '6.3.*'
+      - composer-build: 'std'
+        php-version: '8.3'
+        swoole: 'openswoole-v22.1.2'
+        symfony-version: '^5.4.21'
+      - composer-build: 'std'
+        php-version: '8.3'
+        swoole: 'swoole-5.1.1'
+        symfony-version: '^5.4.21'
+      - composer-build: 'std'
+        php-version: '8.3'
+        swoole: 'openswoole-v22.1.2'
+        symfony-version: '6.3.*'
+      - composer-build: 'std'
+        php-version: '8.3'
         swoole: 'swoole-5.1.1'
         symfony-version: '6.3.*'
 
@@ -93,7 +93,7 @@ aliases:
         only: /pull\/[0-9]+/
 
 orbs:
-  codecov: codecov/codecov@3.2.4
+  codecov: codecov/codecov@3.3.0
 
 executors:
   woole-bundle-docker-client:
@@ -194,7 +194,7 @@ jobs:
       - run:
           name: Docker Buildx Bake all required images
           command: |-
-            if [ "8.0" = "$PHP_VERSION" ]; then
+            if [ "8.1" = "$PHP_VERSION" ]; then
               export MERGE_COVERAGE_TAG="$PHP_VERSION-$CIRCLE_SHA1"
               export SERVICES="ci coverage-xdebug coverage-pcov merge-code-coverage"
             fi
@@ -408,7 +408,7 @@ jobs:
       - codecov/upload:
           file: clover.xml
     docker:
-      - image: docker.io/symfonywithswoole/swoole-bundle-merge-code-coverage:8.0-$CIRCLE_SHA1
+      - image: docker.io/symfonywithswoole/swoole-bundle-merge-code-coverage:8.1-$CIRCLE_SHA1
         auth:
           username: $DOCKER_HUB_USERNAME
           password: $DOCKER_HUB_TOKEN

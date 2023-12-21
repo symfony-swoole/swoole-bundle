@@ -11,8 +11,8 @@ final class ProxyDirectoryHandler
     private bool $proxyDirExists = false;
 
     public function __construct(
-        private Filesystem $fileSystem,
-        private string $proxyDir
+        private readonly Filesystem $fileSystem,
+        private readonly string $proxyDir
     ) {
     }
 

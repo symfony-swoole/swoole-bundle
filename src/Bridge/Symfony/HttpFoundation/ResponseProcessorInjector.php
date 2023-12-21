@@ -10,7 +10,7 @@ use Symfony\Component\HttpFoundation\Response as HttpFoundationResponse;
 
 final class ResponseProcessorInjector implements ResponseProcessorInjectorInterface
 {
-    public function __construct(private ResponseProcessorInterface $responseProcessor)
+    public function __construct(private readonly ResponseProcessorInterface $responseProcessor)
     {
     }
 

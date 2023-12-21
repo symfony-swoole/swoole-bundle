@@ -7,8 +7,8 @@ namespace K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Service;
 final class ShouldBeProxified
 {
     public function __construct(
-        private AlwaysReset $dummy,
-        private AlwaysResetSafe $safeDummy
+        private readonly AlwaysReset $dummy,
+        private readonly AlwaysResetSafe $safeDummy
     ) {
     }
 

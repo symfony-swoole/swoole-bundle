@@ -17,7 +17,7 @@ final class Configuration implements ConfigurationInterface
 
     private const CONFIG_NAME = 'swoole';
 
-    public function __construct(private TreeBuilder $builder)
+    public function __construct(private readonly TreeBuilder $builder)
     {
     }
 
@@ -86,13 +86,11 @@ final class Configuration implements ConfigurationInterface
                             ->addDefaultsIfNotSet()
                             ->beforeNormalization()
                                 ->ifTrue(fn ($v): bool => \is_string($v) || \is_bool($v) || is_numeric($v) || null === $v)
-                                ->then(function ($v): array {
-                                    return [
-                                        'enabled' => (bool) $v,
-                                        'host' => '0.0.0.0',
-                                        'port' => 9200,
-                                    ];
-                                })
+                                ->then(fn ($v): array => [
+                                    'enabled' => (bool) $v,
+                                    'host' => '0.0.0.0',
+                                    'port' => 9200,
+                                ])
                             ->end()
                             ->children()
                                 ->booleanNode('enabled')
@@ -112,13 +110,11 @@ final class Configuration implements ConfigurationInterface
                             ->addDefaultsIfNotSet()
                             ->beforeNormalization()
                                 ->ifString()
-                                ->then(function ($v): array {
-                                    return [
-                                        'strategy' => $v,
-                                        'public_dir' => 'off' === $v ? null : self::DEFAULT_PUBLIC_DIR,
-                                        'mime_types' => [],
-                                    ];
-                                })
+                                ->then(fn ($v): array => [
+                                    'strategy' => $v,
+                                    'public_dir' => 'off' === $v ? null : self::DEFAULT_PUBLIC_DIR,
+                                    'mime_types' => [],
+                                ])
                             ->end()
                             ->children()
                                 ->enumNode('strategy')
@@ -157,13 +153,11 @@ final class Configuration implements ConfigurationInterface
                             ->addDefaultsIfNotSet()
                             ->beforeNormalization()
                                 ->ifString()
-                                ->then(function ($v): array {
-                                    return [
-                                        'type' => $v,
-                                        'verbosity' => 'auto',
-                                        'handler_id' => null,
-                                    ];
-                                })
+                                ->then(fn ($v): array => [
+                                    'type' => $v,
+                                    'verbosity' => 'auto',
+                                    'handler_id' => null,
+                                ])
                             ->end()
                             ->children()
                                 ->enumNode('type')
@@ -265,10 +259,10 @@ final class Configuration implements ConfigurationInterface
                                     ->defaultNull()
                                 ->end()
                                 ->scalarNode('buffer_output_size')
-                                    ->defaultValue(2097152)
+                                    ->defaultValue(2_097_152)
                                 ->end()
                                 ->scalarNode('package_max_length')
-                                    ->defaultValue(8388608)
+                                    ->defaultValue(8_388_608)
                                 ->end()
                                 ->scalarNode('worker_count')
                                     ->defaultValue(1)

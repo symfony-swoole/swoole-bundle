@@ -53,7 +53,7 @@ final class FirstTimeOnlyMutexTest extends TestCase
 
                 try {
                     self::assertSame(-2, $i);
-                } catch (\Throwable $e) {
+                } catch (\Throwable) {
                     $failureOccurred = true;
                 }
 
@@ -72,7 +72,7 @@ final class FirstTimeOnlyMutexTest extends TestCase
 
                 try {
                     self::assertSame(-3, $i);
-                } catch (\Throwable $e) {
+                } catch (\Throwable) {
                     $failureOccurred = true;
                 }
 

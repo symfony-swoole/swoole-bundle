@@ -10,8 +10,8 @@ use Symfony\Component\HttpKernel\HttpKernelInterface;
 final class ExceptionHandlerFactory
 {
     public function __construct(
-        private HttpKernelInterface $kernel,
-        private \ReflectionMethod $throwableHandler
+        private readonly HttpKernelInterface $kernel,
+        private readonly \ReflectionMethod $throwableHandler
     ) {
     }
 

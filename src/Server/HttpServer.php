@@ -30,7 +30,7 @@ final class HttpServer
     private $signalKill;
 
     public function __construct(
-        private HttpServerConfiguration $configuration,
+        private readonly HttpServerConfiguration $configuration,
         private bool $running = false
     ) {
         $this->signalTerminate = \defined('SIGTERM') ? (int) \constant('SIGTERM') : 15;

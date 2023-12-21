@@ -32,7 +32,7 @@ class TestAppKernel extends Kernel
 
     private const CONFIG_EXTENSIONS = '.{php,xml,yaml,yml}';
 
-    private ?string $overrideProdEnv;
+    private readonly ?string $overrideProdEnv;
 
     private ?TestCacheKernel $cacheKernel = null;
 

@@ -10,7 +10,7 @@ use K911\Swoole\Server\Config\Sockets;
 
 final class ApiServerClientFactory
 {
-    public function __construct(private Sockets $sockets)
+    public function __construct(private readonly Sockets $sockets)
     {
     }
 

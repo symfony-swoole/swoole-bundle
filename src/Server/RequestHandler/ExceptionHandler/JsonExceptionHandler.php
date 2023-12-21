@@ -12,8 +12,8 @@ use Swoole\Http\Response;
 final class JsonExceptionHandler implements ExceptionHandlerInterface
 {
     public function __construct(
-        private ExceptionArrayTransformer $exceptionArrayTransformer,
-        private string $verbosity = 'default'
+        private readonly ExceptionArrayTransformer $exceptionArrayTransformer,
+        private readonly string $verbosity = 'default'
     ) {
     }
 

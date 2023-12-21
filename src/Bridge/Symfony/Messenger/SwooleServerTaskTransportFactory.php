@@ -11,7 +11,7 @@ use Symfony\Component\Messenger\Transport\TransportInterface;
 
 final class SwooleServerTaskTransportFactory implements TransportFactoryInterface
 {
-    public function __construct(private HttpServer $server)
+    public function __construct(private readonly HttpServer $server)
     {
     }
 

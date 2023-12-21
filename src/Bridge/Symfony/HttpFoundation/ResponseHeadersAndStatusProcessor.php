@@ -9,7 +9,7 @@ use Symfony\Component\HttpFoundation\Response as HttpFoundationResponse;
 
 final class ResponseHeadersAndStatusProcessor implements ResponseProcessorInterface
 {
-    public function __construct(private ResponseProcessorInterface $decorated)
+    public function __construct(private readonly ResponseProcessorInterface $decorated)
     {
     }
 

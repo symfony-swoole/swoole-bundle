@@ -19,11 +19,11 @@ final class DoctrineController
      * @param array<string, CountingResetter> $resetters
      */
     public function __construct(
-        private DummyService $dummyService,
-        private AdvancedDoctrineUsage $advancedUsage,
-        private ResetCountingRegistry $registry,
-        private array $resetters = [],
-        private ?DebugDataHolder $dataHolder = null
+        private readonly DummyService $dummyService,
+        private readonly AdvancedDoctrineUsage $advancedUsage,
+        private readonly ResetCountingRegistry $registry,
+        private readonly array $resetters = [],
+        private readonly ?DebugDataHolder $dataHolder = null
     ) {
     }
 

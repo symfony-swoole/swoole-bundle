@@ -12,8 +12,8 @@ use Symfony\Component\HttpKernel\KernelEvents;
 class AccessLogOnKernelTerminate implements EventSubscriberInterface
 {
     public function __construct(
-        private LoggerInterface $accessLogLogger,
-        private AccessLogFormatterInterface $formatter,
+        private readonly LoggerInterface $accessLogLogger,
+        private readonly AccessLogFormatterInterface $formatter,
     ) {
     }
 

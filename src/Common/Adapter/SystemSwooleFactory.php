@@ -17,7 +17,7 @@ final class SystemSwooleFactory implements SwooleFactory
      * @param \Traversable<string, SwooleFactory> $adapterFactories
      */
     public function __construct(
-        private System $system,
+        private readonly System $system,
         \Traversable $adapterFactories,
     ) {
         $this->adapterFactories = \iterator_to_array($adapterFactories);

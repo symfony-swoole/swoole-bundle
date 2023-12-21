@@ -19,8 +19,11 @@ class AccessLogDataMap
     /**
      * @param bool $useHostnameLookups whether or not to do a hostname lookup when retrieving the remote host name
      */
-    public function __construct(private Request $request, private Response $response, private bool $useHostnameLookups = false)
-    {
+    public function __construct(
+        private readonly Request $request,
+        private readonly Response $response,
+        private readonly bool $useHostnameLookups = false
+    ) {
         $this->endTime = \microtime(true);
     }
 

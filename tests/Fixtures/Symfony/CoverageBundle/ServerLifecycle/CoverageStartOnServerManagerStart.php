@@ -12,8 +12,8 @@ use Swoole\Server;
 final class CoverageStartOnServerManagerStart implements ServerManagerStartHandlerInterface
 {
     public function __construct(
-        private CodeCoverageManager $codeCoverageManager,
-        private ?ServerManagerStartHandlerInterface $decorated = null
+        private readonly CodeCoverageManager $codeCoverageManager,
+        private readonly ?ServerManagerStartHandlerInterface $decorated = null
     ) {
     }
 

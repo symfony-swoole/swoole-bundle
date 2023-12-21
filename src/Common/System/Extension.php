@@ -10,7 +10,7 @@ final class Extension
     public const SWOOLE = 'swoole';
 
     private function __construct(
-        private string $extension,
+        private readonly string $extension,
     ) {
     }
 

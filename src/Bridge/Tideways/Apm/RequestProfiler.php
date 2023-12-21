@@ -10,10 +10,10 @@ use Tideways\Profiler;
 
 final class RequestProfiler
 {
-    private string $serviceName;
+    private readonly string $serviceName;
 
     public function __construct(
-        private RequestDataProvider $dataProvider,
+        private readonly RequestDataProvider $dataProvider,
         string $serviceName = 'web'
     ) {
         $serviceName = trim($serviceName);

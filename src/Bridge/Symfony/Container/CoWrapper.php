@@ -11,7 +11,7 @@ final class CoWrapper
 {
     private static ?self $instance;
 
-    public function __construct(private ServicePoolContainer $servicePoolContainer)
+    public function __construct(private readonly ServicePoolContainer $servicePoolContainer)
     {
         self::$instance = $this;
     }

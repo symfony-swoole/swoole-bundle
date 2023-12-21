@@ -29,7 +29,7 @@ final class ThrowableController
      *     path="/throwable/exception"
      * )
      */
-    public function exception(): void
+    public function exception(): never
     {
         throw new \RuntimeException('An exception has occurred', 5000);
     }

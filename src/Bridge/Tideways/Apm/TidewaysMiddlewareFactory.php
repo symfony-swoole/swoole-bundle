@@ -8,7 +8,7 @@ use K911\Swoole\Server\Middleware\MiddlewareFactory;
 
 final class TidewaysMiddlewareFactory implements MiddlewareFactory
 {
-    public function __construct(private RequestProfiler $profiler)
+    public function __construct(private readonly RequestProfiler $profiler)
     {
     }
 

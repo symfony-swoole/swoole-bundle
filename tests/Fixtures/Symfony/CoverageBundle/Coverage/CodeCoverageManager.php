@@ -11,19 +11,19 @@ use Symfony\Contracts\Service\ResetInterface;
 
 class CodeCoverageManager implements ResetInterface
 {
-    private string $testName;
+    private readonly string $testName;
 
-    private string $coveragePath;
+    private readonly string $coveragePath;
 
-    private bool $enabled;
+    private readonly bool $enabled;
 
     private $finished = false;
     private $started = false;
 
     public function __construct(
         ParameterBagInterface $parameterBag,
-        private CodeCoverage $codeCoverage,
-        private PHP $writer
+        private readonly CodeCoverage $codeCoverage,
+        private readonly PHP $writer
     ) {
         $this->enabled = $parameterBag->get('coverage.enabled');
 

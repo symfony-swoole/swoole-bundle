@@ -13,7 +13,7 @@ final class CoroutineKernelPool implements KernelPoolInterface
      */
     private array $kernels = [];
 
-    public function __construct(private KernelInterface $kernel)
+    public function __construct(private readonly KernelInterface $kernel)
     {
     }
 

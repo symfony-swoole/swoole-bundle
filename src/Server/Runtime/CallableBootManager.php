@@ -14,8 +14,10 @@ final class CallableBootManager implements BootableInterface
     /**
      * @param iterable<callable> $bootables
      */
-    public function __construct(private iterable $bootables, private bool $booted = false)
-    {
+    public function __construct(
+        private readonly iterable $bootables,
+        private bool $booted = false,
+    ) {
     }
 
     /**

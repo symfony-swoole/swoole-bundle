@@ -11,8 +11,8 @@ use PixelFederation\DoctrineResettableEmBundle\DBAL\Connection\DBALAliveKeeper;
 final class ConnectionKeepAliveResetter implements Resetter
 {
     public function __construct(
-        private DBALAliveKeeper $aliveKeeper,
-        private string $connectionName
+        private readonly DBALAliveKeeper $aliveKeeper,
+        private readonly string $connectionName
     ) {
     }
 

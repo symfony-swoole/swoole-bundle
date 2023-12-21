@@ -9,7 +9,7 @@ use Swoole\Http\Server;
 
 final class WithHttpServerConfiguration implements ConfiguratorInterface
 {
-    public function __construct(private HttpServerConfiguration $configuration)
+    public function __construct(private readonly HttpServerConfiguration $configuration)
     {
     }
 

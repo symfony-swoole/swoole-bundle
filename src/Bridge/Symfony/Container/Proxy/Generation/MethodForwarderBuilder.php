@@ -12,11 +12,9 @@ final class MethodForwarderBuilder
 {
     public function buildMethodInterceptor(ServicePoolProperty $servicePoolHolderProperty): callable
     {
-        return static function (\ReflectionMethod $method) use ($servicePoolHolderProperty): ForwardedMethod {
-            return ForwardedMethod::generateMethod(
-                new MethodReflection($method->getDeclaringClass()->getName(), $method->getName()),
-                $servicePoolHolderProperty
-            );
-        };
+        return static fn (\ReflectionMethod $method): ForwardedMethod => ForwardedMethod::generateMethod(
+            new MethodReflection($method->getDeclaringClass()->getName(), $method->getName()),
+            $servicePoolHolderProperty
+        );
     }
 }

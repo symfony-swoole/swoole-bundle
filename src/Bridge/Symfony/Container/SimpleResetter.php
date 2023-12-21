@@ -6,7 +6,7 @@ namespace K911\Swoole\Bridge\Symfony\Container;
 
 final class SimpleResetter implements Resetter
 {
-    public function __construct(private string $resetFn)
+    public function __construct(private readonly string $resetFn)
     {
     }
 
