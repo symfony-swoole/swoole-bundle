@@ -1,3 +1,11 @@
+# [0.19.0](https://github.com/openswoole-bundle/openswoole-bundle/compare/v0.18.0...v0.19.0) (2023-12-22)
+
+[Full changelog](https://github.com/symfony-swoole/swoole-bundle/compare/v0.18.0...v0.19.0)
+
+### Features
+
+* **php:** added support for PHP 8.3, removed support for PHP 8.0 ([3be4865](https://github.com/openswoole-bundle/openswoole-bundle/commit/3be4865f439cf0a5c5502146f47b0a66b5fce723))
+
 # [0.18.0](https://github.com/openswoole-bundle/openswoole-bundle/compare/v0.17.0...v0.18.0) (2023-12-17)
 
 [Full changelog](https://github.com/symfony-swoole/swoole-bundle/compare/v0.17.0...v0.18.0)
