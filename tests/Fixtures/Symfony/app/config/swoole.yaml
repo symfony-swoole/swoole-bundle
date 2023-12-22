@@ -1,7 +1,7 @@
 parameters:
   env(PORT): 9501
   env(HOST): 0.0.0.0
-  env(TRUSTED_HOSTS): localhost,127.0.0.1,cli-80-openswoole-22.1.2.swoole-bundle.orb.local,cli-80-swoole-5.1.0.swoole-bundle.orb.local
+  env(TRUSTED_HOSTS): localhost,127.0.0.1,cli-81-openswoole-22.1.2.swoole-bundle.orb.local,cli-80-swoole-5.1.1.swoole-bundle.orb.local
   env(TRUSTED_PROXIES): '*,192.168.0.0/16'
   env(WORKER_COUNT): 6
   env(REACTOR_COUNT): 3

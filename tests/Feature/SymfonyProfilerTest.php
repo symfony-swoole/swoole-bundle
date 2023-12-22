@@ -11,8 +11,6 @@ final class SymfonyProfilerTest extends ServerTestCase
 {
     protected function setUp(): void
     {
-        // problem with messenger support in symfony profiler in symfony 4.3
-        $this->markTestSkippedIfSymfonyVersionIsLoverThan('4.4.0');
         $this->markTestSkippedIfXdebugEnabled();
         $this->deleteVarDirectory();
     }
@@ -40,7 +38,10 @@ final class SymfonyProfilerTest extends ServerTestCase
 
             $profilerResponse = $client->send('/_wdt/'.$debugToken)['response'];
 
-            $this->assertStringContainsString('sf-toolbar-block-logger sf-toolbar-status-red', $profilerResponse['body']);
+            $this->assertMatchesRegularExpression(
+                '/<div id="sfMiniToolbar-[^"]+" class="sf-minitoolbar"/',
+                $profilerResponse['body']
+            );
         });
 
         $serverRun->stop();
