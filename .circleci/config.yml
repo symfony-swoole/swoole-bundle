@@ -29,17 +29,17 @@ aliases:
     parameters:
       <<: *php-versions
       <<: *swooles
-      symfony-version: [ '^5.4.21', '6.3.*' ]
+      symfony-version: [ '^5.4.21', '6.4.*' ]
       composer-build: [ 'std', 'lowest', 'latest' ]
     exclude:
       - composer-build: 'std'
         php-version: '8.1'
         swoole: 'openswoole-v22.1.2'
-        symfony-version: '6.3.*'
+        symfony-version: '6.4.*'
       - composer-build: 'std'
         php-version: '8.1'
         swoole: 'swoole-5.1.1'
-        symfony-version: '6.3.*'
+        symfony-version: '6.4.*'
       - composer-build: 'std'
         php-version: '8.2'
         swoole: 'openswoole-v22.1.2'
@@ -51,11 +51,11 @@ aliases:
       - composer-build: 'std'
         php-version: '8.2'
         swoole: 'openswoole-v22.1.2'
-        symfony-version: '6.3.*'
+        symfony-version: '6.4.*'
       - composer-build: 'std'
         php-version: '8.2'
         swoole: 'swoole-5.1.1'
-        symfony-version: '6.3.*'
+        symfony-version: '6.4.*'
       - composer-build: 'std'
         php-version: '8.3'
         swoole: 'openswoole-v22.1.2'
@@ -67,11 +67,11 @@ aliases:
       - composer-build: 'std'
         php-version: '8.3'
         swoole: 'openswoole-v22.1.2'
-        symfony-version: '6.3.*'
+        symfony-version: '6.4.*'
       - composer-build: 'std'
         php-version: '8.3'
         swoole: 'swoole-5.1.1'
-        symfony-version: '6.3.*'
+        symfony-version: '6.4.*'
 
   # Remote Docker config
   - &docker-remote-version
