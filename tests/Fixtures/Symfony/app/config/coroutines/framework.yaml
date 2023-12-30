@@ -5,7 +5,6 @@ framework:
 
   messenger:
     enabled: true
-    reset_on_message: true # do not forget this or an equivalent! :)
     transports:
       swoole: swoole://task
     routing:

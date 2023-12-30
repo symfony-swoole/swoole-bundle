@@ -8,20 +8,14 @@ use K911\Swoole\Component\Locking\Channel\ChannelMutexFactory;
 use K911\Swoole\Component\Locking\RecursiveOwner\RecursiveOwnerMutex;
 use K911\Swoole\Component\Locking\RecursiveOwner\RecursiveOwnerMutexFactory;
 use Symfony\Component\DependencyInjection\Container;
-use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 
 class BlockingContainer extends Container
 {
     protected static RecursiveOwnerMutex $mutex;
 
+    protected static bool $isMutexInitialized = false;
+
     protected static string $buildContainerNs = '';
-
-    public function __construct(ParameterBagInterface $parameterBag = null)
-    {
-        self::$mutex = (new RecursiveOwnerMutexFactory(new ChannelMutexFactory()))->newMutex();
-
-        parent::__construct($parameterBag);
-    }
 
     public function get(string $id, int $invalidBehavior = self::EXCEPTION_ON_INVALID_REFERENCE): ?object
     {
@@ -38,5 +32,15 @@ class BlockingContainer extends Container
     public static function setBuildContainerNs(string $buildContainerNs): void
     {
         self::$buildContainerNs = $buildContainerNs;
+    }
+
+    public static function initializeMutex(): void
+    {
+        if (self::$isMutexInitialized) {
+            return;
+        }
+
+        self::$mutex = (new RecursiveOwnerMutexFactory(new ChannelMutexFactory()))->newMutex();
+        self::$isMutexInitialized = true;
     }
 }

@@ -6,6 +6,7 @@ namespace K911\Swoole\Bridge\Symfony\Bundle;
 
 use K911\Swoole\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\BlackfireMonitoringPass;
 use K911\Swoole\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\DebugLogProcessorPass;
+use K911\Swoole\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\ExceptionHandlerPass;
 use K911\Swoole\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\FinalizeDefinitionsAfterRemovalPass;
 use K911\Swoole\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\MessengerTransportFactoryPass;
 use K911\Swoole\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\SessionStorageListenerPass;
@@ -24,6 +25,7 @@ final class SwooleBundle extends Bundle
         $container->addCompilerPass(new StreamedResponseListenerPass());
         $container->addCompilerPass(new SessionStorageListenerPass());
         $container->addCompilerPass(new MessengerTransportFactoryPass());
+        $container->addCompilerPass(new ExceptionHandlerPass());
         $container->addCompilerPass(new StatefulServicesPass(), PassConfig::TYPE_BEFORE_REMOVING, -10000);
         $container->addCompilerPass(new FinalizeDefinitionsAfterRemovalPass(), PassConfig::TYPE_AFTER_REMOVING, -10000);
     }

@@ -8,18 +8,20 @@ use K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Message\CreateFileMessage;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Messenger\MessageBusInterface;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Annotation\Route as RouteAnnotation;
+use Symfony\Component\Routing\Attribute\Route;
 
 final class TaskController
 {
     /**
-     * @Route(
+     * @RouteAnnotation(
      *     methods={"GET","POST"},
      *     path="/message/dispatch"
      * )
      *
      * @throws \Exception
      */
+    #[Route(path: '/message/dispatch', methods: ['GET', 'POST'])]
     public function dispatchMessage(MessageBusInterface $bus, Request $request): Response
     {
         $fileName = $request->get('fileName', 'test-default-file.txt');

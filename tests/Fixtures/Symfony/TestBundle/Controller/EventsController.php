@@ -6,7 +6,8 @@ namespace K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Controller;
 
 use K911\Swoole\Tests\Fixtures\Symfony\TestBundle\EventHandler\LifecycleEventsEventHandler;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Annotation\Route as RouteAnnotation;
+use Symfony\Component\Routing\Attribute\Route;
 
 final class EventsController
 {
@@ -15,11 +16,12 @@ final class EventsController
     }
 
     /**
-     * @Route(
+     * @RouteAnnotation(
      *     methods={"GET"},
      *     path="/list-events"
      * )
      */
+    #[Route(path: '/list-events', methods: ['GET'])]
     public function listEvents(): JsonResponse
     {
         return new JsonResponse(

@@ -23,4 +23,5 @@ parameters:
 
         # Symfony configuration files
         - '#Variable \$container might not be defined#'
+        - '#Attribute class Symfony\\Component\\Routing\\Attribute\\Route does not exist\.#'
     tmpDir: /tmp/phpstan_tests

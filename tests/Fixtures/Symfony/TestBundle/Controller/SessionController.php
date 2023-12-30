@@ -6,17 +6,21 @@ namespace K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Controller;
 
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Annotation\Route as RouteAnnotation;
+use Symfony\Component\Routing\Attribute\Route;
 
 final class SessionController
 {
     /**
-     * @Route(methods={"GET"}, path="/session")
-     * @Route(methods={"GET"}, path="/session/1")
-     * @Route(methods={"GET"}, path="/session/2")
+     * @RouteAnnotation(methods={"GET"}, path="/session")
+     * @RouteAnnotation(methods={"GET"}, path="/session/1")
+     * @RouteAnnotation(methods={"GET"}, path="/session/2")
      *
      * @throws \Exception
      */
+    #[Route(path: '/session', methods: ['GET'])]
+    #[Route(path: '/session/1', methods: ['GET'])]
+    #[Route(path: '/session/2', methods: ['GET'])]
     public function index(SessionInterface $session): JsonResponse
     {
         if (!$session->has('luckyNumber')) {

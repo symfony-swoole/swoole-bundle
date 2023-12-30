@@ -55,9 +55,11 @@ class TestAppKernel extends Kernel
             $this->profilerEnabled = true;
         }
 
+        $enableSessionCache = false;
+
         if ('_http_cache' === \mb_substr($environment, -11, 11)) {
             $environment = \mb_substr($environment, 0, -11);
-            $this->cacheKernel = new TestCacheKernel($this);
+            $enableSessionCache = true;
         }
 
         if (null !== $overrideProdEnv) {
@@ -67,6 +69,10 @@ class TestAppKernel extends Kernel
         $this->overrideProdEnv = $overrideProdEnv;
 
         parent::__construct($environment, $debug);
+
+        if ($enableSessionCache) {
+            $this->cacheKernel = new TestCacheKernel($this);
+        }
     }
 
     public function getCacheDir(): string
@@ -140,7 +146,13 @@ class TestAppKernel extends Kernel
      */
     protected function configureRoutes($routes): void
     {
-        $routes->import($this->getProjectDir().'/routing.yml');
+        $routingFile = 'routing.yaml';
+
+        if (self::MAJOR_VERSION === 5) {
+            $routingFile = 'routing_54.yaml';
+        }
+
+        $routes->import($this->getProjectDir().'/'.$routingFile);
 
         $envRoutingFile = $this->getProjectDir().'/config/'.$this->environment.'/routing/routing.yaml';
 

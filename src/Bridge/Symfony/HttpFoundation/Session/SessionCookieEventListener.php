@@ -123,7 +123,7 @@ final class SessionCookieEventListener implements EventSubscriberInterface
             0 === $this->sessionCookieParameters['lifetime'] ? 0 : \time() + $this->sessionCookieParameters['lifetime'],
             $this->sessionCookieParameters['path'],
             $this->sessionCookieParameters['domain'],
-            $this->sessionCookieParameters['secure'],
+            (bool) $this->sessionCookieParameters['secure'],
             $this->sessionCookieParameters['httponly'],
             false,
             $this->sessionCookieParameters['samesite']

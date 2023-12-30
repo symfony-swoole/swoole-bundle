@@ -9,18 +9,20 @@ use K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Message\SleepAndAppend;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Messenger\MessageBusInterface;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Annotation\Route as RouteAnnotation;
+use Symfony\Component\Routing\Attribute\Route;
 
 final class CoroutinesTaskController
 {
     /**
-     * @Route(
+     * @RouteAnnotation(
      *     methods={"GET","POST"},
      *     path="/coroutines/message/sleep-and-append"
      * )
      *
      * @throws \Exception
      */
+    #[Route(path: '/coroutines/message/sleep-and-append', methods: ['GET', 'POST'])]
     public function dispatchSleepAndAppendMessage(MessageBusInterface $bus, Request $request): Response
     {
         $fileName = $request->get('fileName', 'test-default-file.txt');
@@ -33,13 +35,14 @@ final class CoroutinesTaskController
     }
 
     /**
-     * @Route(
+     * @RouteAnnotation(
      *     methods={"GET","POST"},
      *     path="/coroutines/message/run-dummy"
      * )
      *
      * @throws \Exception
      */
+    #[Route(methods: ['GET', 'POST'], path: '/coroutines/message/run-dummy')]
     public function dispatchRunDummyMessage(MessageBusInterface $bus): Response
     {
         $message = new RunDummy();
