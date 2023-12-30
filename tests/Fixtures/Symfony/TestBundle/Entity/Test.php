@@ -7,25 +7,16 @@ namespace K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Entity;
 use Doctrine\ORM\Mapping as ORM;
 use Ramsey\Uuid\UuidInterface;
 
-/**
- * @ORM\Entity()
- *
- * @ORM\Table(name="test")
- */
+#[ORM\Table(name: 'test')]
+#[ORM\Entity]
 class Test
 {
-    /**
-     * @ORM\Id()
-     *
-     * @ORM\Column(type="integer")
-     *
-     * @ORM\GeneratedValue
-     */
+    #[ORM\Id]
+    #[ORM\Column(type: 'integer')]
+    #[ORM\GeneratedValue]
     private int $id;
 
-    /**
-     * @ORM\Column(type="guid")
-     */
+    #[ORM\Column(type: 'guid')]
     private string $uuid;
 
     public function __construct(UuidInterface $uuid)

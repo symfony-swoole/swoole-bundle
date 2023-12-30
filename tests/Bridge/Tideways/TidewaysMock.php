@@ -4,7 +4,7 @@
 // (e.g. in CI pipelines)
 
 namespace {
-    if (class_exists(\Tideways\Profiler::class)) {
+    if (class_exists(Tideways\Profiler::class)) {
         return;
     }
 }
@@ -139,7 +139,7 @@ namespace Tideways {
 
         public static function createSpan(string $category): Profiler\Span
         {
-            return new \Tideways\Profiler\Span();
+            return new Profiler\Span();
         }
 
         public static function generateServerTimingHeaderValue(): string

@@ -11,7 +11,8 @@ use K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Service\NoAutowiring\ResetCoun
 use Symfony\Bridge\Doctrine\Middleware\Debug\DebugDataHolder;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Annotation\Route as RouteAnnotation;
+use Symfony\Component\Routing\Attribute\Route;
 
 final class DoctrineController
 {
@@ -28,11 +29,12 @@ final class DoctrineController
     }
 
     /**
-     * @Route(
+     * @RouteAnnotation(
      *     methods={"GET"},
      *     path="/doctrine"
      * )
      */
+    #[Route(path: '/doctrine', methods: ['GET'])]
     public function index(): Response
     {
         $tests = $this->dummyService->process();
@@ -49,11 +51,12 @@ final class DoctrineController
     }
 
     /**
-     * @Route(
+     * @RouteAnnotation(
      *     methods={"GET"},
      *     path="/doctrine-advanced"
      * )
      */
+    #[Route(path: '/doctrine-advanced', methods: ['GET'])]
     public function advancedUsage(): JsonResponse
     {
         $incr = $this->advancedUsage->run();
@@ -66,22 +69,24 @@ final class DoctrineController
     }
 
     /**
-     * @Route(
+     * @RouteAnnotation(
      *     methods={"GET"},
      *     path="/doctrine-queries"
      * )
      */
+    #[Route(path: '/doctrine-queries', methods: ['GET'])]
     public function queries(): JsonResponse
     {
         return new JsonResponse($this->dataHolder->getData()['default']);
     }
 
     /**
-     * @Route(
+     * @RouteAnnotation(
      *     methods={"GET"},
      *     path="/doctrine-resets"
      * )
      */
+    #[Route(path: '/doctrine-resets', methods: ['GET'])]
     public function pings(): JsonResponse
     {
         $data = array_map(fn (CountingResetter $resetter): int => $resetter->getCounter(), $this->resetters);

@@ -6,18 +6,20 @@ namespace K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Controller;
 
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Annotation\Route as RouteAnnotation;
+use Symfony\Component\Routing\Attribute\Route;
 
 final class BlackfireController
 {
     /**
-     * @Route(
+     * @RouteAnnotation(
      *     methods={"GET"},
      *     path="/blackfire/index"
      * )
      *
      * @throws \Exception
      */
+    #[Route(path: '/blackfire/index', methods: ['GET'])]
     public function indexAction(): Response
     {
         return new JsonResponse([

@@ -6,16 +6,18 @@ namespace K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Controller;
 
 use K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Logging\InMemoryLogger;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Annotation\Route as RouteAnnotation;
+use Symfony\Component\Routing\Attribute\Route;
 
 final class LogController
 {
     /**
-     * @Route(
+     * @RouteAnnotation(
      *     methods={"GET"},
      *     path="/logs"
      * )
      */
+    #[Route(path: '/logs', methods: ['GET'])]
     public function getLogs(): Response
     {
         return new Response(implode(PHP_EOL, InMemoryLogger::getAndClear()), 200);

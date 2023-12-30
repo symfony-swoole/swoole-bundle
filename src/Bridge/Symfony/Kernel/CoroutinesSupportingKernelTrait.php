@@ -37,6 +37,7 @@ trait CoroutinesSupportingKernelTrait
     {
         FinalClassModifier::initialize($this->getCacheDir());
         $cacheDir = $this->getCacheDir();
+        BlockingContainer::initializeMutex();
 
         parent::initializeContainer();
 

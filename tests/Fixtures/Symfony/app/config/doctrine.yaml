@@ -25,7 +25,7 @@ doctrine:
         mappings:
           App:
             is_bundle: false
-            type: annotation
+            type: attribute
             # this is fake just for the sake of running the tests independent of doctrine relation
             dir: '%kernel.project_dir%/../TestBundle/Resources/mapping'
             prefix: 'K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Entity'

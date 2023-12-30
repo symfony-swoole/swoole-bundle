@@ -6,7 +6,8 @@ namespace K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Controller;
 
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Annotation\Route as RouteAnnotation;
+use Symfony\Component\Routing\Attribute\Route;
 use Twig\Environment;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
@@ -21,13 +22,14 @@ class TwigController
     }
 
     /**
-     * @Route("/twig")
+     * @RouteAnnotation("/twig")
      *
      * @throws \InvalidArgumentException
      * @throws LoaderError
      * @throws RuntimeError
      * @throws SyntaxError
      */
+    #[Route(path: '/twig')]
     public function indexAction(): Response
     {
         $this->logger->error('Profiler logging test.');
