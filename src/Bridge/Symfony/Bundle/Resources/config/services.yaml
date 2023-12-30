@@ -83,8 +83,6 @@ services:
 
   K911\Swoole\Server\RequestHandler\LimitedRequestHandler:
 
-  K911\Swoole\Server\LifecycleHandler\SigIntHandler:
-
   K911\Swoole\Server\Runtime\CallableBootManagerFactory:
 
   K911\Swoole\Server\Session\SwooleTableStorage:
@@ -237,7 +235,7 @@ services:
     class: K911\Swoole\Server\Configurator\WithServerStartHandler
     autoconfigure: false
     arguments:
-      $handler: '@K911\Swoole\Server\LifecycleHandler\SigIntHandler'
+      $handler: '@K911\Swoole\Bridge\Symfony\Bundle\EventDispatcher\EventDispatchingServerStartHandler'
 
   K911\Swoole\Bridge\Symfony\Container\Proxy\ProxyDirectoryHandler:
     arguments:
