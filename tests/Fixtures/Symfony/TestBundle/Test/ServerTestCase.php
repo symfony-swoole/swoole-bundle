@@ -86,6 +86,14 @@ class ServerTestCase extends KernelTestCase
         }
     }
 
+    public function killProcessUsingSignal(int $pid, int $signal = \SIGTERM, int $timeout = 1): void
+    {
+        $kill = new Process(['kill', \sprintf('-%d', $signal), $pid]);
+        $kill->setTimeout($timeout);
+        $kill->disableOutput();
+        $kill->run();
+    }
+
     public function assertProcessSucceeded(Process $process): void
     {
         $status = $process->isSuccessful();

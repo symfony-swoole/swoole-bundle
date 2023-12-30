@@ -19,11 +19,11 @@ use K911\Swoole\Server\HttpServerConfiguration;
 use K911\Swoole\Server\HttpServerFactory;
 use K911\Swoole\Server\Runtime\BootableInterface;
 use Swoole\Http\Server;
+use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Console\SignalRegistry\SignalRegistry;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 
@@ -46,6 +46,20 @@ abstract class AbstractServerStartCommand extends Command
     public function enableTestMode(): void
     {
         $this->testing = true;
+    }
+
+    /**
+     * Disables default POSIX signal handling on application assigning. Swoole doesn't support it.
+     */
+    public function setApplication(Application $application = null): void
+    {
+        if (null === $application) {
+            throw new \InvalidArgumentException('Application cannot be null');
+        }
+
+        $application->setSignalsToDispatchEvent();
+
+        parent::setApplication($application);
     }
 
     /**
@@ -78,7 +92,6 @@ abstract class AbstractServerStartCommand extends Command
         $io = new SymfonyStyle($input, $output);
 
         $this->ensureXdebugDisabled($io);
-        $this->overrideDefaultSignalHandlers();
         $this->prepareServerConfiguration($this->serverConfiguration, $input);
 
         if ($this->server->isRunning()) {
@@ -295,19 +308,5 @@ abstract class AbstractServerStartCommand extends Command
         }
 
         return $set;
-    }
-
-    private function overrideDefaultSignalHandlers(): void
-    {
-        if (!SignalRegistry::isSupported()) {
-            return;
-        }
-
-        $signalRegistry = $this->getApplication()->getSignalRegistry();
-
-        foreach ([\SIGINT, \SIGTERM] as $signal) {
-            // add next handler so the default exit call won't be called
-            $signalRegistry->register($signal, function ($signal, $hasNext) {});
-        }
     }
 }
