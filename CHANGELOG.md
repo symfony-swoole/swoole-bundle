@@ -1,3 +1,16 @@
+# [0.20.0](https://github.com/openswoole-bundle/openswoole-bundle/compare/v0.19.0...v0.20.0) (2023-12-30)
+
+[Full changelog](https://github.com/symfony-swoole/swoole-bundle/compare/v0.19.0...v0.20.0)
+
+### Bug Fixes
+
+* **signals:** disabled symfony signals handling to be able to terminate the server with simple ctrl+c ([88b8cba](https://github.com/openswoole-bundle/openswoole-bundle/commit/88b8cba281543e867ddda28d5642791d4efb777c))
+
+
+### Features
+
+* **symfony:** added support for Symfony 6.4, dropped support for Symfony 6.3 ([327f06c](https://github.com/openswoole-bundle/openswoole-bundle/commit/327f06c190d1063930a527c137daef645025ed02))
+
 # [0.19.0](https://github.com/openswoole-bundle/openswoole-bundle/compare/v0.18.0...v0.19.0) (2023-12-22)
 
 [Full changelog](https://github.com/symfony-swoole/swoole-bundle/compare/v0.18.0...v0.19.0)
