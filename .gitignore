@@ -3,6 +3,7 @@
 swoole.pid
 clover.xml
 **/.phpunit.result.cache
+.phpunit.cache/*
 .php-cs-fixer.cache
 *.tmp
 mutagen.yml.lock

@@ -27,7 +27,7 @@ class TrustAllProxiesRequestHandlerTest extends TestCase
         $this->decoratedProphecy = $this->prophesize(RequestHandlerInterface::class);
     }
 
-    public function trustOrNotProvider(): array
+    public static function trustOrNotProvider(): array
     {
         return [
             'default not trust, boot trust' => [

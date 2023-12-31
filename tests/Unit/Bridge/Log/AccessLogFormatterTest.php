@@ -18,32 +18,54 @@ class AccessLogFormatterTest extends TestCase
         $dataMap->method('getClientIp')->willReturn('127.0.0.10'); // %a
         $dataMap->method('getLocalIp')->willReturn('127.0.0.1'); // %A
         $dataMap
+            ->expects($this->exactly(2))
             ->method('getResponseBodySize')
-            ->withConsecutive(['0'], ['-']) // %B / %b
-            ->willReturn('1234')
+            ->willReturnCallback(
+                fn (string $default) => match ([$default]) { // @phpstan-ignore-line
+                    ['0'] => '1234', // %B
+                    ['-'] => '1234', // %b
+                }
+            )
         ;
         $dataMap
+            ->expects($this->exactly(3))
             ->method('getRequestDuration')
-            ->withConsecutive(['ms'], ['s'], ['us']) // %D / %T / %{us}T
-            ->willReturnOnConsecutiveCalls('4321', '22', '22')
+            ->willReturnCallback(
+                fn (string $format) => match ([$format]) { // @phpstan-ignore-line
+                    ['ms'] => '4321', // %D
+                    ['s'] => '22', // %T
+                    ['us'] => '22', // %{us}T
+                }
+            )
         ;
         $dataMap->method('getFilename')->willReturn(__FILE__); // %f
         $dataMap->method('getRemoteHostname')->willReturn($hostname); // %h
         $dataMap->method('getProtocol')->willReturn('HTTP/1.1'); // %H
         $dataMap->method('getMethod')->willReturn('POST'); // %m
         $dataMap
+            ->expects($this->exactly(2))
             ->method('getPort')
-            ->withConsecutive(['canonical'], ['local']) // %p / %{local}p
-            ->willReturnOnConsecutiveCalls('9000', '9999')
+            ->willReturnCallback(
+                fn (string $format) => match ([$format]) { // @phpstan-ignore-line
+                    ['canonical'] => '9000', // %p
+                    ['local'] => '9999', // %{local}p
+                }
+            )
         ;
         $dataMap->method('getQuery')->willReturn('?foo=bar'); // %q
         $dataMap->method('getRequestLine')->willReturn('POST /path?foo=bar HTTP/1.1'); // %r
         $dataMap->method('getStatus')->willReturn('202'); // %s
         $dataMap
+            ->expects($this->exactly(2))
             ->method('getRequestTime')
-            ->withConsecutive(['begin:%d/%b/%Y:%H:%M:%S %z'], ['end:sec']) // %t / %{end:sec}t
-            ->willReturnOnConsecutiveCalls('[1234567890]', '[1234567890]')
+            ->willReturnCallback(
+                fn (string $format) => match ([$format]) { // @phpstan-ignore-line
+                    ['begin:%d/%b/%Y:%H:%M:%S %z'] => '[1234567890]', // %t
+                    ['end:sec'] => '[1234567890]', // %{end:sec}t
+                }
+            )
         ;
+
         $dataMap->method('getRemoteUser')->willReturn('swoole'); // %u
         $dataMap->method('getPath')->willReturn('/path'); // %U
         $dataMap->method('getHost')->willReturn('swoole.local'); // %v

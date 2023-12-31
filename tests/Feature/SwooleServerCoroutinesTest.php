@@ -478,7 +478,7 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
         self::assertSame(3, $count);
     }
 
-    public function coroutineTestDataProvider(): array
+    public static function coroutineTestDataProvider(): array
     {
         return [
             // debug on
@@ -508,7 +508,7 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
         ];
     }
 
-    public function coroutineTestDataProviderForTaskWorkers(): array
+    public static function coroutineTestDataProviderForTaskWorkers(): array
     {
         return [
             // debug on
@@ -556,7 +556,7 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
         ];
     }
 
-    public function kernelEnvironmentDataProvider(): array
+    public static function kernelEnvironmentDataProvider(): array
     {
         return [
             [['environment' => 'prod', 'debug' => false, 'override_prod_env' => 'coroutines']],

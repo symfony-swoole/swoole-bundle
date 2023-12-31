@@ -2,19 +2,20 @@
 <!-- https://phpunit.readthedocs.io/en/7.3/configuration.html -->
 <phpunit
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.3/phpunit.xsd"
+    xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/10.5/phpunit.xsd"
     colors="true"
     bootstrap="vendor/autoload.php"
     processIsolation="true"
+    cacheDirectory=".phpunit.cache"
 >
-  <coverage processUncoveredFiles="true">
-    <include>
-      <directory suffix=".php">src/</directory>
-    </include>
-  </coverage>
   <testsuites>
     <testsuite name="FeatureTests">
       <directory>tests/Feature</directory>
     </testsuite>
   </testsuites>
+  <source>
+    <include>
+      <directory suffix=".php">src/</directory>
+    </include>
+  </source>
 </phpunit>
