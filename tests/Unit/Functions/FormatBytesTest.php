@@ -10,7 +10,7 @@ use PHPUnit\Framework\TestCase;
 
 class FormatBytesTest extends TestCase
 {
-    public function bytesFormattedProvider(): array
+    public static function bytesFormattedProvider(): array
     {
         return [
             '0 bytes' => [

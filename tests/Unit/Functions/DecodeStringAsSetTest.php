@@ -10,7 +10,7 @@ use PHPUnit\Framework\TestCase;
 
 class DecodeStringAsSetTest extends TestCase
 {
-    public function decodedPairsProvider(): array
+    public static function decodedPairsProvider(): array
     {
         return [
             'normal set' => [

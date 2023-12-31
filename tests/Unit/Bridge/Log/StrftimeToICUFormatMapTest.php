@@ -25,7 +25,7 @@ class StrftimeToICUFormatMapTest extends TestCase
         );
     }
 
-    public function unsupportedFormats(): array
+    public static function unsupportedFormats(): array
     {
         return [
             '%c' => ['%c'],

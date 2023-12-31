@@ -27,7 +27,7 @@ class AccessLogDataMapTest extends TestCase
         $this->response = new HttpFoundationResponse('My response', 200);
     }
 
-    public function provideServer(): iterable
+    public static function provideServer(): iterable
     {
         yield 'no address' => [[], [], '-'];
         yield 'x-real-ip' => [

@@ -23,6 +23,7 @@ use K911\Swoole\Tests\Fixtures\Symfony\CoverageBundle\ServerLifecycle\CoverageSt
 use K911\Swoole\Tests\Fixtures\Symfony\CoverageBundle\TaskHandler\CodeCoverageTaskHandler;
 use SebastianBergmann\CodeCoverage\CodeCoverage;
 use SebastianBergmann\CodeCoverage\Driver\Driver;
+use SebastianBergmann\CodeCoverage\Driver\Selector;
 use SebastianBergmann\CodeCoverage\Filter;
 use SebastianBergmann\CodeCoverage\Report\PHP;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -37,9 +38,10 @@ class CoverageBundle extends Bundle
             ->setShared(false)
         ;
         $container->register(Filter::class);
+        $container->register(Selector::class);
         $container->register(Driver::class)
             ->setShared(false)
-            ->setFactory([Driver::class, 'forLineCoverage'])
+            ->setFactory([new Reference(Selector::class), 'forLineCoverage'])
             ->setArgument('$filter', new Reference(Filter::class))
         ;
         $container->register(CodeCoverage::class)
