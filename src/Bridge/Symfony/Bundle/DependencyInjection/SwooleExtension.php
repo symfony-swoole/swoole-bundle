@@ -14,6 +14,7 @@ use K911\Swoole\Bridge\Symfony\ErrorHandler\ThrowableHandlerFactory;
 use K911\Swoole\Bridge\Symfony\HttpFoundation\AccessLogOnKernelTerminate;
 use K911\Swoole\Bridge\Symfony\HttpFoundation\CloudFrontRequestFactory;
 use K911\Swoole\Bridge\Symfony\HttpFoundation\RequestFactoryInterface;
+use K911\Swoole\Bridge\Symfony\HttpFoundation\ResponseProcessorInterface;
 use K911\Swoole\Bridge\Symfony\HttpFoundation\TrustAllProxiesRequestHandler;
 use K911\Swoole\Bridge\Symfony\HttpKernel\ContextReleasingHttpKernelRequestHandler;
 use K911\Swoole\Bridge\Symfony\HttpKernel\CoroutineKernelPool;
@@ -317,9 +318,11 @@ final class SwooleExtension extends Extension implements PrependExtensionInterfa
             ;
         }
 
-        $container->autowire(HMRWorkerStartHandler::class)
+        $container->register(HMRWorkerStartHandler::class)
             ->setPublic(false)
-            ->setAutoconfigured(true)
+            ->setAutoconfigured(false)
+            ->setArgument('$hmr', new Reference(HotModuleReloaderInterface::class))
+            ->setArgument('$swoole', new Reference(Swoole::class))
             ->setArgument('$decorated', new Reference(HMRWorkerStartHandler::class.'.inner'))
             ->setDecoratedService(WorkerStartHandlerInterface::class)
         ;
@@ -344,8 +347,8 @@ final class SwooleExtension extends Extension implements PrependExtensionInterfa
         if ($config['cloudfront_proto_header_handler']) {
             $container->register(CloudFrontRequestFactory::class)
                 ->addArgument(new Reference(CloudFrontRequestFactory::class.'.inner'))
-                ->setAutowired(true)
-                ->setAutoconfigured(true)
+                ->setAutowired(false)
+                ->setAutoconfigured(false)
                 ->setPublic(false)
                 ->setDecoratedService(RequestFactoryInterface::class, null, -10)
             ;
@@ -497,21 +500,28 @@ final class SwooleExtension extends Extension implements PrependExtensionInterfa
             ->setPublic(false)
         ;
         $container->register(ExceptionHandlerFactory::class)
+            ->setArgument('$kernel', new Reference('http_kernel')) // @todo check if this is ok with coroutines enabled
             ->setArgument('$throwableHandler', new Reference('swoole_bundle.error_handler.symfony_kernel_throwable_handler'))
-            ->setAutowired(true)
-            ->setAutoconfigured(true)
+            ->setAutowired(false)
+            ->setAutoconfigured(false)
             ->setPublic(false)
         ;
         $container->register(ErrorResponder::class)
             ->setArgument('$errorHandler', new Reference('swoole_bundle.error_handler.symfony_error_handler'))
-            ->setAutowired(true)
-            ->setAutoconfigured(true)
+            ->setAutowired(false)
+            ->setAutoconfigured(false)
             ->setPublic(false)
+            ->setArgument('$errorHandler', new Reference('swoole_bundle.error_handler.symfony_error_handler'))
+            ->setArgument('$handlerFactory', new Reference(ExceptionHandlerFactory::class))
         ;
         $container->register(SymfonyExceptionHandler::class)
-            ->setAutowired(true)
-            ->setAutoconfigured(true)
+            ->setAutowired(false)
+            ->setAutoconfigured(false)
             ->setPublic(false)
+            ->setArgument('$kernel', new Reference('http_kernel')) // @todo check if this is ok with coroutines enabled
+            ->setArgument('$requestFactory', new Reference(RequestFactoryInterface::class))
+            ->setArgument('$responseProcessor', new Reference(ResponseProcessorInterface::class))
+            ->setArgument('$errorResponder', new Reference(ErrorResponder::class))
         ;
     }
 

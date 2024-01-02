@@ -12,7 +12,6 @@ final class ThrowableHandlerFactory
     {
         $kernelReflection = new \ReflectionClass(HttpKernel::class);
         $method = $kernelReflection->getMethod('handleThrowable');
-        $method->setAccessible(true);
 
         return $method;
     }

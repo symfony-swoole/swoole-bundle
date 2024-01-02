@@ -58,6 +58,7 @@ final class ServerStartCommand extends AbstractServerStartCommand
     private function closeSymfonyStyle(SymfonyStyle $io): void
     {
         $output = get_object_property($io, 'output', OutputStyle::class);
+
         if ($output instanceof ConsoleOutput) {
             $this->closeConsoleOutput($output);
         } elseif ($output instanceof StreamOutput) {
