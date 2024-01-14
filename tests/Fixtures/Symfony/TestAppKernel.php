@@ -146,15 +146,15 @@ class TestAppKernel extends Kernel
      */
     protected function configureRoutes($routes): void
     {
-        $routingFile = 'routing.yaml';
+        $routingFile = 'routing.php';
 
         if (self::MAJOR_VERSION === 5) {
-            $routingFile = 'routing_54.yaml';
+            $routingFile = 'routing_54.php';
         }
 
         $routes->import($this->getProjectDir().'/'.$routingFile);
 
-        $envRoutingFile = $this->getProjectDir().'/config/'.$this->environment.'/routing/routing.yaml';
+        $envRoutingFile = $this->getProjectDir().'/config/'.$this->environment.'/routing/routing.php';
 
         if (\file_exists($envRoutingFile)) {
             $routes->import($envRoutingFile);

@@ -1,4 +1,0 @@
-swoole:
-  http_server:
-    exception_handler:
-      type: symfony

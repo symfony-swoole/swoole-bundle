@@ -1,7 +1,0 @@
-swoole:
-    http_server:
-        static:
-            strategy: 'advanced'
-            public_dir: '%kernel.project_dir%/public'
-            mime_types:
-                txt: 'text/html'

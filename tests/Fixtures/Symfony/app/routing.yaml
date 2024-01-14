@@ -1,3 +1,0 @@
-controller:
-    resource: '@TestBundle/Controller'
-    type: attribute
