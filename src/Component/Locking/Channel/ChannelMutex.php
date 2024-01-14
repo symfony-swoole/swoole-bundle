@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Component\Locking\Channel;
+namespace SwooleBundle\SwooleBundle\Component\Locking\Channel;
 
-use K911\Swoole\Component\Locking\Mutex;
 use Swoole\Coroutine\Channel;
+use SwooleBundle\SwooleBundle\Component\Locking\Mutex;
 
 final class ChannelMutex implements Mutex
 {

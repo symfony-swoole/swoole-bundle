@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Tests\Unit\Server\Configurator;
+namespace SwooleBundle\SwooleBundle\Tests\Unit\Server\Configurator;
 
-use K911\Swoole\Bridge\Upscale\Blackfire\Profiling\ProfilerActivator;
-use K911\Swoole\Bridge\Upscale\Blackfire\Profiling\WithProfiler;
 use PHPUnit\Framework\TestCase;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
 use Swoole\Http\Server;
+use SwooleBundle\SwooleBundle\Bridge\Upscale\Blackfire\Profiling\ProfilerActivator;
+use SwooleBundle\SwooleBundle\Bridge\Upscale\Blackfire\Profiling\WithProfiler;
 
 /**
  * @runTestsInSeparateProcesses

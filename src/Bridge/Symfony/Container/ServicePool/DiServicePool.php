@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Bridge\Symfony\Container\ServicePool;
+namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Container\ServicePool;
 
-use K911\Swoole\Bridge\Symfony\Container\Resetter;
-use K911\Swoole\Bridge\Symfony\Container\StabilityChecker;
-use K911\Swoole\Component\Locking\Mutex;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Resetter;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\StabilityChecker;
+use SwooleBundle\SwooleBundle\Component\Locking\Mutex;
 use Symfony\Component\DependencyInjection\Container;
 
 /**

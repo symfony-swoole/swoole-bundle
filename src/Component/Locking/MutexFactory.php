@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Component\Locking;
+namespace SwooleBundle\SwooleBundle\Component\Locking;
 
 interface MutexFactory
 {

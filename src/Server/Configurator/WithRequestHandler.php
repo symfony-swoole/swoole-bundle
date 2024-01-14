@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Server\Configurator;
+namespace SwooleBundle\SwooleBundle\Server\Configurator;
 
-use K911\Swoole\Server\RequestHandler\RequestHandlerInterface;
 use Swoole\Http\Server;
+use SwooleBundle\SwooleBundle\Server\RequestHandler\RequestHandlerInterface;
 
 final class WithRequestHandler implements ConfiguratorInterface
 {

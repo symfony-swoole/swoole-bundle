@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Bridge\Symfony\Bundle\EventDispatcher;
+namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\EventDispatcher;
 
-use K911\Swoole\Bridge\Symfony\Event\WorkerExitedEvent;
-use K911\Swoole\Server\WorkerHandler\WorkerExitHandlerInterface;
 use Swoole\Server;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Event\WorkerExitedEvent;
+use SwooleBundle\SwooleBundle\Server\WorkerHandler\WorkerExitHandlerInterface;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
 final class EventDispatchingWorkerExitHandler implements WorkerExitHandlerInterface

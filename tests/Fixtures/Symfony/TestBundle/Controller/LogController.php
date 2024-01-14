@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Controller;
+namespace SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Controller;
 
-use K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Logging\InMemoryLogger;
+use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Logging\InMemoryLogger;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route as RouteAnnotation;
 use Symfony\Component\Routing\Attribute\Route;

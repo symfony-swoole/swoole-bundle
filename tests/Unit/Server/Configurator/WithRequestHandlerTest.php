@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Tests\Unit\Server\Configurator;
+namespace SwooleBundle\SwooleBundle\Tests\Unit\Server\Configurator;
 
-use K911\Swoole\Server\Configurator\WithRequestHandler;
-use K911\Swoole\Tests\Unit\Server\RequestHandler\RequestHandlerDummy;
-use K911\Swoole\Tests\Unit\Server\SwooleHttpServerMockFactory;
 use PHPUnit\Framework\TestCase;
+use SwooleBundle\SwooleBundle\Server\Configurator\WithRequestHandler;
+use SwooleBundle\SwooleBundle\Tests\Unit\Server\RequestHandler\RequestHandlerDummy;
+use SwooleBundle\SwooleBundle\Tests\Unit\Server\SwooleHttpServerMockFactory;
 
 /**
  * @runTestsInSeparateProcesses

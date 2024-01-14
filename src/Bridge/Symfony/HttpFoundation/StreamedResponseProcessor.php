@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Bridge\Symfony\HttpFoundation;
+namespace SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation;
 
 use Assert\Assertion;
 use Swoole\Http\Response as SwooleResponse;

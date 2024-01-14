@@ -18,11 +18,11 @@ swoole:
     coroutines:
       enabled: true
       stateful_services:
-        - K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Service\ShouldBeProxified
+        - SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Service\ShouldBeProxified
       compile_processors:
-        - class: K911\Swoole\Tests\Fixtures\Symfony\TestBundle\DependencyInjection\CompilerPass\SleepingCounterCompileProcessor
+        - class: SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\DependencyInjection\CompilerPass\SleepingCounterCompileProcessor
           priority: 10
-        - K911\Swoole\Tests\Fixtures\Symfony\TestBundle\DependencyInjection\CompilerPass\ResetCountCompileProcessor
+        - SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\DependencyInjection\CompilerPass\ResetCountCompileProcessor
 
 services:
   _defaults:
@@ -30,51 +30,51 @@ services:
     autoconfigure: true
     public: false
 
-  K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Service\ShouldBeProxified2:
+  SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Service\ShouldBeProxified2:
     tags:
       - { name: 'swoole_bundle.stateful_service' }
 
-  K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Controller\CoroutinesTaskController:
+  SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Controller\CoroutinesTaskController:
     tags:
       - controller.service_arguments
 
-  K911\Swoole\Tests\Fixtures\Symfony\TestBundle\MessageHandler\SleepAndAppendHandler:
+  SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\MessageHandler\SleepAndAppendHandler:
     tags:
       - messenger.message_handler
 
-  K911\Swoole\Tests\Fixtures\Symfony\TestBundle\MessageHandler\RunDummyHandler:
+  SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\MessageHandler\RunDummyHandler:
     tags:
       - messenger.message_handler
 
-  K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Service\AlwaysReset:
+  SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Service\AlwaysReset:
     tags:
       - { name: 'swoole_bundle.stateful_service', reset_on_each_request: true }
 
-  K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Service\AlwaysResetSafe:
+  SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Service\AlwaysResetSafe:
     tags:
       - { name: 'swoole_bundle.safe_stateful_service', reset_on_each_request: true }
 
-  K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Service\NonSharedExample:
+  SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Service\NonSharedExample:
     public: true
     shared: false
     tags:
       - { name: 'swoole_bundle.stateful_service' }
 
-  K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Service\RepositoryFactory:
+  SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Service\RepositoryFactory:
     tags:
       - name: 'swoole_bundle.unmanaged_factory'
         factoryMethod: 'newInstance'
-        returnType: 'K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Service\InMemoryRepository'
+        returnType: 'SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Service\InMemoryRepository'
         limit: 1000
         resetter: 'inmemory_repository_resetter'
 
   Blackfire\Client:
 
-  K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Blackfire\CollectionProfiler:
+  SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Blackfire\CollectionProfiler:
     arguments:
       $client: '@Blackfire\Client'
 
   # comment out these service definition to disable blackfire profiling for multiple requests, contained in the k6 test script
-  K911\Swoole\Bridge\Upscale\Blackfire\Profiling\ProfilerActivator:
+  SwooleBundle\SwooleBundle\Bridge\Upscale\Blackfire\Profiling\ProfilerActivator:
     arguments:
-      $profiler: '@K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Blackfire\CollectionProfiler'
+      $profiler: '@SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Blackfire\CollectionProfiler'

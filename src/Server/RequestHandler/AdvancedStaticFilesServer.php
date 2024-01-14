@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Server\RequestHandler;
+namespace SwooleBundle\SwooleBundle\Server\RequestHandler;
 
 use Assert\AssertionFailedException;
-use K911\Swoole\Server\HttpServerConfiguration;
-use K911\Swoole\Server\Runtime\BootableInterface;
 use Swoole\Http\Request;
 use Swoole\Http\Response;
+use SwooleBundle\SwooleBundle\Server\HttpServerConfiguration;
+use SwooleBundle\SwooleBundle\Server\Runtime\BootableInterface;
 
 /**
  * Advanced static files server simplifies serving static content directly by swoole server.

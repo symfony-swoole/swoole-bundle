@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Bridge\Symfony\HttpKernel;
+namespace SwooleBundle\SwooleBundle\Bridge\Symfony\HttpKernel;
 
-use K911\Swoole\Bridge\Symfony\Container\CoWrapper;
-use K911\Swoole\Server\RequestHandler\RequestHandlerInterface;
 use Swoole\Http\Request as SwooleRequest;
 use Swoole\Http\Response as SwooleResponse;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\CoWrapper;
+use SwooleBundle\SwooleBundle\Server\RequestHandler\RequestHandlerInterface;
 
 final class ContextReleasingHttpKernelRequestHandler implements RequestHandlerInterface
 {

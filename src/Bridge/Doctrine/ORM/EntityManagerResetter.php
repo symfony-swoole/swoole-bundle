@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Bridge\Doctrine\ORM;
+namespace SwooleBundle\SwooleBundle\Bridge\Doctrine\ORM;
 
 use Doctrine\Persistence\ObjectManager;
-use K911\Swoole\Bridge\Symfony\Container\Resetter;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Resetter;
 
 final class EntityManagerResetter implements Resetter
 {

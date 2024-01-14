@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Bridge\OpenSwoole\Metrics;
+namespace SwooleBundle\SwooleBundle\Bridge\OpenSwoole\Metrics;
 
 use Assert\Assertion;
-use K911\Swoole\Metrics\Metrics;
-use K911\Swoole\Metrics\MetricsProvider as CommonMetricsProvider;
+use SwooleBundle\SwooleBundle\Metrics\Metrics;
+use SwooleBundle\SwooleBundle\Metrics\MetricsProvider as CommonMetricsProvider;
 
 /**
  * @phpstan-type OpenSwooleMetricsShape = array{

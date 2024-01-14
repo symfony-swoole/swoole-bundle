@@ -2,18 +2,18 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Tests\Unit\Bridge\Symfony\Messenger;
+namespace SwooleBundle\SwooleBundle\Tests\Unit\Bridge\Symfony\Messenger;
 
-use K911\Swoole\Bridge\Symfony\Messenger\Exception\ReceiverNotAvailableException;
-use K911\Swoole\Bridge\Symfony\Messenger\SwooleServerTaskReceiver;
-use K911\Swoole\Bridge\Symfony\Messenger\SwooleServerTaskSender;
-use K911\Swoole\Bridge\Symfony\Messenger\SwooleServerTaskTransport;
-use K911\Swoole\Server\Config\Socket;
-use K911\Swoole\Server\Config\Sockets;
-use K911\Swoole\Server\HttpServer;
-use K911\Swoole\Server\HttpServerConfiguration;
-use K911\Swoole\Tests\Helper\SwooleFactory;
 use PHPUnit\Framework\TestCase;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Messenger\Exception\ReceiverNotAvailableException;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Messenger\SwooleServerTaskReceiver;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Messenger\SwooleServerTaskSender;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Messenger\SwooleServerTaskTransport;
+use SwooleBundle\SwooleBundle\Server\Config\Socket;
+use SwooleBundle\SwooleBundle\Server\Config\Sockets;
+use SwooleBundle\SwooleBundle\Server\HttpServer;
+use SwooleBundle\SwooleBundle\Server\HttpServerConfiguration;
+use SwooleBundle\SwooleBundle\Tests\Helper\SwooleFactory;
 use Symfony\Component\Messenger\Envelope;
 
 class SwooleServerTaskTransportTest extends TestCase

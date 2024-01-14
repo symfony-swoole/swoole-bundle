@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Bridge\Log;
+namespace SwooleBundle\SwooleBundle\Bridge\Log;
 
 use Webmozart\Assert\Assert;
 

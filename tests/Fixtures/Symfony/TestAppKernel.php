@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Tests\Fixtures\Symfony;
+namespace SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony;
 
 use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
 use Doctrine\Bundle\MigrationsBundle\DoctrineMigrationsBundle;
-use K911\Swoole\Bridge\Symfony\Bundle\SwooleBundle;
-use K911\Swoole\Bridge\Symfony\Kernel\CoroutinesSupportingKernelTrait;
-use K911\Swoole\Tests\Fixtures\Symfony\CoverageBundle\CoverageBundle;
-use K911\Swoole\Tests\Fixtures\Symfony\TestBundle\DependencyInjection\CompilerPass\OverrideDoctrineCompilerPass;
-use K911\Swoole\Tests\Fixtures\Symfony\TestBundle\TestBundle;
 use PixelFederation\DoctrineResettableEmBundle\PixelFederationDoctrineResettableEmBundle;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\SwooleBundle;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Kernel\CoroutinesSupportingKernelTrait;
+use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\CoverageBundle\CoverageBundle;
+use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\DependencyInjection\CompilerPass\OverrideDoctrineCompilerPass;
+use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\TestBundle;
 use Symfony\Bundle\FrameworkBundle\FrameworkBundle;
 use Symfony\Bundle\FrameworkBundle\Kernel\MicroKernelTrait;
 use Symfony\Bundle\MonologBundle\MonologBundle;

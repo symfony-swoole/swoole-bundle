@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Tests\Fixtures\Symfony\TestBundle\EventHandler;
+namespace SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\EventHandler;
 
-use K911\Swoole\Bridge\Symfony\Event\ServerStartedEvent;
-use K911\Swoole\Bridge\Symfony\Event\WorkerErrorEvent;
-use K911\Swoole\Bridge\Symfony\Event\WorkerExitedEvent;
-use K911\Swoole\Bridge\Symfony\Event\WorkerStartedEvent;
-use K911\Swoole\Bridge\Symfony\Event\WorkerStoppedEvent;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Event\ServerStartedEvent;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Event\WorkerErrorEvent;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Event\WorkerExitedEvent;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Event\WorkerStartedEvent;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Event\WorkerStoppedEvent;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 final class LifecycleEventsEventHandler implements EventSubscriberInterface

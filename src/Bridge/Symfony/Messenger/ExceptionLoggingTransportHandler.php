@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Bridge\Symfony\Messenger;
+namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Messenger;
 
-use K911\Swoole\Server\TaskHandler\TaskHandlerInterface;
 use Psr\Log\LoggerInterface;
 use Swoole\Server;
+use SwooleBundle\SwooleBundle\Server\TaskHandler\TaskHandlerInterface;
 
 final class ExceptionLoggingTransportHandler implements TaskHandlerInterface
 {

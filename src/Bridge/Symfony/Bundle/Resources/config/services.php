@@ -2,104 +2,104 @@
 
 declare(strict_types=1);
 
-use K911\Swoole\Bridge\Doctrine\ORM\EntityManagerStabilityChecker;
-use K911\Swoole\Bridge\OpenSwoole\Metrics\MetricsProvider;
-use K911\Swoole\Bridge\OpenSwoole\OpenSwooleFactory;
-use K911\Swoole\Bridge\Swoole\SwooleFactory;
-use K911\Swoole\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices\NonSharedSvcPoolConfigurator;
-use K911\Swoole\Bridge\Symfony\Bundle\EventDispatcher\EventDispatchingServerStartHandler;
-use K911\Swoole\Bridge\Symfony\Bundle\EventDispatcher\EventDispatchingWorkerErrorHandler;
-use K911\Swoole\Bridge\Symfony\Bundle\EventDispatcher\EventDispatchingWorkerExitHandler;
-use K911\Swoole\Bridge\Symfony\Bundle\EventDispatcher\EventDispatchingWorkerStartHandler;
-use K911\Swoole\Bridge\Symfony\Bundle\EventDispatcher\EventDispatchingWorkerStopHandler;
-use K911\Swoole\Bridge\Symfony\Container\CoWrapper;
-use K911\Swoole\Bridge\Symfony\Container\Proxy\FileLocatorFactory;
-use K911\Swoole\Bridge\Symfony\Container\Proxy\Generator;
-use K911\Swoole\Bridge\Symfony\Container\Proxy\Instantiator;
-use K911\Swoole\Bridge\Symfony\Container\Proxy\ProxyDirectoryHandler;
-use K911\Swoole\Bridge\Symfony\Container\Proxy\UnmanagedFactoryInstantiator;
-use K911\Swoole\Bridge\Symfony\Container\ServicePool\ServicePoolContainer;
-use K911\Swoole\Bridge\Symfony\HttpFoundation\NoOpStreamedResponseProcessor;
-use K911\Swoole\Bridge\Symfony\HttpFoundation\RequestFactory;
-use K911\Swoole\Bridge\Symfony\HttpFoundation\RequestFactoryInterface;
-use K911\Swoole\Bridge\Symfony\HttpFoundation\ResponseHeadersAndStatusProcessor;
-use K911\Swoole\Bridge\Symfony\HttpFoundation\ResponseProcessor;
-use K911\Swoole\Bridge\Symfony\HttpFoundation\ResponseProcessorInjector;
-use K911\Swoole\Bridge\Symfony\HttpFoundation\ResponseProcessorInjectorInterface;
-use K911\Swoole\Bridge\Symfony\HttpFoundation\ResponseProcessorInterface;
-use K911\Swoole\Bridge\Symfony\HttpFoundation\Session\SwooleSessionStorage;
-use K911\Swoole\Bridge\Symfony\HttpFoundation\Session\SwooleSessionStorageFactory;
-use K911\Swoole\Bridge\Symfony\HttpFoundation\SetRequestRuntimeConfiguration;
-use K911\Swoole\Bridge\Symfony\HttpFoundation\StreamedResponseProcessor;
-use K911\Swoole\Bridge\Symfony\HttpKernel\ContextReleasingHttpKernelRequestHandler;
-use K911\Swoole\Bridge\Symfony\HttpKernel\CoroutineKernelPool;
-use K911\Swoole\Bridge\Symfony\HttpKernel\HttpKernelRequestHandler;
-use K911\Swoole\Bridge\Symfony\HttpKernel\KernelPoolInterface;
-use K911\Swoole\Bridge\Symfony\HttpKernel\SimpleKernelPool;
-use K911\Swoole\Bridge\Symfony\Messenger\ExceptionLoggingTransportHandler;
-use K911\Swoole\Bridge\Symfony\Messenger\ServiceResettingTransportHandler;
-use K911\Swoole\Common\Adapter\Swoole;
-use K911\Swoole\Common\Adapter\SystemSwooleFactory;
-use K911\Swoole\Common\System\System;
-use K911\Swoole\Component\AtomicCounter;
-use K911\Swoole\Component\ExceptionArrayTransformer;
-use K911\Swoole\Component\GeneratedCollection;
-use K911\Swoole\Component\Locking\Channel\ChannelMutexFactory;
-use K911\Swoole\Component\Locking\FirstTimeOnly\FirstTimeOnlyMutexFactory;
-use K911\Swoole\Metrics\SystemMetricsProviderRegistry;
-use K911\Swoole\Server\Api\ApiServer;
-use K911\Swoole\Server\Api\ApiServerClient;
-use K911\Swoole\Server\Api\ApiServerClientFactory;
-use K911\Swoole\Server\Api\ApiServerInterface;
-use K911\Swoole\Server\Api\ApiServerRequestHandler;
-use K911\Swoole\Server\Api\WithApiServerConfiguration;
-use K911\Swoole\Server\Config\Sockets;
-use K911\Swoole\Server\Configurator\CallableChainConfiguratorFactory;
-use K911\Swoole\Server\Configurator\WithHttpServerConfiguration;
-use K911\Swoole\Server\Configurator\WithRequestHandler;
-use K911\Swoole\Server\Configurator\WithServerManagerStartHandler;
-use K911\Swoole\Server\Configurator\WithServerManagerStopHandler;
-use K911\Swoole\Server\Configurator\WithServerShutdownHandler;
-use K911\Swoole\Server\Configurator\WithServerStartHandler;
-use K911\Swoole\Server\Configurator\WithTaskFinishedHandler;
-use K911\Swoole\Server\Configurator\WithTaskHandler;
-use K911\Swoole\Server\Configurator\WithWorkerErrorHandler;
-use K911\Swoole\Server\Configurator\WithWorkerExitHandler;
-use K911\Swoole\Server\Configurator\WithWorkerStartHandler;
-use K911\Swoole\Server\Configurator\WithWorkerStopHandler;
-use K911\Swoole\Server\HttpServer;
-use K911\Swoole\Server\HttpServerConfiguration;
-use K911\Swoole\Server\LifecycleHandler\NoOpServerManagerStartHandler;
-use K911\Swoole\Server\LifecycleHandler\NoOpServerManagerStopHandler;
-use K911\Swoole\Server\LifecycleHandler\NoOpServerShutdownHandler;
-use K911\Swoole\Server\LifecycleHandler\ServerManagerStartHandlerInterface;
-use K911\Swoole\Server\LifecycleHandler\ServerManagerStopHandlerInterface;
-use K911\Swoole\Server\LifecycleHandler\ServerShutdownHandlerInterface;
-use K911\Swoole\Server\LifecycleHandler\ServerStartHandlerInterface;
-use K911\Swoole\Server\Middleware\MiddlewareInjector;
-use K911\Swoole\Server\RequestHandler\ExceptionHandler\ExceptionHandlerInterface;
-use K911\Swoole\Server\RequestHandler\ExceptionHandler\JsonExceptionHandler;
-use K911\Swoole\Server\RequestHandler\ExceptionHandler\ProductionExceptionHandler;
-use K911\Swoole\Server\RequestHandler\ExceptionRequestHandler;
-use K911\Swoole\Server\RequestHandler\LimitedRequestHandler;
-use K911\Swoole\Server\RequestHandler\RequestHandlerInterface;
-use K911\Swoole\Server\Runtime\BootableInterface;
-use K911\Swoole\Server\Runtime\CallableBootManager;
-use K911\Swoole\Server\Runtime\CallableBootManagerFactory;
-use K911\Swoole\Server\Session\StorageInterface;
-use K911\Swoole\Server\Session\SwooleTableStorage;
-use K911\Swoole\Server\TaskHandler\NoOpTaskFinishedHandler;
-use K911\Swoole\Server\TaskHandler\NoOpTaskHandler;
-use K911\Swoole\Server\TaskHandler\TaskFinishedHandlerInterface;
-use K911\Swoole\Server\TaskHandler\TaskHandlerInterface;
-use K911\Swoole\Server\WorkerHandler\WorkerErrorHandlerInterface;
-use K911\Swoole\Server\WorkerHandler\WorkerExitHandlerInterface;
-use K911\Swoole\Server\WorkerHandler\WorkerStartHandlerInterface;
-use K911\Swoole\Server\WorkerHandler\WorkerStopHandlerInterface;
 use ProxyManager\Configuration;
 use ProxyManager\Factory\AccessInterceptorValueHolderFactory;
 use ProxyManager\FileLocator\FileLocator;
 use ProxyManager\GeneratorStrategy\FileWriterGeneratorStrategy;
+use SwooleBundle\SwooleBundle\Bridge\Doctrine\ORM\EntityManagerStabilityChecker;
+use SwooleBundle\SwooleBundle\Bridge\OpenSwoole\Metrics\MetricsProvider;
+use SwooleBundle\SwooleBundle\Bridge\OpenSwoole\OpenSwooleFactory;
+use SwooleBundle\SwooleBundle\Bridge\Swoole\SwooleFactory;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices\NonSharedSvcPoolConfigurator;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\EventDispatcher\EventDispatchingServerStartHandler;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\EventDispatcher\EventDispatchingWorkerErrorHandler;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\EventDispatcher\EventDispatchingWorkerExitHandler;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\EventDispatcher\EventDispatchingWorkerStartHandler;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\EventDispatcher\EventDispatchingWorkerStopHandler;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\CoWrapper;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Proxy\FileLocatorFactory;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Proxy\Generator;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Proxy\Instantiator;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Proxy\ProxyDirectoryHandler;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Proxy\UnmanagedFactoryInstantiator;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\ServicePool\ServicePoolContainer;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation\NoOpStreamedResponseProcessor;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation\RequestFactory;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation\RequestFactoryInterface;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation\ResponseHeadersAndStatusProcessor;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation\ResponseProcessor;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation\ResponseProcessorInjector;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation\ResponseProcessorInjectorInterface;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation\ResponseProcessorInterface;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation\Session\SwooleSessionStorage;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation\Session\SwooleSessionStorageFactory;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation\SetRequestRuntimeConfiguration;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation\StreamedResponseProcessor;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpKernel\ContextReleasingHttpKernelRequestHandler;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpKernel\CoroutineKernelPool;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpKernel\HttpKernelRequestHandler;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpKernel\KernelPoolInterface;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpKernel\SimpleKernelPool;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Messenger\ExceptionLoggingTransportHandler;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Messenger\ServiceResettingTransportHandler;
+use SwooleBundle\SwooleBundle\Common\Adapter\Swoole;
+use SwooleBundle\SwooleBundle\Common\Adapter\SystemSwooleFactory;
+use SwooleBundle\SwooleBundle\Common\System\System;
+use SwooleBundle\SwooleBundle\Component\AtomicCounter;
+use SwooleBundle\SwooleBundle\Component\ExceptionArrayTransformer;
+use SwooleBundle\SwooleBundle\Component\GeneratedCollection;
+use SwooleBundle\SwooleBundle\Component\Locking\Channel\ChannelMutexFactory;
+use SwooleBundle\SwooleBundle\Component\Locking\FirstTimeOnly\FirstTimeOnlyMutexFactory;
+use SwooleBundle\SwooleBundle\Metrics\SystemMetricsProviderRegistry;
+use SwooleBundle\SwooleBundle\Server\Api\ApiServer;
+use SwooleBundle\SwooleBundle\Server\Api\ApiServerClient;
+use SwooleBundle\SwooleBundle\Server\Api\ApiServerClientFactory;
+use SwooleBundle\SwooleBundle\Server\Api\ApiServerInterface;
+use SwooleBundle\SwooleBundle\Server\Api\ApiServerRequestHandler;
+use SwooleBundle\SwooleBundle\Server\Api\WithApiServerConfiguration;
+use SwooleBundle\SwooleBundle\Server\Config\Sockets;
+use SwooleBundle\SwooleBundle\Server\Configurator\CallableChainConfiguratorFactory;
+use SwooleBundle\SwooleBundle\Server\Configurator\WithHttpServerConfiguration;
+use SwooleBundle\SwooleBundle\Server\Configurator\WithRequestHandler;
+use SwooleBundle\SwooleBundle\Server\Configurator\WithServerManagerStartHandler;
+use SwooleBundle\SwooleBundle\Server\Configurator\WithServerManagerStopHandler;
+use SwooleBundle\SwooleBundle\Server\Configurator\WithServerShutdownHandler;
+use SwooleBundle\SwooleBundle\Server\Configurator\WithServerStartHandler;
+use SwooleBundle\SwooleBundle\Server\Configurator\WithTaskFinishedHandler;
+use SwooleBundle\SwooleBundle\Server\Configurator\WithTaskHandler;
+use SwooleBundle\SwooleBundle\Server\Configurator\WithWorkerErrorHandler;
+use SwooleBundle\SwooleBundle\Server\Configurator\WithWorkerExitHandler;
+use SwooleBundle\SwooleBundle\Server\Configurator\WithWorkerStartHandler;
+use SwooleBundle\SwooleBundle\Server\Configurator\WithWorkerStopHandler;
+use SwooleBundle\SwooleBundle\Server\HttpServer;
+use SwooleBundle\SwooleBundle\Server\HttpServerConfiguration;
+use SwooleBundle\SwooleBundle\Server\LifecycleHandler\NoOpServerManagerStartHandler;
+use SwooleBundle\SwooleBundle\Server\LifecycleHandler\NoOpServerManagerStopHandler;
+use SwooleBundle\SwooleBundle\Server\LifecycleHandler\NoOpServerShutdownHandler;
+use SwooleBundle\SwooleBundle\Server\LifecycleHandler\ServerManagerStartHandlerInterface;
+use SwooleBundle\SwooleBundle\Server\LifecycleHandler\ServerManagerStopHandlerInterface;
+use SwooleBundle\SwooleBundle\Server\LifecycleHandler\ServerShutdownHandlerInterface;
+use SwooleBundle\SwooleBundle\Server\LifecycleHandler\ServerStartHandlerInterface;
+use SwooleBundle\SwooleBundle\Server\Middleware\MiddlewareInjector;
+use SwooleBundle\SwooleBundle\Server\RequestHandler\ExceptionHandler\ExceptionHandlerInterface;
+use SwooleBundle\SwooleBundle\Server\RequestHandler\ExceptionHandler\JsonExceptionHandler;
+use SwooleBundle\SwooleBundle\Server\RequestHandler\ExceptionHandler\ProductionExceptionHandler;
+use SwooleBundle\SwooleBundle\Server\RequestHandler\ExceptionRequestHandler;
+use SwooleBundle\SwooleBundle\Server\RequestHandler\LimitedRequestHandler;
+use SwooleBundle\SwooleBundle\Server\RequestHandler\RequestHandlerInterface;
+use SwooleBundle\SwooleBundle\Server\Runtime\BootableInterface;
+use SwooleBundle\SwooleBundle\Server\Runtime\CallableBootManager;
+use SwooleBundle\SwooleBundle\Server\Runtime\CallableBootManagerFactory;
+use SwooleBundle\SwooleBundle\Server\Session\StorageInterface;
+use SwooleBundle\SwooleBundle\Server\Session\SwooleTableStorage;
+use SwooleBundle\SwooleBundle\Server\TaskHandler\NoOpTaskFinishedHandler;
+use SwooleBundle\SwooleBundle\Server\TaskHandler\NoOpTaskHandler;
+use SwooleBundle\SwooleBundle\Server\TaskHandler\TaskFinishedHandlerInterface;
+use SwooleBundle\SwooleBundle\Server\TaskHandler\TaskHandlerInterface;
+use SwooleBundle\SwooleBundle\Server\WorkerHandler\WorkerErrorHandlerInterface;
+use SwooleBundle\SwooleBundle\Server\WorkerHandler\WorkerExitHandlerInterface;
+use SwooleBundle\SwooleBundle\Server\WorkerHandler\WorkerStartHandlerInterface;
+use SwooleBundle\SwooleBundle\Server\WorkerHandler\WorkerStopHandlerInterface;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 
 use function Symfony\Component\DependencyInjection\Loader\Configurator\service;
@@ -183,7 +183,7 @@ return static function (ContainerConfigurator $containerConfigurator): void {
     $services->set(NoOpStreamedResponseProcessor::class)
         ->decorate(ResponseProcessorInterface::class, priority: -100)
         ->args([
-            service('K911\Swoole\Bridge\Symfony\HttpFoundation\NoOpStreamedResponseProcessor.inner'),
+            service('SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation\NoOpStreamedResponseProcessor.inner'),
         ])
     ;
 
@@ -508,13 +508,13 @@ return static function (ContainerConfigurator $containerConfigurator): void {
 
     $services->set(MetricsProvider::class)
         ->tag('swoole_bundle.metrics_provider', [
-            'extension' => K911\Swoole\Common\System\Extension::OPENSWOOLE,
+            'extension' => SwooleBundle\SwooleBundle\Common\System\Extension::OPENSWOOLE,
         ])
     ;
 
-    $services->set(K911\Swoole\Bridge\Swoole\Metrics\MetricsProvider::class)
+    $services->set(SwooleBundle\SwooleBundle\Bridge\Swoole\Metrics\MetricsProvider::class)
         ->tag('swoole_bundle.metrics_provider', [
-            'extension' => K911\Swoole\Common\System\Extension::SWOOLE,
+            'extension' => SwooleBundle\SwooleBundle\Common\System\Extension::SWOOLE,
         ])
     ;
 
@@ -523,7 +523,7 @@ return static function (ContainerConfigurator $containerConfigurator): void {
         ->arg('$metricsProviders', tagged_iterator(tag: 'swoole_bundle.metrics_provider', indexAttribute: 'extension'))
     ;
 
-    $services->set(K911\Swoole\Metrics\MetricsProvider::class)
+    $services->set(SwooleBundle\SwooleBundle\Metrics\MetricsProvider::class)
         ->factory([
             service(SystemMetricsProviderRegistry::class),
             'get',
@@ -532,13 +532,13 @@ return static function (ContainerConfigurator $containerConfigurator): void {
 
     $services->set(OpenSwooleFactory::class)
         ->tag('swoole_bundle.swoole_adapter_factory', [
-            'extension' => K911\Swoole\Common\System\Extension::OPENSWOOLE,
+            'extension' => SwooleBundle\SwooleBundle\Common\System\Extension::OPENSWOOLE,
         ])
     ;
 
     $services->set(SwooleFactory::class)
         ->tag('swoole_bundle.swoole_adapter_factory', [
-            'extension' => K911\Swoole\Common\System\Extension::SWOOLE,
+            'extension' => SwooleBundle\SwooleBundle\Common\System\Extension::SWOOLE,
         ])
     ;
 

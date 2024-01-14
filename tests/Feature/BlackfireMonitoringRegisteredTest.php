@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Tests\Feature;
+namespace SwooleBundle\SwooleBundle\Tests\Feature;
 
-use K911\Swoole\Bridge\Upscale\Blackfire\Monitoring\Apm;
-use K911\Swoole\Bridge\Upscale\Blackfire\Monitoring\WithApm;
-use K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Test\ServerTestCase;
+use SwooleBundle\SwooleBundle\Bridge\Upscale\Blackfire\Monitoring\Apm;
+use SwooleBundle\SwooleBundle\Bridge\Upscale\Blackfire\Monitoring\WithApm;
+use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Test\ServerTestCase;
 
 final class BlackfireMonitoringRegisteredTest extends ServerTestCase
 {

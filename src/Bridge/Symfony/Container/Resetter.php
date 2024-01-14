@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Bridge\Symfony\Container;
+namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Container;
 
 interface Resetter
 {

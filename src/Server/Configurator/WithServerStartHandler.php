@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Server\Configurator;
+namespace SwooleBundle\SwooleBundle\Server\Configurator;
 
-use K911\Swoole\Server\HttpServerConfiguration;
-use K911\Swoole\Server\LifecycleHandler\ServerStartHandlerInterface;
 use Swoole\Http\Server;
+use SwooleBundle\SwooleBundle\Server\HttpServerConfiguration;
+use SwooleBundle\SwooleBundle\Server\LifecycleHandler\ServerStartHandlerInterface;
 
 final class WithServerStartHandler implements ConfiguratorInterface
 {

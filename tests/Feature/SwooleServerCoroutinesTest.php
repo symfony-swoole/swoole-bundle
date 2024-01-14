@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Tests\Feature;
+namespace SwooleBundle\SwooleBundle\Tests\Feature;
 
 use Doctrine\ORM\EntityManager;
-use K911\Swoole\Client\HttpClient;
-use K911\Swoole\Tests\Fixtures\Symfony\TestAppKernel;
-use K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Entity\Test;
-use K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Service\NoAutowiring\ResetCountingRegistry;
-use K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Test\ServerTestCase;
+use SwooleBundle\SwooleBundle\Client\HttpClient;
+use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestAppKernel;
+use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Entity\Test;
+use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Service\NoAutowiring\ResetCountingRegistry;
+use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Test\ServerTestCase;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 
 final class SwooleServerCoroutinesTest extends ServerTestCase
@@ -187,7 +187,7 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
             $wg = $this->getSwoole()->waitGroup();
             // PCOV is not compatible with coroutines, so CodeCoverageManager blocks service pools somehow when
             // service limit is 20
-            // @todo investigate blocking lock on K911\Swoole\Tests\Fixtures\Symfony\CoverageBundle\Coverage\CodeCoverageManager.swoole_coop.wrapped
+            // @todo investigate blocking lock on SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\CoverageBundle\Coverage\CodeCoverageManager.swoole_coop.wrapped
             $max = self::coverageEnabled() ? 8 : 40;
 
             for ($i = 0; $i < $max; ++$i) {

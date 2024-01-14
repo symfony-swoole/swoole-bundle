@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Server\WorkerHandler;
+namespace SwooleBundle\SwooleBundle\Server\WorkerHandler;
 
-use K911\Swoole\Common\Adapter\Swoole;
-use K911\Swoole\Server\Runtime\HMR\HotModuleReloaderInterface;
 use Swoole\Server;
+use SwooleBundle\SwooleBundle\Common\Adapter\Swoole;
+use SwooleBundle\SwooleBundle\Server\Runtime\HMR\HotModuleReloaderInterface;
 
 final class HMRWorkerStartHandler implements WorkerStartHandlerInterface
 {

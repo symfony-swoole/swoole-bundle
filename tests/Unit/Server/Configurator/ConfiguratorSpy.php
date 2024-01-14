@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Tests\Unit\Server\Configurator;
+namespace SwooleBundle\SwooleBundle\Tests\Unit\Server\Configurator;
 
-use K911\Swoole\Server\Configurator\ConfiguratorInterface;
 use Swoole\Http\Server;
+use SwooleBundle\SwooleBundle\Server\Configurator\ConfiguratorInterface;
 
 final class ConfiguratorSpy implements ConfiguratorInterface
 {

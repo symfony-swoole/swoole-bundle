@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Bridge\Symfony\Container\Proxy\Generation\PropertyGenerator;
+namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Proxy\Generation\PropertyGenerator;
 
-use K911\Swoole\Bridge\Symfony\Container\ServicePool\ServicePool;
 use Laminas\Code\Generator\DocBlockGenerator;
 use Laminas\Code\Generator\Exception\InvalidArgumentException;
 use Laminas\Code\Generator\PropertyGenerator;
 use Laminas\Code\Generator\TypeGenerator;
 use ProxyManager\Generator\Util\IdentifierSuffixer;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\ServicePool\ServicePool;
 
 /**
  * Property that contains the wrapped Symfony container.

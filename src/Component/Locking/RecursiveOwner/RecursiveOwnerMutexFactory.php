@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Component\Locking\RecursiveOwner;
+namespace SwooleBundle\SwooleBundle\Component\Locking\RecursiveOwner;
 
-use K911\Swoole\Component\Locking\MutexFactory;
+use SwooleBundle\SwooleBundle\Component\Locking\MutexFactory;
 
 class RecursiveOwnerMutexFactory implements MutexFactory
 {

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Server\Session;
+namespace SwooleBundle\SwooleBundle\Server\Session;
 
 use Assert\Assertion;
 use Swoole\Table;

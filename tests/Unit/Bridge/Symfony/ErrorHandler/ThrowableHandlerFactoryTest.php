@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Tests\Unit\Bridge\Symfony\ErrorHandler;
+namespace SwooleBundle\SwooleBundle\Tests\Unit\Bridge\Symfony\ErrorHandler;
 
-use K911\Swoole\Bridge\Symfony\ErrorHandler\ThrowableHandlerFactory;
 use PHPUnit\Framework\TestCase;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\ErrorHandler\ThrowableHandlerFactory;
 
 class ThrowableHandlerFactoryTest extends TestCase
 {

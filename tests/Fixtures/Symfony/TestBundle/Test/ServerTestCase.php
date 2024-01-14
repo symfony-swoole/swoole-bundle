@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Test;
+namespace SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Test;
 
-use K911\Swoole\Client\HttpClient;
-use K911\Swoole\Common\Adapter\Swoole;
-use K911\Swoole\Coroutine\CoroutinePool;
-use K911\Swoole\Tests\Fixtures\Symfony\TestAppKernel;
-use K911\Swoole\Tests\Helper\SwooleFactory;
+use SwooleBundle\SwooleBundle\Client\HttpClient;
+use SwooleBundle\SwooleBundle\Common\Adapter\Swoole;
+use SwooleBundle\SwooleBundle\Coroutine\CoroutinePool;
+use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestAppKernel;
+use SwooleBundle\SwooleBundle\Tests\Helper\SwooleFactory;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Component\Filesystem\Filesystem;

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Server\RequestHandler;
+namespace SwooleBundle\SwooleBundle\Server\RequestHandler;
 
 use Swoole\Http\Request;
 use Swoole\Http\Response;

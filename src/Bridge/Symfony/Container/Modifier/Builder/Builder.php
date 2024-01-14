@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Bridge\Symfony\Container\Modifier\Builder;
+namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Modifier\Builder;
 
 use ZEngine\Reflection\ReflectionClass;
 

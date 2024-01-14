@@ -2,23 +2,23 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Bridge\Symfony\Bundle\Command;
+namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\Command;
 
 use Assert\Assertion;
-use K911\Swoole\Common\System\System;
-use K911\Swoole\Common\XdebugHandler\XdebugHandler;
-
-use function K911\Swoole\decode_string_as_set;
-use function K911\Swoole\format_bytes;
-use function K911\Swoole\get_max_memory;
-
-use K911\Swoole\Server\Config\Socket;
-use K911\Swoole\Server\Configurator\ConfiguratorInterface;
-use K911\Swoole\Server\HttpServer;
-use K911\Swoole\Server\HttpServerConfiguration;
-use K911\Swoole\Server\HttpServerFactory;
-use K911\Swoole\Server\Runtime\BootableInterface;
 use Swoole\Http\Server;
+use SwooleBundle\SwooleBundle\Common\System\System;
+use SwooleBundle\SwooleBundle\Common\XdebugHandler\XdebugHandler;
+
+use function SwooleBundle\SwooleBundle\decode_string_as_set;
+use function SwooleBundle\SwooleBundle\format_bytes;
+use function SwooleBundle\SwooleBundle\get_max_memory;
+
+use SwooleBundle\SwooleBundle\Server\Config\Socket;
+use SwooleBundle\SwooleBundle\Server\Configurator\ConfiguratorInterface;
+use SwooleBundle\SwooleBundle\Server\HttpServer;
+use SwooleBundle\SwooleBundle\Server\HttpServerConfiguration;
+use SwooleBundle\SwooleBundle\Server\HttpServerFactory;
+use SwooleBundle\SwooleBundle\Server\Runtime\BootableInterface;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;

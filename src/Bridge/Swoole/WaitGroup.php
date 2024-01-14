@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Bridge\Swoole;
+namespace SwooleBundle\SwooleBundle\Bridge\Swoole;
 
-use K911\Swoole\Common\Adapter\WaitGroup as CommonWaitGroup;
 use Swoole\Coroutine\WaitGroup as SwooleWaitGroup;
+use SwooleBundle\SwooleBundle\Common\Adapter\WaitGroup as CommonWaitGroup;
 
 final class WaitGroup extends SwooleWaitGroup implements CommonWaitGroup
 {

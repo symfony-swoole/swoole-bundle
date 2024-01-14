@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Bridge\Doctrine;
+namespace SwooleBundle\SwooleBundle\Bridge\Doctrine;
 
 use Doctrine\Common\Proxy\Proxy;
 use Doctrine\ORM\Proxy\ProxyFactory;
-use K911\Swoole\Component\Locking\FirstTimeOnly\FirstTimeOnlyMutex;
-use K911\Swoole\Component\Locking\FirstTimeOnly\FirstTimeOnlyMutexFactory;
+use SwooleBundle\SwooleBundle\Component\Locking\FirstTimeOnly\FirstTimeOnlyMutex;
+use SwooleBundle\SwooleBundle\Component\Locking\FirstTimeOnly\FirstTimeOnlyMutexFactory;
 
 final class BlockingProxyFactory extends ProxyFactory
 {

@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Tests\Unit\Server;
+namespace SwooleBundle\SwooleBundle\Tests\Unit\Server;
 
-use K911\Swoole\Common\Adapter\Swoole;
-use K911\Swoole\Common\Adapter\WaitGroup;
-use K911\Swoole\Tests\Helper\SwooleFactory;
+use SwooleBundle\SwooleBundle\Common\Adapter\Swoole;
+use SwooleBundle\SwooleBundle\Common\Adapter\WaitGroup;
+use SwooleBundle\SwooleBundle\Tests\Helper\SwooleFactory;
 
 final class SwooleSpy implements Swoole
 {

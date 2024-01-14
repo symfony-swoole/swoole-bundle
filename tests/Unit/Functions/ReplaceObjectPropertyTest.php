@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Tests\Unit\Functions;
-
-use function K911\Swoole\replace_object_property;
+namespace SwooleBundle\SwooleBundle\Tests\Unit\Functions;
 
 use PHPUnit\Framework\TestCase;
+
+use function SwooleBundle\SwooleBundle\replace_object_property;
 
 class ReplaceObjectPropertyTest extends TestCase
 {

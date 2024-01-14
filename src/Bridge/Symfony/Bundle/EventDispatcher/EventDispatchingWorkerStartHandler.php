@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Bridge\Symfony\Bundle\EventDispatcher;
+namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\EventDispatcher;
 
-use K911\Swoole\Bridge\Symfony\Event\WorkerStartedEvent;
-use K911\Swoole\Server\WorkerHandler\WorkerStartHandlerInterface;
 use Swoole\Server;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Event\WorkerStartedEvent;
+use SwooleBundle\SwooleBundle\Server\WorkerHandler\WorkerStartHandlerInterface;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
 final class EventDispatchingWorkerStartHandler implements WorkerStartHandlerInterface

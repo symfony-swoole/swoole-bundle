@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Tests\Unit\Metrics;
+namespace SwooleBundle\SwooleBundle\Tests\Unit\Metrics;
 
-use K911\Swoole\Common\System\Extension;
-use K911\Swoole\Common\System\System;
-use K911\Swoole\Metrics\SystemMetricsProviderRegistry;
 use PHPUnit\Framework\TestCase;
+use SwooleBundle\SwooleBundle\Common\System\Extension;
+use SwooleBundle\SwooleBundle\Common\System\System;
+use SwooleBundle\SwooleBundle\Metrics\SystemMetricsProviderRegistry;
 
 class SystemMetricsProviderRegistryTest extends TestCase
 {

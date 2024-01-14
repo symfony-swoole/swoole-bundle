@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Bridge\Symfony\Container\Proxy\Generation\MethodGenerator\Util;
+namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Proxy\Generation\MethodGenerator\Util;
 
 use Laminas\Code\Generator\PropertyGenerator;
 use ProxyManager\Generator\Util\ProxiedMethodReturnExpression;

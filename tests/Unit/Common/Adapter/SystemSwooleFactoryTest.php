@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Tests\Unit\Common\Adapter;
+namespace SwooleBundle\SwooleBundle\Tests\Unit\Common\Adapter;
 
-use K911\Swoole\Common\Adapter\Swoole;
-use K911\Swoole\Common\Adapter\SwooleFactory;
-use K911\Swoole\Common\Adapter\SystemSwooleFactory;
-use K911\Swoole\Common\System\Extension;
-use K911\Swoole\Common\System\System;
 use PHPUnit\Framework\TestCase;
+use SwooleBundle\SwooleBundle\Common\Adapter\Swoole;
+use SwooleBundle\SwooleBundle\Common\Adapter\SwooleFactory;
+use SwooleBundle\SwooleBundle\Common\Adapter\SystemSwooleFactory;
+use SwooleBundle\SwooleBundle\Common\System\Extension;
+use SwooleBundle\SwooleBundle\Common\System\System;
 
 class SystemSwooleFactoryTest extends TestCase
 {

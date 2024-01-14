@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Server\RequestHandler;
+namespace SwooleBundle\SwooleBundle\Server\RequestHandler;
 
-use K911\Swoole\Component\AtomicCounter;
-use K911\Swoole\Server\HttpServer;
-use K911\Swoole\Server\Runtime\BootableInterface;
 use Swoole\Http\Request;
 use Swoole\Http\Response;
+use SwooleBundle\SwooleBundle\Component\AtomicCounter;
+use SwooleBundle\SwooleBundle\Server\HttpServer;
+use SwooleBundle\SwooleBundle\Server\Runtime\BootableInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
 final class LimitedRequestHandler implements RequestHandlerInterface, BootableInterface

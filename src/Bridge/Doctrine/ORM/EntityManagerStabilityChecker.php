@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Bridge\Doctrine\ORM;
+namespace SwooleBundle\SwooleBundle\Bridge\Doctrine\ORM;
 
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
-use K911\Swoole\Bridge\Symfony\Container\StabilityChecker;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\StabilityChecker;
 
 final class EntityManagerStabilityChecker implements StabilityChecker
 {

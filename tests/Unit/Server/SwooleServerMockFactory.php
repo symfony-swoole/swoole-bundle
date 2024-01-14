@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Tests\Unit\Server;
+namespace SwooleBundle\SwooleBundle\Tests\Unit\Server;
 
-use K911\Swoole\Common\System\System;
+use SwooleBundle\SwooleBundle\Common\System\System;
 
 final class SwooleServerMockFactory
 {

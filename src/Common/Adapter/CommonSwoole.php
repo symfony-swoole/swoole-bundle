@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Common\Adapter;
+namespace SwooleBundle\SwooleBundle\Common\Adapter;
 
 use Swoole\Timer;
 

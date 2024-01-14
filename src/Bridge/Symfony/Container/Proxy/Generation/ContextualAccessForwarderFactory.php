@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Bridge\Symfony\Container\Proxy\Generation;
+namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Proxy\Generation;
 
-use K911\Swoole\Bridge\Symfony\Container\Proxy\ContextualProxy;
-use K911\Swoole\Bridge\Symfony\Container\ServicePool\ServicePool;
 use ProxyManager\Configuration;
 use ProxyManager\Factory\AbstractBaseFactory;
 use ProxyManager\ProxyGenerator\ProxyGeneratorInterface;
 use ProxyManager\Signature\Exception\InvalidSignatureException;
 use ProxyManager\Signature\Exception\MissingSignatureException;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Proxy\ContextualProxy;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\ServicePool\ServicePool;
 
 /**
  * Factory responsible of producing proxy objects.

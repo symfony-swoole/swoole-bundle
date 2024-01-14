@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Bridge\Doctrine;
+namespace SwooleBundle\SwooleBundle\Bridge\Doctrine;
 
-use K911\Swoole\Bridge\Doctrine\DBAL\ConnectionKeepAliveResetter;
-use K911\Swoole\Bridge\Doctrine\ORM\EntityManagerResetter;
-use K911\Swoole\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices\CompileProcessor;
-use K911\Swoole\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices\Proxifier;
-use K911\Swoole\Bridge\Symfony\Bundle\DependencyInjection\ContainerConstants;
 use PixelFederation\DoctrineResettableEmBundle\DBAL\Connection\DBALPlatformAliveKeeper;
+use SwooleBundle\SwooleBundle\Bridge\Doctrine\DBAL\ConnectionKeepAliveResetter;
+use SwooleBundle\SwooleBundle\Bridge\Doctrine\ORM\EntityManagerResetter;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices\CompileProcessor;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices\Proxifier;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\ContainerConstants;
 use Symfony\Component\DependencyInjection\Argument\IteratorArgument;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;

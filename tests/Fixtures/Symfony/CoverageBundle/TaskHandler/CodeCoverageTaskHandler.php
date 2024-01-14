@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Tests\Fixtures\Symfony\CoverageBundle\TaskHandler;
+namespace SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\CoverageBundle\TaskHandler;
 
-use K911\Swoole\Server\TaskHandler\TaskHandlerInterface;
-use K911\Swoole\Tests\Fixtures\Symfony\CoverageBundle\Coverage\CodeCoverageManager;
 use Swoole\Server;
+use SwooleBundle\SwooleBundle\Server\TaskHandler\TaskHandlerInterface;
+use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\CoverageBundle\Coverage\CodeCoverageManager;
 
 final class CodeCoverageTaskHandler implements TaskHandlerInterface
 {

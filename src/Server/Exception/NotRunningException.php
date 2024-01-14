@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Server\Exception;
+namespace SwooleBundle\SwooleBundle\Server\Exception;
 
 /**
  * @internal

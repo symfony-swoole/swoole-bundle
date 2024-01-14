@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Server\Runtime;
+namespace SwooleBundle\SwooleBundle\Server\Runtime;
 
 use Assert\Assertion;
-use K911\Swoole\Component\GeneratedCollection;
+use SwooleBundle\SwooleBundle\Component\GeneratedCollection;
 
 final class CallableBootManagerFactory
 {

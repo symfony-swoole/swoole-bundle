@@ -1,7 +1,7 @@
 #!/usr/bin/env php
 <?php
 
-use K911\Swoole\Tests\Fixtures\Symfony\TestAppKernel;
+use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestAppKernel;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Component\Console\Input\ArgvInput;
 use Symfony\Component\ErrorHandler\Debug;

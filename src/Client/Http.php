@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Client;
+namespace SwooleBundle\SwooleBundle\Client;
 
 final class Http
 {

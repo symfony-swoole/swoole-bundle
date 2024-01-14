@@ -2,19 +2,19 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Controller;
+namespace SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Controller;
 
 use Doctrine\DBAL\Connection;
-use K911\Swoole\Bridge\Symfony\Container\Proxy\ContextualProxy;
-use K911\Swoole\Bridge\Symfony\Container\ServicePool\BaseServicePool;
-use K911\Swoole\Bridge\Symfony\Container\ServicePool\ServicePoolContainer;
-use K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Service\DefaultDummyService;
-use K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Service\DummyService;
-use K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Service\NonSharedExample;
-use K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Service\ShouldBeProxified;
-use K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Service\ShouldBeProxified2;
-use K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Service\SleepingCounter;
-use K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Service\SleepingCounterChecker;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Proxy\ContextualProxy;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\ServicePool\BaseServicePool;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\ServicePool\ServicePoolContainer;
+use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Service\DefaultDummyService;
+use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Service\DummyService;
+use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Service\NonSharedExample;
+use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Service\ShouldBeProxified;
+use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Service\ShouldBeProxified2;
+use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Service\SleepingCounter;
+use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Service\SleepingCounterChecker;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route as RouteAnnotation;

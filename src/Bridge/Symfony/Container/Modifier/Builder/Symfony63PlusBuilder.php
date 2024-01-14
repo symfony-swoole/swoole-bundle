@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Bridge\Symfony\Container\Modifier\Builder;
+namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Modifier\Builder;
 
-use K911\Swoole\Bridge\Symfony\Bundle\DependencyInjection\ContainerConstants;
-use K911\Swoole\Bridge\Symfony\Container\BlockingContainer;
-use K911\Swoole\Bridge\Symfony\Container\ContainerSourceCodeExtractor;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\ContainerConstants;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\BlockingContainer;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\ContainerSourceCodeExtractor;
 use Symfony\Component\Config\ConfigCache;
 use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\Filesystem\Filesystem;

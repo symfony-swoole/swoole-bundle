@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Server\Api;
+namespace SwooleBundle\SwooleBundle\Server\Api;
 
-use K911\Swoole\Server\HttpServer;
-use K911\Swoole\Server\HttpServerConfiguration;
 use Swoole\Server\Port;
+use SwooleBundle\SwooleBundle\Server\HttpServer;
+use SwooleBundle\SwooleBundle\Server\HttpServerConfiguration;
 
 /**
  * API Server for Swoole HTTP Server. If enabled, is running on another port, than regular server.

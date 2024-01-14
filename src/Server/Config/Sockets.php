@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Server\Config;
+namespace SwooleBundle\SwooleBundle\Server\Config;
 
 use Assert\Assertion;
 

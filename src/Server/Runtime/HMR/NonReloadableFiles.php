@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Server\Runtime\HMR;
+namespace SwooleBundle\SwooleBundle\Server\Runtime\HMR;
 
-use K911\Swoole\Server\Runtime\BootableInterface;
+use SwooleBundle\SwooleBundle\Server\Runtime\BootableInterface;
 use Symfony\Component\Filesystem\Filesystem;
 
 final class NonReloadableFiles implements BootableInterface

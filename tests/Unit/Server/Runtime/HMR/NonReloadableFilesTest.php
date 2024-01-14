@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Tests\Unit\Server\Runtime\HMR;
+namespace SwooleBundle\SwooleBundle\Tests\Unit\Server\Runtime\HMR;
 
-use K911\Swoole\Server\Runtime\HMR\NonReloadableFiles;
 use PHPUnit\Framework\TestCase;
+use SwooleBundle\SwooleBundle\Server\Runtime\HMR\NonReloadableFiles;
 use Symfony\Component\Filesystem\Filesystem;
 
 class NonReloadableFilesTest extends TestCase

@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Component\Locking\FirstTimeOnly;
+namespace SwooleBundle\SwooleBundle\Component\Locking\FirstTimeOnly;
 
-use K911\Swoole\Component\Locking\Mutex;
+use SwooleBundle\SwooleBundle\Component\Locking\Mutex;
 
 final class FirstTimeOnlyMutex implements Mutex
 {

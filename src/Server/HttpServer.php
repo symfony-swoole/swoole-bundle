@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Server;
+namespace SwooleBundle\SwooleBundle\Server;
 
-use K911\Swoole\Server\Exception\IllegalInitializationException;
-use K911\Swoole\Server\Exception\NotRunningException;
-use K911\Swoole\Server\Exception\PortUnavailableException;
-use K911\Swoole\Server\Exception\UnexpectedPortException;
-use K911\Swoole\Server\Exception\UninitializedException;
 use Swoole\Http\Server;
 use Swoole\Process;
 use Swoole\Server\Port as Listener;
+use SwooleBundle\SwooleBundle\Server\Exception\IllegalInitializationException;
+use SwooleBundle\SwooleBundle\Server\Exception\NotRunningException;
+use SwooleBundle\SwooleBundle\Server\Exception\PortUnavailableException;
+use SwooleBundle\SwooleBundle\Server\Exception\UnexpectedPortException;
+use SwooleBundle\SwooleBundle\Server\Exception\UninitializedException;
 
 final class HttpServer
 {

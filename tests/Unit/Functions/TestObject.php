@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Tests\Unit\Functions;
+namespace SwooleBundle\SwooleBundle\Tests\Unit\Functions;
 
 /**
  * Class TestObject.

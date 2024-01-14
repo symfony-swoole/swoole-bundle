@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Tests\Unit\Component\AtomicCounter;
+namespace SwooleBundle\SwooleBundle\Tests\Unit\Component\AtomicCounter;
 
-use K911\Swoole\Component\AtomicCounter;
 use PHPUnit\Framework\TestCase;
+use SwooleBundle\SwooleBundle\Component\AtomicCounter;
 
 class AtomicCounterTest extends TestCase
 {

@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Tests\Unit\Server\WorkerHandler;
+namespace SwooleBundle\SwooleBundle\Tests\Unit\Server\WorkerHandler;
 
-use K911\Swoole\Server\WorkerHandler\HMRWorkerStartHandler;
-use K911\Swoole\Tests\Unit\Server\IntMother;
-use K911\Swoole\Tests\Unit\Server\Runtime\HMR\HMRSpy;
-use K911\Swoole\Tests\Unit\Server\SwooleServerMockFactory;
-use K911\Swoole\Tests\Unit\Server\SwooleSpy;
 use PHPUnit\Framework\TestCase;
+use SwooleBundle\SwooleBundle\Server\WorkerHandler\HMRWorkerStartHandler;
+use SwooleBundle\SwooleBundle\Tests\Unit\Server\IntMother;
+use SwooleBundle\SwooleBundle\Tests\Unit\Server\Runtime\HMR\HMRSpy;
+use SwooleBundle\SwooleBundle\Tests\Unit\Server\SwooleServerMockFactory;
+use SwooleBundle\SwooleBundle\Tests\Unit\Server\SwooleSpy;
 
 /**
  * @runTestsInSeparateProcesses

@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Bridge\Monolog;
+namespace SwooleBundle\SwooleBundle\Bridge\Monolog;
 
 use Composer\InstalledVersions;
-use K911\Swoole\Component\Locking\Mutex;
 use Monolog\Handler\AbstractProcessingHandler;
 use Monolog\Level;
 use Monolog\Logger;
 use Monolog\LogRecord;
 use Monolog\Utils;
+use SwooleBundle\SwooleBundle\Component\Locking\Mutex;
 
 /*
  * This is an override of the original class from Monolog

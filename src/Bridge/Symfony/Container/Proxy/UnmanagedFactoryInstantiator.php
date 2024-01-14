@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Bridge\Symfony\Container\Proxy;
+namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Proxy;
 
-use K911\Swoole\Bridge\Symfony\Container\Resetter;
-use K911\Swoole\Bridge\Symfony\Container\ServicePool\ServicePoolContainer;
-use K911\Swoole\Bridge\Symfony\Container\ServicePool\UnmanagedFactoryServicePool;
-use K911\Swoole\Component\Locking\MutexFactory;
 use ProxyManager\Factory\AccessInterceptorValueHolderFactory;
 use ProxyManager\Proxy\AccessInterceptorInterface;
 use ProxyManager\Proxy\AccessInterceptorValueHolderInterface;
 use ProxyManager\Proxy\ValueHolderInterface;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Resetter;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\ServicePool\ServicePoolContainer;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\ServicePool\UnmanagedFactoryServicePool;
+use SwooleBundle\SwooleBundle\Component\Locking\MutexFactory;
 
 final class UnmanagedFactoryInstantiator
 {

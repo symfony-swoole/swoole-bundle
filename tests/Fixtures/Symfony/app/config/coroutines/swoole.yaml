@@ -18,11 +18,11 @@ swoole:
       max_concurrency: 30
       max_service_instances: 20
       stateful_services:
-        - K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Service\ShouldBeProxified
+        - SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Service\ShouldBeProxified
       compile_processors:
-        - class: K911\Swoole\Tests\Fixtures\Symfony\TestBundle\DependencyInjection\CompilerPass\SleepingCounterCompileProcessor
+        - class: SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\DependencyInjection\CompilerPass\SleepingCounterCompileProcessor
           priority: 10
-        - K911\Swoole\Tests\Fixtures\Symfony\TestBundle\DependencyInjection\CompilerPass\ResetCountCompileProcessor
+        - SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\DependencyInjection\CompilerPass\ResetCountCompileProcessor
       doctrine_processor_config:
         limits:
           default: 12
@@ -33,31 +33,31 @@ services:
     autoconfigure: true
     public: false
 
-  K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Service\ShouldBeProxified2:
+  SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Service\ShouldBeProxified2:
     tags:
       - { name: 'swoole_bundle.stateful_service', limit: 10 }
 
-  K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Controller\CoroutinesTaskController:
+  SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Controller\CoroutinesTaskController:
     tags:
       - controller.service_arguments
 
-  K911\Swoole\Tests\Fixtures\Symfony\TestBundle\MessageHandler\SleepAndAppendHandler:
+  SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\MessageHandler\SleepAndAppendHandler:
     tags:
       - messenger.message_handler
 
-  K911\Swoole\Tests\Fixtures\Symfony\TestBundle\MessageHandler\RunDummyHandler:
+  SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\MessageHandler\RunDummyHandler:
     tags:
       - messenger.message_handler
 
-  K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Service\AlwaysReset:
+  SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Service\AlwaysReset:
     tags:
       - { name: 'swoole_bundle.stateful_service', reset_on_each_request: true }
 
-  K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Service\AlwaysResetSafe:
+  SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Service\AlwaysResetSafe:
     tags:
       - { name: 'swoole_bundle.safe_stateful_service', reset_on_each_request: true }
 
-  K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Service\NonSharedExample:
+  SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Service\NonSharedExample:
     public: true
     shared: false
     tags:
