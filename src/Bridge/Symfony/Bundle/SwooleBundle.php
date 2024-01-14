@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Bridge\Symfony\Bundle;
+namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle;
 
-use K911\Swoole\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\BlackfireMonitoringPass;
-use K911\Swoole\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\DebugLogProcessorPass;
-use K911\Swoole\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\ExceptionHandlerPass;
-use K911\Swoole\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\FinalizeDefinitionsAfterRemovalPass;
-use K911\Swoole\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\MessengerTransportFactoryPass;
-use K911\Swoole\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\SessionStorageListenerPass;
-use K911\Swoole\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServicesPass;
-use K911\Swoole\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StreamedResponseListenerPass;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\BlackfireMonitoringPass;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\DebugLogProcessorPass;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\ExceptionHandlerPass;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\FinalizeDefinitionsAfterRemovalPass;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\MessengerTransportFactoryPass;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\SessionStorageListenerPass;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServicesPass;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StreamedResponseListenerPass;
 use Symfony\Component\DependencyInjection\Compiler\PassConfig;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpKernel\Bundle\Bundle;

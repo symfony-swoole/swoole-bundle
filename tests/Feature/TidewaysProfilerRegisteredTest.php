@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Tests\Feature;
+namespace SwooleBundle\SwooleBundle\Tests\Feature;
 
-use K911\Swoole\Bridge\Tideways\Apm\Apm;
-use K911\Swoole\Bridge\Tideways\Apm\WithApm;
-use K911\Swoole\Client\HttpClient;
-use K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Test\ServerTestCase;
+use SwooleBundle\SwooleBundle\Bridge\Tideways\Apm\Apm;
+use SwooleBundle\SwooleBundle\Bridge\Tideways\Apm\WithApm;
+use SwooleBundle\SwooleBundle\Client\HttpClient;
+use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Test\ServerTestCase;
 use Tideways\Profiler;
 
 final class TidewaysProfilerRegisteredTest extends ServerTestCase

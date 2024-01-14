@@ -2,20 +2,20 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass;
+namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass;
 
-use K911\Swoole\Bridge\Doctrine\DoctrineProcessor;
-use K911\Swoole\Bridge\Monolog\MonologProcessor;
-use K911\Swoole\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices\CompileProcessor;
-use K911\Swoole\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices\FinalClassesProcessor;
-use K911\Swoole\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices\Proxifier;
-use K911\Swoole\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices\Tags;
-use K911\Swoole\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices\UnmanagedFactoryProxifier;
-use K911\Swoole\Bridge\Symfony\Bundle\DependencyInjection\ContainerConstants;
-use K911\Swoole\Bridge\Symfony\Cache\CacheAdapterProcessor;
-use K911\Swoole\Bridge\Symfony\Container\BlockingContainer;
-use K911\Swoole\Bridge\Symfony\Container\ServicePool\ServicePoolContainer;
-use K911\Swoole\Bridge\Symfony\Container\StabilityChecker;
+use SwooleBundle\SwooleBundle\Bridge\Doctrine\DoctrineProcessor;
+use SwooleBundle\SwooleBundle\Bridge\Monolog\MonologProcessor;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices\CompileProcessor;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices\FinalClassesProcessor;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices\Proxifier;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices\Tags;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices\UnmanagedFactoryProxifier;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\ContainerConstants;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Cache\CacheAdapterProcessor;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\BlockingContainer;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\ServicePool\ServicePoolContainer;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\StabilityChecker;
 use Symfony\Component\DependencyInjection\Argument\ServiceLocatorArgument;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;

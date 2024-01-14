@@ -64,7 +64,7 @@ Symfony integration with [Open Swoole](https://openswoole.com/) to speed up your
     ```php
     return [
         // ...other bundles
-        K911\Swoole\Bridge\Symfony\Bundle\SwooleBundle::class => ['all' => true],
+        SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\SwooleBundle::class => ['all' => true],
     ];
     ```
 

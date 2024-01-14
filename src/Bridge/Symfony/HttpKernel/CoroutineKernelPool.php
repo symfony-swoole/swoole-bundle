@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Bridge\Symfony\HttpKernel;
+namespace SwooleBundle\SwooleBundle\Bridge\Symfony\HttpKernel;
 
 use Symfony\Component\HttpKernel\KernelInterface;
 

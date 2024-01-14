@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Tests\Unit\Server\Configurator;
+namespace SwooleBundle\SwooleBundle\Tests\Unit\Server\Configurator;
 
-use K911\Swoole\Server\Configurator\WithTaskFinishedHandler;
-use K911\Swoole\Server\HttpServerConfiguration;
-use K911\Swoole\Server\TaskHandler\NoOpTaskFinishedHandler;
-use K911\Swoole\Tests\Unit\Server\IntMother;
-use K911\Swoole\Tests\Unit\Server\SwooleHttpServerMockFactory;
 use PHPUnit\Framework\TestCase;
 use Prophecy\Prophecy\ObjectProphecy;
+use SwooleBundle\SwooleBundle\Server\Configurator\WithTaskFinishedHandler;
+use SwooleBundle\SwooleBundle\Server\HttpServerConfiguration;
+use SwooleBundle\SwooleBundle\Server\TaskHandler\NoOpTaskFinishedHandler;
+use SwooleBundle\SwooleBundle\Tests\Unit\Server\IntMother;
+use SwooleBundle\SwooleBundle\Tests\Unit\Server\SwooleHttpServerMockFactory;
 
 /**
  * @runTestsInSeparateProcesses

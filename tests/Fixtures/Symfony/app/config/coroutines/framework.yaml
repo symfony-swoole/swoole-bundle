@@ -8,5 +8,5 @@ framework:
     transports:
       swoole: swoole://task
     routing:
-      'K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Message\SleepAndAppend': swoole
-      'K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Message\RunDummy': swoole
+      'SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Message\SleepAndAppend': swoole
+      'SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Message\RunDummy': swoole

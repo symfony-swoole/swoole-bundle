@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Tests\Helper;
+namespace SwooleBundle\SwooleBundle\Tests\Helper;
 
-use K911\Swoole\Bridge\OpenSwoole\OpenSwooleFactory;
-use K911\Swoole\Common\Adapter\Swoole;
-use K911\Swoole\Common\Adapter\SystemSwooleFactory;
-use K911\Swoole\Common\System\Extension;
-use K911\Swoole\Common\System\System;
+use SwooleBundle\SwooleBundle\Bridge\OpenSwoole\OpenSwooleFactory;
+use SwooleBundle\SwooleBundle\Common\Adapter\Swoole;
+use SwooleBundle\SwooleBundle\Common\Adapter\SystemSwooleFactory;
+use SwooleBundle\SwooleBundle\Common\System\Extension;
+use SwooleBundle\SwooleBundle\Common\System\System;
 
 final class SwooleFactory
 {
@@ -25,7 +25,7 @@ final class SwooleFactory
             self::$systemSwooleFactory = new SystemSwooleFactory(
                 System::create(),
                 new \ArrayObject([
-                    Extension::SWOOLE => new \K911\Swoole\Bridge\Swoole\SwooleFactory(),
+                    Extension::SWOOLE => new \SwooleBundle\SwooleBundle\Bridge\Swoole\SwooleFactory(),
                     Extension::OPENSWOOLE => new OpenSwooleFactory(),
                 ]),
             );

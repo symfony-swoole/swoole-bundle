@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices;
+namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices;
 
-use K911\Swoole\Reflection\FinalClassModifier;
+use SwooleBundle\SwooleBundle\Reflection\FinalClassModifier;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 
 final class FinalClassesProcessor

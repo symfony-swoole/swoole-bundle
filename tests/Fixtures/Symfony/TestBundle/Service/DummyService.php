@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Service;
+namespace SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Service;
 
-use K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Entity\Test;
+use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Entity\Test;
 
 interface DummyService
 {

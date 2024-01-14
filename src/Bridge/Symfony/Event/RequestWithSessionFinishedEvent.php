@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Bridge\Symfony\Event;
+namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Event;
 
 use Symfony\Contracts\EventDispatcher\Event;
 

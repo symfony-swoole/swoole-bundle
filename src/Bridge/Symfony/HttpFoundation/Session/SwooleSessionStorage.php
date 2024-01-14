@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Bridge\Symfony\HttpFoundation\Session;
+namespace SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation\Session;
 
 use Assert\Assertion;
-use K911\Swoole\Server\Session\Exception\LogicException;
-use K911\Swoole\Server\Session\Exception\RuntimeException;
-use K911\Swoole\Server\Session\StorageInterface;
+use SwooleBundle\SwooleBundle\Server\Session\Exception\LogicException;
+use SwooleBundle\SwooleBundle\Server\Session\Exception\RuntimeException;
+use SwooleBundle\SwooleBundle\Server\Session\StorageInterface;
 use Symfony\Component\HttpFoundation\Session\SessionBagInterface;
 use Symfony\Component\HttpFoundation\Session\Storage\MetadataBag;
 use Symfony\Component\HttpFoundation\Session\Storage\SessionStorageInterface;

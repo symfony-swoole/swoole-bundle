@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Bridge\Symfony\Container\Proxy;
+namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Proxy;
 
-use K911\Swoole\Bridge\Symfony\Container\ServicePool\ServicePool;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\ServicePool\ServicePool;
 
 /**
  * @template RealObjectType of object

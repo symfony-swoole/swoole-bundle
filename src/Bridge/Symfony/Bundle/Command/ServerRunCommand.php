@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Bridge\Symfony\Bundle\Command;
+namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\Command;
 
 final class ServerRunCommand extends AbstractServerStartCommand
 {

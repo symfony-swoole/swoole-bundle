@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Server\Api;
+namespace SwooleBundle\SwooleBundle\Server\Api;
 
-use K911\Swoole\Client\Http;
-use K911\Swoole\Server\RequestHandler\RequestHandlerInterface;
 use Swoole\Http\Request;
 use Swoole\Http\Response;
+use SwooleBundle\SwooleBundle\Client\Http;
+use SwooleBundle\SwooleBundle\Server\RequestHandler\RequestHandlerInterface;
 
 final class ApiServerRequestHandler implements RequestHandlerInterface
 {

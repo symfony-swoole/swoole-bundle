@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Bridge\Doctrine;
+namespace SwooleBundle\SwooleBundle\Bridge\Doctrine;
 
 use Doctrine\Bundle\DoctrineBundle\ManagerConfigurator;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
-use K911\Swoole\Component\Locking\FirstTimeOnly\FirstTimeOnlyMutexFactory;
+use SwooleBundle\SwooleBundle\Component\Locking\FirstTimeOnly\FirstTimeOnlyMutexFactory;
 
 final class BlockingProxyFactoryOverridingManagerConfigurator
 {

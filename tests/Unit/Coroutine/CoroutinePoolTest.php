@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Tests\Unit\Coroutine;
+namespace SwooleBundle\SwooleBundle\Tests\Unit\Coroutine;
 
-use K911\Swoole\Coroutine\CoroutinePool;
 use PHPUnit\Framework\TestCase;
+use SwooleBundle\SwooleBundle\Coroutine\CoroutinePool;
 
 class CoroutinePoolTest extends TestCase
 {

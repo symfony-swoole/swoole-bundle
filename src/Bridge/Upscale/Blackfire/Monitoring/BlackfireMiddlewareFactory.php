@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Bridge\Upscale\Blackfire\Monitoring;
+namespace SwooleBundle\SwooleBundle\Bridge\Upscale\Blackfire\Monitoring;
 
-use K911\Swoole\Server\Middleware\MiddlewareFactory;
+use SwooleBundle\SwooleBundle\Server\Middleware\MiddlewareFactory;
 
 final class BlackfireMiddlewareFactory implements MiddlewareFactory
 {

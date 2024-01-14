@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Tests\Unit\Bridge\Symfony\HttpKernel;
+namespace SwooleBundle\SwooleBundle\Tests\Unit\Bridge\Symfony\HttpKernel;
 
-use K911\Swoole\Bridge\Symfony\HttpFoundation\RequestFactoryInterface;
-use K911\Swoole\Bridge\Symfony\HttpFoundation\ResponseProcessorInjectorInterface;
-use K911\Swoole\Bridge\Symfony\HttpFoundation\ResponseProcessorInterface;
-use K911\Swoole\Bridge\Symfony\HttpKernel\HttpKernelRequestHandler;
-use K911\Swoole\Bridge\Symfony\HttpKernel\KernelPoolInterface;
 use PHPUnit\Framework\TestCase;
 use Prophecy\Prophecy\ObjectProphecy;
 use Swoole\Http\Request as SwooleRequest;
 use Swoole\Http\Response as SwooleResponse;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation\RequestFactoryInterface;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation\ResponseProcessorInjectorInterface;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation\ResponseProcessorInterface;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpKernel\HttpKernelRequestHandler;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpKernel\KernelPoolInterface;
 use Symfony\Component\HttpFoundation\Request as HttpFoundationRequest;
 use Symfony\Component\HttpFoundation\Response as HttpFoundationResponse;
 use Symfony\Component\HttpKernel\KernelInterface;

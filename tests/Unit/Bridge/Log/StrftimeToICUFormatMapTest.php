@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Tests\Unit\Bridge\Log;
+namespace SwooleBundle\SwooleBundle\Tests\Unit\Bridge\Log;
 
-use K911\Swoole\Bridge\Log\StrftimeToICUFormatMap;
 use PHPUnit\Framework\TestCase;
+use SwooleBundle\SwooleBundle\Bridge\Log\StrftimeToICUFormatMap;
 
 class StrftimeToICUFormatMapTest extends TestCase
 {

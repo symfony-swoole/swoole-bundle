@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Bridge\Symfony\Bundle\Command;
+namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\Command;
 
 use Assert\Assertion;
-use K911\Swoole\Client\Exception\ClientConnectionErrorException;
-use K911\Swoole\Coroutine\CoroutinePool;
-use K911\Swoole\Metrics\MetricsProvider;
-use K911\Swoole\Server\Api\ApiServerClientFactory;
-use K911\Swoole\Server\Config\Socket;
-use K911\Swoole\Server\Config\Sockets;
+use SwooleBundle\SwooleBundle\Client\Exception\ClientConnectionErrorException;
+use SwooleBundle\SwooleBundle\Coroutine\CoroutinePool;
+use SwooleBundle\SwooleBundle\Metrics\MetricsProvider;
+use SwooleBundle\SwooleBundle\Server\Api\ApiServerClientFactory;
+use SwooleBundle\SwooleBundle\Server\Config\Socket;
+use SwooleBundle\SwooleBundle\Server\Config\Sockets;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;

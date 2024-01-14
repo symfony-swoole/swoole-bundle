@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Tests\Unit\Server\Configurator;
+namespace SwooleBundle\SwooleBundle\Tests\Unit\Server\Configurator;
 
-use K911\Swoole\Server\Configurator\WithWorkerExitHandler;
-use K911\Swoole\Server\WorkerHandler\NoOpWorkerExitHandler;
-use K911\Swoole\Tests\Unit\Server\SwooleHttpServerMockFactory;
 use PHPUnit\Framework\TestCase;
+use SwooleBundle\SwooleBundle\Server\Configurator\WithWorkerExitHandler;
+use SwooleBundle\SwooleBundle\Server\WorkerHandler\NoOpWorkerExitHandler;
+use SwooleBundle\SwooleBundle\Tests\Unit\Server\SwooleHttpServerMockFactory;
 
 /**
  * @runTestsInSeparateProcesses

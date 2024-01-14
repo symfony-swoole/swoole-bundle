@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Tests\Unit\Common\System;
+namespace SwooleBundle\SwooleBundle\Tests\Unit\Common\System;
 
-use K911\Swoole\Common\System\Extension;
-use K911\Swoole\Common\System\System;
 use OpenSwoole\Util;
 use PHPUnit\Framework\TestCase;
+use SwooleBundle\SwooleBundle\Common\System\Extension;
+use SwooleBundle\SwooleBundle\Common\System\System;
 
 class SystemTest extends TestCase
 {

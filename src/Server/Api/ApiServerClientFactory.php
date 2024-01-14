@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Server\Api;
+namespace SwooleBundle\SwooleBundle\Server\Api;
 
 use Assert\Assertion;
-use K911\Swoole\Client\HttpClient;
-use K911\Swoole\Server\Config\Sockets;
+use SwooleBundle\SwooleBundle\Client\HttpClient;
+use SwooleBundle\SwooleBundle\Server\Config\Sockets;
 
 final class ApiServerClientFactory
 {

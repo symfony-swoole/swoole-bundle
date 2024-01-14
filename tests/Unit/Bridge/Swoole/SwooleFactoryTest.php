@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Tests\Unit\Bridge\Swoole;
+namespace SwooleBundle\SwooleBundle\Tests\Unit\Bridge\Swoole;
 
-use K911\Swoole\Bridge\Swoole\Swoole;
-use K911\Swoole\Bridge\Swoole\SwooleFactory;
 use PHPUnit\Framework\TestCase;
+use SwooleBundle\SwooleBundle\Bridge\Swoole\Swoole;
+use SwooleBundle\SwooleBundle\Bridge\Swoole\SwooleFactory;
 
 class SwooleFactoryTest extends TestCase
 {

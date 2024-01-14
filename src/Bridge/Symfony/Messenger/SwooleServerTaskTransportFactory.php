@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Bridge\Symfony\Messenger;
+namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Messenger;
 
-use K911\Swoole\Server\HttpServer;
+use SwooleBundle\SwooleBundle\Server\HttpServer;
 use Symfony\Component\Messenger\Transport\Serialization\SerializerInterface;
 use Symfony\Component\Messenger\Transport\TransportFactoryInterface;
 use Symfony\Component\Messenger\Transport\TransportInterface;

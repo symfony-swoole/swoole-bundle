@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Bridge\Symfony\Bundle\Exception;
+namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\Exception;
 
 /**
  * @internal

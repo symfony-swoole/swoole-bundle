@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Tests\Unit\Functions;
-
-use function K911\Swoole\decode_string_as_set;
+namespace SwooleBundle\SwooleBundle\Tests\Unit\Functions;
 
 use PHPUnit\Framework\TestCase;
+
+use function SwooleBundle\SwooleBundle\decode_string_as_set;
 
 class DecodeStringAsSetTest extends TestCase
 {

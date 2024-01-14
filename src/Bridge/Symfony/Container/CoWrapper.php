@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Bridge\Symfony\Container;
+namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Container;
 
 use Co;
-use K911\Swoole\Bridge\Symfony\Container\ServicePool\ServicePoolContainer;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\ServicePool\ServicePoolContainer;
 
 final class CoWrapper
 {

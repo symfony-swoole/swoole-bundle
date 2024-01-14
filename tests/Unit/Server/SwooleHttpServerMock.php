@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Tests\Unit\Server;
+namespace SwooleBundle\SwooleBundle\Tests\Unit\Server;
 
 use Swoole\Http\Server;
 

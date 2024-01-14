@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Logging;
+namespace SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Logging;
 
 final class InMemoryLogger
 {

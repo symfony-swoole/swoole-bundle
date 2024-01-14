@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Metrics;
+namespace SwooleBundle\SwooleBundle\Metrics;
 
 final class Metrics
 {

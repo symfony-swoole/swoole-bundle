@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Common\XdebugHandler;
+namespace SwooleBundle\SwooleBundle\Common\XdebugHandler;
 
 use Symfony\Component\Process\Process;
 

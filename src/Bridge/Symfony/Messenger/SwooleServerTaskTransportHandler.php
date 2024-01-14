@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Bridge\Symfony\Messenger;
+namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Messenger;
 
 use Assert\Assertion;
-use K911\Swoole\Server\TaskHandler\TaskHandlerInterface;
 use Swoole\Server;
+use SwooleBundle\SwooleBundle\Server\TaskHandler\TaskHandlerInterface;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\MessageBusInterface;
 

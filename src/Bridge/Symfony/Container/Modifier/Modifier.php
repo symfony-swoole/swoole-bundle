@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Bridge\Symfony\Container\Modifier;
+namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Modifier;
 
 use Composer\InstalledVersions;
-use K911\Swoole\Bridge\Symfony\Container\BlockingContainer;
-use K911\Swoole\Bridge\Symfony\Container\Modifier\Builder\Symfony54PlusBuilder;
-use K911\Swoole\Bridge\Symfony\Container\Modifier\Builder\Symfony63PlusBuilder;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\BlockingContainer;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Modifier\Builder\Symfony54PlusBuilder;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Modifier\Builder\Symfony63PlusBuilder;
 use ZEngine\Reflection\ReflectionClass;
 
 final class Modifier

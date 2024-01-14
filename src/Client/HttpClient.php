@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Client;
+namespace SwooleBundle\SwooleBundle\Client;
 
-use K911\Swoole\Client\Exception\ClientConnectionErrorException;
-use K911\Swoole\Client\Exception\MissingContentTypeException;
-use K911\Swoole\Client\Exception\UnsupportedContentTypeException;
-use K911\Swoole\Client\Exception\UnsupportedHttpMethodException;
-use K911\Swoole\Server\Config\Socket;
 use Swoole\Coroutine;
 use Swoole\Coroutine\Http\Client;
+use SwooleBundle\SwooleBundle\Client\Exception\ClientConnectionErrorException;
+use SwooleBundle\SwooleBundle\Client\Exception\MissingContentTypeException;
+use SwooleBundle\SwooleBundle\Client\Exception\UnsupportedContentTypeException;
+use SwooleBundle\SwooleBundle\Client\Exception\UnsupportedHttpMethodException;
+use SwooleBundle\SwooleBundle\Server\Config\Socket;
 
 /**
  * Mainly used for server tests.

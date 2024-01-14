@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Bridge\Symfony\Messenger\Exception;
+namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Messenger\Exception;
 
 use Symfony\Component\Messenger\Exception\TransportException;
 

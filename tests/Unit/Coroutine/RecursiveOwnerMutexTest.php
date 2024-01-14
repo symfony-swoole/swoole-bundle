@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Tests\Unit\Coroutine;
+namespace SwooleBundle\SwooleBundle\Tests\Unit\Coroutine;
 
-use K911\Swoole\Component\Locking\Channel\ChannelMutex;
-use K911\Swoole\Component\Locking\RecursiveOwner\RecursiveOwnerMutex;
 use PHPUnit\Framework\TestCase;
 use Swoole\Coroutine\Scheduler;
 use Swoole\Runtime;
+use SwooleBundle\SwooleBundle\Component\Locking\Channel\ChannelMutex;
+use SwooleBundle\SwooleBundle\Component\Locking\RecursiveOwner\RecursiveOwnerMutex;
 
 final class RecursiveOwnerMutexTest extends TestCase
 {

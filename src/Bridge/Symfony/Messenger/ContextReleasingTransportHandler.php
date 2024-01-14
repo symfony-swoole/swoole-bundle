@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Bridge\Symfony\Messenger;
+namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Messenger;
 
-use K911\Swoole\Bridge\Symfony\Container\CoWrapper;
-use K911\Swoole\Server\TaskHandler\TaskHandlerInterface;
 use Swoole\Server;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\CoWrapper;
+use SwooleBundle\SwooleBundle\Server\TaskHandler\TaskHandlerInterface;
 
 final class ContextReleasingTransportHandler implements TaskHandlerInterface
 {

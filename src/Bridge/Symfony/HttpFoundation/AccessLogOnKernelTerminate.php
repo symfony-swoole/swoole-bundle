@@ -1,10 +1,10 @@
 <?php
 
-namespace K911\Swoole\Bridge\Symfony\HttpFoundation;
+namespace SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation;
 
-use K911\Swoole\Bridge\Log\AccessLogDataMap;
-use K911\Swoole\Bridge\Log\AccessLogFormatterInterface;
 use Psr\Log\LoggerInterface;
+use SwooleBundle\SwooleBundle\Bridge\Log\AccessLogDataMap;
+use SwooleBundle\SwooleBundle\Bridge\Log\AccessLogFormatterInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpKernel\Event\TerminateEvent;
 use Symfony\Component\HttpKernel\KernelEvents;

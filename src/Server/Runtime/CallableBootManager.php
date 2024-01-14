@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Server\Runtime;
+namespace SwooleBundle\SwooleBundle\Server\Runtime;
 
 use Assert\Assertion;
 

@@ -2,14 +2,8 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Bridge\Symfony\Container\Proxy\Generation;
+namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Proxy\Generation;
 
-use K911\Swoole\Bridge\Symfony\Container\Proxy\ContextualProxy;
-use K911\Swoole\Bridge\Symfony\Container\Proxy\Generation\MethodGenerator\GetWrappedServicePoolValue;
-use K911\Swoole\Bridge\Symfony\Container\Proxy\Generation\MethodGenerator\MagicGet;
-use K911\Swoole\Bridge\Symfony\Container\Proxy\Generation\MethodGenerator\MagicSet;
-use K911\Swoole\Bridge\Symfony\Container\Proxy\Generation\MethodGenerator\StaticProxyConstructor;
-use K911\Swoole\Bridge\Symfony\Container\Proxy\Generation\PropertyGenerator\ServicePoolProperty;
 use Laminas\Code\Generator\ClassGenerator;
 use Laminas\Code\Generator\MethodGenerator;
 use ProxyManager\Exception\InvalidProxiedClassException;
@@ -19,6 +13,12 @@ use ProxyManager\ProxyGenerator\PropertyGenerator\PublicPropertiesMap;
 use ProxyManager\ProxyGenerator\ProxyGeneratorInterface;
 use ProxyManager\ProxyGenerator\Util\Properties;
 use ProxyManager\ProxyGenerator\Util\ProxiedMethodsFilter;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Proxy\ContextualProxy;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Proxy\Generation\MethodGenerator\GetWrappedServicePoolValue;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Proxy\Generation\MethodGenerator\MagicGet;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Proxy\Generation\MethodGenerator\MagicSet;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Proxy\Generation\MethodGenerator\StaticProxyConstructor;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Proxy\Generation\PropertyGenerator\ServicePoolProperty;
 
 /**
  * Generator for proxies with service pool.

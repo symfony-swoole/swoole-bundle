@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Metrics;
+namespace SwooleBundle\SwooleBundle\Metrics;
 
-use K911\Swoole\Common\System\System;
+use SwooleBundle\SwooleBundle\Common\System\System;
 
 final class SystemMetricsProviderRegistry
 {

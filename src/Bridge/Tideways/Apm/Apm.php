@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Bridge\Tideways\Apm;
+namespace SwooleBundle\SwooleBundle\Bridge\Tideways\Apm;
 
-use K911\Swoole\Server\Middleware\MiddlewareInjector;
 use Swoole\Http\Server;
+use SwooleBundle\SwooleBundle\Server\Middleware\MiddlewareInjector;
 
 final class Apm
 {

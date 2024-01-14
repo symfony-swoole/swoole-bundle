@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Tests\Fixtures\Symfony\CoverageBundle\Coverage;
+namespace SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\CoverageBundle\Coverage;
 
-use K911\Swoole\Common\System\System;
+use SwooleBundle\SwooleBundle\Common\System\System;
 
 final class NameGenerator
 {

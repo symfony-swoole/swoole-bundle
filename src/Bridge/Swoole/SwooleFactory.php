@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Bridge\Swoole;
+namespace SwooleBundle\SwooleBundle\Bridge\Swoole;
 
-use K911\Swoole\Common\Adapter\SwooleFactory as CommonSwooleAdapterFactory;
+use SwooleBundle\SwooleBundle\Common\Adapter\SwooleFactory as CommonSwooleAdapterFactory;
 
 final class SwooleFactory implements CommonSwooleAdapterFactory
 {

@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Bridge\Symfony\Container\Proxy;
+namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Proxy;
 
-use K911\Swoole\Bridge\Symfony\Container\Proxy\Generation\ContextualAccessForwarderFactory;
 use ProxyManager\Configuration;
 use ProxyManager\Version;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Proxy\Generation\ContextualAccessForwarderFactory;
 
 final class Generator extends ContextualAccessForwarderFactory
 {

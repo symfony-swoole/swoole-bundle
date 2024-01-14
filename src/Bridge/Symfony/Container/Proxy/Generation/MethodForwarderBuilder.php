@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Bridge\Symfony\Container\Proxy\Generation;
+namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Proxy\Generation;
 
-use K911\Swoole\Bridge\Symfony\Container\Proxy\Generation\MethodGenerator\ForwardedMethod;
-use K911\Swoole\Bridge\Symfony\Container\Proxy\Generation\PropertyGenerator\ServicePoolProperty;
 use Laminas\Code\Reflection\MethodReflection;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Proxy\Generation\MethodGenerator\ForwardedMethod;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Proxy\Generation\PropertyGenerator\ServicePoolProperty;
 
 final class MethodForwarderBuilder
 {

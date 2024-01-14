@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Bridge\Symfony\ErrorHandler;
+namespace SwooleBundle\SwooleBundle\Bridge\Symfony\ErrorHandler;
 
-use K911\Swoole\Bridge\Symfony\HttpFoundation\RequestFactoryInterface;
-use K911\Swoole\Bridge\Symfony\HttpFoundation\ResponseProcessorInterface;
-use K911\Swoole\Server\RequestHandler\ExceptionHandler\ExceptionHandlerInterface;
 use Swoole\Http\Request;
 use Swoole\Http\Response;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation\RequestFactoryInterface;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation\ResponseProcessorInterface;
+use SwooleBundle\SwooleBundle\Server\RequestHandler\ExceptionHandler\ExceptionHandlerInterface;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\HttpKernel\TerminableInterface;
 

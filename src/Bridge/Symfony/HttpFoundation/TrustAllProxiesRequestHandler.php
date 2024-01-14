@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Bridge\Symfony\HttpFoundation;
+namespace SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation;
 
-use K911\Swoole\Server\RequestHandler\RequestHandlerInterface;
-use K911\Swoole\Server\Runtime\BootableInterface;
 use Swoole\Http\Request as SwooleRequest;
 use Swoole\Http\Response as SwooleResponse;
+use SwooleBundle\SwooleBundle\Server\RequestHandler\RequestHandlerInterface;
+use SwooleBundle\SwooleBundle\Server\Runtime\BootableInterface;
 use Symfony\Component\HttpFoundation\Request as SymfonyRequest;
 
 final class TrustAllProxiesRequestHandler implements RequestHandlerInterface, BootableInterface

@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Bridge\Tideways\Apm;
+namespace SwooleBundle\SwooleBundle\Bridge\Tideways\Apm;
 
-use K911\Swoole\Server\Middleware\MiddlewareFactory;
+use SwooleBundle\SwooleBundle\Server\Middleware\MiddlewareFactory;
 
 final class TidewaysMiddlewareFactory implements MiddlewareFactory
 {

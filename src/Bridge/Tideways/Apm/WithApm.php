@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Bridge\Tideways\Apm;
+namespace SwooleBundle\SwooleBundle\Bridge\Tideways\Apm;
 
-use K911\Swoole\Server\Configurator\ConfiguratorInterface;
 use Swoole\Http\Server;
+use SwooleBundle\SwooleBundle\Server\Configurator\ConfiguratorInterface;
 
 final class WithApm implements ConfiguratorInterface
 {

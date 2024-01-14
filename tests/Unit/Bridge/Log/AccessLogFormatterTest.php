@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Tests\Unit\Bridge\Log;
+namespace SwooleBundle\SwooleBundle\Tests\Unit\Bridge\Log;
 
-use K911\Swoole\Bridge\Log\AccessLogDataMap;
-use K911\Swoole\Bridge\Log\AccessLogFormatter;
 use PHPUnit\Framework\TestCase;
+use SwooleBundle\SwooleBundle\Bridge\Log\AccessLogDataMap;
+use SwooleBundle\SwooleBundle\Bridge\Log\AccessLogFormatter;
 
 class AccessLogFormatterTest extends TestCase
 {

@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Tests\Fixtures\Symfony\CoverageBundle\ServerLifecycle;
+namespace SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\CoverageBundle\ServerLifecycle;
 
-use K911\Swoole\Server\WorkerHandler\WorkerStartHandlerInterface;
-use K911\Swoole\Tests\Fixtures\Symfony\CoverageBundle\Coverage\CodeCoverageManager;
 use Swoole\Server;
+use SwooleBundle\SwooleBundle\Server\WorkerHandler\WorkerStartHandlerInterface;
+use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\CoverageBundle\Coverage\CodeCoverageManager;
 
 final class CoverageStartOnServerWorkerStart implements WorkerStartHandlerInterface
 {

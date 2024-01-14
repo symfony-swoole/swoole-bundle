@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Server\Api;
+namespace SwooleBundle\SwooleBundle\Server\Api;
 
-use K911\Swoole\Client\Http;
-use K911\Swoole\Client\HttpClient;
+use SwooleBundle\SwooleBundle\Client\Http;
+use SwooleBundle\SwooleBundle\Client\HttpClient;
 
 final class ApiServerClient implements ApiServerInterface
 {

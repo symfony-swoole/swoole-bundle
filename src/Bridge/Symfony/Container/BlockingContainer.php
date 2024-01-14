@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Bridge\Symfony\Container;
+namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Container;
 
-use K911\Swoole\Component\Locking\Channel\ChannelMutexFactory;
-use K911\Swoole\Component\Locking\RecursiveOwner\RecursiveOwnerMutex;
-use K911\Swoole\Component\Locking\RecursiveOwner\RecursiveOwnerMutexFactory;
+use SwooleBundle\SwooleBundle\Component\Locking\Channel\ChannelMutexFactory;
+use SwooleBundle\SwooleBundle\Component\Locking\RecursiveOwner\RecursiveOwnerMutex;
+use SwooleBundle\SwooleBundle\Component\Locking\RecursiveOwner\RecursiveOwnerMutexFactory;
 use Symfony\Component\DependencyInjection\Container;
 
 class BlockingContainer extends Container

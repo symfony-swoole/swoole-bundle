@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass;
+namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass;
 
-use K911\Swoole\Bridge\Symfony\HttpFoundation\Session\SessionCookieEventListener;
-use K911\Swoole\Server\Session\StorageInterface;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation\Session\SessionCookieEventListener;
+use SwooleBundle\SwooleBundle\Server\Session\StorageInterface;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;

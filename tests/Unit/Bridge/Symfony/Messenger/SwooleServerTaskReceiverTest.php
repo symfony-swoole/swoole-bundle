@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Tests\Unit\Bridge\Symfony\Messenger;
+namespace SwooleBundle\SwooleBundle\Tests\Unit\Bridge\Symfony\Messenger;
 
-use K911\Swoole\Bridge\Symfony\Messenger\Exception\ReceiverNotAvailableException;
-use K911\Swoole\Bridge\Symfony\Messenger\SwooleServerTaskReceiver;
 use PHPUnit\Framework\TestCase;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Messenger\Exception\ReceiverNotAvailableException;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Messenger\SwooleServerTaskReceiver;
 use Symfony\Component\Messenger\Envelope;
 
 class SwooleServerTaskReceiverTest extends TestCase

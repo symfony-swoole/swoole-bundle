@@ -1,6 +1,6 @@
 <?php
 
-namespace K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Blackfire;
+namespace SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Blackfire;
 
 use Blackfire\Client;
 use Blackfire\Probe;

@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Server\RequestHandler;
+namespace SwooleBundle\SwooleBundle\Server\RequestHandler;
 
-use K911\Swoole\Server\RequestHandler\ExceptionHandler\ExceptionHandlerInterface;
 use Swoole\Http\Request;
 use Swoole\Http\Response;
+use SwooleBundle\SwooleBundle\Server\RequestHandler\ExceptionHandler\ExceptionHandlerInterface;
 
 final class ExceptionRequestHandler implements RequestHandlerInterface
 {

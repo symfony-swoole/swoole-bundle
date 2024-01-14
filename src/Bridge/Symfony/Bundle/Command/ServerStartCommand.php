@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Bridge\Symfony\Bundle\Command;
+namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\Command;
 
-use K911\Swoole\Bridge\Symfony\Bundle\Exception\CouldNotCreatePidFileException;
-use K911\Swoole\Bridge\Symfony\Bundle\Exception\PidFileNotAccessibleException;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\Exception\CouldNotCreatePidFileException;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\Exception\PidFileNotAccessibleException;
 
-use function K911\Swoole\get_object_property;
+use function SwooleBundle\SwooleBundle\get_object_property;
 
-use K911\Swoole\Server\HttpServer;
-use K911\Swoole\Server\HttpServerConfiguration;
+use SwooleBundle\SwooleBundle\Server\HttpServer;
+use SwooleBundle\SwooleBundle\Server\HttpServerConfiguration;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\ConsoleOutput;

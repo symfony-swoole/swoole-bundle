@@ -4,7 +4,7 @@ framework:
     transports:
       swoole: swoole://task
     routing:
-      'K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Message\CreateFileMessage': swoole
+      'SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Message\CreateFileMessage': swoole
 swoole:
   task_worker:
     settings:
@@ -16,10 +16,10 @@ services:
     autoconfigure: true
     public: false
 
-  'K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Controller\TaskController':
+  'SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Controller\TaskController':
     tags:
       - controller.service_arguments
 
-  'K911\Swoole\Tests\Fixtures\Symfony\TestBundle\MessageHandler\CreateFileMessageHandler':
+  'SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\MessageHandler\CreateFileMessageHandler':
     tags:
       - messenger.message_handler

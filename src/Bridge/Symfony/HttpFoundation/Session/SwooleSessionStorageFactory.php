@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Bridge\Symfony\HttpFoundation\Session;
+namespace SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation\Session;
 
-use K911\Swoole\Bridge\Symfony\Event\RequestWithSessionFinishedEvent;
-use K911\Swoole\Server\Session\StorageInterface;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Event\RequestWithSessionFinishedEvent;
+use SwooleBundle\SwooleBundle\Server\Session\StorageInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Session\Storage\MetadataBag;

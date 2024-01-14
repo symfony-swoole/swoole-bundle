@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Tests\Fixtures\Symfony\TestBundle\MessageHandler;
+namespace SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\MessageHandler;
 
-use K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Message\SleepAndAppend;
 use Psr\Log\LoggerInterface;
+use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Message\SleepAndAppend;
 
 final class SleepAndAppendHandler
 {

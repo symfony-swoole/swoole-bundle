@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Tests\Unit\Bridge\Symfony\HttpFoundation;
+namespace SwooleBundle\SwooleBundle\Tests\Unit\Bridge\Symfony\HttpFoundation;
 
-use K911\Swoole\Bridge\Symfony\HttpFoundation\SetRequestRuntimeConfiguration;
 use PHPUnit\Framework\TestCase;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation\SetRequestRuntimeConfiguration;
 use Symfony\Component\HttpFoundation\Request;
 
 class SetRequestRuntimeConfigurationTest extends TestCase

@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Tests\Unit\Server\SwooleHttpServerMock;
+namespace SwooleBundle\SwooleBundle\Tests\Unit\Server\SwooleHttpServerMock;
 
-use K911\Swoole\Tests\Unit\Server\SwooleHttpServerMock;
+use SwooleBundle\SwooleBundle\Tests\Unit\Server\SwooleHttpServerMock;
 
 final class SwooleHttpServerMockSwoole5 extends SwooleHttpServerMock
 {

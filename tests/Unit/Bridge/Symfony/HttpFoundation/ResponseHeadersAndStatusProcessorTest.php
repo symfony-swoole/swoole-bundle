@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Tests\Unit\Bridge\Symfony\HttpFoundation;
+namespace SwooleBundle\SwooleBundle\Tests\Unit\Bridge\Symfony\HttpFoundation;
 
-use K911\Swoole\Bridge\Symfony\HttpFoundation\ResponseHeadersAndStatusProcessor;
-use K911\Swoole\Bridge\Symfony\HttpFoundation\ResponseProcessorInterface;
 use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
 use Prophecy\Prophecy\ObjectProphecy;
 use Swoole\Http\Response as SwooleResponse;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation\ResponseHeadersAndStatusProcessor;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation\ResponseProcessorInterface;
 use Symfony\Component\HttpFoundation\Response as HttpFoundationResponse;
 
 class ResponseHeadersAndStatusProcessorTest extends TestCase

@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Bridge\Doctrine\DBAL;
+namespace SwooleBundle\SwooleBundle\Bridge\Doctrine\DBAL;
 
 use Doctrine\DBAL\Connection;
-use K911\Swoole\Bridge\Symfony\Container\Resetter;
 use PixelFederation\DoctrineResettableEmBundle\DBAL\Connection\DBALAliveKeeper;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Resetter;
 
 final class ConnectionKeepAliveResetter implements Resetter
 {

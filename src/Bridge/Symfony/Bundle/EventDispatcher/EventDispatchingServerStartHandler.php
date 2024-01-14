@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Bridge\Symfony\Bundle\EventDispatcher;
+namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\EventDispatcher;
 
-use K911\Swoole\Bridge\Symfony\Event\ServerStartedEvent;
-use K911\Swoole\Server\LifecycleHandler\ServerStartHandlerInterface;
 use Swoole\Server;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Event\ServerStartedEvent;
+use SwooleBundle\SwooleBundle\Server\LifecycleHandler\ServerStartHandlerInterface;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
 final class EventDispatchingServerStartHandler implements ServerStartHandlerInterface

@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass;
+namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass;
 
-use K911\Swoole\Bridge\Symfony\Bundle\DependencyInjection\ContainerConstants;
-use K911\Swoole\Bridge\Symfony\HttpFoundation\RequestFactoryInterface;
-use K911\Swoole\Bridge\Upscale\Blackfire\Monitoring\Apm;
-use K911\Swoole\Bridge\Upscale\Blackfire\Monitoring\BlackfireMiddlewareFactory;
-use K911\Swoole\Bridge\Upscale\Blackfire\Monitoring\RequestMonitoring;
-use K911\Swoole\Bridge\Upscale\Blackfire\Monitoring\WithApm;
-use K911\Swoole\Server\Middleware\MiddlewareInjector;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\ContainerConstants;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation\RequestFactoryInterface;
+use SwooleBundle\SwooleBundle\Bridge\Upscale\Blackfire\Monitoring\Apm;
+use SwooleBundle\SwooleBundle\Bridge\Upscale\Blackfire\Monitoring\BlackfireMiddlewareFactory;
+use SwooleBundle\SwooleBundle\Bridge\Upscale\Blackfire\Monitoring\RequestMonitoring;
+use SwooleBundle\SwooleBundle\Bridge\Upscale\Blackfire\Monitoring\WithApm;
+use SwooleBundle\SwooleBundle\Server\Middleware\MiddlewareInjector;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Reference;

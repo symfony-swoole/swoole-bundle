@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Tests\Unit\Bridge\Symfony\HttpFoundation;
+namespace SwooleBundle\SwooleBundle\Tests\Unit\Bridge\Symfony\HttpFoundation;
 
-use K911\Swoole\Bridge\Symfony\HttpFoundation\TrustAllProxiesRequestHandler;
-use K911\Swoole\Server\RequestHandler\RequestHandlerInterface;
 use PHPUnit\Framework\TestCase;
 use Prophecy\Prophecy\ObjectProphecy;
 use Swoole\Http\Request as SwooleRequest;
 use Swoole\Http\Response as SwooleResponse;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation\TrustAllProxiesRequestHandler;
+use SwooleBundle\SwooleBundle\Server\RequestHandler\RequestHandlerInterface;
 use Symfony\Component\HttpFoundation\Request as SymfonyRequest;
 
 class TrustAllProxiesRequestHandlerTest extends TestCase

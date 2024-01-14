@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Tests\Fixtures\Symfony\CoverageBundle\ServerLifecycle;
+namespace SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\CoverageBundle\ServerLifecycle;
 
-use K911\Swoole\Server\LifecycleHandler\ServerShutdownHandlerInterface;
-use K911\Swoole\Tests\Fixtures\Symfony\CoverageBundle\Coverage\CodeCoverageManager;
-use K911\Swoole\Tests\Fixtures\Symfony\CoverageBundle\Coverage\NameGenerator;
 use Swoole\Server;
+use SwooleBundle\SwooleBundle\Server\LifecycleHandler\ServerShutdownHandlerInterface;
+use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\CoverageBundle\Coverage\CodeCoverageManager;
+use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\CoverageBundle\Coverage\NameGenerator;
 
 final class CoverageFinishOnServerShutdown implements ServerShutdownHandlerInterface
 {

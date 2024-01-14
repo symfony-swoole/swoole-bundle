@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Tests\Unit\Functions;
-
-use function K911\Swoole\format_bytes;
+namespace SwooleBundle\SwooleBundle\Tests\Unit\Functions;
 
 use PHPUnit\Framework\TestCase;
+
+use function SwooleBundle\SwooleBundle\format_bytes;
 
 class FormatBytesTest extends TestCase
 {

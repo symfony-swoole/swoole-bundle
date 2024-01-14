@@ -11,7 +11,7 @@ services:
 
   # makes classes in src/ available to be used as services
   # this creates a service per class whose id is the fully-qualified class name
-  K911\Swoole\Tests\Fixtures\Symfony\TestBundle\:
+  SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\:
     resource: '../../TestBundle/*'
     # you can exclude directories or files
     # but if a service is unused, it's removed anyway
@@ -19,20 +19,20 @@ services:
 
   # controllers are imported separately to make sure they
   # have the tag that allows actions to type-hint services
-  K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Controller\:
+  SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Controller\:
     resource: '../../TestBundle/Controller'
     # without this the HMR tests break, might be a bug in HMR
     exclude: '../../TestBundle/Controller/ReplacedContentTestController.php'
     tags: ['controller.service_arguments']
 
-  K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Controller\DoctrineController:
+  SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Controller\DoctrineController:
     arguments:
       $registry: '@doctrine'
       $resetters: []
       $dataHolder: '@?doctrine.debug_data_holder'
     tags: ['controller.service_arguments']
 
-  K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Controller\SleepController:
+  SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Controller\SleepController:
     arguments:
       $connection: '@doctrine.dbal.default_connection'
       $container: '@service_container'
@@ -42,38 +42,38 @@ services:
 
   Ramsey\Uuid\UuidFactory:
 
-  K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Service\DummyService: '@K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Service\DefaultDummyService'
+  SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Service\DummyService: '@SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Service\DefaultDummyService'
 
-  K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Service\DefaultDummyService:
+  SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Service\DefaultDummyService:
     arguments:
       $entityManager: '@doctrine.orm.default_entity_manager'
       $uuidFactory: '@Ramsey\Uuid\UuidFactoryInterface'
-      $factory: '@K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Service\RepositoryFactory'
+      $factory: '@SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Service\RepositoryFactory'
     tags: [{ name: 'swoole_bundle.decorated_stateful_service' }]
 
-  K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Service\AdvancedDoctrineUsage:
+  SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Service\AdvancedDoctrineUsage:
     arguments:
       $uuidFactory: '@Ramsey\Uuid\UuidFactoryInterface'
       $doctrine: '@doctrine'
 
-  K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Service\DecorationTestDummyService:
-    decorates: 'K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Service\DefaultDummyService'
+  SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Service\DecorationTestDummyService:
+    decorates: 'SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Service\DefaultDummyService'
     arguments:
       $decorated: '@.inner'
 
-  K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Service\RepositoryFactory:
+  SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Service\RepositoryFactory:
     tags:
       - name: 'swoole_bundle.unmanaged_factory'
         factoryMethod: 'newInstance'
-        returnType: 'K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Service\InMemoryRepository'
+        returnType: 'SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Service\InMemoryRepository'
         limit: 15
         resetter: 'inmemory_repository_resetter'
 
   inmemory_repository_resetter:
-    class: K911\Swoole\Bridge\Symfony\Container\SimpleResetter
+    class: SwooleBundle\SwooleBundle\Bridge\Symfony\Container\SimpleResetter
     arguments:
       $resetFn: 'reset'
 
-  K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Service\UnusedServiceToRemove:
+  SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Service\UnusedServiceToRemove:
     tags:
       - { name: kernel.reset, method: reset }

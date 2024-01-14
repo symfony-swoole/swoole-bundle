@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Tests\Unit\Server\SwooleServerMock;
+namespace SwooleBundle\SwooleBundle\Tests\Unit\Server\SwooleServerMock;
 
-use K911\Swoole\Tests\Unit\Server\SwooleServerMock;
+use SwooleBundle\SwooleBundle\Tests\Unit\Server\SwooleServerMock;
 
 final class SwooleServerMockOpenSwoole22 extends SwooleServerMock
 {

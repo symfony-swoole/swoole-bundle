@@ -2,20 +2,20 @@
 
 declare(strict_types=1);
 
-use K911\Swoole\Bridge\Symfony\Bundle\Command\ServerProfileCommand;
-use K911\Swoole\Bridge\Symfony\Bundle\Command\ServerReloadCommand;
-use K911\Swoole\Bridge\Symfony\Bundle\Command\ServerRunCommand;
-use K911\Swoole\Bridge\Symfony\Bundle\Command\ServerStartCommand;
-use K911\Swoole\Bridge\Symfony\Bundle\Command\ServerStatusCommand;
-use K911\Swoole\Bridge\Symfony\Bundle\Command\ServerStopCommand;
-use K911\Swoole\Metrics\MetricsProvider;
-use K911\Swoole\Server\Api\ApiServerClientFactory;
-use K911\Swoole\Server\Config\Sockets;
-use K911\Swoole\Server\Configurator\CallableChainConfigurator;
-use K911\Swoole\Server\Configurator\CallableChainConfiguratorFactory;
-use K911\Swoole\Server\HttpServer;
-use K911\Swoole\Server\HttpServerConfiguration;
-use K911\Swoole\Server\Runtime\BootableInterface;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\Command\ServerProfileCommand;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\Command\ServerReloadCommand;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\Command\ServerRunCommand;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\Command\ServerStartCommand;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\Command\ServerStatusCommand;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\Command\ServerStopCommand;
+use SwooleBundle\SwooleBundle\Metrics\MetricsProvider;
+use SwooleBundle\SwooleBundle\Server\Api\ApiServerClientFactory;
+use SwooleBundle\SwooleBundle\Server\Config\Sockets;
+use SwooleBundle\SwooleBundle\Server\Configurator\CallableChainConfigurator;
+use SwooleBundle\SwooleBundle\Server\Configurator\CallableChainConfiguratorFactory;
+use SwooleBundle\SwooleBundle\Server\HttpServer;
+use SwooleBundle\SwooleBundle\Server\HttpServerConfiguration;
+use SwooleBundle\SwooleBundle\Server\Runtime\BootableInterface;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 
 use function Symfony\Component\DependencyInjection\Loader\Configurator\service;

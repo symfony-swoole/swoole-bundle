@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Server\RequestHandler\ExceptionHandler;
+namespace SwooleBundle\SwooleBundle\Server\RequestHandler\ExceptionHandler;
 
-use K911\Swoole\Client\Http;
-use K911\Swoole\Component\ExceptionArrayTransformer;
 use Swoole\Http\Request;
 use Swoole\Http\Response;
+use SwooleBundle\SwooleBundle\Client\Http;
+use SwooleBundle\SwooleBundle\Component\ExceptionArrayTransformer;
 
 final class JsonExceptionHandler implements ExceptionHandlerInterface
 {

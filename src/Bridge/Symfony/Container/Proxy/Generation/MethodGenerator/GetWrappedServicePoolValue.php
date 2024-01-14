@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Bridge\Symfony\Container\Proxy\Generation\MethodGenerator;
+namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Proxy\Generation\MethodGenerator;
 
-use K911\Swoole\Bridge\Symfony\Container\Proxy\Generation\PropertyGenerator\ServicePoolProperty;
-use K911\Swoole\Bridge\Symfony\Container\ServicePool\ServicePool;
 use Laminas\Code\Generator\Exception\InvalidArgumentException;
 use ProxyManager\Generator\MethodGenerator;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Proxy\Generation\PropertyGenerator\ServicePoolProperty;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\ServicePool\ServicePool;
 
 /**
  * Implementation for {@see \ProxyManager\Proxy\ValueHolderInterface::getWrappedValueHolderValue}

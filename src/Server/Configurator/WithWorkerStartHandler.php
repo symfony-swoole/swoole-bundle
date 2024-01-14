@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Server\Configurator;
+namespace SwooleBundle\SwooleBundle\Server\Configurator;
 
-use K911\Swoole\Server\WorkerHandler\WorkerStartHandlerInterface;
 use Swoole\Http\Server;
+use SwooleBundle\SwooleBundle\Server\WorkerHandler\WorkerStartHandlerInterface;
 
 final class WithWorkerStartHandler implements ConfiguratorInterface
 {

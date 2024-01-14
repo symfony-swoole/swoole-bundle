@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Tests\Unit\Client;
+namespace SwooleBundle\SwooleBundle\Tests\Unit\Client;
 
-use K911\Swoole\Client\HttpClient;
 use PHPUnit\Framework\TestCase;
+use SwooleBundle\SwooleBundle\Client\HttpClient;
 
 final class HttpClientTest extends TestCase
 {

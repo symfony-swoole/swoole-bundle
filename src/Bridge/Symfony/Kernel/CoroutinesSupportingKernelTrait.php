@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Bridge\Symfony\Kernel;
+namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Kernel;
 
-use K911\Swoole\Bridge\Symfony\Bundle\DependencyInjection\ContainerConstants;
-use K911\Swoole\Bridge\Symfony\Container\BlockingContainer;
-use K911\Swoole\Bridge\Symfony\Container\Modifier\Modifier;
-use K911\Swoole\Reflection\FinalClassModifier;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\ContainerConstants;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\BlockingContainer;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Modifier\Modifier;
+use SwooleBundle\SwooleBundle\Reflection\FinalClassModifier;
 
 trait CoroutinesSupportingKernelTrait
 {

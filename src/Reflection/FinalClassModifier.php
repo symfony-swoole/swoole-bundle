@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Reflection;
+namespace SwooleBundle\SwooleBundle\Reflection;
 
-use K911\Swoole\Bridge\Symfony\Bundle\DependencyInjection\ContainerConstants;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\ContainerConstants;
 use Symfony\Component\Cache\Adapter\FilesystemAdapter;
 use ZEngine\Core;
 use ZEngine\Reflection\ReflectionClass;

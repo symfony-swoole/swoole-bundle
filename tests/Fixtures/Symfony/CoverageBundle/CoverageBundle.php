@@ -2,30 +2,30 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Tests\Fixtures\Symfony\CoverageBundle;
+namespace SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\CoverageBundle;
 
-use K911\Swoole\Server\LifecycleHandler\ServerManagerStartHandlerInterface;
-use K911\Swoole\Server\LifecycleHandler\ServerManagerStopHandlerInterface;
-use K911\Swoole\Server\LifecycleHandler\ServerShutdownHandlerInterface;
-use K911\Swoole\Server\LifecycleHandler\ServerStartHandlerInterface;
-use K911\Swoole\Server\RequestHandler\RequestHandlerInterface;
-use K911\Swoole\Server\TaskHandler\TaskHandlerInterface;
-use K911\Swoole\Server\WorkerHandler\WorkerStartHandlerInterface;
-use K911\Swoole\Tests\Fixtures\Symfony\CoverageBundle\Coverage\CodeCoverageManager;
-use K911\Swoole\Tests\Fixtures\Symfony\CoverageBundle\EventListeners\CoverageFinishOnConsoleTerminate;
-use K911\Swoole\Tests\Fixtures\Symfony\CoverageBundle\EventListeners\CoverageStartOnConsoleCommandEventListener;
-use K911\Swoole\Tests\Fixtures\Symfony\CoverageBundle\RequestHandler\CodeCoverageRequestHandler;
-use K911\Swoole\Tests\Fixtures\Symfony\CoverageBundle\ServerLifecycle\CoverageFinishOnServerShutdown;
-use K911\Swoole\Tests\Fixtures\Symfony\CoverageBundle\ServerLifecycle\CoverageStartOnServerManagerStart;
-use K911\Swoole\Tests\Fixtures\Symfony\CoverageBundle\ServerLifecycle\CoverageStartOnServerManagerStop;
-use K911\Swoole\Tests\Fixtures\Symfony\CoverageBundle\ServerLifecycle\CoverageStartOnServerStart;
-use K911\Swoole\Tests\Fixtures\Symfony\CoverageBundle\ServerLifecycle\CoverageStartOnServerWorkerStart;
-use K911\Swoole\Tests\Fixtures\Symfony\CoverageBundle\TaskHandler\CodeCoverageTaskHandler;
 use SebastianBergmann\CodeCoverage\CodeCoverage;
 use SebastianBergmann\CodeCoverage\Driver\Driver;
 use SebastianBergmann\CodeCoverage\Driver\Selector;
 use SebastianBergmann\CodeCoverage\Filter;
 use SebastianBergmann\CodeCoverage\Report\PHP;
+use SwooleBundle\SwooleBundle\Server\LifecycleHandler\ServerManagerStartHandlerInterface;
+use SwooleBundle\SwooleBundle\Server\LifecycleHandler\ServerManagerStopHandlerInterface;
+use SwooleBundle\SwooleBundle\Server\LifecycleHandler\ServerShutdownHandlerInterface;
+use SwooleBundle\SwooleBundle\Server\LifecycleHandler\ServerStartHandlerInterface;
+use SwooleBundle\SwooleBundle\Server\RequestHandler\RequestHandlerInterface;
+use SwooleBundle\SwooleBundle\Server\TaskHandler\TaskHandlerInterface;
+use SwooleBundle\SwooleBundle\Server\WorkerHandler\WorkerStartHandlerInterface;
+use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\CoverageBundle\Coverage\CodeCoverageManager;
+use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\CoverageBundle\EventListeners\CoverageFinishOnConsoleTerminate;
+use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\CoverageBundle\EventListeners\CoverageStartOnConsoleCommandEventListener;
+use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\CoverageBundle\RequestHandler\CodeCoverageRequestHandler;
+use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\CoverageBundle\ServerLifecycle\CoverageFinishOnServerShutdown;
+use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\CoverageBundle\ServerLifecycle\CoverageStartOnServerManagerStart;
+use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\CoverageBundle\ServerLifecycle\CoverageStartOnServerManagerStop;
+use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\CoverageBundle\ServerLifecycle\CoverageStartOnServerStart;
+use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\CoverageBundle\ServerLifecycle\CoverageStartOnServerWorkerStart;
+use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\CoverageBundle\TaskHandler\CodeCoverageTaskHandler;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\HttpKernel\Bundle\Bundle;

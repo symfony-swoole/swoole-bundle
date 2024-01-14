@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Component\Locking\Channel;
+namespace SwooleBundle\SwooleBundle\Component\Locking\Channel;
 
-use K911\Swoole\Component\Locking\MutexFactory;
+use SwooleBundle\SwooleBundle\Component\Locking\MutexFactory;
 
 class ChannelMutexFactory implements MutexFactory
 {

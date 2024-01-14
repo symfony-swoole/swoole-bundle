@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices;
+namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices;
 
 use Doctrine\ORM\EntityManager;
-use K911\Swoole\Bridge\Doctrine\ORM\EntityManagerStabilityChecker;
-use K911\Swoole\Bridge\Symfony\Bundle\DependencyInjection\ContainerConstants;
-use K911\Swoole\Bridge\Symfony\Container\Proxy\Instantiator;
-use K911\Swoole\Bridge\Symfony\Container\ServicePool\DiServicePool;
-use K911\Swoole\Bridge\Symfony\Container\SimpleResetter;
-use K911\Swoole\Bridge\Symfony\Container\StabilityChecker;
-use K911\Swoole\Component\Locking\Channel\ChannelMutex;
+use SwooleBundle\SwooleBundle\Bridge\Doctrine\ORM\EntityManagerStabilityChecker;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\ContainerConstants;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Proxy\Instantiator;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\ServicePool\DiServicePool;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\SimpleResetter;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\StabilityChecker;
+use SwooleBundle\SwooleBundle\Component\Locking\Channel\ChannelMutex;
 use Symfony\Component\DependencyInjection\Argument\IteratorArgument;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;

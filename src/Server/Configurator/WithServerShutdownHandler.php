@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Server\Configurator;
+namespace SwooleBundle\SwooleBundle\Server\Configurator;
 
-use K911\Swoole\Server\LifecycleHandler\ServerShutdownHandlerInterface;
 use Swoole\Http\Server;
+use SwooleBundle\SwooleBundle\Server\LifecycleHandler\ServerShutdownHandlerInterface;
 
 final class WithServerShutdownHandler implements ConfiguratorInterface
 {
