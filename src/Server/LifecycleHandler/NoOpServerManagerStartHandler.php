@@ -6,7 +6,7 @@ namespace SwooleBundle\SwooleBundle\Server\LifecycleHandler;
 
 use Swoole\Server;
 
-final class NoOpServerManagerStartHandler implements ServerManagerStartHandlerInterface
+final class NoOpServerManagerStartHandler implements ServerManagerStartHandler
 {
     public function handle(Server $server): void
     {

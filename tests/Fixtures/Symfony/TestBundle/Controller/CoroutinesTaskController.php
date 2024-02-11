@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Controller;
 
+use Exception;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Message\RunDummy;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Message\SleepAndAppend;
 use Symfony\Component\HttpFoundation\Request;
@@ -19,8 +20,7 @@ final class CoroutinesTaskController
      *     methods={"GET","POST"},
      *     path="/coroutines/message/sleep-and-append"
      * )
-     *
-     * @throws \Exception
+     * @throws Exception
      */
     #[Route(path: '/coroutines/message/sleep-and-append', methods: ['GET', 'POST'])]
     public function dispatchSleepAndAppendMessage(MessageBusInterface $bus, Request $request): Response
@@ -39,8 +39,7 @@ final class CoroutinesTaskController
      *     methods={"GET","POST"},
      *     path="/coroutines/message/run-dummy"
      * )
-     *
-     * @throws \Exception
+     * @throws Exception
      */
     #[Route(methods: ['GET', 'POST'], path: '/coroutines/message/run-dummy')]
     public function dispatchRunDummyMessage(MessageBusInterface $bus): Response

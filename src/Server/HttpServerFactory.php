@@ -11,8 +11,8 @@ use SwooleBundle\SwooleBundle\Server\Config\Socket;
 final class HttpServerFactory
 {
     private const SWOOLE_RUNNING_MODE = [
-        'process' => \SWOOLE_PROCESS,
-        'reactor' => \SWOOLE_BASE,
+        'process' => SWOOLE_PROCESS,
+        'reactor' => SWOOLE_BASE,
         //        'thread' => SWOOLE_THREAD,
     ];
 
@@ -27,7 +27,11 @@ final class HttpServerFactory
 
         $usedPorts = [$main->port() => true];
         foreach ($additional as $socket) {
-            Assertion::keyNotExists($usedPorts, $socket->port(), 'Socket with port %s is already used. Ports cannot be duplicated.');
+            Assertion::keyNotExists(
+                $usedPorts,
+                $socket->port(),
+                'Socket with port %s is already used. Ports cannot be duplicated.'
+            );
 
             $additionalServer = $mainServer->addListener($socket->host(), $socket->port(), $socket->type());
             $usedPorts[$additionalServer->port] = true;

@@ -12,6 +12,7 @@ use Symfony\Component\Cache\Adapter\AbstractAdapter;
 use Symfony\Component\DependencyInjection\Argument\AbstractArgument;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
+use Throwable;
 
 final class CacheAdapterProcessor implements CompileProcessor
 {
@@ -32,14 +33,14 @@ final class CacheAdapterProcessor implements CompileProcessor
                     }
 
                     $definition->addTag(ContainerConstants::TAG_STATEFUL_SERVICE, ['resetter' => $resetterDefId]);
-                    ++$taggedCount;
+                    $taggedCount++;
                 }
-            } catch (\Throwable) {
+            } catch (Throwable) {
                 // ignore
             }
         }
 
-        if (0 === $taggedCount) {
+        if ($taggedCount === 0) {
             return;
         }
 

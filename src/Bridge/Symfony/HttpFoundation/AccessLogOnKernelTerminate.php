@@ -3,19 +3,18 @@
 namespace SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation;
 
 use Psr\Log\LoggerInterface;
-use SwooleBundle\SwooleBundle\Bridge\Log\AccessLogDataMap;
-use SwooleBundle\SwooleBundle\Bridge\Log\AccessLogFormatterInterface;
+use SwooleBundle\SwooleBundle\Bridge\Log\AccessLogFormatter;
+use SwooleBundle\SwooleBundle\Bridge\Log\SymfonyAccessLogDataMap;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpKernel\Event\TerminateEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
 
-class AccessLogOnKernelTerminate implements EventSubscriberInterface
+final class AccessLogOnKernelTerminate implements EventSubscriberInterface
 {
     public function __construct(
         private readonly LoggerInterface $accessLogLogger,
-        private readonly AccessLogFormatterInterface $formatter,
-    ) {
-    }
+        private readonly AccessLogFormatter $formatter,
+    ) {}
 
     public function onKernelTerminate(TerminateEvent $event): void
     {
@@ -23,10 +22,13 @@ class AccessLogOnKernelTerminate implements EventSubscriberInterface
             return;
         }
 
-        $message = $this->formatter->format(new AccessLogDataMap($event->getRequest(), $event->getResponse()));
+        $message = $this->formatter->format(new SymfonyAccessLogDataMap($event->getRequest(), $event->getResponse()));
         $this->accessLogLogger->info($message);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     public static function getSubscribedEvents(): array
     {
         return [

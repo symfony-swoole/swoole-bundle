@@ -28,20 +28,17 @@ final class Generator extends ContextualAccessForwarderFactory
      * autoloader with Composer autoloader initialization.
      *
      * @template RealObjectType of object
-     *
      * @param class-string<RealObjectType> $className
      * @param array<string, mixed>         $proxyOptions @codingStandardsIgnoreLine
-     *
      * @return class-string<ContextualProxy<RealObjectType>&RealObjectType>
-     *
      * @SuppressWarnings(PHPMD.StaticAccess)
      */
     protected function generateProxy(string $className, array $proxyOptions = []): string
     {
-        if (\array_key_exists($className, $this->checkedClasses)) {
+        if (array_key_exists($className, $this->checkedClasses)) {
             /** @var class-string<ContextualProxy<RealObjectType>&RealObjectType> $generatedClassName */
             $generatedClassName = $this->checkedClasses[$className];
-            \assert(is_a($generatedClassName, $className, true));
+            assert(is_a($generatedClassName, $className, true));
 
             return $generatedClassName;
         }
@@ -56,8 +53,7 @@ final class Generator extends ContextualAccessForwarderFactory
         $proxyClassName = $this
             ->configuration
             ->getClassNameInflector()
-            ->getProxyClassName($className, $proxyParameters)
-        ;
+            ->getProxyClassName($className, $proxyParameters);
 
         if (class_exists($proxyClassName)) {
             return $this->checkedClasses[$className] = $proxyClassName;

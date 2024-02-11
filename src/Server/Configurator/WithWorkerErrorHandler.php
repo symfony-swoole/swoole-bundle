@@ -5,13 +5,11 @@ declare(strict_types=1);
 namespace SwooleBundle\SwooleBundle\Server\Configurator;
 
 use Swoole\Http\Server;
-use SwooleBundle\SwooleBundle\Server\WorkerHandler\WorkerErrorHandlerInterface;
+use SwooleBundle\SwooleBundle\Server\WorkerHandler\WorkerErrorHandler;
 
-final class WithWorkerErrorHandler implements ConfiguratorInterface
+final class WithWorkerErrorHandler implements Configurator
 {
-    public function __construct(private readonly WorkerErrorHandlerInterface $handler)
-    {
-    }
+    public function __construct(private readonly WorkerErrorHandler $handler) {}
 
     public function configure(Server $server): void
     {

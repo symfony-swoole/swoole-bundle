@@ -5,24 +5,28 @@ declare(strict_types=1);
 namespace SwooleBundle\SwooleBundle\Tests\Unit\Bridge\Symfony\Messenger;
 
 use PHPUnit\Framework\TestCase;
+use Prophecy\PhpUnit\ProphecyTrait;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Messenger\Exception\ReceiverNotAvailableException;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Messenger\SwooleServerTaskReceiver;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Messenger\SwooleServerTaskSender;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Messenger\SwooleServerTaskTransport;
 use SwooleBundle\SwooleBundle\Server\Config\Socket;
 use SwooleBundle\SwooleBundle\Server\Config\Sockets;
+use SwooleBundle\SwooleBundle\Server\DefaultHttpServerConfiguration;
 use SwooleBundle\SwooleBundle\Server\HttpServer;
-use SwooleBundle\SwooleBundle\Server\HttpServerConfiguration;
-use SwooleBundle\SwooleBundle\Tests\Helper\SwooleFactory;
+use SwooleBundle\SwooleBundle\Tests\Helper\SwooleFactoryFactory;
 use Symfony\Component\Messenger\Envelope;
 
-class SwooleServerTaskTransportTest extends TestCase
+final class SwooleServerTaskTransportTest extends TestCase
 {
-    use \Prophecy\PhpUnit\ProphecyTrait;
+    use ProphecyTrait;
 
     public function testThatItThrowsExceptionOnAck(): void
     {
-        $transport = new SwooleServerTaskTransport(new SwooleServerTaskReceiver(), new SwooleServerTaskSender($this->makeHttpServerDummy()));
+        $transport = new SwooleServerTaskTransport(
+            new SwooleServerTaskReceiver(),
+            new SwooleServerTaskSender($this->makeHttpServerDummy())
+        );
 
         $this->expectException(ReceiverNotAvailableException::class);
 
@@ -31,7 +35,10 @@ class SwooleServerTaskTransportTest extends TestCase
 
     public function testThatItThrowsExceptionOnReject(): void
     {
-        $transport = new SwooleServerTaskTransport(new SwooleServerTaskReceiver(), new SwooleServerTaskSender($this->makeHttpServerDummy()));
+        $transport = new SwooleServerTaskTransport(
+            new SwooleServerTaskReceiver(),
+            new SwooleServerTaskSender($this->makeHttpServerDummy())
+        );
 
         $this->expectException(ReceiverNotAvailableException::class);
 
@@ -40,6 +47,11 @@ class SwooleServerTaskTransportTest extends TestCase
 
     private function makeHttpServerDummy(): HttpServer
     {
-        return new HttpServer(new HttpServerConfiguration(SwooleFactory::newInstance(), new Sockets(new Socket())));
+        return new HttpServer(
+            new DefaultHttpServerConfiguration(
+                SwooleFactoryFactory::newInstance(),
+                new Sockets(new Socket())
+            )
+        );
     }
 }

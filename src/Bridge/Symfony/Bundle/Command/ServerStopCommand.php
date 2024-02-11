@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\Command;
 
 use Assert\Assertion;
+use Assert\AssertionFailedException;
 use SwooleBundle\SwooleBundle\Server\HttpServer;
 use SwooleBundle\SwooleBundle\Server\HttpServerConfiguration;
 use Symfony\Component\Console\Command\Command;
@@ -13,15 +14,16 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
+use Throwable;
 
 final class ServerStopCommand extends Command
 {
-    use ParametersHelperTrait;
+    use ParametersHelper;
 
     public function __construct(
         private readonly HttpServer $server,
         private readonly HttpServerConfiguration $serverConfiguration,
-        private readonly ParameterBagInterface $parameterBag
+        private readonly ParameterBagInterface $parameterBag,
     ) {
         parent::__construct();
     }
@@ -29,13 +31,18 @@ final class ServerStopCommand extends Command
     protected function configure(): void
     {
         $this->setDescription('Stop Swoole HTTP server running in the background.')
-            ->addOption('pid-file', null, InputOption::VALUE_REQUIRED, 'Pid file', $this->getProjectDirectory().'/var/swoole.pid')
-            ->addOption('no-delay', null, InputOption::VALUE_NONE, 'Ignore graceful shutdown timeout.')
-        ;
+            ->addOption(
+                'pid-file',
+                null,
+                InputOption::VALUE_REQUIRED,
+                'Pid file',
+                $this->getProjectDirectory() . '/var/swoole.pid'
+            )
+            ->addOption('no-delay', null, InputOption::VALUE_NONE, 'Ignore graceful shutdown timeout.');
     }
 
     /**
-     * @throws \Assert\AssertionFailedException
+     * @throws AssertionFailedException
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
@@ -50,7 +57,7 @@ final class ServerStopCommand extends Command
 
         try {
             $this->server->shutdown($noDelay);
-        } catch (\Throwable $ex) {
+        } catch (Throwable $ex) {
             $io->error($ex->getMessage());
             exit(1);
         }

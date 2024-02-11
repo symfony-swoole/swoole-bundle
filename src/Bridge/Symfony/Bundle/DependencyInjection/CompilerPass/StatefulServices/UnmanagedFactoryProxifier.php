@@ -4,19 +4,20 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices;
 
+use RuntimeException;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\ContainerConstants;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Proxy\UnmanagedFactoryInstantiator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
+use UnexpectedValueException;
 
 final class UnmanagedFactoryProxifier
 {
     public function __construct(
         private readonly ContainerBuilder $container,
-        private readonly FinalClassesProcessor $finalProcessor
-    ) {
-    }
+        private readonly FinalClassesProcessor $finalProcessor,
+    ) {}
 
     /**
      * returns new service id of the proxified service.
@@ -24,7 +25,7 @@ final class UnmanagedFactoryProxifier
     public function proxifyService(string $serviceId, ?string $externalResetter = null): string
     {
         if (!$this->container->has($serviceId)) {
-            throw new \RuntimeException(sprintf('Service missing: %s', $serviceId));
+            throw new RuntimeException(sprintf('Service missing: %s', $serviceId));
         }
 
         $serviceDef = $this->prepareProxifiedService($serviceId);
@@ -49,7 +50,7 @@ final class UnmanagedFactoryProxifier
     private function prepareProxy(
         string $wrappedServiceId,
         Definition $serviceDef,
-        ?string $externalResetter = null
+        ?string $externalResetter = null,
     ): Definition {
         /** @var class-string $serviceClass */
         $serviceClass = $serviceDef->getClass();
@@ -62,7 +63,7 @@ final class UnmanagedFactoryProxifier
         $ufTags = $serviceTags->getUnmanagedFactoryTags();
         $factoryConfigs = $ufTags->getFactoryMethodConfigs($this->container);
 
-        $factoryConfigs = array_map(function (array $factoryConfig): array {
+        $factoryConfigs = array_map(static function (array $factoryConfig): array {
             if (!isset($factoryConfig['resetter'])) {
                 return $factoryConfig;
             }
@@ -83,7 +84,9 @@ final class UnmanagedFactoryProxifier
         $instanceLimit = $this->container->getParameter(ContainerConstants::PARAM_COROUTINES_MAX_SVC_INSTANCES);
 
         if (!is_int($instanceLimit)) {
-            throw new \UnexpectedValueException(sprintf('Parameter %s must be an integer', ContainerConstants::PARAM_COROUTINES_MAX_SVC_INSTANCES));
+            throw new UnexpectedValueException(
+                sprintf('Parameter %s must be an integer', ContainerConstants::PARAM_COROUTINES_MAX_SVC_INSTANCES)
+            );
         }
 
         $proxyDef->setArgument(2, $instanceLimit);

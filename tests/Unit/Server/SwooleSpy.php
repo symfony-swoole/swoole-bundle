@@ -6,15 +6,18 @@ namespace SwooleBundle\SwooleBundle\Tests\Unit\Server;
 
 use SwooleBundle\SwooleBundle\Common\Adapter\Swoole;
 use SwooleBundle\SwooleBundle\Common\Adapter\WaitGroup;
-use SwooleBundle\SwooleBundle\Tests\Helper\SwooleFactory;
+use SwooleBundle\SwooleBundle\Tests\Helper\SwooleFactoryFactory;
 
 final class SwooleSpy implements Swoole
 {
-    public $registeredTick = false;
+    private bool $registeredTick = false;
 
-    public $registeredTickTuple = [];
+    /**
+     * @var array{0: int, 1: callable}|array{}
+     */
+    private array $registeredTickTuple = [];
 
-    public function tick(int $intervalMs, callable $callbackFunction, ...$params): int|bool
+    public function tick(int $intervalMs, callable $callbackFunction, mixed ...$params): int|bool
     {
         $this->registeredTick = true;
         $this->registeredTickTuple = [$intervalMs, $callbackFunction];
@@ -29,6 +32,19 @@ final class SwooleSpy implements Swoole
 
     public function waitGroup(int $delta = 0): WaitGroup
     {
-        return SwooleFactory::newInstance()->waitGroup($delta);
+        return SwooleFactoryFactory::newInstance()->waitGroup($delta);
+    }
+
+    public function registeredTick(): bool
+    {
+        return $this->registeredTick;
+    }
+
+    /**
+     * @return array{0: int, 1: callable}|array{}
+     */
+    public function registeredTickTuple(): array
+    {
+        return $this->registeredTickTuple;
     }
 }

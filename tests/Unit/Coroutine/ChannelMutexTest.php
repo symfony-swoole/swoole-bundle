@@ -14,22 +14,25 @@ final class ChannelMutexTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+
         Runtime::enableCoroutine();
     }
 
     protected function tearDown(): void
     {
         parent::tearDown();
+
         Runtime::enableCoroutine(false);
     }
 
+    // phpcs:disable SlevomatCodingStandard.PHP.DisallowReference.DisallowedInheritingVariableByReference
     public function testMutexWorks(): void
     {
         $i = 0;
         $mutex = new ChannelMutex();
         $scheduler = new Scheduler();
 
-        $scheduler->add(function () use (&$i, $mutex) {
+        $scheduler->add(static function () use (&$i, $mutex): void {
             $mutex->acquire();
 
             $i = -1;
@@ -40,7 +43,7 @@ final class ChannelMutexTest extends TestCase
             $mutex->release();
         });
 
-        $scheduler->add(function () use (&$i, $mutex) {
+        $scheduler->add(static function () use (&$i, $mutex): void {
             $mutex->acquire();
 
             $i = -2;
@@ -51,7 +54,7 @@ final class ChannelMutexTest extends TestCase
             $mutex->release();
         });
 
-        $scheduler->add(function () use (&$i, $mutex) {
+        $scheduler->add(static function () use (&$i, $mutex): void {
             $mutex->acquire();
 
             $i = -3;

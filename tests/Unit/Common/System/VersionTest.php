@@ -9,13 +9,13 @@ use PHPUnit\Framework\TestCase;
 use SwooleBundle\SwooleBundle\Common\System\Extension;
 use SwooleBundle\SwooleBundle\Common\System\Version;
 
-class VersionTest extends TestCase
+final class VersionTest extends TestCase
 {
     public function testVersionCreation(): void
     {
-        if (\extension_loaded(Extension::SWOOLE)) {
-            $versionString = \swoole_version();
-        } elseif (\extension_loaded(Extension::OPENSWOOLE)) {
+        if (extension_loaded(Extension::SWOOLE)) {
+            $versionString = swoole_version();
+        } elseif (extension_loaded(Extension::OPENSWOOLE)) {
             $versionString = Util::getVersion();
         } else {
             self::markTestSkipped('No Swoole or OpenSwoole extension loaded.');

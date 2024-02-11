@@ -11,13 +11,12 @@ final class System
     private function __construct(
         private readonly Extension $extension,
         private readonly Version $version,
-    ) {
-    }
+    ) {}
 
     public static function create(): self
     {
         $extension = Extension::create();
-        $version = Version::fromVersionString($extension->isSwoole() ? \swoole_version() : Util::getVersion());
+        $version = Version::fromVersionString($extension->isSwoole() ? swoole_version() : Util::getVersion());
 
         return new self($extension, $version);
     }

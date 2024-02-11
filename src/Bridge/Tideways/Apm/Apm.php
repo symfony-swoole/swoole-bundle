@@ -11,9 +11,8 @@ final class Apm
 {
     public function __construct(
         private readonly MiddlewareInjector $injector,
-        private readonly TidewaysMiddlewareFactory $middlewareFactory
-    ) {
-    }
+        private readonly TidewaysMiddlewareFactory $middlewareFactory,
+    ) {}
 
     /**
      * Install monitoring instrumentation.

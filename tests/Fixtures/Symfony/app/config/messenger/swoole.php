@@ -32,14 +32,11 @@ return static function (ContainerConfigurator $containerConfigurator): void {
 
     $services->defaults()
         ->autowire()
-        ->autoconfigure()
-    ;
+        ->autoconfigure();
 
     $services->set(TaskController::class)
-        ->tag('controller.service_arguments')
-    ;
+        ->tag('controller.service_arguments');
 
     $services->set(CreateFileMessageHandler::class)
-        ->tag('messenger.message_handler')
-    ;
+        ->tag('messenger.message_handler');
 };

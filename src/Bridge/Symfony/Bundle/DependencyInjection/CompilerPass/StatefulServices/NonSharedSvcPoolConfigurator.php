@@ -9,9 +9,7 @@ use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\ServicePool\ServicePoolCo
 
 final class NonSharedSvcPoolConfigurator
 {
-    public function __construct(private readonly ServicePoolContainer $container)
-    {
-    }
+    public function __construct(private readonly ServicePoolContainer $container) {}
 
     /**
      * @param BaseServicePool<object> $servicePool

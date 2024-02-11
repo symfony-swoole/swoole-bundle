@@ -8,7 +8,7 @@ use PHPUnit\Framework\TestCase;
 
 use function SwooleBundle\SwooleBundle\replace_object_property;
 
-class ReplaceObjectPropertyTest extends TestCase
+final class ReplaceObjectPropertyTest extends TestCase
 {
     /**
      * @var TestObject

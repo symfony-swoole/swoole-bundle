@@ -8,9 +8,8 @@ final class ShouldBeProxified
 {
     public function __construct(
         private readonly AlwaysReset $dummy,
-        private readonly AlwaysResetSafe $safeDummy
-    ) {
-    }
+        private readonly AlwaysResetSafe $safeDummy,
+    ) {}
 
     public function wasDummyReset(): bool
     {

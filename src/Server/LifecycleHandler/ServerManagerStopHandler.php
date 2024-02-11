@@ -6,7 +6,7 @@ namespace SwooleBundle\SwooleBundle\Server\LifecycleHandler;
 
 use Swoole\Server;
 
-interface ServerManagerStopHandlerInterface
+interface ServerManagerStopHandler
 {
     /**
      * Handle "OnManagerStop" event.

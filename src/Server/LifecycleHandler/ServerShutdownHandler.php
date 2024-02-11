@@ -6,10 +6,10 @@ namespace SwooleBundle\SwooleBundle\Server\LifecycleHandler;
 
 use Swoole\Server;
 
-interface ServerStartHandlerInterface
+interface ServerShutdownHandler
 {
     /**
-     * Handle "OnStart" event.
+     * Handle "OnShutdown" event.
      */
     public function handle(Server $server): void;
 }

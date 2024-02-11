@@ -38,6 +38,9 @@ final class SymfonyAccessLogEventTest extends ServerTestCase
             $this->assertHelloWorldRequestSucceeded($client);
         });
 
-        $this->assertStringContainsString('swoole.access_log.INFO: 127.0.0.1 - -', \file_get_contents($this->getVarDirectoryPath().'/log/access_log.log'));
+        $this->assertStringContainsString(
+            'swoole.access_log.INFO: 127.0.0.1 - -',
+            file_get_contents($this->getVarDirectoryPath() . '/log/access_log.log')
+        );
     }
 }

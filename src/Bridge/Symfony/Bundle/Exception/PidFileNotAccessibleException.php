@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\Exception;
 
+use RuntimeException;
+
 /**
  * @internal
  */
-final class PidFileNotAccessibleException extends \RuntimeException
+final class PidFileNotAccessibleException extends RuntimeException
 {
     public static function forFile(string $pidFile): self
     {

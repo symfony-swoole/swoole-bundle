@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Server\Api;
 
+use DateTimeImmutable;
 use Swoole\Server\Port;
 use SwooleBundle\SwooleBundle\Server\HttpServer;
 use SwooleBundle\SwooleBundle\Server\HttpServerConfiguration;
@@ -12,20 +13,22 @@ use SwooleBundle\SwooleBundle\Server\HttpServerConfiguration;
  * API Server for Swoole HTTP Server. If enabled, is running on another port, than regular server.
  * Used to control original Swoole HTTP Server.
  */
-final class ApiServer implements ApiServerInterface
+final class ApiServer implements Api
 {
     public function __construct(
         private readonly HttpServer $server,
-        private readonly HttpServerConfiguration $serverConfiguration
-    ) {
-    }
+        private readonly HttpServerConfiguration $serverConfiguration,
+    ) {}
 
+    /**
+     * {@inheritDoc}
+     */
     public function metrics(): array
     {
         $metrics = $this->server->metrics();
 
         return [
-            'date' => (new \DateTimeImmutable('now'))->format(\DATE_ATOM),
+            'date' => (new DateTimeImmutable('now'))->format(DATE_ATOM),
             'server' => $metrics,
         ];
     }
@@ -40,41 +43,54 @@ final class ApiServer implements ApiServerInterface
         $this->server->reload();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     public function status(): array
     {
         $swooleServer = $this->server->getServer();
 
         return [
-            'date' => date(\DATE_ATOM),
+            'date' => date(DATE_ATOM),
             'server' => [
                 'host' => $swooleServer->host,
-                'port' => $swooleServer->port,
-                'runningMode' => $this->serverConfiguration->getRunningMode(),
-                'processes' => $this->extractProcessesStatus($this->server),
-                'settings' => $swooleServer->setting,
                 'listeners' => $this->extractListenersStatus($this->server),
+                'port' => $swooleServer->port,
+                'processes' => $this->extractProcessesStatus($this->server),
+                'runningMode' => $this->serverConfiguration->getRunningMode(),
+                'settings' => $swooleServer->setting,
             ],
         ];
     }
 
+    /**
+     * @return array<array{host: string, port: int}>
+     */
     private function extractListenersStatus(HttpServer $server): array
     {
-        return array_values(array_map(fn (Port $listener): array => [
+        return array_values(array_map(static fn(Port $listener): array => [
             'host' => property_exists($listener, 'host') ? $listener->host : '-',
             'port' => $listener->port,
         ], $server->getListeners()));
     }
 
+    /**
+     * @return array{
+     *   manager: array{pid: int},
+     *   master: array{pid: int},
+     *   worker: array{id: int, pid: int}
+     * }
+     */
     private function extractProcessesStatus(HttpServer $server): array
     {
         $swooleServer = $server->getServer();
 
         return [
-            'master' => [
-                'pid' => $swooleServer->master_pid,
-            ],
             'manager' => [
                 'pid' => $swooleServer->manager_pid,
+            ],
+            'master' => [
+                'pid' => $swooleServer->master_pid,
             ],
             'worker' => [
                 'id' => $swooleServer->worker_id,

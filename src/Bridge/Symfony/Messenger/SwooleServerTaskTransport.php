@@ -11,15 +11,17 @@ final class SwooleServerTaskTransport implements TransportInterface
 {
     public function __construct(
         private readonly SwooleServerTaskReceiver $receiver,
-        private readonly SwooleServerTaskSender $sender
-    ) {
-    }
+        private readonly SwooleServerTaskSender $sender,
+    ) {}
 
     public function send(Envelope $envelope): Envelope
     {
         return $this->sender->send($envelope);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     public function get(): iterable
     {
         return $this->receiver->get();

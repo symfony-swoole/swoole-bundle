@@ -10,9 +10,7 @@ final class CountingResetter implements Resetter
 {
     private int $counter = 0;
 
-    public function __construct(private readonly Resetter $decorated)
-    {
-    }
+    public function __construct(private readonly Resetter $decorated) {}
 
     public function reset(object $service): void
     {

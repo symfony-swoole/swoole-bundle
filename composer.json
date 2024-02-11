@@ -70,6 +70,8 @@
         "phpunit/phpunit": "^10.5",
         "pixelfederation/doctrine-resettable-em-bundle": "^7.0|^8.0",
         "ramsey/uuid": "^4.7",
+        "slevomat/coding-standard": "^8.14",
+        "squizlabs/php_codesniffer": "^3.8",
         "swoole-bundle/z-engine": "^8.1.1|^8.2.1|^8.3.0",
         "swoole/ide-helper": "^5.1.0",
         "symfony/debug-bundle": "^5.4.26|^6.4|^7.0",
@@ -182,7 +184,8 @@
         "allow-plugins": {
             "phpstan/extension-installer": true,
             "phpro/grumphp": false,
-            "symfony/flex": true
+            "symfony/flex": true,
+            "dealerdirect/phpcodesniffer-composer-installer": false
         }
     }
 }

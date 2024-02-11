@@ -6,7 +6,7 @@ namespace SwooleBundle\SwooleBundle\Server\WorkerHandler;
 
 use Swoole\Server;
 
-interface WorkerExitHandlerInterface
+interface WorkerExitHandler
 {
     /**
      * Handle onWorkerStop event.

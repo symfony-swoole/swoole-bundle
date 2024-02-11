@@ -6,6 +6,7 @@ grumphp:
     complete:
       tasks:
         - phpcsfixer
+        - phpcs
         - phpstan_src
         - phpstan_tests
         - phpunit_unit
@@ -15,6 +16,13 @@ grumphp:
         - phpunit_unit
         - phpunit_feature
   tasks:
+    phpcs:
+      standard: 'phpcs.xml'
+      tab_width: 4
+      whitelist_patterns: [ ]
+      encoding: utf-8
+      sniffs: [ ]
+      triggered_by: [ php ]
     phpcsfixer:
       cache_file: '.php-cs-fixer.cache'
       allow_risky: true

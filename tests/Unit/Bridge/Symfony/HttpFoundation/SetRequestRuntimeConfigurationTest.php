@@ -8,7 +8,7 @@ use PHPUnit\Framework\TestCase;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation\SetRequestRuntimeConfiguration;
 use Symfony\Component\HttpFoundation\Request;
 
-class SetRequestRuntimeConfigurationTest extends TestCase
+final class SetRequestRuntimeConfigurationTest extends TestCase
 {
     /**
      * @var SetRequestRuntimeConfiguration

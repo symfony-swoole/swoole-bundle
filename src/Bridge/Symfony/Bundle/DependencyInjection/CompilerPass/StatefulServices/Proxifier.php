@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices;
 
 use Doctrine\ORM\EntityManager;
+use RuntimeException;
 use SwooleBundle\SwooleBundle\Bridge\Doctrine\ORM\EntityManagerStabilityChecker;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\ContainerConstants;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Proxy\Instantiator;
@@ -16,6 +17,7 @@ use Symfony\Component\DependencyInjection\Argument\IteratorArgument;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
+use UnexpectedValueException;
 
 final class Proxifier
 {
@@ -26,12 +28,12 @@ final class Proxifier
     /**
      * @var array<Reference>
      */
-    private $proxifiedServicePoolRefs = [];
+    private array $proxifiedServicePoolRefs = [];
 
     /**
      * @var array<class-string, class-string<StabilityChecker>|string>
      */
-    private $stabilityCheckers;
+    private array $stabilityCheckers;
 
     /**
      * @param array<class-string, class-string<StabilityChecker>|string> $stabilityCheckers
@@ -39,7 +41,7 @@ final class Proxifier
     public function __construct(
         private readonly ContainerBuilder $container,
         private readonly FinalClassesProcessor $finalProcessor,
-        array $stabilityCheckers = []
+        array $stabilityCheckers = [],
     ) {
         $this->stabilityCheckers = array_merge(self::DEFAULT_STABILITY_CHECKERS, $stabilityCheckers);
     }
@@ -47,7 +49,7 @@ final class Proxifier
     public function proxifyService(string $serviceId, ?string $externalResetter = null): void
     {
         if (!$this->container->has($serviceId)) {
-            throw new \RuntimeException(sprintf('Service missing: %s', $serviceId));
+            throw new RuntimeException(sprintf('Service missing: %s', $serviceId));
         }
 
         $serviceDef = $this->container->findDefinition($serviceId);
@@ -79,7 +81,7 @@ final class Proxifier
     private function doProxifyService(string $serviceId, Definition $serviceDef, ?string $externalResetter = null): void
     {
         if (!$this->container->has($serviceId)) {
-            throw new \RuntimeException(sprintf('Service missing: %s', $serviceId));
+            throw new RuntimeException(sprintf('Service missing: %s', $serviceId));
         }
 
         $wrappedServiceId = sprintf('%s.swoole_coop.wrapped', $serviceId);
@@ -102,10 +104,13 @@ final class Proxifier
         $this->proxifiedServicePoolRefs[] = new Reference($svcPoolServiceId);
     }
 
-    private function doProxifyDecoratedService(string $serviceId, Definition $serviceDef, ?string $externalResetter = null): void
-    {
-        if (null === $serviceDef->innerServiceId) {
-            throw new \UnexpectedValueException(sprintf('Inner service id missing for service %s', $serviceId));
+    private function doProxifyDecoratedService(
+        string $serviceId,
+        Definition $serviceDef,
+        ?string $externalResetter = null,
+    ): void {
+        if ($serviceDef->innerServiceId === null) {
+            throw new UnexpectedValueException(sprintf('Inner service id missing for service %s', $serviceId));
         }
 
         $decoratedServiceId = $serviceDef->innerServiceId;
@@ -120,7 +125,7 @@ final class Proxifier
             }
 
             $decoratedServiceId = $decoratedServiceDef->innerServiceId;
-        } while (null !== $decoratedServiceDef);
+        } while ($decoratedServiceDef !== null);
     }
 
     private function prepareProxifiedService(Definition $serviceDef): void
@@ -133,7 +138,7 @@ final class Proxifier
     private function prepareServicePool(
         string $wrappedServiceId,
         Definition $serviceDef,
-        ?string $externalResetter = null
+        ?string $externalResetter = null,
     ): Definition {
         $svcPoolDef = new Definition(DiServicePool::class);
         $svcPoolDef->setShared($serviceDef->isShared());
@@ -148,7 +153,9 @@ final class Proxifier
         $instanceLimit = $this->container->getParameter(ContainerConstants::PARAM_COROUTINES_MAX_SVC_INSTANCES);
 
         if (!is_int($instanceLimit)) {
-            throw new \UnexpectedValueException(sprintf('Parameter %s must be an integer', ContainerConstants::PARAM_COROUTINES_MAX_SVC_INSTANCES));
+            throw new UnexpectedValueException(
+                sprintf('Parameter %s must be an integer', ContainerConstants::PARAM_COROUTINES_MAX_SVC_INSTANCES)
+            );
         }
 
         /** @var class-string $serviceClass */
@@ -157,11 +164,11 @@ final class Proxifier
         $serviceTag = $serviceTags->findStatefulServiceTag();
         $customResetter = null;
 
-        if (null !== $serviceTag && null !== $serviceTag->getLimit()) {
+        if ($serviceTag?->getLimit() !== null) {
             $instanceLimit = $serviceTag->getLimit();
         }
 
-        if (null !== $serviceTag && null !== $serviceTag->getResetter()) {
+        if ($serviceTag?->getResetter() !== null) {
             $customResetter = $serviceTag->getResetter();
         }
 
@@ -170,11 +177,11 @@ final class Proxifier
 
         $resetterDefOrRef = null;
 
-        if (null !== $customResetter) {
+        if ($customResetter !== null) {
             $resetterDefOrRef = new Reference($customResetter);
         }
 
-        if (null === $resetterDefOrRef && null !== $externalResetter) {
+        if ($resetterDefOrRef === null && $externalResetter !== null) {
             $resetterDefOrRef = new Definition();
             $resetterDefOrRef->setClass(SimpleResetter::class);
             $resetterDefOrRef->setArgument(0, $externalResetter);
@@ -248,6 +255,6 @@ final class Proxifier
 
         $factorySvc = $factory[0];
 
-        return !$factorySvc instanceof Reference || Instantiator::class !== (string) $factorySvc;
+        return !$factorySvc instanceof Reference || (string) $factorySvc !== Instantiator::class;
     }
 }

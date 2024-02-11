@@ -9,8 +9,7 @@ return static function (ContainerConfigurator $containerConfigurator): void {
 
     $services->defaults()
         ->autowire()
-        ->autoconfigure()
-    ;
+        ->autoconfigure();
 
     $containerConfigurator->extension('swoole', [
         'http_server' => [

@@ -21,10 +21,8 @@ return static function (ContainerConfigurator $containerConfigurator): void {
 
     $services->defaults()
         ->autowire()
-        ->autoconfigure()
-    ;
+        ->autoconfigure();
 
     $services->set(SwooleSessionStorageFactory::class)
-        ->arg('$lifetimeSeconds', '%env(int:COOKIE_LIFETIME)%')
-    ;
+        ->arg('$lifetimeSeconds', '%env(int:COOKIE_LIFETIME)%');
 };

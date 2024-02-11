@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Server\Exception;
 
+use InvalidArgumentException;
+
 /**
  * @internal
  */
-final class PortUnavailableException extends \InvalidArgumentException
+final class PortUnavailableException extends InvalidArgumentException
 {
     public static function fortPort(int $port): self
     {

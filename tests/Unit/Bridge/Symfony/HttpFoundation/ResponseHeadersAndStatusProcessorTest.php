@@ -6,33 +6,34 @@ namespace SwooleBundle\SwooleBundle\Tests\Unit\Bridge\Symfony\HttpFoundation;
 
 use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
+use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
 use Swoole\Http\Response as SwooleResponse;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation\ResponseHeadersAndStatusProcessor;
-use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation\ResponseProcessorInterface;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation\ResponseProcessor;
 use Symfony\Component\HttpFoundation\Response as HttpFoundationResponse;
 
-class ResponseHeadersAndStatusProcessorTest extends TestCase
+final class ResponseHeadersAndStatusProcessorTest extends TestCase
 {
-    use \Prophecy\PhpUnit\ProphecyTrait;
+    use ProphecyTrait;
+
     /**
-     * @var null|ObjectProphecy|ResponseHeadersAndStatusProcessor
+     * @var ObjectProphecy|ResponseHeadersAndStatusProcessor|null
      */
     protected $responseProcessor;
 
     /**
-     * @var null|ObjectProphecy|SwooleResponse
+     * @var ObjectProphecy|SwooleResponse|null
      */
     protected $swooleResponse;
 
     protected function setUp(): void
     {
         $this->swooleResponse = $this->prophesize(SwooleResponse::class);
-        $decoratedProcessor = $this->prophesize(ResponseProcessorInterface::class);
+        $decoratedProcessor = $this->prophesize(ResponseProcessor::class);
         $decoratedProcessor
             ->process(Argument::type(HttpFoundationResponse::class), $this->swooleResponse->reveal())
-            ->shouldBeCalled()
-        ;
+            ->shouldBeCalled();
         $this->responseProcessor = new ResponseHeadersAndStatusProcessor($decoratedProcessor->reveal());
     }
 

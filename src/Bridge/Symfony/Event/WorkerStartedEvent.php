@@ -13,9 +13,8 @@ final class WorkerStartedEvent extends Event
 
     public function __construct(
         private readonly Server $server,
-        private readonly int $workerId
-    ) {
-    }
+        private readonly int $workerId,
+    ) {}
 
     public function getServer(): Server
     {

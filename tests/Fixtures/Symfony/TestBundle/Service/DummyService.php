@@ -9,7 +9,7 @@ use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Entity\Test;
 interface DummyService
 {
     /**
-     * @return Test[]
+     * @return array<Test>
      */
     public function process(): array;
 

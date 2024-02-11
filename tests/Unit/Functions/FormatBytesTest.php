@@ -4,12 +4,17 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Tests\Unit\Functions;
 
+use OutOfRangeException;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 use function SwooleBundle\SwooleBundle\format_bytes;
 
-class FormatBytesTest extends TestCase
+final class FormatBytesTest extends TestCase
 {
+    /**
+     * @return array<string, array{0: int, 1: string}>
+     */
     public static function bytesFormattedProvider(): array
     {
         return [
@@ -38,15 +43,13 @@ class FormatBytesTest extends TestCase
                 '2 GiB',
             ],
             'PHP_INT_MAX bytes' => [
-                \PHP_INT_MAX,
+                PHP_INT_MAX,
                 '8192 PiB',
             ],
         ];
     }
 
-    /**
-     * @dataProvider bytesFormattedProvider
-     */
+    #[DataProvider('bytesFormattedProvider')]
     public function testFormatBytes(int $bytes, string $formatted): void
     {
         self::assertSame($formatted, format_bytes($bytes));
@@ -54,7 +57,7 @@ class FormatBytesTest extends TestCase
 
     public function testNegativeBytes(): void
     {
-        $this->expectException(\OutOfRangeException::class);
+        $this->expectException(OutOfRangeException::class);
         $this->expectExceptionMessage('Bytes number cannot be negative');
         format_bytes(-1);
     }

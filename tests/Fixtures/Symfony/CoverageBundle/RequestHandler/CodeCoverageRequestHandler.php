@@ -6,16 +6,15 @@ namespace SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\CoverageBundle\Reques
 
 use Swoole\Http\Request;
 use Swoole\Http\Response;
-use SwooleBundle\SwooleBundle\Server\RequestHandler\RequestHandlerInterface;
+use SwooleBundle\SwooleBundle\Server\RequestHandler\RequestHandler;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\CoverageBundle\Coverage\CodeCoverageManager;
 
-final class CodeCoverageRequestHandler implements RequestHandlerInterface
+final class CodeCoverageRequestHandler implements RequestHandler
 {
     public function __construct(
-        private readonly RequestHandlerInterface $decorated,
-        private readonly CodeCoverageManager $codeCoverageManager
-    ) {
-    }
+        private readonly RequestHandler $decorated,
+        private readonly CodeCoverageManager $codeCoverageManager,
+    ) {}
 
     public function handle(Request $request, Response $response): void
     {

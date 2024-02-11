@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Controller;
 
+use Exception;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route as RouteAnnotation;
@@ -17,8 +18,7 @@ final class TidewaysController
      *     methods={"GET"},
      *     path="/tideways/index"
      * )
-     *
-     * @throws \Exception
+     * @throws Exception
      */
     #[Route(path: '/tideways/index', methods: ['GET'])]
     public function indexAction(): Response

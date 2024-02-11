@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Tests\Unit\Server;
 
+use RuntimeException;
 use SwooleBundle\SwooleBundle\Common\System\System;
 
 final class SwooleServerMockFactory
@@ -17,6 +18,12 @@ final class SwooleServerMockFactory
             return SwooleServerMock::make($taskworker);
         }
 
-        throw new \RuntimeException(\sprintf('Unsupported Swoole version %s for extension %s.', $versionString, $system->extension()->toString()));
+        throw new RuntimeException(
+            sprintf(
+                'Unsupported Swoole version %s for extension %s.',
+                $versionString,
+                $system->extension()->toString()
+            )
+        );
     }
 }

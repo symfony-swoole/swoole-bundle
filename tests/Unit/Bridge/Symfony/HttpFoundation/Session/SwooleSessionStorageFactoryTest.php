@@ -10,7 +10,7 @@ use Prophecy\PhpUnit\ProphecyTrait;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Event\RequestWithSessionFinishedEvent;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation\Session\SwooleSessionStorage;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation\Session\SwooleSessionStorageFactory;
-use SwooleBundle\SwooleBundle\Server\Session\StorageInterface;
+use SwooleBundle\SwooleBundle\Server\Session\Storage;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -21,16 +21,13 @@ final class SwooleSessionStorageFactoryTest extends TestCase
     public function testCreateStorageCreatesSwooleSessionStorageInInitialState(): void
     {
         $subject = new SwooleSessionStorageFactory(
-            $this->prophesize(StorageInterface::class)->reveal(),
+            $this->prophesize(Storage::class)->reveal(),
             $this->prophesize(EventDispatcherInterface::class)->reveal(),
         );
 
         $result = $subject->createStorage(new Request());
 
-        $this->assertInstanceOf(
-            SwooleSessionStorage::class,
-            $result
-        );
+        $this->assertInstanceOf(SwooleSessionStorage::class, $result);
         $this->assertFalse($result->isStarted());
         $this->assertSame(
             '',
@@ -44,11 +41,10 @@ final class SwooleSessionStorageFactoryTest extends TestCase
 
         $dispatcher->addListener()
             ->withArguments([RequestWithSessionFinishedEvent::NAME, Argument::type('closure')])
-            ->shouldBeCalled()
-        ;
+            ->shouldBeCalled();
 
         $subject = new SwooleSessionStorageFactory(
-            $this->prophesize(StorageInterface::class)->reveal(),
+            $this->prophesize(Storage::class)->reveal(),
             $dispatcher->reveal(),
         );
 

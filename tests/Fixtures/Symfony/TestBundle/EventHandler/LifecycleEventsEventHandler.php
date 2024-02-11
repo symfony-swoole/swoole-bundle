@@ -73,6 +73,9 @@ final class LifecycleEventsEventHandler implements EventSubscriberInterface
         return $this->workerError;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     public static function getSubscribedEvents(): array
     {
         return [

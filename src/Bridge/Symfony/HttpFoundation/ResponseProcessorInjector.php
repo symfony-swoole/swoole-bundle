@@ -6,23 +6,10 @@ namespace SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation;
 
 use Swoole\Http\Response as SwooleResponse;
 use Symfony\Component\HttpFoundation\Request as HttpFoundationRequest;
-use Symfony\Component\HttpFoundation\Response as HttpFoundationResponse;
 
-final class ResponseProcessorInjector implements ResponseProcessorInjectorInterface
+interface ResponseProcessorInjector
 {
-    public function __construct(private readonly ResponseProcessorInterface $responseProcessor)
-    {
-    }
+    public const ATTR_KEY_RESPONSE_PROCESSOR = 'swoole_streamed_response_processor';
 
-    public function injectProcessor(
-        HttpFoundationRequest $request,
-        SwooleResponse $swooleResponse
-    ): void {
-        $request->attributes->set(
-            self::ATTR_KEY_RESPONSE_PROCESSOR,
-            function (HttpFoundationResponse $httpFoundationResponse) use ($swooleResponse): void {
-                $this->responseProcessor->process($httpFoundationResponse, $swooleResponse);
-            }
-        );
-    }
+    public function injectProcessor(HttpFoundationRequest $request, SwooleResponse $swooleResponse): void;
 }

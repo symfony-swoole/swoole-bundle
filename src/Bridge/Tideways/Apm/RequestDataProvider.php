@@ -5,14 +5,12 @@ declare(strict_types=1);
 namespace SwooleBundle\SwooleBundle\Bridge\Tideways\Apm;
 
 use Swoole\Http\Request as SwooleRequest;
-use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation\RequestFactoryInterface;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation\RequestFactory;
 use Symfony\Component\HttpFoundation\Request as SymfonyRequest;
 
 final class RequestDataProvider
 {
-    public function __construct(private readonly RequestFactoryInterface $requestFactory)
-    {
-    }
+    public function __construct(private readonly RequestFactory $requestFactory) {}
 
     public function getSymfonyRequest(SwooleRequest $request): SymfonyRequest
     {

@@ -9,7 +9,7 @@ use SwooleBundle\SwooleBundle\Component\Locking\RecursiveOwner\RecursiveOwnerMut
 use SwooleBundle\SwooleBundle\Component\Locking\RecursiveOwner\RecursiveOwnerMutexFactory;
 use Symfony\Component\DependencyInjection\Container;
 
-class BlockingContainer extends Container
+abstract class BlockingContainer extends Container
 {
     protected static RecursiveOwnerMutex $mutex;
 

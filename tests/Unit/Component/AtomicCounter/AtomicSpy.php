@@ -8,17 +8,22 @@ use Swoole\Atomic;
 
 final class AtomicSpy extends Atomic
 {
-    public $incremented = false;
+    private bool $incremented = false;
 
     public function __construct()
     {
         parent::__construct(0);
     }
 
-    public function add($value = null): int
+    public function add(?int $value = null): int
     {
-        $this->incremented = 1 === $value;
+        $this->incremented = $value === 1;
 
         return $this->incremented ? 1 : 0;
+    }
+
+    public function getIncremented(): bool
+    {
+        return $this->incremented;
     }
 }

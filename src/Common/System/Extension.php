@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Common\System;
 
+use RuntimeException;
+
 final class Extension
 {
     public const OPENSWOOLE = 'openswoole';
@@ -11,18 +13,19 @@ final class Extension
 
     private function __construct(
         private readonly string $extension,
-    ) {
-    }
+    ) {}
 
     public static function create(): self
     {
-        if (\extension_loaded(Extension::OPENSWOOLE)) {
-            return Extension::openswoole();
-        } elseif (\extension_loaded(Extension::SWOOLE)) {
-            return Extension::swoole();
+        if (extension_loaded(self::OPENSWOOLE)) {
+            return self::openswoole();
         }
 
-        throw new \RuntimeException('Unable to find Swoole extension.');
+        if (extension_loaded(self::SWOOLE)) {
+            return self::swoole();
+        }
+
+        throw new RuntimeException('Unable to find Swoole extension.');
     }
 
     public static function openswoole(): self
@@ -37,12 +40,12 @@ final class Extension
 
     public function isSwoole(): bool
     {
-        return self::SWOOLE === $this->extension;
+        return $this->extension === self::SWOOLE;
     }
 
     public function isOpenSwoole(): bool
     {
-        return self::OPENSWOOLE === $this->extension;
+        return $this->extension === self::OPENSWOOLE;
     }
 
     public function toString(): string

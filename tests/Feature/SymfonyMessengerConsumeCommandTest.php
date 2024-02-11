@@ -19,14 +19,17 @@ final class SymfonyMessengerConsumeCommandTest extends ServerTestCase
 
     public function testConsumeMessagesFail(): void
     {
-        $kernel = static::createKernel(['environment' => 'messenger']);
+        $kernel = self::createKernel(['environment' => 'messenger']);
         $application = new Application($kernel);
 
         $command = $application->find('messenger:consume');
         $commandTester = new CommandTester($command);
 
         $this->expectException(ReceiverNotAvailableException::class);
-        $this->expectExceptionMessage('Swoole Server Task transport does not implement Receiver interface methods. Messages sent via Swoole Server Task transport are dispatched inside task worker processes.');
+        $this->expectExceptionMessage(
+            'Swoole Server Task transport does not implement Receiver interface methods. '
+            . 'Messages sent via Swoole Server Task transport are dispatched inside task worker processes.'
+        );
 
         $commandTester->execute([
             'command' => $command->getName(),

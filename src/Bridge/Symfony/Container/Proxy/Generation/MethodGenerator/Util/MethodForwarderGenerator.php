@@ -6,11 +6,12 @@ namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Proxy\Generation\Me
 
 use Laminas\Code\Generator\PropertyGenerator;
 use ProxyManager\Generator\Util\ProxiedMethodReturnExpression;
+use ReflectionMethod;
 
 /**
  * Utility to service pool method interceptor.
  */
-class MethodForwarderGenerator
+final class MethodForwarderGenerator
 {
     private const TEMPLATE = <<<'PHP'
                 $wrapped = $this->{{$servicePoolHolderName}}->get();
@@ -25,13 +26,13 @@ class MethodForwarderGenerator
     public static function createForwardedMethodBody(
         string $forwardedMethodCall,
         PropertyGenerator $servicePoolHolder,
-        ?\ReflectionMethod $originalMethod
+        ?ReflectionMethod $originalMethod,
     ): string {
         $servicePoolHolderName = $servicePoolHolder->getName();
         $replacements = [
-            '{{$servicePoolHolderName}}' => $servicePoolHolderName,
             '{{$forwardedMethodCall}}' => $forwardedMethodCall,
             '{{$returnExpression}}' => ProxiedMethodReturnExpression::generate('$returnValue', $originalMethod),
+            '{{$servicePoolHolderName}}' => $servicePoolHolderName,
         ];
 
         return str_replace(array_keys($replacements), $replacements, self::TEMPLATE);

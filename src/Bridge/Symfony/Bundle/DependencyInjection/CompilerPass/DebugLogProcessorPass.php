@@ -29,7 +29,7 @@ final class DebugLogProcessorPass implements CompilerPassInterface
         }
 
         $definition = $container->getDefinition('monolog.logger_prototype');
-        $definition->setConfigurator([__CLASS__, 'configureLogger']);
+        $definition->setConfigurator([self::class, 'configureLogger']);
     }
 
     public static function configureLogger(object $logger): void
@@ -38,13 +38,13 @@ final class DebugLogProcessorPass implements CompilerPassInterface
             return;
         }
 
-        if (!\in_array(\PHP_SAPI, ['cli', 'phpdbg'], true)) {
+        if (!in_array(PHP_SAPI, ['cli', 'phpdbg'], true)) {
             return;
         }
 
-        if (\PHP_SAPI === 'cli') {
-            foreach ($_SERVER['argv'] as $arg) {
-                if (false !== mb_strpos((string) $arg, 'swoole:server:')) {
+        if (PHP_SAPI === 'cli') {
+            foreach ($_SERVER['argv'] as $arg) { // phpcs:ignore
+                if (mb_strpos((string) $arg, 'swoole:server:') !== false) {
                     return;
                 }
             }

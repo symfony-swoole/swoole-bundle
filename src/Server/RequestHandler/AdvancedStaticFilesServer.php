@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace SwooleBundle\SwooleBundle\Server\RequestHandler;
 
 use Assert\AssertionFailedException;
+use RuntimeException;
 use Swoole\Http\Request;
 use Swoole\Http\Response;
 use SwooleBundle\SwooleBundle\Server\HttpServerConfiguration;
-use SwooleBundle\SwooleBundle\Server\Runtime\BootableInterface;
+use SwooleBundle\SwooleBundle\Server\Runtime\Bootable;
 
 /**
  * Advanced static files server simplifies serving static content directly by swoole server.
@@ -17,7 +18,7 @@ use SwooleBundle\SwooleBundle\Server\Runtime\BootableInterface;
  *
  * @see https://github.com/zendframework/zend-expressive-swoole/blob/8b33edb50732961cce9e980c10a5948636b98e4e/src/RequestHandlerSwooleRunner.php
  */
-final class AdvancedStaticFilesServer implements RequestHandlerInterface, BootableInterface
+final class AdvancedStaticFilesServer implements RequestHandler, Bootable
 {
     private const MIME_TYPE_APPLICATION_OCTET_STREAM = 'application/octet-stream';
 
@@ -50,8 +51,8 @@ final class AdvancedStaticFilesServer implements RequestHandlerInterface, Bootab
         'htm' => 'text/html',
         'html' => 'text/html',
         'ico' => 'image/x-icon',
-        'jpg' => 'image/jpg',
         'jpeg' => 'image/jpg',
+        'jpg' => 'image/jpg',
         'js' => 'text/javascript',
         'json' => 'application/json',
         'mp4' => 'video/mp4',
@@ -103,21 +104,29 @@ final class AdvancedStaticFilesServer implements RequestHandlerInterface, Bootab
      */
     private array $fileExtensionMimeTypeMap;
 
+    /**
+     * @param array<string, string> $customMimeTypes
+     */
     public function __construct(
-        private readonly RequestHandlerInterface $decorated,
+        private readonly RequestHandler $decorated,
         private readonly HttpServerConfiguration $configuration,
-        array $customMimeTypes = []
+        array $customMimeTypes = [],
     ) {
         $this->fileExtensionMimeTypeMap = array_merge(self::FILE_EXTENSION_MIME_TYPE_DEFAULT_MAP, $customMimeTypes);
     }
 
     /**
+     * {@inheritDoc}
+     *
      * @throws AssertionFailedException
      */
     public function boot(array $runtimeConfiguration = []): void
     {
         if (!$this->configuration->hasPublicDir()) {
-            throw new \RuntimeException('AdvancedStaticFilesHandler requires setting "public_dir", which is unavailable. Either disable driver or fill "public_dir" setting.');
+            throw new RuntimeException(
+                'AdvancedStaticFilesHandler requires setting "public_dir", which is unavailable. '
+                . 'Either disable driver or fill "public_dir" setting.'
+            );
         }
 
         $this->publicDir = $this->configuration->getPublicDir();
@@ -125,8 +134,8 @@ final class AdvancedStaticFilesServer implements RequestHandlerInterface, Bootab
 
     public function handle(Request $request, Response $response): void
     {
-        if ('GET' === $request->server['request_method']) {
-            $path = $this->publicDir.$request->server['request_uri'];
+        if ($request->server['request_method'] === 'GET') {
+            $path = $this->publicDir . $request->server['request_uri'];
             if (isset($this->cachedMimeTypes[$path]) || $this->checkPath($path)) {
                 $response->header('Content-Type', $this->cachedMimeTypes[$path]);
                 $response->sendfile($path);
@@ -140,11 +149,11 @@ final class AdvancedStaticFilesServer implements RequestHandlerInterface, Bootab
 
     private function checkPath(string $path): bool
     {
-        $extension = pathinfo($path, \PATHINFO_EXTENSION);
+        $extension = pathinfo($path, PATHINFO_EXTENSION);
 
         // eg. "file.js.map"
-        if ('map' === $extension) {
-            $extension = pathinfo(pathinfo($path, \PATHINFO_FILENAME), \PATHINFO_EXTENSION);
+        if ($extension === 'map') {
+            $extension = pathinfo(pathinfo($path, PATHINFO_FILENAME), PATHINFO_EXTENSION);
         }
 
         if (!file_exists($path) || is_dir($path)) {

@@ -9,9 +9,7 @@ final class StatefulServiceTag
     /**
      * @param array{limit?: int, resetter?: string, reset_on_each_request?: bool} $tag
      */
-    public function __construct(private array $tag)
-    {
-    }
+    public function __construct(private array $tag) {}
 
     public function getLimit(): ?int
     {

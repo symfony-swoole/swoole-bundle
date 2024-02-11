@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Modifier\Builder;
 
+use ReflectionMethod as CoreReflectionMethod;
+use RuntimeException;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\ContainerConstants;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\BlockingContainer;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\ContainerSourceCodeExtractor;
@@ -13,18 +15,29 @@ use Symfony\Component\Filesystem\Filesystem;
 use ZEngine\Reflection\ReflectionClass;
 use ZEngine\Reflection\ReflectionMethod;
 
+/**
+ * @phpstan-import-type ContainerMethodInternals from ContainerSourceCodeExtractor
+ */
 final class Symfony54PlusBuilder implements Builder
 {
     public function overrideGeneratedContainer(ReflectionClass $reflContainer, string $cacheDir, bool $isDebug): void
     {
         $fs = new Filesystem();
         $containerFqcn = $reflContainer->getName();
-        $overriddenFqcn = $containerFqcn.'_Overridden';
+        $overriddenFqcn = $containerFqcn . '_Overridden';
         $classParts = explode('\\', $containerFqcn);
         $containerClass = array_pop($classParts);
-        $overriddenClass = $containerClass.'_Overridden';
-        $containerFile = $cacheDir.DIRECTORY_SEPARATOR.str_replace('\\', DIRECTORY_SEPARATOR, $containerFqcn).'.php';
-        $overriddenFile = $cacheDir.DIRECTORY_SEPARATOR.str_replace('\\', DIRECTORY_SEPARATOR, $overriddenFqcn).'.php';
+        $overriddenClass = $containerClass . '_Overridden';
+        $containerFile = $cacheDir . DIRECTORY_SEPARATOR . str_replace(
+            '\\',
+            DIRECTORY_SEPARATOR,
+            $containerFqcn
+        ) . '.php';
+        $overriddenFile = $cacheDir . DIRECTORY_SEPARATOR . str_replace(
+            '\\',
+            DIRECTORY_SEPARATOR,
+            $overriddenFqcn
+        ) . '.php';
 
         if (file_exists($overriddenFile)) {
             return;
@@ -32,22 +45,25 @@ final class Symfony54PlusBuilder implements Builder
 
         $containerSource = file_get_contents($containerFile);
 
-        if (false === $containerSource) {
-            throw new \RuntimeException(sprintf('Could not read container file "%s".', $containerFile));
+        if ($containerSource === false) {
+            throw new RuntimeException(sprintf('Could not read container file "%s".', $containerFile));
         }
 
         $codeExtractor = new ContainerSourceCodeExtractor($containerSource);
-        $overriddenSource = str_replace('class '.$containerClass, 'class '.$overriddenClass, $containerSource);
+        $overriddenSource = str_replace('class ' . $containerClass, 'class ' . $overriddenClass, $containerSource);
 
         // dump opcache.blacklist_filename
-        $blacklistFile = $cacheDir.DIRECTORY_SEPARATOR.ContainerConstants::PARAM_CACHE_FOLDER.DIRECTORY_SEPARATOR.'opcache'.DIRECTORY_SEPARATOR.'blacklist.txt';
+        $blacklistFile = implode(
+            DIRECTORY_SEPARATOR,
+            [$cacheDir, ContainerConstants::PARAM_CACHE_FOLDER, 'opcache', 'blacklist.txt']
+        );
         $blacklistFiles = [$containerFile, $overriddenFile];
-        $blacklistFileContent = implode(PHP_EOL, $blacklistFiles).PHP_EOL;
+        $blacklistFileContent = implode(PHP_EOL, $blacklistFiles) . PHP_EOL;
         $fs->dumpFile($blacklistFile, $blacklistFileContent);
 
         // methods override
         $ignoredMethods = $this->getIgnoredGetters();
-        $methods = $reflContainer->getMethods(\ReflectionMethod::IS_PROTECTED);
+        $methods = $reflContainer->getMethods(CoreReflectionMethod::IS_PROTECTED);
         $methodsCodes = [];
 
         if (!$reflContainer->hasMethod('createProxy')) {
@@ -68,7 +84,7 @@ final class Symfony54PlusBuilder implements Builder
 
         $namespace = $reflContainer->getNamespaceName();
         $modifierClassToUse = self::class;
-        $methodsCode = implode(PHP_EOL.PHP_EOL, $methodsCodes);
+        $methodsCode = implode(PHP_EOL . PHP_EOL, $methodsCodes);
         $newContainerSource = <<<EOF
             <?php
 
@@ -94,41 +110,35 @@ final class Symfony54PlusBuilder implements Builder
     {
         $fs = new Filesystem();
         $containerNamespace = $reflContainer->getNamespaceName();
-        $containerDirectory = $cacheDir.DIRECTORY_SEPARATOR.$containerNamespace;
+        $containerDirectory = $cacheDir . DIRECTORY_SEPARATOR . $containerNamespace;
         $files = scandir($containerDirectory);
 
-        if (false === $files) {
-            throw new \RuntimeException(sprintf('Could not read container directory "%s".', $containerDirectory));
+        if ($files === false) {
+            throw new RuntimeException(sprintf('Could not read container directory "%s".', $containerDirectory));
         }
 
-        $filteredFiles = array_filter($files, fn (string $fileName): bool => str_starts_with($fileName, 'get'));
+        $filteredFiles = array_filter($files, static fn(string $fileName): bool => str_starts_with($fileName, 'get'));
 
         foreach ($filteredFiles as $fileName) {
             $class = str_replace('.php', '', $fileName);
-            $this->generateOverriddenDoInExtension(
-                $fs,
-                $containerDirectory,
-                $fileName,
-                $class,
-                $containerNamespace
-            );
+            $this->generateOverriddenDoInExtension($fs, $containerDirectory, $fileName, $class, $containerNamespace);
         }
     }
 
     private function generateOverriddenCreateProxy(): string
     {
-        return <<<EOF
-                        protected function createProxy(\$class, \Closure \$factory)
+        return <<<'EOF'
+                        protected function createProxy($class, \Closure $factory)
                         {
-                            self::\$mutex->acquire();
+                            self::$mutex->acquire();
 
                             try {
-                                \$return = parent::createProxy(\$class, \$factory);
+                                $return = parent::createProxy($class, $factory);
                             } finally {
-                                self::\$mutex->release();
+                                self::$mutex->release();
                             }
 
-                            return \$return;
+                            return $return;
                         }
             EOF;
     }
@@ -137,7 +147,7 @@ final class Symfony54PlusBuilder implements Builder
     {
         $loadRefl = $reflContainer->getMethod('load');
 
-        if (Container::class == $loadRefl->getDeclaringClass()->getName()) {
+        if ($loadRefl->getDeclaringClass()->getName() === Container::class) {
             return self::generateOverrideOriginalContainerLoad();
         }
 
@@ -146,72 +156,77 @@ final class Symfony54PlusBuilder implements Builder
 
     private static function generateOverrideOriginalContainerLoad(): string
     {
-        return <<<EOF
-                protected function load(string \$file)
+        return <<<'EOF'
+                protected function load(string $file)
                 {
-                    self::\$mutex->acquire();
+                    self::$mutex->acquire();
 
                     try {
-                        \$overriddenLoad = str_replace('.php', '__Overridden.php', \$file);
-                        require_once \$overriddenLoad;
+                        $overriddenLoad = str_replace('.php', '__Overridden.php', $file);
+                        require_once $overriddenLoad;
 
-                        \$return = parent::load(\$file);
+                        $return = parent::load($file);
                     } finally {
-                        self::\$mutex->release();
+                        self::$mutex->release();
                     }
 
-                    return \$return;
+                    return $return;
                 }
             EOF;
     }
 
     private static function generateOverridenGeneratedLoad(): string
     {
-        return <<<EOF
-                protected function load(\$file, \$lazyLoad = true)
+        return <<<'EOF'
+                protected function load($file, $lazyLoad = true)
                 {
-                    self::\$mutex->acquire();
+                    self::$mutex->acquire();
 
                     try {
-                        \$fileToLoad = \$file;
-                        \$class = self::\$buildContainerNs.'\\\\'.\$file;
-                        if ('.' === \$file[-4]) {
-                            \$class = substr(\$class, 0, -4);
+                        $fileToLoad = $file;
+                        $class = self::$buildContainerNs.'\\'.$file;
+                        if ('.' === $file[-4]) {
+                            $class = substr($class, 0, -4);
                         } else {
-                            \$fileToLoad .= '.php';
+                            $fileToLoad .= '.php';
                         }
 
-                        \$overriddenLoad = str_replace('.php', '__Overridden.php', \$fileToLoad);
-                        require_once \$overriddenLoad;
+                        $overriddenLoad = str_replace('.php', '__Overridden.php', $fileToLoad);
+                        require_once $overriddenLoad;
 
-                        \$return = parent::load(\$file, \$lazyLoad);
+                        $return = parent::load($file, $lazyLoad);
                     } finally {
-                        self::\$mutex->release();
+                        self::$mutex->release();
                     }
 
-                    return \$return;
+                    return $return;
                 }
             EOF;
     }
 
-    private function overrideCachedEntrypoint(Filesystem $fs, string $cacheDir, string $containerClass, string $overriddenFqcn, bool $isDebug): void
-    {
-        $cache = new ConfigCache($cacheDir.'/'.$containerClass.'.php', $isDebug);
+    private function overrideCachedEntrypoint(
+        Filesystem $fs,
+        string $cacheDir,
+        string $containerClass,
+        string $overriddenFqcn,
+        bool $isDebug,
+    ): void {
+        $cache = new ConfigCache($cacheDir . '/' . $containerClass . '.php', $isDebug);
         $cachePath = $cache->getPath();
 
         if (!file_exists($cachePath)) {
-            throw new \RuntimeException('Generated cached entry point file is missing.');
+            throw new RuntimeException('Generated cached entry point file is missing.');
         }
 
         $content = file_get_contents($cachePath);
 
-        if (false === $content) {
-            throw new \RuntimeException('Could not read generated cached file.');
+        if ($content === false) {
+            throw new RuntimeException('Could not read generated cached file.');
         }
 
-        $overriddenFile = str_replace('\\', DIRECTORY_SEPARATOR, $overriddenFqcn).'.php';
+        $overriddenFile = str_replace('\\', DIRECTORY_SEPARATOR, $overriddenFqcn) . '.php';
 
-        $header = <<<EOF
+        $header = <<<'EOF'
             <?php
 
             EOF;
@@ -232,20 +247,24 @@ final class Symfony54PlusBuilder implements Builder
         $methodName = $method->getName();
         $internals = $extractor->getContainerInternalsForMethod($method);
 
-        if (isset($internals['type']) && 'factories' === $internals['type']) {
+        if (isset($internals['type']) && $internals['type'] === 'factories') {
             $internals = [];
         }
 
-        return $method->getNumberOfParameters() > 0 ?
-            self::generateLazyGetter($methodName, $internals) : self::generateCasualGetter($methodName, $internals);
+        return $method->getNumberOfParameters() > 0
+            ? self::generateLazyGetter($methodName, $internals)
+            : self::generateCasualGetter($methodName, $internals);
     }
 
+    /**
+     * @param ContainerMethodInternals $internals
+     */
     private static function generateLazyGetter(string $methodName, array $internals): string
     {
         $sharedCheck = PHP_EOL;
 
         if (!empty($internals)) {
-            $arrayKey = "['{$internals['key']}']".(isset($internals['key2']) ? "['{$internals['key2']}']" : '');
+            $arrayKey = "['{$internals['key']}']" . (isset($internals['key2']) ? "['{$internals['key2']}']" : '');
             $sharedCheck = <<<EOF
                                         if (isset(\$this->{$internals['type']}{$arrayKey})) {
                                             if (\$lazyLoad) {
@@ -260,8 +279,8 @@ final class Symfony54PlusBuilder implements Builder
 
         return <<<EOF
                     protected function $methodName(\$lazyLoad = true) {
-                        // this might be a weird SF container bug or idk... but SF container keeps calling this factory method
-                        // with service id
+                        // this might be a weird SF container bug or idk... but SF container keeps calling
+                        // this factory method with service id
                         if (is_string(\$lazyLoad)) {
                             \$lazyLoad = true;
                         }
@@ -283,12 +302,15 @@ final class Symfony54PlusBuilder implements Builder
             EOF;
     }
 
+    /**
+     * @param ContainerMethodInternals $internals
+     */
     private static function generateCasualGetter(string $methodName, array $internals): string
     {
         $sharedCheck = PHP_EOL;
 
         if (!empty($internals)) {
-            $arrayKey = "['{$internals['key']}']".(isset($internals['key2']) ? "['{$internals['key2']}']" : '');
+            $arrayKey = "['{$internals['key']}']" . (isset($internals['key2']) ? "['{$internals['key2']}']" : '');
             $sharedCheck = <<<EOF
 
                                         if (isset(\$this->{$internals['type']}{$arrayKey})) {
@@ -319,9 +341,9 @@ final class Symfony54PlusBuilder implements Builder
         string $containerDir,
         string $fileToLoad,
         string $class,
-        string $namespace
+        string $namespace,
     ): void {
-        $fullPath = $containerDir.\DIRECTORY_SEPARATOR.$fileToLoad;
+        $fullPath = $containerDir . DIRECTORY_SEPARATOR . $fileToLoad;
 
         if (str_contains($fullPath, '__Overridden.php') || str_contains($class, '__Overridden')) {
             return;
@@ -333,12 +355,12 @@ final class Symfony54PlusBuilder implements Builder
             return;
         }
 
-        $overriddenClass = $class.'__Overridden';
-        $overriddenFqcn = $namespace.'\\'.$overriddenClass;
+        $overriddenClass = $class . '__Overridden';
+        $overriddenFqcn = $namespace . '\\' . $overriddenClass;
         $origContent = file_get_contents($fullPath);
 
-        if (false === $origContent) {
-            throw new \RuntimeException('Could not read original generated cached file.');
+        if ($origContent === false) {
+            throw new RuntimeException('Could not read original generated cached file.');
         }
 
         $codeExtractor = new ContainerSourceCodeExtractor($origContent);
@@ -355,7 +377,7 @@ final class Symfony54PlusBuilder implements Builder
         $sharedCheck = '';
 
         if (!empty($internals)) {
-            $arrayKey = "['{$internals['key']}']".(isset($internals['key2']) ? "['{$internals['key2']}']" : '');
+            $arrayKey = "['{$internals['key']}']" . (isset($internals['key2']) ? "['{$internals['key2']}']" : '');
             $sharedCheck = <<<EOF
                 if (isset(\$container->{$internals['type']}{$arrayKey})) {
                     if (\$lazyLoad) {
@@ -403,13 +425,19 @@ final class Symfony54PlusBuilder implements Builder
         require_once $fullPath;
     }
 
+    /**
+     * @return array<string>
+     */
     private function getIgnoredGetters(): array
     {
         $reflBlockingContainer = new ReflectionClass(BlockingContainer::class);
-        $methods = $reflBlockingContainer->getMethods(\ReflectionMethod::IS_PROTECTED);
-        $methodNames = array_map(fn (ReflectionMethod $method): string => $method->getName(), $methods);
+        $methods = $reflBlockingContainer->getMethods(CoreReflectionMethod::IS_PROTECTED);
+        $methodNames = array_map(static fn(ReflectionMethod $method): string => $method->getName(), $methods);
         $methodNames = array_merge($methodNames, get_class_methods(BlockingContainer::class));
-        $getters = array_filter($methodNames, fn (string $methodName): bool => str_starts_with($methodName, 'get'));
+        $getters = array_filter(
+            $methodNames,
+            static fn(string $methodName): bool => str_starts_with($methodName, 'get')
+        );
         $getters[] = 'getDefaultParameters';
 
         return array_flip($getters);

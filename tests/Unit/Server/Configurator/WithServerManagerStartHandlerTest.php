@@ -4,15 +4,14 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Tests\Unit\Server\Configurator;
 
+use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 use PHPUnit\Framework\TestCase;
 use SwooleBundle\SwooleBundle\Server\Configurator\WithServerManagerStartHandler;
 use SwooleBundle\SwooleBundle\Server\LifecycleHandler\NoOpServerManagerStartHandler;
 use SwooleBundle\SwooleBundle\Tests\Unit\Server\SwooleHttpServerMockFactory;
 
-/**
- * @runTestsInSeparateProcesses
- */
-class WithServerManagerStartHandlerTest extends TestCase
+#[RunTestsInSeparateProcesses]
+final class WithServerManagerStartHandlerTest extends TestCase
 {
     /**
      * @var NoOpServerManagerStartHandler
@@ -37,7 +36,10 @@ class WithServerManagerStartHandlerTest extends TestCase
 
         $this->configurator->configure($swooleServerOnEventSpy);
 
-        self::assertTrue($swooleServerOnEventSpy->registeredEvent);
-        self::assertSame(['ManagerStart', [$this->noOpServerManagerStartHandler, 'handle']], $swooleServerOnEventSpy->registeredEventPair);
+        self::assertTrue($swooleServerOnEventSpy->registeredEvent());
+        self::assertSame(
+            ['ManagerStart', [$this->noOpServerManagerStartHandler, 'handle']],
+            $swooleServerOnEventSpy->registeredEventPair()
+        );
     }
 }

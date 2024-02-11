@@ -8,7 +8,7 @@ use PHPUnit\Framework\TestCase;
 use SwooleBundle\SwooleBundle\Bridge\Swoole\Swoole;
 use SwooleBundle\SwooleBundle\Bridge\Swoole\SwooleFactory;
 
-class SwooleFactoryTest extends TestCase
+final class SwooleFactoryTest extends TestCase
 {
     public function testNewInstanceCreation(): void
     {

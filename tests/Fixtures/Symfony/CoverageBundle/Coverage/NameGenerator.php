@@ -12,14 +12,14 @@ final class NameGenerator
 
     public static function nameForUseCase(string $useCaseName): string
     {
-        return \sprintf('%s_%s', $useCaseName, self::getSystem()->extension()->toString());
+        return sprintf('%s_%s', $useCaseName, self::getSystem()->extension()->toString());
     }
 
     public static function nameForUseCaseAndCommand(string $useCaseName, string $commandName): string
     {
         $slug = str_replace(['-', ':'], '_', $commandName);
 
-        return \sprintf(
+        return sprintf(
             '%s_%s_%s_%s',
             $useCaseName,
             $slug,
@@ -30,7 +30,7 @@ final class NameGenerator
 
     private static function getSystem(): System
     {
-        if (null === self::$system) {
+        if (self::$system === null) {
             self::$system = System::create();
         }
 

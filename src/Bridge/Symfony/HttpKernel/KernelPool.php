@@ -6,7 +6,7 @@ namespace SwooleBundle\SwooleBundle\Bridge\Symfony\HttpKernel;
 
 use Symfony\Component\HttpKernel\KernelInterface;
 
-interface KernelPoolInterface
+interface KernelPool
 {
     public function boot(): void;
 

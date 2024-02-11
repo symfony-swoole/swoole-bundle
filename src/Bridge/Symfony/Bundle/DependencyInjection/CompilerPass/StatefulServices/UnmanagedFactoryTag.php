@@ -14,9 +14,7 @@ final class UnmanagedFactoryTag
      *     resetter?: string
      * } $tag
      */
-    public function __construct(private array $tag)
-    {
-    }
+    public function __construct(private array $tag) {}
 
     public function getFactoryMethod(): string
     {
@@ -24,7 +22,7 @@ final class UnmanagedFactoryTag
     }
 
     /**
-     * @return null|class-string|string
+     * @return class-string|string|null
      */
     public function getReturnType(): ?string
     {

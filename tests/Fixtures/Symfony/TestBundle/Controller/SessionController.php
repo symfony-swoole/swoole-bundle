@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Controller;
 
+use Exception;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\Routing\Annotation\Route as RouteAnnotation;
@@ -15,8 +16,7 @@ final class SessionController
      * @RouteAnnotation(methods={"GET"}, path="/session")
      * @RouteAnnotation(methods={"GET"}, path="/session/1")
      * @RouteAnnotation(methods={"GET"}, path="/session/2")
-     *
-     * @throws \Exception
+     * @throws Exception
      */
     #[Route(path: '/session', methods: ['GET'])]
     #[Route(path: '/session/1', methods: ['GET'])]

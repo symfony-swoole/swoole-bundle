@@ -6,14 +6,14 @@ namespace SwooleBundle\SwooleBundle\Server\Configurator;
 
 use Swoole\Http\Server;
 
-final class CallableChainConfigurator implements ConfiguratorInterface
+final class CallableChainConfigurator implements Configurator
 {
     /**
      * @param iterable<callable> $configurators
      */
-    public function __construct(private readonly iterable $configurators)
-    {
-    }
+    public function __construct(
+        private readonly iterable $configurators,
+    ) {}
 
     public function configure(Server $server): void
     {

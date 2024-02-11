@@ -4,15 +4,14 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Tests\Unit\Server\Configurator;
 
+use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 use PHPUnit\Framework\TestCase;
 use SwooleBundle\SwooleBundle\Server\Configurator\WithServerShutdownHandler;
 use SwooleBundle\SwooleBundle\Server\LifecycleHandler\NoOpServerShutdownHandler;
 use SwooleBundle\SwooleBundle\Tests\Unit\Server\SwooleHttpServerMockFactory;
 
-/**
- * @runTestsInSeparateProcesses
- */
-class WithServerShutdownHandlerTest extends TestCase
+#[RunTestsInSeparateProcesses]
+final class WithServerShutdownHandlerTest extends TestCase
 {
     /**
      * @var NoOpServerShutdownHandler
@@ -37,7 +36,10 @@ class WithServerShutdownHandlerTest extends TestCase
 
         $this->configurator->configure($swooleServerOnEventSpy);
 
-        self::assertTrue($swooleServerOnEventSpy->registeredEvent);
-        self::assertSame(['shutdown', [$this->noOpServerShutdownHandler, 'handle']], $swooleServerOnEventSpy->registeredEventPair);
+        self::assertTrue($swooleServerOnEventSpy->registeredEvent());
+        self::assertSame(
+            ['shutdown', [$this->noOpServerShutdownHandler, 'handle']],
+            $swooleServerOnEventSpy->registeredEventPair()
+        );
     }
 }

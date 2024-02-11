@@ -12,9 +12,8 @@ final class AdvancedDoctrineUsage
 {
     public function __construct(
         private readonly UuidFactoryInterface $uuidFactory,
-        private readonly Registry $doctrine
-    ) {
-    }
+        private readonly Registry $doctrine,
+    ) {}
 
     public function run(): int
     {

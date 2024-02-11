@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Bridge\Tideways\Apm;
 
+use Closure;
 use Swoole\Http\Request;
 use Swoole\Http\Response;
+use Throwable;
 use Tideways\Profiler;
 
 final class RequestProfiler
@@ -14,19 +16,19 @@ final class RequestProfiler
 
     public function __construct(
         private readonly RequestDataProvider $dataProvider,
-        string $serviceName = 'web'
+        string $serviceName = 'web',
     ) {
         $serviceName = trim($serviceName);
-        $this->serviceName = '' !== $serviceName ? $serviceName : 'web';
+        $this->serviceName = $serviceName !== '' ? $serviceName : 'web';
     }
 
-    public function profile(\Closure $fn, Request $request, Response $response): void
+    public function profile(Closure $fn, Request $request, Response $response): void
     {
         $this->start($request);
 
         try {
             call_user_func($fn, $request, $response);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Profiler::logException($e);
 
             throw $e;
@@ -47,8 +49,10 @@ final class RequestProfiler
         Profiler::setCustomVariable('http.method', $request->getMethod());
         Profiler::setCustomVariable('http.url', $request->getPathInfo());
 
-        if ($referenceId) {
-            Profiler::setCustomVariable('tw.ref', $referenceId);
+        if (!$referenceId) {
+            return;
         }
+
+        Profiler::setCustomVariable('tw.ref', $referenceId);
     }
 }

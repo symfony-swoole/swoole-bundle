@@ -6,7 +6,5 @@ namespace SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Service;
 
 final class ShouldBeProxified2
 {
-    public function hello(): void
-    {
-    }
+    public function hello(): void {}
 }

@@ -23,35 +23,33 @@ return static function (ContainerConfigurator $containerConfigurator): void {
 
     $services->defaults()
         ->autowire()
-        ->autoconfigure()
-    ;
+        ->autoconfigure();
 
-    $services->load('SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\\', __DIR__.'/../../TestBundle/*')
+    $services->load('SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\\', __DIR__ . '/../../TestBundle/*')
         ->exclude([
-            __DIR__.'/../../TestBundle/{Message,Test,Controller,Migrations,Resetter,Service/NoAutowiring}',
-        ])
-    ;
+            __DIR__ . '/../../TestBundle/{Message,Test,Controller,Migrations,Resetter,Service/NoAutowiring}',
+        ]);
 
-    $services->load('SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Controller\\', __DIR__.'/../../TestBundle/Controller')
+    $services->load(
+        'SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Controller\\',
+        __DIR__ . '/../../TestBundle/Controller'
+    )
         ->tag('controller.service_arguments')
         ->exclude([
-            __DIR__.'/../../TestBundle/Controller/ReplacedContentTestController.php',
-        ])
-    ;
+            __DIR__ . '/../../TestBundle/Controller/ReplacedContentTestController.php',
+        ]);
 
     $services->set(DoctrineController::class)
         ->arg('$registry', service('doctrine'))
         ->arg('$resetters', [
         ])
         ->arg('$dataHolder', service('doctrine.debug_data_holder')->ignoreOnInvalid())
-        ->tag('controller.service_arguments')
-    ;
+        ->tag('controller.service_arguments');
 
     $services->set(SleepController::class)
         ->arg('$connection', service('doctrine.dbal.default_connection'))
         ->arg('$container', service('service_container'))
-        ->tag('controller.service_arguments')
-    ;
+        ->tag('controller.service_arguments');
 
     $services->alias(UuidFactoryInterface::class, UuidFactory::class);
 
@@ -63,18 +61,15 @@ return static function (ContainerConfigurator $containerConfigurator): void {
         ->arg('$entityManager', service('doctrine.orm.default_entity_manager'))
         ->arg('$uuidFactory', service(UuidFactoryInterface::class))
         ->arg('$factory', service(RepositoryFactory::class))
-        ->tag('swoole_bundle.decorated_stateful_service')
-    ;
+        ->tag('swoole_bundle.decorated_stateful_service');
 
     $services->set(AdvancedDoctrineUsage::class)
         ->arg('$uuidFactory', service(UuidFactoryInterface::class))
-        ->arg('$doctrine', service('doctrine'))
-    ;
+        ->arg('$doctrine', service('doctrine'));
 
     $services->set(DecorationTestDummyService::class)
         ->decorate(DefaultDummyService::class)
-        ->arg('$decorated', service('.inner'))
-    ;
+        ->arg('$decorated', service('.inner'));
 
     $services->set(RepositoryFactory::class)
         ->tag('swoole_bundle.unmanaged_factory', [
@@ -82,16 +77,13 @@ return static function (ContainerConfigurator $containerConfigurator): void {
             'returnType' => InMemoryRepository::class,
             'limit' => 15,
             'resetter' => 'inmemory_repository_resetter',
-        ])
-    ;
+        ]);
 
     $services->set('inmemory_repository_resetter', SimpleResetter::class)
-        ->arg('$resetFn', 'reset')
-    ;
+        ->arg('$resetFn', 'reset');
 
     $services->set(UnusedServiceToRemove::class)
         ->tag('kernel.reset', [
             'method' => 'reset',
-        ])
-    ;
+        ]);
 };

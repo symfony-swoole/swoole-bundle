@@ -6,7 +6,7 @@ namespace SwooleBundle\SwooleBundle\Server\TaskHandler;
 
 use Swoole\Server;
 
-final class NoOpTaskFinishedHandler implements TaskFinishedHandlerInterface
+final class NoOpTaskFinishedHandler implements TaskFinishedHandler
 {
     public function handle(Server $server, int $taskId, mixed $data): void
     {

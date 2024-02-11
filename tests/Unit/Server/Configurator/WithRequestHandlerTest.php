@@ -4,25 +4,18 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Tests\Unit\Server\Configurator;
 
+use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 use PHPUnit\Framework\TestCase;
 use SwooleBundle\SwooleBundle\Server\Configurator\WithRequestHandler;
 use SwooleBundle\SwooleBundle\Tests\Unit\Server\RequestHandler\RequestHandlerDummy;
 use SwooleBundle\SwooleBundle\Tests\Unit\Server\SwooleHttpServerMockFactory;
 
-/**
- * @runTestsInSeparateProcesses
- */
-class WithRequestHandlerTest extends TestCase
+#[RunTestsInSeparateProcesses]
+final class WithRequestHandlerTest extends TestCase
 {
-    /**
-     * @var RequestHandlerDummy
-     */
-    private $requestHandlerDummy;
+    private RequestHandlerDummy $requestHandlerDummy;
 
-    /**
-     * @var WithRequestHandler
-     */
-    private $configurator;
+    private WithRequestHandler $configurator;
 
     protected function setUp(): void
     {
@@ -37,7 +30,7 @@ class WithRequestHandlerTest extends TestCase
 
         $this->configurator->configure($serverMock);
 
-        self::assertTrue($serverMock->registeredEvent);
-        self::assertSame(['request', [$this->requestHandlerDummy, 'handle']], $serverMock->registeredEventPair);
+        self::assertTrue($serverMock->registeredEvent());
+        self::assertSame(['request', [$this->requestHandlerDummy, 'handle']], $serverMock->registeredEventPair());
     }
 }

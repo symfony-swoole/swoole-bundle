@@ -12,6 +12,7 @@ final class SwooleServerCustomPidFileTest extends ServerTestCase
     protected function setUp(): void
     {
         parent::setUp();
+
         $this->deleteVarDirectory();
     }
 

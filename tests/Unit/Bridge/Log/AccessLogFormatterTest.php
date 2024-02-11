@@ -6,9 +6,9 @@ namespace SwooleBundle\SwooleBundle\Tests\Unit\Bridge\Log;
 
 use PHPUnit\Framework\TestCase;
 use SwooleBundle\SwooleBundle\Bridge\Log\AccessLogDataMap;
-use SwooleBundle\SwooleBundle\Bridge\Log\AccessLogFormatter;
+use SwooleBundle\SwooleBundle\Bridge\Log\SimpleAccessLogFormatter;
 
-class AccessLogFormatterTest extends TestCase
+final class AccessLogFormatterTest extends TestCase
 {
     public function testFormatterDelegatesToDataMapToReplacePlaceholdersInFormat(): void
     {
@@ -21,23 +21,21 @@ class AccessLogFormatterTest extends TestCase
             ->expects($this->exactly(2))
             ->method('getResponseBodySize')
             ->willReturnCallback(
-                fn (string $default) => match ([$default]) { // @phpstan-ignore-line
+                static fn(string $default) => match ([$default]) { // @phpstan-ignore-line
                     ['0'] => '1234', // %B
                     ['-'] => '1234', // %b
                 }
-            )
-        ;
+            );
         $dataMap
             ->expects($this->exactly(3))
             ->method('getRequestDuration')
             ->willReturnCallback(
-                fn (string $format) => match ([$format]) { // @phpstan-ignore-line
+                static fn(string $format) => match ([$format]) { // @phpstan-ignore-line
                     ['ms'] => '4321', // %D
                     ['s'] => '22', // %T
                     ['us'] => '22', // %{us}T
                 }
-            )
-        ;
+            );
         $dataMap->method('getFilename')->willReturn(__FILE__); // %f
         $dataMap->method('getRemoteHostname')->willReturn($hostname); // %h
         $dataMap->method('getProtocol')->willReturn('HTTP/1.1'); // %H
@@ -46,12 +44,11 @@ class AccessLogFormatterTest extends TestCase
             ->expects($this->exactly(2))
             ->method('getPort')
             ->willReturnCallback(
-                fn (string $format) => match ([$format]) { // @phpstan-ignore-line
+                static fn(string $format) => match ([$format]) { // @phpstan-ignore-line
                     ['canonical'] => '9000', // %p
                     ['local'] => '9999', // %{local}p
                 }
-            )
-        ;
+            );
         $dataMap->method('getQuery')->willReturn('?foo=bar'); // %q
         $dataMap->method('getRequestLine')->willReturn('POST /path?foo=bar HTTP/1.1'); // %r
         $dataMap->method('getStatus')->willReturn('202'); // %s
@@ -59,12 +56,11 @@ class AccessLogFormatterTest extends TestCase
             ->expects($this->exactly(2))
             ->method('getRequestTime')
             ->willReturnCallback(
-                fn (string $format) => match ([$format]) { // @phpstan-ignore-line
+                static fn(string $format) => match ([$format]) { // @phpstan-ignore-line
                     ['begin:%d/%b/%Y:%H:%M:%S %z'] => '[1234567890]', // %t
                     ['end:sec'] => '[1234567890]', // %{end:sec}t
                 }
-            )
-        ;
+            );
 
         $dataMap->method('getRemoteUser')->willReturn('swoole'); // %u
         $dataMap->method('getPath')->willReturn('/path'); // %U
@@ -76,11 +72,13 @@ class AccessLogFormatterTest extends TestCase
         $dataMap->method('getCookie')->with('cookie_name')->willReturn('chocolate'); // %{cookie_name}C
         $dataMap->method('getEnv')->with('env_name')->willReturn('php'); // %{env_name}e
         $dataMap->method('getRequestHeader')->with('X-Request-Header')->willReturn('request'); // %{X-Request-Header}i
-        $dataMap->method('getResponseHeader')->with('X-Response-Header')->willReturn('response'); // %{X-Response-Header}o
+        $dataMap->method('getResponseHeader')->with('X-Response-Header')->willReturn(
+            'response'
+        ); // %{X-Response-Header}o
 
         $format = '%a %A %B %b %D %f %h %H %m %p %q %r %s %t %T %u %U %v %V %I %O %S'
-            .' %{cookie_name}C %{env_name}e %{X-Request-Header}i %{X-Response-Header}o'
-            .' %{local}p %{end:sec}t %{us}T';
+            . ' %{cookie_name}C %{env_name}e %{X-Request-Header}i %{X-Response-Header}o'
+            . ' %{local}p %{end:sec}t %{us}T';
         $expected = [
             '127.0.0.10',
             '127.0.0.1',
@@ -114,7 +112,7 @@ class AccessLogFormatterTest extends TestCase
         ];
         $expected = implode(' ', $expected);
 
-        $formatter = new AccessLogFormatter($format);
+        $formatter = new SimpleAccessLogFormatter($format);
 
         $message = $formatter->format($dataMap);
 

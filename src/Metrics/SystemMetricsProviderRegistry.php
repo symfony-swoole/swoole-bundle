@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Metrics;
 
+use RuntimeException;
 use SwooleBundle\SwooleBundle\Common\System\System;
+use Traversable;
 
 final class SystemMetricsProviderRegistry
 {
@@ -14,13 +16,13 @@ final class SystemMetricsProviderRegistry
     private array $metricsProviders;
 
     /**
-     * @param \Traversable<string, MetricsProvider> $metricsProviders
+     * @param Traversable<string, MetricsProvider> $metricsProviders
      */
     public function __construct(
         private readonly System $system,
-        \Traversable $metricsProviders,
+        Traversable $metricsProviders,
     ) {
-        $this->metricsProviders = \iterator_to_array($metricsProviders);
+        $this->metricsProviders = iterator_to_array($metricsProviders);
     }
 
     public function get(): MetricsProvider
@@ -28,7 +30,7 @@ final class SystemMetricsProviderRegistry
         $extensionString = $this->system->extension()->toString();
 
         if (!isset($this->metricsProviders[$extensionString])) {
-            throw new \RuntimeException(\sprintf('Metrics provider for extension "%s" not found.', $extensionString));
+            throw new RuntimeException(sprintf('Metrics provider for extension "%s" not found.', $extensionString));
         }
 
         return $this->metricsProviders[$extensionString];

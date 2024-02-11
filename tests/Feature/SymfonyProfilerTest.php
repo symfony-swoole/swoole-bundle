@@ -36,7 +36,7 @@ final class SymfonyProfilerTest extends ServerTestCase
             $this->assertNotEmpty($response['headers']['x-debug-token']);
             $debugToken = $response['headers']['x-debug-token'];
 
-            $profilerResponse = $client->send('/_wdt/'.$debugToken)['response'];
+            $profilerResponse = $client->send('/_wdt/' . $debugToken)['response'];
 
             $this->assertMatchesRegularExpression(
                 '/<div id="sfMiniToolbar-[^"]+" class="sf-minitoolbar"/',

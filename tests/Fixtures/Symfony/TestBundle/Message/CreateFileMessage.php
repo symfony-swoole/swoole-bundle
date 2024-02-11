@@ -8,9 +8,8 @@ final class CreateFileMessage
 {
     public function __construct(
         private readonly string $fileName,
-        private readonly string $content
-    ) {
-    }
+        private readonly string $content,
+    ) {}
 
     public function fileName(): string
     {

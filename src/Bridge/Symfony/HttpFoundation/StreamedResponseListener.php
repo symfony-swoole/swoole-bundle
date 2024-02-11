@@ -10,11 +10,9 @@ use Symfony\Component\HttpKernel\Event\ResponseEvent;
 use Symfony\Component\HttpKernel\EventListener\StreamedResponseListener as HttpFoundationStreamedResponseListener;
 use Symfony\Component\HttpKernel\KernelEvents;
 
-class StreamedResponseListener implements EventSubscriberInterface
+final class StreamedResponseListener implements EventSubscriberInterface
 {
-    public function __construct(private readonly ?HttpFoundationStreamedResponseListener $delegate = null)
-    {
-    }
+    public function __construct(private readonly ?HttpFoundationStreamedResponseListener $delegate = null) {}
 
     public function onKernelResponse(ResponseEvent $event): void
     {
@@ -25,22 +23,26 @@ class StreamedResponseListener implements EventSubscriberInterface
         $response = $event->getResponse();
         $attributes = $event->getRequest()->attributes;
 
-        if ($response instanceof StreamedResponse
-            && $attributes->has(ResponseProcessorInjectorInterface::ATTR_KEY_RESPONSE_PROCESSOR)
+        if (
+            $response instanceof StreamedResponse
+            && $attributes->has(ResponseProcessorInjector::ATTR_KEY_RESPONSE_PROCESSOR)
         ) {
-            $processor = $attributes->get(ResponseProcessorInjectorInterface::ATTR_KEY_RESPONSE_PROCESSOR);
+            $processor = $attributes->get(ResponseProcessorInjector::ATTR_KEY_RESPONSE_PROCESSOR);
             $processor($response);
 
             return;
         }
 
-        if (null === $this->delegate) {
+        if ($this->delegate === null) {
             return;
         }
 
         $this->delegate->onKernelResponse($event);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     public static function getSubscribedEvents(): array
     {
         return [

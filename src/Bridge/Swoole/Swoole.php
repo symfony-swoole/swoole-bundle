@@ -11,7 +11,7 @@ final class Swoole extends CommonSwoole
 {
     public function cpuCoresCount(): int
     {
-        return \swoole_cpu_num();
+        return swoole_cpu_num();
     }
 
     public function waitGroup(int $delta = 0): CommonWaitGroup

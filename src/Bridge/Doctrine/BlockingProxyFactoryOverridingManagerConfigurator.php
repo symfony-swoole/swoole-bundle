@@ -7,22 +7,26 @@ namespace SwooleBundle\SwooleBundle\Bridge\Doctrine;
 use Doctrine\Bundle\DoctrineBundle\ManagerConfigurator;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
+use ReflectionClass;
+use ReflectionProperty;
 use SwooleBundle\SwooleBundle\Component\Locking\FirstTimeOnly\FirstTimeOnlyMutexFactory;
+use UnexpectedValueException;
 
 final class BlockingProxyFactoryOverridingManagerConfigurator
 {
-    private static ?\ReflectionProperty $emProxyFactoryPropRefl = null;
+    private static ?ReflectionProperty $emProxyFactoryPropRefl = null;
 
     public function __construct(
         private readonly ManagerConfigurator $wrapped,
-        private readonly FirstTimeOnlyMutexFactory $mutexFactory
-    ) {
-    }
+        private readonly FirstTimeOnlyMutexFactory $mutexFactory,
+    ) {}
 
     public function configure(EntityManagerInterface $entityManager): void
     {
         if (!$entityManager instanceof EntityManager) {
-            throw new \UnexpectedValueException(sprintf('%s needed, got %s.', EntityManager::class, $entityManager::class));
+            throw new UnexpectedValueException(
+                sprintf('%s needed, got %s.', EntityManager::class, $entityManager::class)
+            );
         }
 
         $this->replaceProxyFactory($entityManager);
@@ -36,10 +40,10 @@ final class BlockingProxyFactoryOverridingManagerConfigurator
         $proxyFactoryProp->setValue($entityManager, $proxyFactory);
     }
 
-    private function getEmProxyFactoryReflectionProperty(): \ReflectionProperty
+    private function getEmProxyFactoryReflectionProperty(): ReflectionProperty
     {
-        if (null === self::$emProxyFactoryPropRefl) {
-            $emReflClass = new \ReflectionClass(EntityManager::class);
+        if (self::$emProxyFactoryPropRefl === null) {
+            $emReflClass = new ReflectionClass(EntityManager::class);
             self::$emProxyFactoryPropRefl = $emReflClass->getProperty('proxyFactory');
             self::$emProxyFactoryPropRefl->setAccessible(true);
         }

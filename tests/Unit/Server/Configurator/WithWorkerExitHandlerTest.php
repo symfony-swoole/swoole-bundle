@@ -4,15 +4,14 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Tests\Unit\Server\Configurator;
 
+use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 use PHPUnit\Framework\TestCase;
 use SwooleBundle\SwooleBundle\Server\Configurator\WithWorkerExitHandler;
 use SwooleBundle\SwooleBundle\Server\WorkerHandler\NoOpWorkerExitHandler;
 use SwooleBundle\SwooleBundle\Tests\Unit\Server\SwooleHttpServerMockFactory;
 
-/**
- * @runTestsInSeparateProcesses
- */
-class WithWorkerExitHandlerTest extends TestCase
+#[RunTestsInSeparateProcesses]
+final class WithWorkerExitHandlerTest extends TestCase
 {
     /**
      * @var NoOpWorkerExitHandler
@@ -37,7 +36,10 @@ class WithWorkerExitHandlerTest extends TestCase
 
         $this->configurator->configure($swooleServerOnEventSpy);
 
-        self::assertTrue($swooleServerOnEventSpy->registeredEvent);
-        self::assertSame(['WorkerExit', [$this->noOpWorkerExitHandler, 'handle']], $swooleServerOnEventSpy->registeredEventPair);
+        self::assertTrue($swooleServerOnEventSpy->registeredEvent());
+        self::assertSame(
+            ['WorkerExit', [$this->noOpWorkerExitHandler, 'handle']],
+            $swooleServerOnEventSpy->registeredEventPair()
+        );
     }
 }

@@ -3,8 +3,10 @@
 declare(strict_types=1);
 
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Controller\CoroutinesTaskController;
-use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\DependencyInjection\CompilerPass\ResetCountCompileProcessor;
-use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\DependencyInjection\CompilerPass\SleepingCounterCompileProcessor;
+use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\DependencyInjection\CompilerPass\{
+    ResetCountCompileProcessor,
+    SleepingCounterCompileProcessor,
+};
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\MessageHandler\RunDummyHandler;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\MessageHandler\SleepAndAppendHandler;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Service\AlwaysReset;
@@ -65,42 +67,34 @@ return static function (ContainerConfigurator $containerConfigurator): void {
 
     $services->defaults()
         ->autowire()
-        ->autoconfigure()
-    ;
+        ->autoconfigure();
 
     $services->set(ShouldBeProxified2::class)
         ->tag('swoole_bundle.stateful_service', [
             'limit' => 10,
-        ])
-    ;
+        ]);
 
     $services->set(CoroutinesTaskController::class)
-        ->tag('controller.service_arguments')
-    ;
+        ->tag('controller.service_arguments');
 
     $services->set(SleepAndAppendHandler::class)
-        ->tag('messenger.message_handler')
-    ;
+        ->tag('messenger.message_handler');
 
     $services->set(RunDummyHandler::class)
-        ->tag('messenger.message_handler')
-    ;
+        ->tag('messenger.message_handler');
 
     $services->set(AlwaysReset::class)
         ->tag('swoole_bundle.stateful_service', [
             'reset_on_each_request' => true,
-        ])
-    ;
+        ]);
 
     $services->set(AlwaysResetSafe::class)
         ->tag('swoole_bundle.safe_stateful_service', [
             'reset_on_each_request' => true,
-        ])
-    ;
+        ]);
 
     $services->set(NonSharedExample::class)
         ->public()
         ->share(false)
-        ->tag('swoole_bundle.stateful_service')
-    ;
+        ->tag('swoole_bundle.stateful_service');
 };

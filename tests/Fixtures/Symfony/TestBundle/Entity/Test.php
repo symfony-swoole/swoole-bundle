@@ -7,13 +7,16 @@ namespace SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Entity;
 use Doctrine\ORM\Mapping as ORM;
 use Ramsey\Uuid\UuidInterface;
 
-#[ORM\Table(name: 'test')]
+/**
+ * @final
+ */
 #[ORM\Entity]
-class Test
+#[ORM\Table(name: 'test')]
+class Test // phpcs:ignore
 {
-    #[ORM\Id]
     #[ORM\Column(type: 'integer')]
     #[ORM\GeneratedValue]
+    #[ORM\Id]
     private int $id;
 
     #[ORM\Column(type: 'guid')]

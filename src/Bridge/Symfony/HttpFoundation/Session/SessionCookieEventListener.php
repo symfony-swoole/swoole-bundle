@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation\Session;
 
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Event\RequestWithSessionFinishedEvent;
-use SwooleBundle\SwooleBundle\Server\Session\StorageInterface;
+use SwooleBundle\SwooleBundle\Server\Session\Storage;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\Cookie;
@@ -25,11 +25,14 @@ final class SessionCookieEventListener implements EventSubscriberInterface
 {
     private array $sessionCookieParameters;
 
+    /**
+     * @param array<string, mixed> $sessionOptions
+     */
     public function __construct(
         private readonly RequestStack $requestStack,
         private readonly EventDispatcherInterface $dispatcher,
-        private readonly StorageInterface $swooleStorage,
-        array $sessionOptions = []
+        private readonly Storage $swooleStorage,
+        array $sessionOptions = [],
     ) {
         $this->sessionCookieParameters = $this->mergeCookieParams($sessionOptions);
     }
@@ -81,13 +84,16 @@ final class SessionCookieEventListener implements EventSubscriberInterface
         $responseHeaderBag = $event->getResponse()->headers;
         $cookie = $this->findSessionCookie($responseHeaderBag, $session->getName());
 
-        if (null !== $cookie) {
+        if ($cookie !== null) {
             return;
         }
 
         $responseHeaderBag->setCookie($this->makeSessionCookie($session));
     }
 
+    /**
+     * {@inheritDoc}
+     */
     public static function getSubscribedEvents(): array
     {
         return [
@@ -120,7 +126,7 @@ final class SessionCookieEventListener implements EventSubscriberInterface
         return new Cookie(
             $session->getName(),
             $session->getId(),
-            0 === $this->sessionCookieParameters['lifetime'] ? 0 : \time() + $this->sessionCookieParameters['lifetime'],
+            $this->sessionCookieParameters['lifetime'] === 0 ? 0 : time() + $this->sessionCookieParameters['lifetime'],
             $this->sessionCookieParameters['path'],
             $this->sessionCookieParameters['domain'],
             (bool) $this->sessionCookieParameters['secure'],
@@ -130,13 +136,19 @@ final class SessionCookieEventListener implements EventSubscriberInterface
         );
     }
 
+    /**
+     * @param array<string, mixed> $sessionOptions
+     * @return array<string, mixed>
+     */
     private function mergeCookieParams(array $sessionOptions): array
     {
-        $params = \session_get_cookie_params() + ['samesite' => null];
+        $params = session_get_cookie_params() + ['samesite' => null];
         foreach ($sessionOptions as $k => $v) {
-            if (0 === \mb_strpos($k, 'cookie_')) {
-                $params[\mb_substr($k, 7)] = $v;
+            if (mb_strpos($k, 'cookie_') !== 0) {
+                continue;
             }
+
+            $params[mb_substr($k, 7)] = $v;
         }
 
         return $params;

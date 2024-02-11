@@ -7,7 +7,7 @@ namespace SwooleBundle\SwooleBundle\Tests\Feature;
 use SwooleBundle\SwooleBundle\Client\HttpClient;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Test\ServerTestCase;
 
-class SymfonyHttpRequestContainsRequestUriTest extends ServerTestCase
+final class SymfonyHttpRequestContainsRequestUriTest extends ServerTestCase
 {
     protected function setUp(): void
     {

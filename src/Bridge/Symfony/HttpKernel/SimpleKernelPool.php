@@ -6,11 +6,9 @@ namespace SwooleBundle\SwooleBundle\Bridge\Symfony\HttpKernel;
 
 use Symfony\Component\HttpKernel\KernelInterface;
 
-final class SimpleKernelPool implements KernelPoolInterface
+final class SimpleKernelPool implements KernelPool
 {
-    public function __construct(private readonly KernelInterface $kernel)
-    {
-    }
+    public function __construct(private readonly KernelInterface $kernel) {}
 
     public function boot(): void
     {

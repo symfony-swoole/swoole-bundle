@@ -13,8 +13,10 @@ final class SwooleServerReloadViaHttpApiTest extends ServerTestCase
 {
     private const CONTROLLER_TEMPLATE_ORIGINAL_TEXT = 'Wrong response!';
     private const CONTROLLER_TEMPLATE_REPLACE_TEXT = '%REPLACE%';
-    private const CONTROLLER_TEMPLATE_SRC = __DIR__.'/../Fixtures/Symfony/TestBundle/Controller/ReplacedContentTestController.php.tmpl';
-    private const CONTROLLER_TEMPLATE_DEST = __DIR__.'/../Fixtures/Symfony/TestBundle/Controller/ReplacedContentTestController.php';
+    private const CONTROLLER_TEMPLATE_SRC = __DIR__
+        . '/../Fixtures/Symfony/TestBundle/Controller/ReplacedContentTestController.php.tmpl';
+    private const CONTROLLER_TEMPLATE_DEST = __DIR__
+        . '/../Fixtures/Symfony/TestBundle/Controller/ReplacedContentTestController.php';
 
     protected function setUp(): void
     {
@@ -77,14 +79,22 @@ final class SwooleServerReloadViaHttpApiTest extends ServerTestCase
     {
         file_put_contents(
             self::CONTROLLER_TEMPLATE_DEST,
-            str_replace(self::CONTROLLER_TEMPLATE_REPLACE_TEXT, $text, file_get_contents(self::CONTROLLER_TEMPLATE_SRC))
+            str_replace(
+                self::CONTROLLER_TEMPLATE_REPLACE_TEXT,
+                $text,
+                (string) file_get_contents(self::CONTROLLER_TEMPLATE_SRC),
+            ),
         );
     }
 
     private function assertTestControllerResponseEquals(string $expected): void
     {
         self::assertSame(
-            str_replace(self::CONTROLLER_TEMPLATE_REPLACE_TEXT, $expected, file_get_contents(self::CONTROLLER_TEMPLATE_SRC)),
+            str_replace(
+                self::CONTROLLER_TEMPLATE_REPLACE_TEXT,
+                $expected,
+                (string) file_get_contents(self::CONTROLLER_TEMPLATE_SRC),
+            ),
             file_get_contents(self::CONTROLLER_TEMPLATE_DEST)
         );
     }

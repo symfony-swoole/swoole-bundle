@@ -6,6 +6,4 @@ namespace SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony;
 
 use Symfony\Bundle\FrameworkBundle\HttpCache\HttpCache;
 
-class TestCacheKernel extends HttpCache
-{
-}
+final class TestCacheKernel extends HttpCache {}

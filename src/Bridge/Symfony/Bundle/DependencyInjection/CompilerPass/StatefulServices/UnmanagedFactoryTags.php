@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices;
 
+use ReflectionClass;
+use ReflectionException;
+use ReflectionNamedType;
+use RuntimeException;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 
 final class UnmanagedFactoryTags
@@ -14,12 +18,7 @@ final class UnmanagedFactoryTags
     private readonly array $tags;
 
     /**
-     * @var null|array<array{
-     *     factoryMethod: string,
-     *     returnType: class-string|string,
-     *     limit?: int,
-     *     resetter?: string
-     * }>
+     * @var array<array{factoryMethod: string, returnType: class-string|string, limit?: int, resetter?: string}>|null
      */
     private ?array $factoryMethodConfigs = null;
 
@@ -34,9 +33,9 @@ final class UnmanagedFactoryTags
      */
     public function __construct(
         private readonly string $serviceClass,
-        array $tags
+        array $tags,
     ) {
-        $this->tags = array_map(fn (array $tag): UnmanagedFactoryTag => new UnmanagedFactoryTag($tag), $tags);
+        $this->tags = array_map(static fn(array $tag): UnmanagedFactoryTag => new UnmanagedFactoryTag($tag), $tags);
     }
 
     /**
@@ -49,7 +48,7 @@ final class UnmanagedFactoryTags
      */
     public function getFactoryMethodConfigs(ContainerBuilder $container): array
     {
-        if (null === $this->factoryMethodConfigs) {
+        if ($this->factoryMethodConfigs === null) {
             $this->factoryMethodConfigs = array_map(
                 function (UnmanagedFactoryTag $tag) use ($container): array {
                     $config = $tag->toArray();
@@ -65,7 +64,7 @@ final class UnmanagedFactoryTags
                         $returnType = $container->getParameter(trim($config['returnType'], '%'));
 
                         if (!is_string($returnType)) {
-                            throw new \RuntimeException('Return type is not a string.');
+                            throw new RuntimeException('Return type is not a string.');
                         }
 
                         $config['returnType'] = $returnType;
@@ -82,17 +81,16 @@ final class UnmanagedFactoryTags
 
     /**
      * @param class-string $className
-     *
-     * @throws \ReflectionException
+     * @throws ReflectionException
      */
     private function getReturnTypeForClassMethod(string $className, string $methodName): string
     {
-        $refl = new \ReflectionClass($className);
+        $refl = new ReflectionClass($className);
         $reflMethod = $refl->getMethod($methodName);
         $reflReturnType = $reflMethod->getReturnType();
 
-        if (!$reflReturnType instanceof \ReflectionNamedType) {
-            throw new \RuntimeException('Only simple return types are supported for now.');
+        if (!$reflReturnType instanceof ReflectionNamedType) {
+            throw new RuntimeException('Only simple return types are supported for now.');
         }
 
         return $reflReturnType->getName();

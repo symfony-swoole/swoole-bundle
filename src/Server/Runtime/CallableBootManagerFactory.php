@@ -6,13 +6,18 @@ namespace SwooleBundle\SwooleBundle\Server\Runtime;
 
 use Assert\Assertion;
 use SwooleBundle\SwooleBundle\Component\GeneratedCollection;
+use SwooleBundle\SwooleBundle\Server\RequestHandler\RequestHandler;
 
 final class CallableBootManagerFactory
 {
-    public function make(iterable $bootableCollection, BootableInterface ...$bootables): CallableBootManager
+    /**
+     * @param iterable<Bootable&RequestHandler> $bootableCollection
+     */
+    public function make(iterable $bootableCollection, Bootable ...$bootables): CallableBootManager
     {
         $objectRegistry = [];
-        $isAlreadyRegistered = function (int $id) use (&$objectRegistry): bool {
+        // phpcs:ignore SlevomatCodingStandard.PHP.DisallowReference.DisallowedInheritingVariableByReference
+        $isAlreadyRegistered = static function (int $id) use (&$objectRegistry): bool {
             $result = !isset($objectRegistry[$id]);
             $objectRegistry[$id] = true;
 
@@ -21,12 +26,12 @@ final class CallableBootManagerFactory
 
         return new CallableBootManager(
             (new GeneratedCollection($bootableCollection, ...$bootables))
-                ->filter(function ($bootable) use ($isAlreadyRegistered): bool {
-                    Assertion::isInstanceOf($bootable, BootableInterface::class);
+                ->filter(static function ($bootable) use ($isAlreadyRegistered): bool {
+                    Assertion::isInstanceOf($bootable, Bootable::class);
 
                     return $isAlreadyRegistered(spl_object_id($bootable));
                 })
-                ->map(fn (BootableInterface $bootable): callable => $bootable->boot(...))
+                ->map(static fn(Bootable $bootable): callable => $bootable->boot(...))
         );
     }
 }

@@ -15,7 +15,7 @@ use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\ServicePool\ServicePool;
 /**
  * The `staticProxyConstructor` implementation for lazy loading proxies.
  */
-class StaticProxyConstructor extends MethodGenerator
+final class StaticProxyConstructor extends MethodGenerator
 {
     /**
      * Static constructor.
@@ -34,12 +34,12 @@ class StaticProxyConstructor extends MethodGenerator
             sprintf("Constructor for lazy initialization\n\n@param %s<object> \$servicePool", ServicePool::class)
         );
         $this->setBody(
-            'static $reflection;'."\n\n"
-            .'$reflection = $reflection ?? new \ReflectionClass(__CLASS__);'."\n"
-            .'$instance   = $reflection->newInstanceWithoutConstructor();'."\n\n"
-            .UnsetPropertiesGenerator::generateSnippet($properties, 'instance')
-            .'$instance->'.$servicePoolProperty->getName().' = $servicePool;'."\n\n"
-            .'return $instance;'
+            'static $reflection;' . "\n\n"
+            . '$reflection = $reflection ?? new \ReflectionClass(__CLASS__);' . "\n"
+            . '$instance   = $reflection->newInstanceWithoutConstructor();' . "\n\n"
+            . UnsetPropertiesGenerator::generateSnippet($properties, 'instance')
+            . '$instance->' . $servicePoolProperty->getName() . ' = $servicePool;' . "\n\n"
+            . 'return $instance;'
         );
         $this->setReturnType('object');
     }

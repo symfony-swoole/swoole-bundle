@@ -13,6 +13,7 @@ final class BlackfireMonitoringRegisteredTest extends ServerTestCase
     protected function setUp(): void
     {
         parent::setUp();
+
         $this->deleteVarDirectory();
     }
 
@@ -21,7 +22,7 @@ final class BlackfireMonitoringRegisteredTest extends ServerTestCase
      */
     public function testWiring(): void
     {
-        $kernel = static::createKernel(['environment' => 'blackfire_monitoring']);
+        $kernel = self::createKernel(['environment' => 'blackfire_monitoring']);
         $kernel->boot();
 
         $container = $kernel->getContainer();

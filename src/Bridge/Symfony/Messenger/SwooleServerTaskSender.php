@@ -12,15 +12,13 @@ use Symfony\Component\Messenger\Transport\Sender\SenderInterface;
 
 final class SwooleServerTaskSender implements SenderInterface
 {
-    public function __construct(private readonly HttpServer $httpServer)
-    {
-    }
+    public function __construct(private readonly HttpServer $httpServer) {}
 
     public function send(Envelope $envelope): Envelope
     {
-        /** @var null|SentStamp $sentStamp */
+        /** @var SentStamp|null $sentStamp */
         $sentStamp = $envelope->last(SentStamp::class);
-        $alias = null === $sentStamp ? 'swoole-task' : $sentStamp->getSenderAlias() ?? $sentStamp->getSenderClass();
+        $alias = $sentStamp === null ? 'swoole-task' : $sentStamp->getSenderAlias() ?? $sentStamp->getSenderClass();
 
         $this->httpServer->dispatchTask($envelope->with(new ReceivedStamp($alias)));
 

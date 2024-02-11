@@ -7,11 +7,9 @@ namespace SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation;
 use Swoole\Http\Response as SwooleResponse;
 use Symfony\Component\HttpFoundation\Response as HttpFoundationResponse;
 
-final class ResponseHeadersAndStatusProcessor implements ResponseProcessorInterface
+final class ResponseHeadersAndStatusProcessor implements ResponseProcessor
 {
-    public function __construct(private readonly ResponseProcessorInterface $decorated)
-    {
-    }
+    public function __construct(private readonly ResponseProcessor $decorated) {}
 
     public function process(HttpFoundationResponse $httpFoundationResponse, SwooleResponse $swooleResponse): void
     {

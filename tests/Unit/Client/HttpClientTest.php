@@ -27,8 +27,8 @@ final class HttpClientTest extends TestCase
 
         self::assertSame($expected, $client->__serialize());
 
-        $serializedClient = \serialize($client);
-        $unserializedClient = \unserialize($serializedClient, ['allowed_classes' => [HttpClient::class]]);
+        $serializedClient = serialize($client);
+        $unserializedClient = unserialize($serializedClient, ['allowed_classes' => [HttpClient::class]]);
 
         self::assertInstanceOf(HttpClient::class, $unserializedClient);
     }

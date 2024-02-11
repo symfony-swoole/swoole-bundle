@@ -4,12 +4,16 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Tests\Unit\Functions;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 use function SwooleBundle\SwooleBundle\decode_string_as_set;
 
-class DecodeStringAsSetTest extends TestCase
+final class DecodeStringAsSetTest extends TestCase
 {
+    /**
+     * @return array<string, array<mixed>>
+     */
     public static function decodedPairsProvider(): array
     {
         return [
@@ -41,8 +45,9 @@ class DecodeStringAsSetTest extends TestCase
     }
 
     /**
-     * @dataProvider decodedPairsProvider
+     * @param array<mixed> $set
      */
+    #[DataProvider('decodedPairsProvider')]
     public function testDecodeStringAsSet(?string $string, array $set): void
     {
         self::assertSame($set, decode_string_as_set($string));

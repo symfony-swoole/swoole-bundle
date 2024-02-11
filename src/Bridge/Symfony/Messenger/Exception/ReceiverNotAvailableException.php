@@ -10,6 +10,9 @@ final class ReceiverNotAvailableException extends TransportException
 {
     public static function make(): self
     {
-        throw new self('Swoole Server Task transport does not implement Receiver interface methods. Messages sent via Swoole Server Task transport are dispatched inside task worker processes.');
+        throw new self(
+            'Swoole Server Task transport does not implement Receiver interface methods. '
+            . 'Messages sent via Swoole Server Task transport are dispatched inside task worker processes.'
+        );
     }
 }

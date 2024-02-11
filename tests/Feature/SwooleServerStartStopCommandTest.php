@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Tests\Feature;
 
+use co;
 use SwooleBundle\SwooleBundle\Client\Exception\ClientConnectionErrorException;
 use SwooleBundle\SwooleBundle\Client\HttpClient;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Test\ServerTestCase;
@@ -78,7 +79,7 @@ final class SwooleServerStartStopCommandTest extends ServerTestCase
         $this->assertProcessSucceeded($serverStart);
 
         $this->runAsCoroutineAndWait(function (): void {
-            go(function () {
+            go(function (): void {
                 $client = HttpClient::fromDomain('localhost', 9999, false);
                 $this->assertTrue($client->connect());
 
@@ -91,9 +92,9 @@ final class SwooleServerStartStopCommandTest extends ServerTestCase
                     $this->assertStringContainsStringIgnoringCase('Server Reset', $e->getMessage());
                 }
             });
-            go(function () {
+            go(function (): void {
                 // wait for $client to do request
-                \co::sleep(1);
+                co::sleep(1);
                 $this->serverStop(['--no-delay']);
             });
         });

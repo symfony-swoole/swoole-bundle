@@ -17,8 +17,7 @@ final class Metrics
         private readonly int $idleWorkers,
         private readonly int $runningCoroutines,
         private readonly int $tasksInQueue,
-    ) {
-    }
+    ) {}
 
     public function requestCount(): int
     {

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Bridge\Log;
 
+use DateTimeInterface;
+use RuntimeException;
 use Webmozart\Assert\Assert;
 
 /**
@@ -17,9 +19,9 @@ use Webmozart\Assert\Assert;
  */
 final class StrftimeToICUFormatMap
 {
-    public static function mapStrftimeToICU(string $format, \DateTimeInterface $requestTime): string
+    public static function mapStrftimeToICU(string $format, DateTimeInterface $requestTime): string
     {
-        return \preg_replace_callback(
+        return preg_replace_callback(
             '/(?P<token>%[aAbBcCdDeFgGhHIjklmMpPrRsSTuUVwWxXyYzZ])/',
             self::generateMapCallback($requestTime),
             $format
@@ -29,48 +31,53 @@ final class StrftimeToICUFormatMap
     /**
      * @return callable(array<array-key, string>):string
      */
-    private static function generateMapCallback(\DateTimeInterface $requestTime): callable
+    private static function generateMapCallback(DateTimeInterface $requestTime): callable
     {
         return static function (array $matches) use ($requestTime): string {
             Assert::keyExists($matches, 'token');
 
             return match (true) {
-                '%a' === $matches['token'] => 'eee',
-                '%A' === $matches['token'] => 'eeee',
-                '%b' === $matches['token'] => 'MMM',
-                '%B' === $matches['token'] => 'MMMM',
-                '%C' === $matches['token'] => 'yy',
-                '%d' === $matches['token'] => 'dd',
-                '%D' === $matches['token'] => 'MM/dd/yy',
-                '%e' === $matches['token'] => ' d',
-                '%F' === $matches['token'] => 'y-MM-dd',
-                '%g' === $matches['token'] => 'yy',
-                '%G' === $matches['token'] => 'y',
-                '%h' === $matches['token'] => 'MMM',
-                '%H' === $matches['token'] => 'HH',
-                '%I' === $matches['token'] => 'KK',
-                '%j' === $matches['token'] => 'D',
-                '%k' === $matches['token'] => ' H',
-                '%l' === $matches['token'] => ' h',
-                '%m' === $matches['token'] => 'MM',
-                '%M' === $matches['token'] => 'mm',
-                '%p' === $matches['token'] => 'a',
-                '%P' === $matches['token'] => 'a',
-                '%r' === $matches['token'] => ' h:mm:ss a',
-                '%R' === $matches['token'] => 'HH:mm',
-                '%S' === $matches['token'] => 'ss',
-                '%s' === $matches['token'] => (string) $requestTime->getTimestamp(),
-                '%T' === $matches['token'] => 'HH:mm:ss',
-                '%u' === $matches['token'] => 'e',
-                '%U' === $matches['token'] => 'ww',
-                '%w' === $matches['token'] => 'c',
-                '%W' === $matches['token'] => 'ww',
-                '%V' === $matches['token'] => 'ww',
-                '%y' === $matches['token'] => 'yy',
-                '%Y' === $matches['token'] => 'y',
-                '%z' === $matches['token'] => 'xx',
-                '%Z' === $matches['token'] => 'z',
-                default => throw new \RuntimeException(\sprintf('The request time format token "%s" is unsupported; please use ICU Date/Time format codes', $matches['token'])),
+                $matches['token'] === '%a' => 'eee',
+                $matches['token'] === '%A' => 'eeee',
+                $matches['token'] === '%b' => 'MMM',
+                $matches['token'] === '%B' => 'MMMM',
+                $matches['token'] === '%C' => 'yy',
+                $matches['token'] === '%d' => 'dd',
+                $matches['token'] === '%D' => 'MM/dd/yy',
+                $matches['token'] === '%e' => ' d',
+                $matches['token'] === '%F' => 'y-MM-dd',
+                $matches['token'] === '%g' => 'yy',
+                $matches['token'] === '%G' => 'y',
+                $matches['token'] === '%h' => 'MMM',
+                $matches['token'] === '%H' => 'HH',
+                $matches['token'] === '%I' => 'KK',
+                $matches['token'] === '%j' => 'D',
+                $matches['token'] === '%k' => ' H',
+                $matches['token'] === '%l' => ' h',
+                $matches['token'] === '%m' => 'MM',
+                $matches['token'] === '%M' => 'mm',
+                $matches['token'] === '%p' => 'a',
+                $matches['token'] === '%P' => 'a',
+                $matches['token'] === '%r' => ' h:mm:ss a',
+                $matches['token'] === '%R' => 'HH:mm',
+                $matches['token'] === '%S' => 'ss',
+                $matches['token'] === '%s' => (string) $requestTime->getTimestamp(),
+                $matches['token'] === '%T' => 'HH:mm:ss',
+                $matches['token'] === '%u' => 'e',
+                $matches['token'] === '%U' => 'ww',
+                $matches['token'] === '%w' => 'c',
+                $matches['token'] === '%W' => 'ww',
+                $matches['token'] === '%V' => 'ww',
+                $matches['token'] === '%y' => 'yy',
+                $matches['token'] === '%Y' => 'y',
+                $matches['token'] === '%z' => 'xx',
+                $matches['token'] === '%Z' => 'z',
+                default => throw new RuntimeException(
+                    sprintf(
+                        'The request time format token "%s" is unsupported; please use ICU Date/Time format codes',
+                        $matches['token']
+                    )
+                ),
             };
         };
     }

@@ -24,9 +24,8 @@ final class DoctrineController
         private readonly AdvancedDoctrineUsage $advancedUsage,
         private readonly ResetCountingRegistry $registry,
         private readonly array $resetters = [],
-        private readonly ?DebugDataHolder $dataHolder = null
-    ) {
-    }
+        private readonly ?DebugDataHolder $dataHolder = null,
+    ) {}
 
     /**
      * @RouteAnnotation(
@@ -42,12 +41,10 @@ final class DoctrineController
         $testsStr = '';
 
         foreach ($tests as $test) {
-            $testsStr .= $test->getUuid().'<br>';
+            $testsStr .= $test->getUuid() . '<br>';
         }
 
-        return new Response(
-            '<html><body>'.$testsStr.'</body></html>'
-        );
+        return new Response('<html><body>' . $testsStr . '</body></html>');
     }
 
     /**
@@ -89,7 +86,7 @@ final class DoctrineController
     #[Route(path: '/doctrine-resets', methods: ['GET'])]
     public function pings(): JsonResponse
     {
-        $data = array_map(fn (CountingResetter $resetter): int => $resetter->getCounter(), $this->resetters);
+        $data = array_map(static fn(CountingResetter $resetter): int => $resetter->getCounter(), $this->resetters);
 
         return new JsonResponse($data);
     }

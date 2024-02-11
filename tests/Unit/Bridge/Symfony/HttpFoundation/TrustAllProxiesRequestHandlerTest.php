@@ -4,29 +4,34 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Tests\Unit\Bridge\Symfony\HttpFoundation;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
 use Swoole\Http\Request as SwooleRequest;
 use Swoole\Http\Response as SwooleResponse;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation\TrustAllProxiesRequestHandler;
-use SwooleBundle\SwooleBundle\Server\RequestHandler\RequestHandlerInterface;
+use SwooleBundle\SwooleBundle\Server\RequestHandler\RequestHandler;
 use Symfony\Component\HttpFoundation\Request as SymfonyRequest;
 
-class TrustAllProxiesRequestHandlerTest extends TestCase
+final class TrustAllProxiesRequestHandlerTest extends TestCase
 {
-    use \Prophecy\PhpUnit\ProphecyTrait;
+    use ProphecyTrait;
 
     /**
-     * @var ObjectProphecy|RequestHandlerInterface
+     * @var ObjectProphecy|RequestHandler
      */
     private $decoratedProphecy;
 
     protected function setUp(): void
     {
         SymfonyRequest::setTrustedProxies([], TrustAllProxiesRequestHandler::HEADER_X_FORWARDED_ALL);
-        $this->decoratedProphecy = $this->prophesize(RequestHandlerInterface::class);
+        $this->decoratedProphecy = $this->prophesize(RequestHandler::class);
     }
 
+    /**
+     * @return array<string, array{startWith: bool, bootWith: array{trustAllProxies?: bool}, expected: bool}>
+     */
     public static function trustOrNotProvider(): array
     {
         return [
@@ -54,8 +59,9 @@ class TrustAllProxiesRequestHandlerTest extends TestCase
     }
 
     /**
-     * @dataProvider trustOrNotProvider
+     * @param array{trustAllProxies?: bool} $bootWith
      */
+    #[DataProvider('trustOrNotProvider')]
     public function testBooting(bool $startWith, array $bootWith, bool $expected): void
     {
         $handler = $this->withTrustAllProxies($startWith);
@@ -72,7 +78,7 @@ class TrustAllProxiesRequestHandlerTest extends TestCase
 
         /** @var SwooleRequest $requestMock */
         $requestMock = $this->prophesize(SwooleRequest::class)->reveal();
-        /* @var SwooleResponse $responseMock */
+        /** @var SwooleResponse $responseMock */
         $responseMock = $this->prophesize(SwooleResponse::class)->reveal();
 
         $this->decoratedProphecy->handle($requestMock, $responseMock)->shouldBeCalled();
@@ -92,7 +98,7 @@ class TrustAllProxiesRequestHandlerTest extends TestCase
         $requestMock = $this->prophesize(SwooleRequest::class)->reveal();
         $requestMock->server['remote_addr'] = $addr;
 
-        /* @var SwooleResponse $responseMock */
+        /** @var SwooleResponse $responseMock */
         $responseMock = $this->prophesize(SwooleResponse::class)->reveal();
 
         $this->decoratedProphecy->handle($requestMock, $responseMock)->shouldBeCalled();
@@ -104,7 +110,7 @@ class TrustAllProxiesRequestHandlerTest extends TestCase
 
     public function withTrustAllProxies(bool $trustAllProxies): TrustAllProxiesRequestHandler
     {
-        /** @var RequestHandlerInterface $handler */
+        /** @var RequestHandler $handler */
         $handler = $this->decoratedProphecy->reveal();
 
         return new TrustAllProxiesRequestHandler($handler, $trustAllProxies);

@@ -13,24 +13,24 @@ use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Proxy\Generation\MethodGe
 /**
  * Method with additional pre- and post- interceptor logic in the body.
  */
-class ForwardedMethod extends MethodGenerator
+final class ForwardedMethod extends MethodGenerator
 {
     /**
      * @throws InvalidArgumentException
      */
     public static function generateMethod(
         MethodReflection $originalMethod,
-        PropertyGenerator $servicePoolHolderProperty
+        PropertyGenerator $servicePoolHolderProperty,
     ): self {
-        $method = static::fromReflectionWithoutBodyAndDocBlock($originalMethod);
+        $method = self::fromReflectionWithoutBodyAndDocBlock($originalMethod);
         $forwardedParams = [];
 
         foreach ($originalMethod->getParameters() as $parameter) {
-            $forwardedParams[] = ($parameter->isVariadic() ? '...' : '').'$'.$parameter->getName();
+            $forwardedParams[] = ($parameter->isVariadic() ? '...' : '') . '$' . $parameter->getName();
         }
 
         $method->setBody(MethodForwarderGenerator::createForwardedMethodBody(
-            $originalMethod->getName().'('.implode(', ', $forwardedParams).')',
+            $originalMethod->getName() . '(' . implode(', ', $forwardedParams) . ')',
             $servicePoolHolderProperty,
             $originalMethod
         ));

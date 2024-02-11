@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Container\ServicePool;
 
+use Co;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Resetter;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\StabilityChecker;
 use SwooleBundle\SwooleBundle\Component\Locking\Mutex;
 
 /**
  * @template T of object
- *
  * @template-implements ServicePool<T>
  */
 abstract class BaseServicePool implements ServicePool
@@ -31,9 +31,8 @@ abstract class BaseServicePool implements ServicePool
         private readonly Mutex $mutex,
         private readonly int $instancesLimit = 50,
         private readonly ?Resetter $resetter = null,
-        private readonly ?StabilityChecker $stabilityChecker = null
-    ) {
-    }
+        private readonly ?StabilityChecker $stabilityChecker = null,
+    ) {}
 
     /**
      * @return T
@@ -51,12 +50,12 @@ abstract class BaseServicePool implements ServicePool
             $this->lockPool();
         }
 
-        ++$this->assignedCount;
+        $this->assignedCount++;
 
         if (!empty($this->freePool)) {
             $assigned = array_shift($this->freePool);
 
-            if (null !== $this->resetter) {
+            if ($this->resetter !== null) {
                 $this->resetter->reset($assigned);
             }
 
@@ -74,7 +73,7 @@ abstract class BaseServicePool implements ServicePool
 
         $service = $this->assignedPool[$cId];
         unset($this->assignedPool[$cId]);
-        --$this->assignedCount;
+        $this->assignedCount--;
 
         if (!$this->isServiceStable($service)) {
             $this->unlockPool();
@@ -93,12 +92,12 @@ abstract class BaseServicePool implements ServicePool
 
     private function getCoroutineId(): int
     {
-        return \Co::getCid();
+        return Co::getCid();
     }
 
     private function isServiceStable(object $service): bool
     {
-        return null === $this->stabilityChecker || $this->stabilityChecker->isStable($service);
+        return $this->stabilityChecker === null || $this->stabilityChecker->isStable($service);
     }
 
     private function lockPool(): void

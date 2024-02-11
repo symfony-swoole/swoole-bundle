@@ -23,7 +23,7 @@ final class SwooleCommandsRegisteredTest extends ServerTestCase
 
     public function testSwooleCommandsRegisteredWithCacheClear(): void
     {
-        $kernel = static::createKernel();
+        $kernel = self::createKernel();
         $application = new Application($kernel);
 
         $cacheClear = $application->find('cache:clear');
@@ -41,7 +41,7 @@ final class SwooleCommandsRegisteredTest extends ServerTestCase
 
     public function testSwooleCommandsRegisteredWithCacheClearAppEnvProdAppDebugOff(): void
     {
-        $kernel = static::createKernel(['environment' => 'prod', 'debug' => false]);
+        $kernel = self::createKernel(['environment' => 'prod', 'debug' => false]);
         $application = new Application($kernel);
 
         $cacheClear = $application->find('cache:clear');
@@ -59,7 +59,7 @@ final class SwooleCommandsRegisteredTest extends ServerTestCase
 
     public function testSwooleCommandsRegisteredWithCacheClearAppEnvExceptionHandlerCustom(): void
     {
-        $kernel = static::createKernel(['environment' => 'exception_handler_custom']);
+        $kernel = self::createKernel(['environment' => 'exception_handler_custom']);
         $application = new Application($kernel);
 
         $cacheClear = $application->find('cache:clear');
@@ -77,7 +77,7 @@ final class SwooleCommandsRegisteredTest extends ServerTestCase
 
     public function testSwooleCommandsRegisteredWithCacheClearAppEnvSession(): void
     {
-        $kernel = static::createKernel(['environment' => 'session_factory']);
+        $kernel = self::createKernel(['environment' => 'session_factory']);
         $application = new Application($kernel);
 
         $cacheClear = $application->find('cache:clear');

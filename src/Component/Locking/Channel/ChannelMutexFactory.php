@@ -6,7 +6,7 @@ namespace SwooleBundle\SwooleBundle\Component\Locking\Channel;
 
 use SwooleBundle\SwooleBundle\Component\Locking\MutexFactory;
 
-class ChannelMutexFactory implements MutexFactory
+final class ChannelMutexFactory implements MutexFactory
 {
     public function newMutex(): ChannelMutex
     {

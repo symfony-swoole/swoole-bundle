@@ -9,7 +9,7 @@ use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\BlockingContainer;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Modifier\Modifier;
 use SwooleBundle\SwooleBundle\Reflection\FinalClassModifier;
 
-trait CoroutinesSupportingKernelTrait
+trait CoroutinesSupportingKernel
 {
     /**
      * for the coroutines to work properly, the kernel __clone method has to be overriden,
@@ -17,6 +17,7 @@ trait CoroutinesSupportingKernelTrait
      */
     public function __clone()
     {
+        // cloned kernel should have a fresh container and other state
     }
 
     /**
@@ -54,10 +55,6 @@ trait CoroutinesSupportingKernelTrait
             return false;
         }
 
-        if (!$this->container->getParameter(ContainerConstants::PARAM_COROUTINES_ENABLED)) {
-            return false;
-        }
-
-        return true;
+        return (bool) $this->container->getParameter(ContainerConstants::PARAM_COROUTINES_ENABLED);
     }
 }
