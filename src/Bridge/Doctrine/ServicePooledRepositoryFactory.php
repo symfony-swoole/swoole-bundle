@@ -12,10 +12,12 @@ final class ServicePooledRepositoryFactory implements RepositoryFactory
 {
     public function __construct(
         private readonly RepositoryFactory $decorated,
-        private readonly EntityManagerInterface $pooledEm
-    ) {
-    }
+        private readonly EntityManagerInterface $pooledEm,
+    ) {}
 
+    /**
+     * {@inheritDoc}
+     */
     public function getRepository(EntityManagerInterface $entityManager, $entityName): ObjectRepository
     {
         return $this->decorated->getRepository($this->pooledEm, $entityName);

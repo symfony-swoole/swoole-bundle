@@ -11,9 +11,8 @@ final class Apm
 {
     public function __construct(
         private readonly MiddlewareInjector $injector,
-        private readonly BlackfireMiddlewareFactory $middlewareFactory
-    ) {
-    }
+        private readonly BlackfireMiddlewareFactory $middlewareFactory,
+    ) {}
 
     /**
      * Install monitoring instrumentation.

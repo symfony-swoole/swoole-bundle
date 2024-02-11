@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace SwooleBundle\SwooleBundle\Server\Runtime;
 
 use Assert\Assertion;
+use Assert\AssertionFailedException;
 
 /**
  * Chain of services implementing BootableInterface.
  */
-final class CallableBootManager implements BootableInterface
+final class CallableBootManager implements Bootable
 {
     /**
      * @param iterable<callable> $bootables
@@ -17,15 +18,14 @@ final class CallableBootManager implements BootableInterface
     public function __construct(
         private readonly iterable $bootables,
         private bool $booted = false,
-    ) {
-    }
+    ) {}
 
     /**
-     * {@inheritdoc}
+     * {@inheritDoc}
      *
      * Method MUST be called directly before Swoole server start.
      *
-     * @throws \Assert\AssertionFailedException When already booted
+     * @throws AssertionFailedException When already booted
      */
     public function boot(array $runtimeConfiguration = []): void
     {

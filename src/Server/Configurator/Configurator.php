@@ -6,7 +6,7 @@ namespace SwooleBundle\SwooleBundle\Server\Configurator;
 
 use Swoole\Http\Server;
 
-interface ConfiguratorInterface
+interface Configurator
 {
     public function configure(Server $server): void;
 }

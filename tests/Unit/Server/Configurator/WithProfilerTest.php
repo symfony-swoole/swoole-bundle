@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Tests\Unit\Server\Configurator;
 
+use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 use PHPUnit\Framework\TestCase;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
@@ -11,10 +12,8 @@ use Swoole\Http\Server;
 use SwooleBundle\SwooleBundle\Bridge\Upscale\Blackfire\Profiling\ProfilerActivator;
 use SwooleBundle\SwooleBundle\Bridge\Upscale\Blackfire\Profiling\WithProfiler;
 
-/**
- * @runTestsInSeparateProcesses
- */
-class WithProfilerTest extends TestCase
+#[RunTestsInSeparateProcesses]
+final class WithProfilerTest extends TestCase
 {
     use ProphecyTrait;
 
@@ -41,8 +40,7 @@ class WithProfilerTest extends TestCase
 
         $this->configurationProphecy
             ->activate($swooleServer)
-            ->shouldBeCalled()
-        ;
+            ->shouldBeCalled();
 
         $this->configurator->configure($swooleServer);
     }

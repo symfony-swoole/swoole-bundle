@@ -6,6 +6,13 @@ namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Container;
 
 use ZEngine\Reflection\ReflectionMethod;
 
+/**
+ * @phpstan-type ContainerMethodInternals array{
+ *   type?: string,
+ *   key?: string,
+ *   key2?: string
+ * }
+ */
 final class ContainerSourceCodeExtractor
 {
     private readonly array $sourceCode;
@@ -15,16 +22,20 @@ final class ContainerSourceCodeExtractor
         $this->sourceCode = explode(PHP_EOL, $sourceCode);
     }
 
+    /**
+     * @return ContainerMethodInternals
+     */
     public function getContainerInternalsForMethod(ReflectionMethod $method, bool $isExtension = false): array
     {
         $code = $this->getMethodCode($method);
         $variable = $isExtension ? 'container' : 'this';
-
-        if (!preg_match(
-            '/return \\$'.$variable.'->(?P<type>[a-z]+)\[\'(?P<key>[^\']+)\'\](\[\'(?P<key2>[^\']+)\'\])? \=/',
+        $wasMatched = preg_match(
+            '/return \\$' . $variable . '->(?P<type>[a-z]+)\[\'(?P<key>[^\']+)\'\](\[\'(?P<key2>[^\']+)\'\])? \=/',
             $code,
-            $matches
-        )) {
+            $matches,
+        );
+
+        if (!$wasMatched) {
             return [];
         }
 

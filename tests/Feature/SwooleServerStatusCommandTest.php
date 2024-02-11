@@ -75,7 +75,7 @@ final class SwooleServerStatusCommandTest extends ServerTestCase
 
         $this->assertProcessSucceeded($serverStart);
 
-        $kernel = static::createKernel();
+        $kernel = self::createKernel();
         $application = new Application($kernel);
         $command = $application->find('swoole:server:status');
         $commandTester = new CommandTester($command);
@@ -106,7 +106,7 @@ final class SwooleServerStatusCommandTest extends ServerTestCase
 
     public function testCheckServerStatusFailWhenServerNotRunning(): void
     {
-        $kernel = static::createKernel();
+        $kernel = self::createKernel();
         $application = new Application($kernel);
         $command = $application->find('swoole:server:status');
         $commandTester = new CommandTester($command);

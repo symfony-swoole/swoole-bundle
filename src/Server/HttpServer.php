@@ -4,25 +4,34 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Server;
 
+use Assert\AssertionFailedException;
 use Swoole\Http\Server;
 use Swoole\Process;
 use Swoole\Server\Port as Listener;
+use SwooleBundle\SwooleBundle\Bridge\OpenSwoole\Metrics\MetricsProvider as OpenSwooleMetricsProvider;
+use SwooleBundle\SwooleBundle\Bridge\Swoole\Metrics\MetricsProvider as SwooleMetricsProvider;
 use SwooleBundle\SwooleBundle\Server\Exception\IllegalInitializationException;
 use SwooleBundle\SwooleBundle\Server\Exception\NotRunningException;
 use SwooleBundle\SwooleBundle\Server\Exception\PortUnavailableException;
 use SwooleBundle\SwooleBundle\Server\Exception\UnexpectedPortException;
 use SwooleBundle\SwooleBundle\Server\Exception\UninitializedException;
+use Throwable;
 
+/**
+ * @phpstan-import-type OpenSwooleMetricsShape from OpenSwooleMetricsProvider
+ * @phpstan-import-type SwooleMetricsShape from SwooleMetricsProvider
+ */
 final class HttpServer
 {
     public const GRACEFUL_SHUTDOWN_TIMEOUT_SECONDS = 10;
+
     /**
-     * @var null|Server
+     * @var Server|null
      */
     private $server;
 
     /**
-     * @var Listener[]
+     * @var array<Listener>
      */
     private $listeners = [];
     private $signalTerminate;
@@ -31,11 +40,11 @@ final class HttpServer
 
     public function __construct(
         private readonly HttpServerConfiguration $configuration,
-        private bool $running = false
+        private bool $running = false,
     ) {
-        $this->signalTerminate = \defined('SIGTERM') ? (int) \constant('SIGTERM') : 15;
-        $this->signalReload = \defined('SIGUSR1') ? (int) \constant('SIGUSR1') : 10;
-        $this->signalKill = \defined('SIGKILL') ? (int) \constant('SIGKILL') : 9;
+        $this->signalTerminate = defined('SIGTERM') ? (int) constant('SIGTERM') : 15;
+        $this->signalReload = defined('SIGUSR1') ? (int) constant('SIGUSR1') : 10;
+        $this->signalKill = defined('SIGKILL') ? (int) constant('SIGKILL') : 9;
     }
 
     /**
@@ -48,8 +57,7 @@ final class HttpServer
 
         $this->server = $server;
         $defaultSocketPort = $this->configuration->getServerSocket()
-            ->port()
-        ;
+            ->port();
 
         foreach ($server->ports as $listener) {
             if ($listener->port === $defaultSocketPort) {
@@ -67,7 +75,7 @@ final class HttpServer
     }
 
     /**
-     * @throws \Assert\AssertionFailedException
+     * @throws AssertionFailedException
      * @throws NotRunningException
      */
     public function shutdown(bool $noDelay = false): void
@@ -86,7 +94,7 @@ final class HttpServer
     }
 
     /**
-     * @throws \Assert\AssertionFailedException
+     * @throws AssertionFailedException
      * @throws NotRunningException
      */
     public function reload(): void
@@ -100,6 +108,9 @@ final class HttpServer
         }
     }
 
+    /**
+     * @return OpenSwooleMetricsShape|SwooleMetricsShape
+     */
     public function metrics(): array
     {
         return $this->getServer()->stats();
@@ -112,7 +123,7 @@ final class HttpServer
 
     public function getServer(): Server
     {
-        if (null === $this->server) {
+        if ($this->server === null) {
             throw UninitializedException::make();
         }
 
@@ -125,7 +136,7 @@ final class HttpServer
     }
 
     /**
-     * @return Listener[]
+     * @return array<Listener>
      */
     public function getListeners(): array
     {
@@ -136,14 +147,14 @@ final class HttpServer
     {
         try {
             return Process::kill($this->configuration->getPid(), 0);
-        } catch (\Throwable) {
+        } catch (Throwable) {
             return false;
         }
     }
 
     private function assertNotInitialized(): void
     {
-        if (null === $this->server) {
+        if ($this->server === null) {
             return;
         }
 
@@ -159,9 +170,12 @@ final class HttpServer
         }
     }
 
+    /**
+     * @param array<Listener> $listeners
+     */
     private function assertPortAvailable(array $listeners, int $port): void
     {
-        if (false === \array_key_exists($port, $listeners)) {
+        if (array_key_exists($port, $listeners) === false) {
             return;
         }
 
@@ -179,9 +193,11 @@ final class HttpServer
             usleep(1000);
         }
 
-        if ($this->isRunningInBackground()) {
-            Process::kill($masterPid, $this->signalKill);
+        if (!$this->isRunningInBackground()) {
+            return;
         }
+
+        Process::kill($masterPid, $this->signalKill);
     }
 
     private function immediateSignalShutdown(int $masterPid): void

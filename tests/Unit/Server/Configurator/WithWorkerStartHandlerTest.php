@@ -4,15 +4,14 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Tests\Unit\Server\Configurator;
 
+use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 use PHPUnit\Framework\TestCase;
 use SwooleBundle\SwooleBundle\Server\Configurator\WithWorkerStartHandler;
 use SwooleBundle\SwooleBundle\Server\WorkerHandler\NoOpWorkerStartHandler;
 use SwooleBundle\SwooleBundle\Tests\Unit\Server\SwooleHttpServerMockFactory;
 
-/**
- * @runTestsInSeparateProcesses
- */
-class WithWorkerStartHandlerTest extends TestCase
+#[RunTestsInSeparateProcesses]
+final class WithWorkerStartHandlerTest extends TestCase
 {
     /**
      * @var NoOpWorkerStartHandler
@@ -37,7 +36,10 @@ class WithWorkerStartHandlerTest extends TestCase
 
         $this->configurator->configure($swooleServerOnEventSpy);
 
-        self::assertTrue($swooleServerOnEventSpy->registeredEvent);
-        self::assertSame(['WorkerStart', [$this->noOpWorkerStartHandler, 'handle']], $swooleServerOnEventSpy->registeredEventPair);
+        self::assertTrue($swooleServerOnEventSpy->registeredEvent());
+        self::assertSame(
+            ['WorkerStart', [$this->noOpWorkerStartHandler, 'handle']],
+            $swooleServerOnEventSpy->registeredEventPair()
+        );
     }
 }

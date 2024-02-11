@@ -5,16 +5,15 @@ declare(strict_types=1);
 namespace SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\CoverageBundle\TaskHandler;
 
 use Swoole\Server;
-use SwooleBundle\SwooleBundle\Server\TaskHandler\TaskHandlerInterface;
+use SwooleBundle\SwooleBundle\Server\TaskHandler\TaskHandler;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\CoverageBundle\Coverage\CodeCoverageManager;
 
-final class CodeCoverageTaskHandler implements TaskHandlerInterface
+final class CodeCoverageTaskHandler implements TaskHandler
 {
     public function __construct(
-        private readonly TaskHandlerInterface $decorated,
-        private readonly CodeCoverageManager $codeCoverageManager
-    ) {
-    }
+        private readonly TaskHandler $decorated,
+        private readonly CodeCoverageManager $codeCoverageManager,
+    ) {}
 
     public function handle(Server $server, Server\Task $task): void
     {

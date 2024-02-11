@@ -13,3 +13,4 @@ Dockerfile.override
 ext
 !ext/.gitignore
 .env
+/.phpcs-cache

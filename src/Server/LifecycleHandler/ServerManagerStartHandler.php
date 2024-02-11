@@ -6,7 +6,7 @@ namespace SwooleBundle\SwooleBundle\Server\LifecycleHandler;
 
 use Swoole\Server;
 
-interface ServerManagerStartHandlerInterface
+interface ServerManagerStartHandler
 {
     /**
      * Handle "OnManagerStart" event.

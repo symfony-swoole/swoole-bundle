@@ -6,13 +6,14 @@ namespace SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Service\No
 
 use Doctrine\Bundle\DoctrineBundle\Registry;
 
-class ResetCountingRegistry extends Registry
+final class ResetCountingRegistry extends Registry
 {
     private int $resetCount = 0;
 
     public function reset(): void
     {
         ++$this->resetCount;
+
         parent::reset();
     }
 

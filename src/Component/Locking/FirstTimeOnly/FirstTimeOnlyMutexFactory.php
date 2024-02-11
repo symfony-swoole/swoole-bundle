@@ -8,9 +8,7 @@ use SwooleBundle\SwooleBundle\Component\Locking\MutexFactory;
 
 final class FirstTimeOnlyMutexFactory implements MutexFactory
 {
-    public function __construct(private readonly MutexFactory $wrapped)
-    {
-    }
+    public function __construct(private readonly MutexFactory $wrapped) {}
 
     public function newMutex(): FirstTimeOnlyMutex
     {

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace SwooleBundle\SwooleBundle\Tests\Feature;
 
 use Swoole\Coroutine;
+use SwooleBundle\SwooleBundle\Client\Http;
 use SwooleBundle\SwooleBundle\Client\HttpClient;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Test\ServerTestCase;
 
@@ -19,7 +20,7 @@ final class SymfonyMessengerSwooleTaskTransportTest extends ServerTestCase
     public function testStartServerDispatchMessage(): void
     {
         $testFile = $this->generateNotExistingCustomTestFile();
-        $testFilePath = self::FIXTURE_RESOURCES_DIR.\DIRECTORY_SEPARATOR.$testFile;
+        $testFilePath = self::FIXTURE_RESOURCES_DIR . DIRECTORY_SEPARATOR . $testFile;
         $testFileContent = $this->generateUniqueHash(16);
 
         $serverRun = $this->createConsoleProcess([
@@ -37,11 +38,11 @@ final class SymfonyMessengerSwooleTaskTransportTest extends ServerTestCase
             $client = HttpClient::fromDomain('localhost', 9999, false);
             $this->assertTrue($client->connect(3, 1, true));
 
-            $response = $client->send('/message/dispatch', 'POST', [
+            $response = $client->send('/message/dispatch', Http::METHOD_POST, [
                 'Content-Type' => 'application/x-www-form-urlencoded',
             ], http_build_query([
-                'fileName' => $testFile,
                 'content' => $testFileContent,
+                'fileName' => $testFile,
             ]))['response'];
 
             $this->assertSame(200, $response['statusCode']);
@@ -58,6 +59,6 @@ final class SymfonyMessengerSwooleTaskTransportTest extends ServerTestCase
 
     private function generateNotExistingCustomTestFile(): string
     {
-        return 'tfile-'.$this->generateUniqueHash(4).'-'.$this->currentUnixTimestamp().'.txt';
+        return 'tfile-' . $this->generateUniqueHash(4) . '-' . $this->currentUnixTimestamp() . '.txt';
     }
 }

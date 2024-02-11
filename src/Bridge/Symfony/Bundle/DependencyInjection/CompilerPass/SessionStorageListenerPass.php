@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass;
 
 use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation\Session\SessionCookieEventListener;
-use SwooleBundle\SwooleBundle\Server\Session\StorageInterface;
+use SwooleBundle\SwooleBundle\Server\Session\Storage;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
@@ -21,7 +21,7 @@ final class SessionStorageListenerPass implements CompilerPassInterface
 
         $factoryAlias = $container->getAlias('session.storage.factory');
 
-        if ('swoole_bundle.session.table_storage_factory' !== (string) $factoryAlias) {
+        if ((string) $factoryAlias !== 'swoole_bundle.session.table_storage_factory') {
             return;
         }
 
@@ -29,7 +29,7 @@ final class SessionStorageListenerPass implements CompilerPassInterface
         $cookieListenerDef->setPublic(false);
         $cookieListenerDef->setArgument('$requestStack', new Reference('request_stack'));
         $cookieListenerDef->setArgument('$dispatcher', new Reference('event_dispatcher'));
-        $cookieListenerDef->setArgument('$swooleStorage', new Reference(StorageInterface::class));
+        $cookieListenerDef->setArgument('$swooleStorage', new Reference(Storage::class));
         $cookieListenerDef->setArgument('$sessionOptions', $container->getParameter('session.storage.options'));
         $cookieListenerDef->addTag('kernel.event_subscriber');
         $container->setDefinition(SessionCookieEventListener::class, $cookieListenerDef);

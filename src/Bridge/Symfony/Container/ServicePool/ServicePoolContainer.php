@@ -9,9 +9,7 @@ final class ServicePoolContainer
     /**
      * @param array<ServicePool<object>> $pools
      */
-    public function __construct(private array $pools)
-    {
-    }
+    public function __construct(private array $pools) {}
 
     /**
      * @param ServicePool<object> $pool

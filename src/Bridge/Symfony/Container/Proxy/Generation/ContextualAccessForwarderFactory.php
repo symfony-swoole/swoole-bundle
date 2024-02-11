@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Proxy\Generation;
 
+use OutOfBoundsException;
 use ProxyManager\Configuration;
 use ProxyManager\Factory\AbstractBaseFactory;
 use ProxyManager\ProxyGenerator\ProxyGeneratorInterface;
@@ -15,7 +16,7 @@ use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\ServicePool\ServicePool;
 /**
  * Factory responsible of producing proxy objects.
  */
-class ContextualAccessForwarderFactory extends AbstractBaseFactory
+abstract class ContextualAccessForwarderFactory extends AbstractBaseFactory
 {
     private $generator;
 
@@ -28,15 +29,12 @@ class ContextualAccessForwarderFactory extends AbstractBaseFactory
 
     /**
      * @template RealObjectType of object
-     *
-     * @param ServicePool<RealObjectType>  $servicePool
+     * @param ServicePool<RealObjectType> $servicePool
      * @param class-string<RealObjectType> $serviceClass
-     *
+     * @return ContextualProxy<RealObjectType>&RealObjectType
      * @throws InvalidSignatureException
      * @throws MissingSignatureException
-     * @throws \OutOfBoundsException
-     *
-     * @return ContextualProxy<RealObjectType>&RealObjectType
+     * @throws OutOfBoundsException
      */
     public function createProxy(ServicePool $servicePool, string $serviceClass)
     {

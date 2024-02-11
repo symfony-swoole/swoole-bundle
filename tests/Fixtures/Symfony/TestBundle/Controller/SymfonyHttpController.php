@@ -17,7 +17,6 @@ final class SymfonyHttpController
      *     methods={"GET"},
      *     path="/http/request/uri"
      * )
-     *
      * @see \SwooleBundle\SwooleBundle\Tests\Feature\SymfonyHttpRequestContainsRequestUriTest::testWhetherCurrentSymfonyHttpRequestContainsRequestUri()
      */
     #[Route(path: '/http/request/uri', methods: ['GET'])]
@@ -35,7 +34,7 @@ final class SymfonyHttpController
     #[Route(path: '/http/request/streamed-uri', methods: ['GET'])]
     public function getStreamedRequestUri(Request $currentRequest): StreamedResponse
     {
-        $response = new StreamedResponse(function () use ($currentRequest): void {
+        $response = new StreamedResponse(static function () use ($currentRequest): void {
             $response = ['requestUri' => $currentRequest->getRequestUri()];
             echo json_encode($response);
         });

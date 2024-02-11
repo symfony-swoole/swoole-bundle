@@ -7,19 +7,21 @@ namespace SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Entity;
 use Doctrine\ORM\Mapping as ORM;
 use Ramsey\Uuid\UuidInterface;
 
-#[ORM\Table(name: 'advanced_test')]
+/**
+ * @final
+ */
 #[ORM\Entity]
-class AdvancedTest
+#[ORM\Table(name: 'advanced_test')]
+class AdvancedTest // phpcs:ignore SlevomatCodingStandard.Classes.RequireAbstractOrFinal.ClassNeitherAbstractNorFinal
 {
     #[ORM\Column(type: 'integer')]
     private int $counter = 0;
 
     public function __construct(
-        #[ORM\Id]
         #[ORM\Column(type: 'guid')]
-        private UuidInterface $uuid
-    ) {
-    }
+        #[ORM\Id]
+        private UuidInterface $uuid,
+    ) {}
 
     public function getUuid(): UuidInterface
     {
@@ -28,6 +30,8 @@ class AdvancedTest
 
     public function increment(): int
     {
-        return ++$this->counter;
+        $this->counter++;
+
+        return $this->counter;
     }
 }

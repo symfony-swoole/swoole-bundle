@@ -6,11 +6,9 @@ namespace SwooleBundle\SwooleBundle\Component\Locking\RecursiveOwner;
 
 use SwooleBundle\SwooleBundle\Component\Locking\MutexFactory;
 
-class RecursiveOwnerMutexFactory implements MutexFactory
+final class RecursiveOwnerMutexFactory implements MutexFactory
 {
-    public function __construct(private readonly MutexFactory $wrapped)
-    {
-    }
+    public function __construct(private readonly MutexFactory $wrapped) {}
 
     public function newMutex(): RecursiveOwnerMutex
     {

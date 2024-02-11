@@ -6,19 +6,18 @@ namespace SwooleBundle\SwooleBundle\Server\Api;
 
 use Swoole\Http\Server;
 use SwooleBundle\SwooleBundle\Server\Config\Sockets;
-use SwooleBundle\SwooleBundle\Server\Configurator\ConfiguratorInterface;
-use SwooleBundle\SwooleBundle\Server\RequestHandler\RequestHandlerInterface;
+use SwooleBundle\SwooleBundle\Server\Configurator\Configurator;
+use SwooleBundle\SwooleBundle\Server\RequestHandler\RequestHandler;
 
 /**
  * @internal This class will be dropped, once named server listeners will be implemented
  */
-final class WithApiServerConfiguration implements ConfiguratorInterface
+final class WithApiServerConfiguration implements Configurator
 {
     public function __construct(
         private readonly Sockets $sockets,
-        private readonly RequestHandlerInterface $requestHandler
-    ) {
-    }
+        private readonly RequestHandler $requestHandler,
+    ) {}
 
     public function configure(Server $server): void
     {

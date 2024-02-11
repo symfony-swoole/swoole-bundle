@@ -15,7 +15,7 @@ use SwooleBundle\SwooleBundle\Server\Configurator\CallableChainConfigurator;
 use SwooleBundle\SwooleBundle\Server\Configurator\CallableChainConfiguratorFactory;
 use SwooleBundle\SwooleBundle\Server\HttpServer;
 use SwooleBundle\SwooleBundle\Server\HttpServerConfiguration;
-use SwooleBundle\SwooleBundle\Server\Runtime\BootableInterface;
+use SwooleBundle\SwooleBundle\Server\Runtime\Bootable;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 
 use function Symfony\Component\DependencyInjection\Loader\Configurator\service;
@@ -32,8 +32,7 @@ return static function (ContainerConfigurator $containerConfigurator): void {
         ->arg('$parameterBag', service('parameter_bag'))
         ->tag('console.command', [
             'command' => 'swoole:server:status',
-        ])
-    ;
+        ]);
 
     $services->set(ServerStopCommand::class)
         ->arg('$server', service(HttpServer::class))
@@ -41,8 +40,7 @@ return static function (ContainerConfigurator $containerConfigurator): void {
         ->arg('$parameterBag', service('parameter_bag'))
         ->tag('console.command', [
             'command' => 'swoole:server:stop',
-        ])
-    ;
+        ]);
 
     $services->set(ServerReloadCommand::class)
         ->arg('$server', service(HttpServer::class))
@@ -50,10 +48,12 @@ return static function (ContainerConfigurator $containerConfigurator): void {
         ->arg('$parameterBag', service('parameter_bag'))
         ->tag('console.command', [
             'command' => 'swoole:server:reload',
-        ])
-    ;
+        ]);
 
-    $services->set('swoole_bundle.server.http_server.configurator.for_server_start_command', CallableChainConfigurator::class)
+    $services->set(
+        'swoole_bundle.server.http_server.configurator.for_server_start_command',
+        CallableChainConfigurator::class
+    )
         ->factory([
             service(CallableChainConfiguratorFactory::class),
             'make',
@@ -61,21 +61,22 @@ return static function (ContainerConfigurator $containerConfigurator): void {
         ->args([
             service('swoole_bundle.server.http_server.configurator_collection'),
             service('swoole_bundle.server.http_server.configurator.with_request_handler'),
-        ])
-    ;
+        ]);
 
     $services->set(ServerStartCommand::class)
         ->arg('$server', service(HttpServer::class))
         ->arg('$serverConfiguration', service(HttpServerConfiguration::class))
         ->arg('$serverConfigurator', service('swoole_bundle.server.http_server.configurator.for_server_start_command'))
         ->arg('$parameterBag', service('parameter_bag'))
-        ->arg('$bootManager', service(BootableInterface::class))
+        ->arg('$bootManager', service(Bootable::class))
         ->tag('console.command', [
             'command' => 'swoole:server:start',
-        ])
-    ;
+        ]);
 
-    $services->set('swoole_bundle.server.http_server.configurator.for_server_run_command', CallableChainConfigurator::class)
+    $services->set(
+        'swoole_bundle.server.http_server.configurator.for_server_run_command',
+        CallableChainConfigurator::class
+    )
         ->factory([
             service(CallableChainConfiguratorFactory::class),
             'make',
@@ -84,21 +85,22 @@ return static function (ContainerConfigurator $containerConfigurator): void {
             service('swoole_bundle.server.http_server.configurator_collection'),
             service('swoole_bundle.server.http_server.configurator.with_request_handler'),
             service('swoole_bundle.server.http_server.configurator.default_handler'),
-        ])
-    ;
+        ]);
 
     $services->set(ServerRunCommand::class)
         ->arg('$server', service(HttpServer::class))
         ->arg('$serverConfiguration', service(HttpServerConfiguration::class))
         ->arg('$serverConfigurator', service('swoole_bundle.server.http_server.configurator.for_server_run_command'))
         ->arg('$parameterBag', service('parameter_bag'))
-        ->arg('$bootManager', service(BootableInterface::class))
+        ->arg('$bootManager', service(Bootable::class))
         ->tag('console.command', [
             'command' => 'swoole:server:run',
-        ])
-    ;
+        ]);
 
-    $services->set('swoole_bundle.server.http_server.configurator.for_server_profile_command', CallableChainConfigurator::class)
+    $services->set(
+        'swoole_bundle.server.http_server.configurator.for_server_profile_command',
+        CallableChainConfigurator::class
+    )
         ->factory([
             service(CallableChainConfiguratorFactory::class),
             'make',
@@ -107,17 +109,18 @@ return static function (ContainerConfigurator $containerConfigurator): void {
             service('swoole_bundle.server.http_server.configurator_collection'),
             service('swoole_bundle.server.http_server.configurator.with_limited_request_handler'),
             service('swoole_bundle.server.http_server.configurator.default_handler'),
-        ])
-    ;
+        ]);
 
     $services->set(ServerProfileCommand::class)
         ->arg('$server', service(HttpServer::class))
         ->arg('$serverConfiguration', service(HttpServerConfiguration::class))
-        ->arg('$serverConfigurator', service('swoole_bundle.server.http_server.configurator.for_server_profile_command'))
+        ->arg(
+            '$serverConfigurator',
+            service('swoole_bundle.server.http_server.configurator.for_server_profile_command')
+        )
         ->arg('$parameterBag', service('parameter_bag'))
-        ->arg('$bootManager', service(BootableInterface::class))
+        ->arg('$bootManager', service(Bootable::class))
         ->tag('console.command', [
             'command' => 'swoole:server:profile',
-        ])
-    ;
+        ]);
 };

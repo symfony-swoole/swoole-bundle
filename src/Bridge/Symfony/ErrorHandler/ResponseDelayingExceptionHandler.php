@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Bridge\Symfony\ErrorHandler;
 
+use ReflectionMethod;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
+use Throwable;
 
 final class ResponseDelayingExceptionHandler
 {
@@ -15,11 +17,10 @@ final class ResponseDelayingExceptionHandler
     public function __construct(
         private readonly HttpKernelInterface $kernel,
         private readonly Request $request,
-        private readonly \ReflectionMethod $throwableHandler,
-    ) {
-    }
+        private readonly ReflectionMethod $throwableHandler,
+    ) {}
 
-    public function __invoke(\Throwable $e): void
+    public function __invoke(Throwable $e): void
     {
         $this->response = $this->throwableHandler->invoke(
             $this->kernel,

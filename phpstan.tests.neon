@@ -6,14 +6,12 @@ parameters:
       - tests
     scanDirectories:
       - tests/Unit/Server/SwooleHttpServerMock
-      - tests/Unit/Server/SwooleServerMock
     excludePaths:
         - tests/Fixtures/Symfony/app/var
         - tests/Fixtures/Symfony/app/TestAppKernel
         # Internal error: Expected to find an ancestor with class name Swoole\Timer on Swoole\Server, but none was found.
         - tests/Unit/Server/SwooleHttpServerDummy.php
-        - tests/Unit/Server/SwooleServerMock
-        - tests/Unit/Server/Php8/SwooleServerMock.php
+        - tests/Unit/Server/SwooleServerMock.php
         - tests/Unit/Server/SwooleHttpServerMock
         # Open/Swoole problems when only one extension installed
         - tests/Unit/Common/System/SystemTest.php

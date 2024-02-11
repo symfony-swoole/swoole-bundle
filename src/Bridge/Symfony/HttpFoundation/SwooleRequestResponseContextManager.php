@@ -16,21 +16,19 @@ final class SwooleRequestResponseContextManager
     public function attachRequestResponseAttributes(
         HttpFoundationRequest $request,
         SwooleRequest $swooleRequest,
-        SwooleResponse $swooleResponse
+        SwooleResponse $swooleResponse,
     ): void {
-        $request->attributes->set(static::REQUEST_ATTR_KEY, $swooleRequest);
-        $request->attributes->set(static::RESPONSE_ATTR_KEY, $swooleResponse);
+        $request->attributes->set(self::REQUEST_ATTR_KEY, $swooleRequest);
+        $request->attributes->set(self::RESPONSE_ATTR_KEY, $swooleResponse);
     }
 
-    public function findRequest(
-        HttpFoundationRequest $request
-    ): SwooleRequest {
-        return $request->attributes->get(static::REQUEST_ATTR_KEY);
+    public function findRequest(HttpFoundationRequest $request): SwooleRequest
+    {
+        return $request->attributes->get(self::REQUEST_ATTR_KEY);
     }
 
-    public function findResponse(
-        HttpFoundationRequest $request
-    ): SwooleResponse {
-        return $request->attributes->get(static::RESPONSE_ATTR_KEY);
+    public function findResponse(HttpFoundationRequest $request): SwooleResponse
+    {
+        return $request->attributes->get(self::RESPONSE_ATTR_KEY);
     }
 }

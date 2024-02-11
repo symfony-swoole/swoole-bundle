@@ -5,13 +5,11 @@ declare(strict_types=1);
 namespace SwooleBundle\SwooleBundle\Server\Configurator;
 
 use Swoole\Http\Server;
-use SwooleBundle\SwooleBundle\Server\LifecycleHandler\ServerManagerStopHandlerInterface;
+use SwooleBundle\SwooleBundle\Server\LifecycleHandler\ServerManagerStopHandler;
 
-final class WithServerManagerStopHandler implements ConfiguratorInterface
+final class WithServerManagerStopHandler implements Configurator
 {
-    public function __construct(private readonly ServerManagerStopHandlerInterface $handler)
-    {
-    }
+    public function __construct(private readonly ServerManagerStopHandler $handler) {}
 
     public function configure(Server $server): void
     {

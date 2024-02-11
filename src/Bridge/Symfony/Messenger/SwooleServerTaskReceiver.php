@@ -10,6 +10,9 @@ use Symfony\Component\Messenger\Transport\Receiver\ReceiverInterface;
 
 final class SwooleServerTaskReceiver implements ReceiverInterface
 {
+    /**
+     * {@inheritDoc}
+     */
     public function get(): iterable
     {
         throw ReceiverNotAvailableException::make();

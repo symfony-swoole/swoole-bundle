@@ -4,18 +4,19 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Tests\Unit\Functions;
 
+use AllowDynamicProperties;
+
 /**
- * Class TestObject.
- *
  * @property string $dynamicProp
  */
-#[\AllowDynamicProperties]
-class TestObject
+#[AllowDynamicProperties]
+final class TestObject
 {
     final public const GOOD_VALUE = 'good';
     final public const WRONG_VALUE = 'wrong';
-    public $publicProp;
-    protected $protectedProp;
+
+    public string $publicProp; // phpcs:ignore
+    protected string $protectedProp;
 
     public function __construct(private string $privateProp = self::WRONG_VALUE)
     {

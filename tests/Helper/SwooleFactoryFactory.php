@@ -4,13 +4,15 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Tests\Helper;
 
+use ArrayObject;
 use SwooleBundle\SwooleBundle\Bridge\OpenSwoole\OpenSwooleFactory;
+use SwooleBundle\SwooleBundle\Bridge\Swoole\SwooleFactory;
 use SwooleBundle\SwooleBundle\Common\Adapter\Swoole;
 use SwooleBundle\SwooleBundle\Common\Adapter\SystemSwooleFactory;
 use SwooleBundle\SwooleBundle\Common\System\Extension;
 use SwooleBundle\SwooleBundle\Common\System\System;
 
-final class SwooleFactory
+final class SwooleFactoryFactory
 {
     private static ?SystemSwooleFactory $systemSwooleFactory = null;
 
@@ -21,11 +23,11 @@ final class SwooleFactory
 
     private static function getSystemSwooleFactory(): SystemSwooleFactory
     {
-        if (null === self::$systemSwooleFactory) {
+        if (self::$systemSwooleFactory === null) {
             self::$systemSwooleFactory = new SystemSwooleFactory(
                 System::create(),
-                new \ArrayObject([
-                    Extension::SWOOLE => new \SwooleBundle\SwooleBundle\Bridge\Swoole\SwooleFactory(),
+                new ArrayObject([
+                    Extension::SWOOLE => new SwooleFactory(),
                     Extension::OPENSWOOLE => new OpenSwooleFactory(),
                 ]),
             );

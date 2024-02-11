@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace SwooleBundle\SwooleBundle\Server\Session;
 
 use Assert\Assertion;
+use Assert\AssertionFailedException;
 use Swoole\Table;
 
 /**
@@ -12,7 +13,7 @@ use Swoole\Table;
  *
  * @experimental
  */
-final class SwooleTableStorage implements StorageInterface
+final class SwooleTableStorage implements Storage
 {
     public const MAX_KEY_BYTES = 63;
     private const TABLE_COLUMN_DATA = 'data';
@@ -31,16 +32,19 @@ final class SwooleTableStorage implements StorageInterface
         $this->maxSessionDataBytes = $maxSessionDataBytes;
     }
 
-    public static function fromDefaults(int $maxActiveSessions = 1024, int $maxSessionDataBytes = 1024, float $tableConflictProportion = 0.2): self
-    {
+    public static function fromDefaults(
+        int $maxActiveSessions = 1024,
+        int $maxSessionDataBytes = 1024,
+        float $tableConflictProportion = 0.2,
+    ): self {
         return new self(
             new Table($maxActiveSessions, $tableConflictProportion),
-            $maxSessionDataBytes,
+            $maxSessionDataBytes
         );
     }
 
     /**
-     * @throws \Assert\AssertionFailedException
+     * @throws AssertionFailedException
      */
     public function set(string $key, mixed $data, int $ttl): void
     {
@@ -62,8 +66,8 @@ final class SwooleTableStorage implements StorageInterface
         );
 
         $this->sharedMemory->set($key, [
-            self::TABLE_COLUMN_EXPIRES_AT => time() + $ttl,
             self::TABLE_COLUMN_DATA => $data,
+            self::TABLE_COLUMN_EXPIRES_AT => time() + $ttl,
         ]);
     }
 
@@ -77,14 +81,16 @@ final class SwooleTableStorage implements StorageInterface
         foreach ($this->sharedMemory as $key => $row) {
             /** @var int $expiresAt */
             $expiresAt = $row[self::TABLE_COLUMN_EXPIRES_AT];
-            if (time() >= $expiresAt) {
-                $this->sharedMemory->del($key);
+            if (time() < $expiresAt) {
+                continue;
             }
+
+            $this->sharedMemory->del($key);
         }
     }
 
     /**
-     * @return null|string Session storage data as string or null when data is not available or expired
+     * @return string|null Session storage data as string or null when data is not available or expired
      */
     public function get(string $key, ?callable $expired = null): ?string
     {
@@ -102,7 +108,7 @@ final class SwooleTableStorage implements StorageInterface
         $data = $row[self::TABLE_COLUMN_DATA];
 
         if (time() >= $expiresAt) {
-            if (null !== $expired) {
+            if ($expired !== null) {
                 $expired($key, $data);
             }
 

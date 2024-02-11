@@ -7,15 +7,14 @@ use Blackfire\Probe;
 use Blackfire\Profile\Configuration;
 use Swoole\Http\Request;
 use Swoole\Http\Response;
+use UnexpectedValueException;
 use Upscale\Swoole\Blackfire\Profiler;
 
-class CollectionProfiler extends Profiler
+final class CollectionProfiler extends Profiler
 {
     private ?Probe $probe = null;
 
-    public function __construct(private readonly Client $client)
-    {
-    }
+    public function __construct(private readonly Client $client) {}
 
     /**
      * Starts multiple request profiling when GET parameter "profile_start" is set.
@@ -39,7 +38,7 @@ class CollectionProfiler extends Profiler
         if (!$this->probe->enable()) {
             $this->reset();
 
-            throw new \UnexpectedValueException('Cannot enable Blackfire profiler');
+            throw new UnexpectedValueException('Cannot enable Blackfire profiler');
         }
 
         return true;
@@ -67,7 +66,7 @@ class CollectionProfiler extends Profiler
     /**
      * Reset profiling session.
      */
-    public function reset()
+    public function reset(): void
     {
         $this->probe = null;
     }

@@ -7,7 +7,8 @@ namespace SwooleBundle\SwooleBundle\Tests\Unit\Coroutine;
 use PHPUnit\Framework\TestCase;
 use SwooleBundle\SwooleBundle\Coroutine\CoroutinePool;
 
-class CoroutinePoolTest extends TestCase
+// phpcs:disable SlevomatCodingStandard.PHP.DisallowReference.DisallowedInheritingVariableByReference
+final class CoroutinePoolTest extends TestCase
 {
     public function testCoroutinePoolWorks(): void
     {
@@ -15,7 +16,7 @@ class CoroutinePoolTest extends TestCase
         $expected = 1;
 
         $pool = CoroutinePool::fromCoroutines(
-            function () use (&$value, $expected): void {
+            static function () use (&$value, $expected): void {
                 $value = $expected;
             },
         );
@@ -36,13 +37,13 @@ class CoroutinePoolTest extends TestCase
         $expected3 = 3;
 
         $pool = CoroutinePool::fromCoroutines(
-            function () use (&$value1, $expected1): void {
+            static function () use (&$value1, $expected1): void {
                 $value1 = $expected1;
             },
-            function () use (&$value2, $expected2): void {
+            static function () use (&$value2, $expected2): void {
                 $value2 = $expected2;
             },
-            function () use (&$value3, $expected3): void {
+            static function () use (&$value3, $expected3): void {
                 $value3 = $expected3;
             }
         );
@@ -62,9 +63,9 @@ class CoroutinePoolTest extends TestCase
         $expected2 = 2;
 
         $pool1 = CoroutinePool::fromCoroutines(
-            function () use (&$value1, &$value2, $expected1, $expected2): void {
+            static function () use (&$value1, &$value2, $expected1, $expected2): void {
                 $pool2 = CoroutinePool::fromCoroutines(
-                    function () use (&$value2, $expected2): void {
+                    static function () use (&$value2, $expected2): void {
                         $value2 = $expected2;
                     },
                 );

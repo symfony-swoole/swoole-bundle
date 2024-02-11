@@ -6,15 +6,14 @@ namespace SwooleBundle\SwooleBundle\Server\Configurator;
 
 use Swoole\Http\Server;
 use SwooleBundle\SwooleBundle\Server\HttpServerConfiguration;
-use SwooleBundle\SwooleBundle\Server\LifecycleHandler\ServerStartHandlerInterface;
+use SwooleBundle\SwooleBundle\Server\LifecycleHandler\ServerStartHandler;
 
-final class WithServerStartHandler implements ConfiguratorInterface
+final class WithServerStartHandler implements Configurator
 {
     public function __construct(
-        private readonly ServerStartHandlerInterface $handler,
-        private readonly HttpServerConfiguration $configuration
-    ) {
-    }
+        private readonly ServerStartHandler $handler,
+        private readonly HttpServerConfiguration $configuration,
+    ) {}
 
     public function configure(Server $server): void
     {

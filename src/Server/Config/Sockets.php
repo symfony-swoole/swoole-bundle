@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace SwooleBundle\SwooleBundle\Server\Config;
 
 use Assert\Assertion;
+use Generator;
 
 final class Sockets
 {
@@ -13,7 +14,7 @@ final class Sockets
     public function __construct(
         private Socket $serverSocket,
         private ?Socket $apiSocket = null,
-        Socket ...$additionalSockets
+        Socket ...$additionalSockets,
     ) {
         $this->additionalSockets = $additionalSockets;
     }
@@ -56,7 +57,7 @@ final class Sockets
      * - next if defined api socket
      * - rest of sockets.
      */
-    public function getAll(): \Generator
+    public function getAll(): Generator
     {
         yield $this->serverSocket;
 

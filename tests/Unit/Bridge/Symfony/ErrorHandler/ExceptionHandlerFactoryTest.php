@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Tests\Unit\Bridge\Symfony\ErrorHandler;
 
+use Error;
 use PHPUnit\Framework\TestCase;
 use Prophecy\PhpUnit\ProphecyTrait;
+use ReflectionMethod;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\ErrorHandler\ExceptionHandlerFactory;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -17,11 +19,11 @@ final class ExceptionHandlerFactoryTest extends TestCase
 
     public function testCreatedExceptionHandler(): void
     {
-        $error = new \Error('Error');
+        $error = new Error('Error');
         $kernelMock = $this->prophesize(HttpKernel::class)->reveal();
         $requestMock = $this->prophesize(Request::class)->reveal();
         $responseMock = $this->prophesize(Response::class)->reveal();
-        $throwableHandlerProphecy = $this->prophesize(\ReflectionMethod::class);
+        $throwableHandlerProphecy = $this->prophesize(ReflectionMethod::class);
         $throwableHandlerProphecy->invoke()->withArguments([
             $kernelMock,
             $error,

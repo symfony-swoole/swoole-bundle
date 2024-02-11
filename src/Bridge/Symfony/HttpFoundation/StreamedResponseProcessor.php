@@ -9,18 +9,16 @@ use Swoole\Http\Response as SwooleResponse;
 use Symfony\Component\HttpFoundation\Response as HttpFoundationResponse;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
-final class StreamedResponseProcessor implements ResponseProcessorInterface
+final class StreamedResponseProcessor implements ResponseProcessor
 {
-    public function __construct(private readonly int $bufferOutputSize = 8192)
-    {
-    }
+    public function __construct(private readonly int $bufferOutputSize = 8192) {}
 
     public function process(HttpFoundationResponse $httpFoundationResponse, SwooleResponse $swooleResponse): void
     {
         Assertion::isInstanceOf($httpFoundationResponse, StreamedResponse::class);
 
         ob_start(static function (string $payload) use ($swooleResponse) {
-            if ('' !== $payload) {
+            if ($payload !== '') {
                 $swooleResponse->write($payload);
             }
 

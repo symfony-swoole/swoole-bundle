@@ -11,10 +11,11 @@ use Symfony\Component\Messenger\Transport\TransportInterface;
 
 final class SwooleServerTaskTransportFactory implements TransportFactoryInterface
 {
-    public function __construct(private readonly HttpServer $server)
-    {
-    }
+    public function __construct(private readonly HttpServer $server) {}
 
+    /**
+     * {@inheritDoc}
+     */
     public function createTransport(string $dsn, array $options, SerializerInterface $serializer): TransportInterface
     {
         return new SwooleServerTaskTransport(
@@ -23,8 +24,11 @@ final class SwooleServerTaskTransportFactory implements TransportFactoryInterfac
         );
     }
 
+    /**
+     * {@inheritDoc}
+     */
     public function supports(string $dsn, array $options): bool
     {
-        return 0 === mb_strpos($dsn, 'swoole://task');
+        return mb_strpos($dsn, 'swoole://task') === 0;
     }
 }

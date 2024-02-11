@@ -6,7 +6,7 @@ namespace SwooleBundle\SwooleBundle\Server\TaskHandler;
 
 use Swoole\Server;
 
-interface TaskHandlerInterface
+interface TaskHandler
 {
     public function handle(Server $server, Server\Task $task): void;
 }

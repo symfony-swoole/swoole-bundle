@@ -5,13 +5,14 @@ declare(strict_types=1);
 namespace SwooleBundle\SwooleBundle\Tests\Unit\Bridge\Symfony\Messenger;
 
 use PHPUnit\Framework\TestCase;
+use Prophecy\PhpUnit\ProphecyTrait;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Messenger\Exception\ReceiverNotAvailableException;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Messenger\SwooleServerTaskReceiver;
 use Symfony\Component\Messenger\Envelope;
 
-class SwooleServerTaskReceiverTest extends TestCase
+final class SwooleServerTaskReceiverTest extends TestCase
 {
-    use \Prophecy\PhpUnit\ProphecyTrait;
+    use ProphecyTrait;
 
     public function testThatItThrowsExceptionOnGet(): void
     {

@@ -6,11 +6,13 @@ namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\Co
 
 use SwooleBundle\SwooleBundle\Bridge\Doctrine\DoctrineProcessor;
 use SwooleBundle\SwooleBundle\Bridge\Monolog\MonologProcessor;
-use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices\CompileProcessor;
-use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices\FinalClassesProcessor;
-use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices\Proxifier;
-use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices\Tags;
-use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices\UnmanagedFactoryProxifier;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices\{
+    CompileProcessor,
+    FinalClassesProcessor,
+    Proxifier,
+    Tags,
+    UnmanagedFactoryProxifier,
+};
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\ContainerConstants;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Cache\CacheAdapterProcessor;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\BlockingContainer;
@@ -19,6 +21,7 @@ use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\StabilityChecker;
 use Symfony\Component\DependencyInjection\Argument\ServiceLocatorArgument;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use UnexpectedValueException;
 
 final class StatefulServicesPass implements CompilerPassInterface
 {
@@ -35,20 +38,17 @@ final class StatefulServicesPass implements CompilerPassInterface
         'request_stack',
     ];
 
-    /**
-     * @var array<array{class: class-string<CompileProcessor>, priority: int}>
-     */
     private const COMPILE_PROCESSORS = [
+        CacheAdapterProcessor::class => [
+            'class' => CacheAdapterProcessor::class,
+            'priority' => 0,
+        ],
         DoctrineProcessor::class => [
             'class' => DoctrineProcessor::class,
             'priority' => 0,
         ],
         MonologProcessor::class => [
             'class' => MonologProcessor::class,
-            'priority' => 0,
-        ],
-        CacheAdapterProcessor::class => [
-            'class' => CacheAdapterProcessor::class,
             'priority' => 0,
         ],
     ];
@@ -78,16 +78,19 @@ final class StatefulServicesPass implements CompilerPassInterface
         $compileProcessors = $container->getParameter(ContainerConstants::PARAM_COROUTINES_COMPILE_PROCESSORS);
 
         if (!is_array($compileProcessors)) {
-            throw new \UnexpectedValueException('Invalid compiler processors provided');
+            throw new UnexpectedValueException('Invalid compiler processors provided');
         }
 
-        /** @var null|array<string, mixed> $doctrineConfig */
-        $doctrineConfig = $container->hasParameter(ContainerConstants::PARAM_COROUTINES_DOCTRINE_COMPILE_PROCESSOR_CONFIG) ?
-            $container->getParameter(ContainerConstants::PARAM_COROUTINES_DOCTRINE_COMPILE_PROCESSOR_CONFIG) : null;
+        /** @var array<string, mixed>|null $doctrineConfig */
+        $doctrineConfig = $container->hasParameter(
+            ContainerConstants::PARAM_COROUTINES_DOCTRINE_COMPILE_PROCESSOR_CONFIG
+        )
+            ? $container->getParameter(ContainerConstants::PARAM_COROUTINES_DOCTRINE_COMPILE_PROCESSOR_CONFIG)
+            : null;
 
         $defaultProcessors = self::COMPILE_PROCESSORS;
 
-        if (null !== $doctrineConfig) {
+        if ($doctrineConfig !== null) {
             $defaultProcessors[DoctrineProcessor::class]['config'] = $doctrineConfig;
         }
 
@@ -123,8 +126,9 @@ final class StatefulServicesPass implements CompilerPassInterface
 
         foreach ($compileProcessors as $processorConfig) {
             /** @var CompileProcessor $processor */
-            $processor = isset($processorConfig['config']) ?
-                new $processorConfig['class']($processorConfig['config']) : new $processorConfig['class']();
+            $processor = isset($processorConfig['config'])
+                ? new $processorConfig['class']($processorConfig['config'])
+                : new $processorConfig['class']();
             $processor->process($container, $proxifier);
         }
     }
@@ -135,11 +139,11 @@ final class StatefulServicesPass implements CompilerPassInterface
     private function proxifyKnownStatefulServices(
         ContainerBuilder $container,
         Proxifier $proxifier,
-        array $resetters
+        array $resetters,
     ): void {
-        /** @var array<string, null|array<string, mixed>> $resettableStatefulServices */
+        /** @var array<string, array<string, mixed>|null> $resettableStatefulServices */
         $resettableStatefulServices = $container->findTaggedServiceIds('kernel.reset');
-        /** @var array<string, null|array<string, mixed>> $taggedStatefulServices */
+        /** @var array<string, array<string, mixed>|null> $taggedStatefulServices */
         $taggedStatefulServices = $container->findTaggedServiceIds(ContainerConstants::TAG_STATEFUL_SERVICE);
         /** @var array<string> $configuredStatefulServices */
         $configuredStatefulServices = $container->getParameter(ContainerConstants::PARAM_COROUTINES_STATEFUL_SERVICES);
@@ -171,10 +175,10 @@ final class StatefulServicesPass implements CompilerPassInterface
     private function proxifyUnmanagedFactories(
         ContainerBuilder $container,
         FinalClassesProcessor $finalProcessor,
-        array $resetters
+        array $resetters,
     ): void {
         $factoryProxifier = new UnmanagedFactoryProxifier($container, $finalProcessor);
-        /** @var array<string, null|array<string, mixed>> $factoriesToProxify */
+        /** @var array<string, array<string, mixed>|null> $factoriesToProxify */
         $factoriesToProxify = $container->findTaggedServiceIds(ContainerConstants::TAG_UNMANAGED_FACTORY);
         $factoriesToProxify = array_unique(array_keys($factoriesToProxify));
 
@@ -194,7 +198,7 @@ final class StatefulServicesPass implements CompilerPassInterface
 
     private function createDefaultProxifier(
         ContainerBuilder $container,
-        FinalClassesProcessor $finalProcessor
+        FinalClassesProcessor $finalProcessor,
     ): Proxifier {
         $stabilityCheckerDefs = $container->findTaggedServiceIds(ContainerConstants::TAG_STABILITY_CHECKER);
         /** @var array<class-string, class-string<StabilityChecker>|string> $stabilityCheckers */
@@ -210,7 +214,7 @@ final class StatefulServicesPass implements CompilerPassInterface
         }
 
         if (!is_array($stabilityCheckers)) {
-            throw new \UnexpectedValueException('Invalid stability checkers provided.');
+            throw new UnexpectedValueException('Invalid stability checkers provided.');
         }
 
         return new Proxifier($container, $finalProcessor, $stabilityCheckers);
@@ -225,7 +229,7 @@ final class StatefulServicesPass implements CompilerPassInterface
         /** @var array<string, list<string>> $resetters */
         $resetters = $resetterDef->getArgument(1);
 
-        return array_map(fn (array $r): string => $r[0], $resetters);
+        return array_map(static fn(array $r): string => $r[0], $resetters);
     }
 
     private function reduceServiceResetters(ContainerBuilder $container): void

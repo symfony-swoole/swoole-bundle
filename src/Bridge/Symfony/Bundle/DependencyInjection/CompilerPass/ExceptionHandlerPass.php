@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass;
 
 use SwooleBundle\SwooleBundle\Bridge\Symfony\ErrorHandler\SymfonyExceptionHandler;
-use SwooleBundle\SwooleBundle\Server\RequestHandler\ExceptionHandler\ExceptionHandlerInterface;
+use SwooleBundle\SwooleBundle\Server\RequestHandler\ExceptionHandler\ExceptionHandler;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpKernel\Kernel;
@@ -23,11 +23,13 @@ final class ExceptionHandlerPass implements CompilerPassInterface
         }
 
         /** @phpstan-ignore-next-line */
-        $handlerAlias = $container->getAlias(ExceptionHandlerInterface::class);
+        $handlerAlias = $container->getAlias(ExceptionHandler::class);
 
-        if (SymfonyExceptionHandler::class !== (string) $handlerAlias) {
-            $kernelDef = $container->findDefinition('http_kernel');
-            $kernelDef->setArgument('$handleAllThrowables', false);
+        if ((string) $handlerAlias === SymfonyExceptionHandler::class) {
+            return;
         }
+
+        $kernelDef = $container->findDefinition('http_kernel');
+        $kernelDef->setArgument('$handleAllThrowables', false);
     }
 }

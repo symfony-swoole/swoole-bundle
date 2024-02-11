@@ -11,9 +11,7 @@ use Symfony\Component\Routing\Attribute\Route;
 
 final class EventsController
 {
-    public function __construct(private readonly LifecycleEventsEventHandler $eventHandler)
-    {
-    }
+    public function __construct(private readonly LifecycleEventsEventHandler $eventHandler) {}
 
     /**
      * @RouteAnnotation(

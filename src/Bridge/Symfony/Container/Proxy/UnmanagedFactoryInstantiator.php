@@ -8,6 +8,7 @@ use ProxyManager\Factory\AccessInterceptorValueHolderFactory;
 use ProxyManager\Proxy\AccessInterceptorInterface;
 use ProxyManager\Proxy\AccessInterceptorValueHolderInterface;
 use ProxyManager\Proxy\ValueHolderInterface;
+use RuntimeException;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Resetter;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\ServicePool\ServicePoolContainer;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\ServicePool\UnmanagedFactoryServicePool;
@@ -20,13 +21,11 @@ final class UnmanagedFactoryInstantiator
         private Instantiator $instantiator,
         private ServicePoolContainer $servicePoolContainer,
         private readonly MutexFactory $limitLocking,
-        private readonly MutexFactory $newInstanceLocking
-    ) {
-    }
+        private readonly MutexFactory $newInstanceLocking,
+    ) {}
 
     /**
      * @template RealObjectType of object
-     *
      * @param RealObjectType $instance
      * @param array<array{
      *     factoryMethod: string,
@@ -34,14 +33,10 @@ final class UnmanagedFactoryInstantiator
      *     limit?: int,
      *     resetter?: Resetter
      * }> $factoryConfigs
-     *
      * @return AccessInterceptorInterface<RealObjectType>&AccessInterceptorValueHolderInterface<RealObjectType>&RealObjectType&ValueHolderInterface<RealObjectType>
      */
-    public function newInstance(
-        object $instance,
-        array $factoryConfigs,
-        int $globalInstancesLimit
-    ): object {
+    public function newInstance(object $instance, array $factoryConfigs, int $globalInstancesLimit): object
+    {
         /**
          * @var array<string, callable(
          *  AccessInterceptorInterface<RealObjectType>&RealObjectType=,
@@ -56,14 +51,14 @@ final class UnmanagedFactoryInstantiator
         $instantiator = $this->instantiator;
 
         if (empty($factoryConfigs)) {
-            throw new \RuntimeException(sprintf('Factory methods missing for class %s', $instance::class));
+            throw new RuntimeException(sprintf('Factory methods missing for class %s', $instance::class));
         }
 
         foreach ($factoryConfigs as $factoryConfig) {
             $factoryMethod = $factoryConfig['factoryMethod'];
 
             if (!method_exists($instance, $factoryMethod)) {
-                throw new \RuntimeException(sprintf('Missing method %s in class %s', $factoryMethod, $instance::class));
+                throw new RuntimeException(sprintf('Missing method %s in class %s', $factoryMethod, $instance::class));
             }
 
             $mutex = $this->newInstanceLocking->newMutex();
@@ -81,10 +76,10 @@ final class UnmanagedFactoryInstantiator
                 object $instance,
                 string $method,
                 array $params,
-                bool &$returnEarly
+                bool &$returnEarly, // phpcs:ignore
             ) use ($servicePoolContainer, $instantiator, $factoryConfig, $mutex, $globalInstancesLimit) {
                 $returnEarly = true;
-                $factoryInstantiator = function () use ($instance, $method, $params, $mutex): object {
+                $factoryInstantiator = static function () use ($instance, $method, $params, $mutex): object {
                     $mutex->acquire();
 
                     try {

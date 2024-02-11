@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Tests\Feature;
 
+use Co;
 use Doctrine\ORM\EntityManager;
+use PHPUnit\Framework\Attributes\DataProvider;
 use SwooleBundle\SwooleBundle\Client\HttpClient;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestAppKernel;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Entity\Test;
@@ -21,15 +23,18 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
     }
 
     /**
-     * @dataProvider kernelEnvironmentDataProvider
+     * @param array{environment: string, debug: bool, override_prod_env?: string} $options
      */
+    #[DataProvider('kernelEnvironmentDataProvider')]
     public function testOpcacheBlacklistFileGeneration(array $options): void
     {
         /** @var TestAppKernel $kernel */
-        $kernel = static::createKernel($options);
+        $kernel = self::createKernel($options);
         $application = new Application($kernel);
         $application->find('cache:clear'); // this will trigger cache generation
-        $blacklistFile = $kernel->getCacheDir().DIRECTORY_SEPARATOR.'swoole_bundle'.DIRECTORY_SEPARATOR.'opcache'.DIRECTORY_SEPARATOR.'blacklist.txt';
+        $blacklistFile = $kernel->getCacheDir() . DIRECTORY_SEPARATOR .
+            'swoole_bundle' . DIRECTORY_SEPARATOR .
+            'opcache' . DIRECTORY_SEPARATOR . 'blacklist.txt';
 
         self::assertFileExists($blacklistFile);
 
@@ -45,8 +50,15 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
     }
 
     /**
-     * @dataProvider coroutineTestDataProvider
+     * @param array<array<array{
+     *    APP_ENV: string,
+     *    APP_DEBUG: string,
+     *    WORKER_COUNT: string,
+     *    REACTOR_COUNT: string,
+     *    OVERRIDE_PROD_ENV?: string,
+     *  }>> $envs
      */
+    #[DataProvider('coroutineTestDataProvider')]
     public function testCoroutinesWithEnvs(array $envs): void
     {
         $clearCache = $this->createConsoleProcess(['cache:clear'], $envs);
@@ -124,8 +136,15 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
     }
 
     /**
-     * @dataProvider coroutineTestDataProvider
+     * @param array<array<array{
+     *    APP_ENV: string,
+     *    APP_DEBUG: string,
+     *    WORKER_COUNT: string,
+     *    REACTOR_COUNT: string,
+     *    OVERRIDE_PROD_ENV?: string,
+     *  }>> $envs
      */
+    #[DataProvider('coroutineTestDataProvider')]
     public function testCoroutinesAndDoctrineWithEnvs(array $envs): void
     {
         $clearCache = $this->createConsoleProcess(['cache:clear'], $envs);
@@ -206,7 +225,7 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
             $end = microtime(true);
 
             self::assertLessThan(self::coverageEnabled() ? 6 : 0.6, $end - $start);
-            \Co::sleep(1);
+            Co::sleep(1);
 
             // this has to be the 10th request becasue PCOV coverage tests run weirdly and don't free svc pool services
             // seems like global instances limit 20 is exhausted
@@ -228,8 +247,15 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
     }
 
     /**
-     * @dataProvider coroutineTestDataProvider
+     * @param array<array<array{
+     *    APP_ENV: string,
+     *    APP_DEBUG: string,
+     *    WORKER_COUNT: string,
+     *    REACTOR_COUNT: string,
+     *    OVERRIDE_PROD_ENV?: string,
+     *  }>> $envs
      */
+    #[DataProvider('coroutineTestDataProvider')]
     public function testCoroutinesAndAdvancedDoctrineWithEnvs(array $envs): void
     {
         $clearCache = $this->createConsoleProcess(['cache:clear'], $envs);
@@ -316,8 +342,16 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
     }
 
     /**
-     * @dataProvider coroutineTestDataProviderForTaskWorkers
+     * @param array<array<array{
+     *    APP_ENV: string,
+     *    APP_DEBUG: string,
+     *    WORKER_COUNT: string,
+     *    REACTOR_COUNT: string,
+     *    TASK_WORKER_COUNT: string,
+     *    OVERRIDE_PROD_ENV?: string,
+     *  }>> $envs
      */
+    #[DataProvider('coroutineTestDataProviderForTaskWorkers')]
     public function testCoroutinesAndTaskWorkersWithEnvs(array $envs): void
     {
         $clearCache = $this->createConsoleProcess(['cache:clear'], $envs);
@@ -358,13 +392,13 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
             $wg = $this->getSwoole()->waitGroup();
 
             for ($i = 0; $i < 3; ++$i) {
-                $query = '?fileName='.$fileName.$requestData[$i];
+                $query = '?fileName=' . $fileName . $requestData[$i];
                 go(function () use ($wg, $query): void {
                     $wg->add();
                     $client = HttpClient::fromDomain('localhost', 9999, false);
                     $this->assertTrue($client->connect());
 
-                    $response = $client->send('/coroutines/message/sleep-and-append'.$query)['response'];
+                    $response = $client->send('/coroutines/message/sleep-and-append' . $query)['response'];
                     $this->assertSame(200, $response['statusCode']);
                     $this->assertStringContainsString('text/plain', $response['headers']['content-type']);
                     $wg->done();
@@ -387,8 +421,16 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
     }
 
     /**
-     * @dataProvider coroutineTestDataProviderForTaskWorkers
+     * @param array<array<array{
+     *    APP_ENV: string,
+     *    APP_DEBUG: string,
+     *    WORKER_COUNT: string,
+     *    REACTOR_COUNT: string,
+     *    TASK_WORKER_COUNT: string,
+     *    OVERRIDE_PROD_ENV?: string,
+     *  }>> $envs
      */
+    #[DataProvider('coroutineTestDataProviderForTaskWorkers')]
     public function testCoroutinesWithTaskWorkersWithDoctrine(array $envs): void
     {
         $clearCache = $this->createConsoleProcess(['cache:clear'], $envs);
@@ -469,7 +511,7 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
             usleep(1_200_000);
         });
 
-        $container = static::getContainer();
+        $container = self::getContainer();
         /** @var EntityManager $em */
         $em = $container->get('doctrine.orm.default_entity_manager');
         $repo = $em->getRepository(Test::class);
@@ -478,6 +520,15 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
         self::assertSame(3, $count);
     }
 
+    /**
+     * @return array<array<array{
+     *   APP_ENV: string,
+     *   APP_DEBUG: string,
+     *   WORKER_COUNT: string,
+     *   REACTOR_COUNT: string,
+     *   OVERRIDE_PROD_ENV?: string,
+     * }>>
+     */
     public static function coroutineTestDataProvider(): array
     {
         return [
@@ -508,6 +559,16 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
         ];
     }
 
+    /**
+     * @return array<array<array{
+     *   APP_ENV: string,
+     *   APP_DEBUG: string,
+     *   WORKER_COUNT: string,
+     *   REACTOR_COUNT: string,
+     *   TASK_WORKER_COUNT: string,
+     *   OVERRIDE_PROD_ENV?: string,
+     * }>>
+     */
     public static function coroutineTestDataProviderForTaskWorkers(): array
     {
         return [
@@ -556,6 +617,9 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
         ];
     }
 
+    /**
+     * @return array<array<array{environment: string, debug: bool, override_prod_env?: string}>>
+     */
     public static function kernelEnvironmentDataProvider(): array
     {
         return [
@@ -569,9 +633,9 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
     private function generateNotExistingCustomTestFile(): string
     {
         return '/tmp/tfile-coroutines-'
-            .$this->generateUniqueHash(4)
-            .'-'
-            .$this->currentUnixTimestamp()
-            .'.txt';
+            . $this->generateUniqueHash(4)
+            . '-'
+            . $this->currentUnixTimestamp()
+            . '.txt';
     }
 }

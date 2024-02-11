@@ -6,20 +6,21 @@ namespace SwooleBundle\SwooleBundle\Server\Configurator;
 
 use Swoole\Http\Server;
 use SwooleBundle\SwooleBundle\Server\HttpServerConfiguration;
-use SwooleBundle\SwooleBundle\Server\TaskHandler\TaskFinishedHandlerInterface;
+use SwooleBundle\SwooleBundle\Server\TaskHandler\TaskFinishedHandler;
 
-final class WithTaskFinishedHandler implements ConfiguratorInterface
+final class WithTaskFinishedHandler implements Configurator
 {
     public function __construct(
-        private readonly TaskFinishedHandlerInterface $handler,
-        private readonly HttpServerConfiguration $configuration
-    ) {
-    }
+        private readonly TaskFinishedHandler $handler,
+        private readonly HttpServerConfiguration $configuration,
+    ) {}
 
     public function configure(Server $server): void
     {
-        if ($this->configuration->getTaskWorkerCount() > 0) {
-            $server->on('finish', [$this->handler, 'handle']);
+        if ($this->configuration->getTaskWorkerCount() <= 0) {
+            return;
         }
+
+        $server->on('finish', [$this->handler, 'handle']);
     }
 }

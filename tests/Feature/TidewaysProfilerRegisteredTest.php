@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Tests\Feature;
 
+use ReflectionClass;
 use SwooleBundle\SwooleBundle\Bridge\Tideways\Apm\Apm;
 use SwooleBundle\SwooleBundle\Bridge\Tideways\Apm\WithApm;
 use SwooleBundle\SwooleBundle\Client\HttpClient;
@@ -15,6 +16,7 @@ final class TidewaysProfilerRegisteredTest extends ServerTestCase
     protected function setUp(): void
     {
         parent::setUp();
+
         $this->deleteVarDirectory();
     }
 
@@ -23,7 +25,7 @@ final class TidewaysProfilerRegisteredTest extends ServerTestCase
      */
     public function testWiring(): void
     {
-        $kernel = static::createKernel(['environment' => 'tideways']);
+        $kernel = self::createKernel(['environment' => 'tideways']);
         $kernel->boot();
 
         $container = $kernel->getContainer();
@@ -37,8 +39,8 @@ final class TidewaysProfilerRegisteredTest extends ServerTestCase
     {
         $this->markTestSkippedIfXdebugEnabled();
 
-        if (\class_exists(Profiler::class)) {
-            $rc = new \ReflectionClass(Profiler::class);
+        if (class_exists(Profiler::class)) {
+            $rc = new ReflectionClass(Profiler::class);
 
             if ($rc->isInternal()) {
                 $this->markTestSkipped(

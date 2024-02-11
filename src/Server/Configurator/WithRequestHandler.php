@@ -5,13 +5,11 @@ declare(strict_types=1);
 namespace SwooleBundle\SwooleBundle\Server\Configurator;
 
 use Swoole\Http\Server;
-use SwooleBundle\SwooleBundle\Server\RequestHandler\RequestHandlerInterface;
+use SwooleBundle\SwooleBundle\Server\RequestHandler\RequestHandler;
 
-final class WithRequestHandler implements ConfiguratorInterface
+final class WithRequestHandler implements Configurator
 {
-    public function __construct(private readonly RequestHandlerInterface $requestHandler)
-    {
-    }
+    public function __construct(private readonly RequestHandler $requestHandler) {}
 
     public function configure(Server $server): void
     {

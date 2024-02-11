@@ -5,9 +5,13 @@ declare(strict_types=1);
 namespace SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation\Session;
 
 use Assert\Assertion;
+use Assert\AssertionFailedException;
+use Exception;
+use InvalidArgumentException;
+use LogicException as CoreLogicException;
 use SwooleBundle\SwooleBundle\Server\Session\Exception\LogicException;
 use SwooleBundle\SwooleBundle\Server\Session\Exception\RuntimeException;
-use SwooleBundle\SwooleBundle\Server\Session\StorageInterface;
+use SwooleBundle\SwooleBundle\Server\Session\Storage;
 use Symfony\Component\HttpFoundation\Session\SessionBagInterface;
 use Symfony\Component\HttpFoundation\Session\Storage\MetadataBag;
 use Symfony\Component\HttpFoundation\Session\Storage\SessionStorageInterface;
@@ -19,7 +23,7 @@ final class SwooleSessionStorage implements SessionStorageInterface
     private string $currentId = '';
 
     /**
-     * @var SessionBagInterface[]
+     * @var array<SessionBagInterface>
      */
     private array $bags = [];
 
@@ -32,18 +36,18 @@ final class SwooleSessionStorage implements SessionStorageInterface
     private int $sessionLifetimeSeconds;
 
     public function __construct(
-        private readonly StorageInterface $storage,
+        private readonly Storage $storage,
         private string $name = self::DEFAULT_SESSION_NAME,
         int $lifetimeSeconds = 86400,
-        MetadataBag $metadataBag = null
+        ?MetadataBag $metadataBag = null,
     ) {
         $this->setLifetimeSeconds($lifetimeSeconds);
         $this->setMetadataBag($metadataBag);
     }
 
     /**
-     * @throws \Assert\AssertionFailedException
-     * @throws \Exception
+     * @throws AssertionFailedException
+     * @throws Exception
      */
     public function start(): bool
     {
@@ -64,17 +68,16 @@ final class SwooleSessionStorage implements SessionStorageInterface
     }
 
     /**
-     * @throws \Exception
-     *
+     * @throws Exception
      * @SuppressWarnings(PHPMD.BooleanArgumentFlag)
      */
-    public function regenerate(bool $destroy = false, int $lifetime = null): bool
+    public function regenerate(bool $destroy = false, ?int $lifetime = null): bool
     {
         if ($destroy) {
             $this->storage->delete($this->currentId);
         }
 
-        if (!headers_sent() && null !== $lifetime && $lifetime != ini_get('session.cookie_lifetime')) {
+        if (!headers_sent() && $lifetime !== null && $lifetime !== ini_get('session.cookie_lifetime')) {
             ini_set('session.cookie_lifetime', (string) $lifetime);
         }
 
@@ -92,7 +95,7 @@ final class SwooleSessionStorage implements SessionStorageInterface
 
         $this->storage->set(
             $this->currentId,
-            \json_encode($this->data, \JSON_THROW_ON_ERROR),
+            json_encode($this->data, JSON_THROW_ON_ERROR),
             $this->sessionLifetimeSeconds
         );
     }
@@ -125,7 +128,7 @@ final class SwooleSessionStorage implements SessionStorageInterface
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public function setId(string $id): void
     {
@@ -133,7 +136,7 @@ final class SwooleSessionStorage implements SessionStorageInterface
             throw new LogicException('Cannot set session ID after the session has started.');
         }
 
-        $this->currentId = \preg_match('/^[a-f0-9]{63}$/', $id) ? $id : $this->generateId();
+        $this->currentId = preg_match('/^[a-f0-9]{63}$/', $id) ? $id : $this->generateId();
     }
 
     public function getName(): string
@@ -141,21 +144,18 @@ final class SwooleSessionStorage implements SessionStorageInterface
         return $this->name;
     }
 
-    /**
-     * @param string $name
-     */
-    public function setName($name): void
+    public function setName(string $name): void
     {
         $this->name = $name;
     }
 
     /**
-     * @throws \Assert\AssertionFailedException
+     * @throws AssertionFailedException
      */
     public function getBag(string $name): SessionBagInterface
     {
         if (!isset($this->bags[$name])) {
-            throw new \InvalidArgumentException(\sprintf('The SessionBagInterface `%s` is not registered.', $name));
+            throw new InvalidArgumentException(sprintf('The SessionBagInterface `%s` is not registered.', $name));
         }
 
         if (!$this->started) {
@@ -168,7 +168,7 @@ final class SwooleSessionStorage implements SessionStorageInterface
     public function registerBag(SessionBagInterface $bag): void
     {
         if ($this->started) {
-            throw new \LogicException('Cannot register a bag when the session is already started.');
+            throw new CoreLogicException('Cannot register a bag when the session is already started.');
         }
 
         $this->bags[$bag->getName()] = $bag;
@@ -183,13 +183,20 @@ final class SwooleSessionStorage implements SessionStorageInterface
     {
         $this->sessionLifetimeSeconds = $lifetimeSeconds;
 
-        if (!headers_sent() && null !== ini_get('session.cookie_lifetime') && $lifetimeSeconds !== (int) ini_get('session.cookie_lifetime')) {
-            \ini_set('session.cookie_lifetime', (string) $lifetimeSeconds);
+        if (
+            headers_sent()
+            || !is_string(ini_get('session.cookie_lifetime'))
+            || $lifetimeSeconds === (int) ini_get('session.cookie_lifetime')
+        ) {
+            return;
         }
+
+        ini_set('session.cookie_lifetime', (string) $lifetimeSeconds);
     }
 
     /**
-     * @throws \Assert\AssertionFailedException
+     * @return array<string, mixed>
+     * @throws AssertionFailedException
      */
     private function obtainSessionData(string $sessionId): array
     {
@@ -197,17 +204,17 @@ final class SwooleSessionStorage implements SessionStorageInterface
             $this->regenerate(true);
         });
 
-        if (null === $sessionData) {
+        if ($sessionData === null) {
             return [];
         }
 
         Assertion::string($sessionData);
 
-        return \json_decode($sessionData, true, 512, \JSON_THROW_ON_ERROR);
+        return json_decode($sessionData, true, 512, JSON_THROW_ON_ERROR);
     }
 
     /**
-     * @return iterable&SessionBagInterface[]
+     * @return iterable<SessionBagInterface>
      */
     private function allBags(): iterable
     {
@@ -215,7 +222,10 @@ final class SwooleSessionStorage implements SessionStorageInterface
         yield $this->metadataBag;
     }
 
-    private function bindBagsToData(array &$data): void
+    /**
+     * @param array<string, mixed> $data
+     */
+    private function bindBagsToData(array &$data): void // phpcs:ignore
     {
         foreach ($this->allBags() as $bag) {
             $key = $bag->getStorageKey();
@@ -227,11 +237,11 @@ final class SwooleSessionStorage implements SessionStorageInterface
     /**
      * Generates a session ID.
      *
-     * @throws \Exception
+     * @throws Exception
      */
     private function generateId(): string
     {
-        return \mb_substr(\bin2hex(\random_bytes(32)), \random_int(0, 1), 63);
+        return mb_substr(bin2hex(random_bytes(32)), random_int(0, 1), 63);
     }
 
     private function setMetadataBag(?MetadataBag $metadataBag = null): void

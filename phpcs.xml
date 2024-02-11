@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<ruleset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:noNamespaceSchemaLocation="vendor/squizlabs/php_codesniffer/phpcs.xsd">
+
+  <arg name="basepath" value="."/>
+  <arg name="cache" value=".phpcs-cache"/>
+  <arg name="colors"/>
+  <arg name="extensions" value="php"/>
+  <!-- Show progress, show the error codes for each message (source). -->
+  <arg value="ps"/>
+
+  <config name="installed_paths" value="../../slevomat/coding-standard"/>
+  <config name="testVersion" value="8.1"/>
+
+  <rule ref="PSR12">
+    <exclude name="PSR2.Classes.ClassDeclaration.OpenBraceNewLine"/>
+  </rule>
+  <rule ref="vendor/slevomat/coding-standard/SlevomatCodingStandard/ruleset.xml">
+    <exclude name="SlevomatCodingStandard.Namespaces.UseOnlyWhitelistedNamespaces"/>
+    <exclude name="SlevomatCodingStandard.Namespaces.FullyQualifiedExceptions"/>
+    <exclude name="SlevomatCodingStandard.Classes.EmptyLinesAroundClassBraces"/>
+    <exclude name="SlevomatCodingStandard.Namespaces.FullyQualifiedGlobalFunctions"/>
+    <exclude name="SlevomatCodingStandard.Commenting.RequireOneLineDocComment"/>
+    <exclude name="SlevomatCodingStandard.Commenting.RequireOneLinePropertyDocComment"/>
+    <exclude name="SlevomatCodingStandard.ControlStructures.NewWithoutParentheses"/>
+    <exclude name="SlevomatCodingStandard.Namespaces.FullyQualifiedClassNameInAnnotation"/>
+    <exclude name="SlevomatCodingStandard.TypeHints.DeclareStrictTypes"/>
+    <exclude name="SlevomatCodingStandard.ControlStructures.RequireYodaComparison"/>
+    <exclude name="SlevomatCodingStandard.PHP.RequireExplicitAssertion"/>
+    <exclude name="SlevomatCodingStandard.Commenting.DisallowCommentAfterCode"/><!-- contains bugs -->
+    <exclude name="SlevomatCodingStandard.Namespaces.FullyQualifiedGlobalConstants"/>
+    <exclude name="SlevomatCodingStandard.Namespaces.FullyQualifiedGlobalFunctions"/>
+    <exclude name="SlevomatCodingStandard.Classes.TraitUseSpacing"/>
+    <exclude name="SlevomatCodingStandard.ControlStructures.DisallowShortTernaryOperator"/>
+    <exclude name="SlevomatCodingStandard.ControlStructures.RequireMultiLineTernaryOperator"/>
+    <exclude name="SlevomatCodingStandard.ControlStructures.BlockControlStructureSpacing"/>
+    <exclude name="SlevomatCodingStandard.Functions.DisallowArrowFunction"/>
+    <exclude name="SlevomatCodingStandard.Numbers.RequireNumericLiteralSeparator"/>
+    <exclude name="SlevomatCodingStandard.Numbers.DisallowNumericLiteralSeparator"/>
+    <exclude name="SlevomatCodingStandard.Functions.RequireTrailingCommaInCall"/>
+    <exclude name="SlevomatCodingStandard.TypeHints.PropertyTypeHint"/>
+    <exclude name="SlevomatCodingStandard.Functions.ArrowFunctionDeclaration"/>
+    <exclude name="SlevomatCodingStandard.Functions.FunctionLength"/>
+    <exclude name="SlevomatCodingStandard.Functions.UnusedParameter"/>
+    <exclude name="SlevomatCodingStandard.Classes.DisallowConstructorPropertyPromotion"/>
+    <exclude name="SlevomatCodingStandard.Functions.DisallowTrailingCommaInDeclaration"/>
+    <exclude name="Squiz.WhiteSpace.ScopeClosingBrace"/>
+    <exclude name="Squiz.Functions.MultiLineFunctionDeclaration"/>
+    <exclude name="SlevomatCodingStandard.Exceptions.DisallowNonCapturingCatch"/>
+    <exclude name="SlevomatCodingStandard.Exceptions.ReferenceThrowableOnly"/>
+    <exclude name="SlevomatCodingStandard.Arrays.AlphabeticallySortedByKeys.IncorrectKeyOrder"/>
+    <exclude name="SlevomatCodingStandard.Files.FunctionLength.FunctionLength"/>
+    <exclude name="SlevomatCodingStandard.Functions.DisallowTrailingCommaInCall.DisallowedTrailingComma"/>
+    <exclude name="SlevomatCodingStandard.Files.FileLength"/>
+    <exclude name="SlevomatCodingStandard.Classes.ClassLength"/>
+    <exclude name="SlevomatCodingStandard.ControlStructures.RequireTernaryOperator"/>
+    <exclude name="SlevomatCodingStandard.Complexity.Cognitive"/>
+    <exclude name="SlevomatCodingStandard.Commenting.DisallowOneLinePropertyDocComment"/>
+    <exclude name="SlevomatCodingStandard.Namespaces.DisallowGroupUse"/>
+    <exclude name="SlevomatCodingStandard.Namespaces.UseFromSameNamespace.UseFromSameNamespace"/>
+    <exclude name="SlevomatCodingStandard.Namespaces.MultipleUsesPerLine"/>
+    <exclude name="SlevomatCodingStandard.Namespaces.UseSpacing"/>
+    <exclude name="SlevomatCodingStandard.Classes.SuperfluousExceptionNaming"/>
+    <exclude name="SlevomatCodingStandard.TypeHints.DisallowMixedTypeHint"/>
+    <exclude name="SlevomatCodingStandard.ControlStructures.DisallowNullSafeObjectOperator"/>
+    <exclude name="SlevomatCodingStandard.ControlStructures.DisallowEmpty"/>
+    <exclude name="SlevomatCodingStandard.Functions.DisallowNamedArguments"/>
+    <exclude name="SlevomatCodingStandard.Operators.DisallowIncrementAndDecrementOperators"/>
+  </rule>
+
+  <rule ref="SlevomatCodingStandard.Namespaces.ReferenceUsedNamesOnly">
+    <properties>
+      <property name="searchAnnotations" value="true"/>
+      <property name="allowPartialUses" value="true"/>
+      <property name="allowFallbackGlobalFunctions" value="true"/>
+      <property name="allowFallbackGlobalConstants" value="true"/>
+    </properties>
+  </rule>
+
+  <rule ref="SlevomatCodingStandard.Namespaces.UnusedUses">
+    <properties>
+      <property name="searchAnnotations" value="true"/>
+    </properties>
+  </rule>
+
+  <rule ref="SlevomatCodingStandard.Classes.RequireSingleLineMethodSignature">
+    <properties>
+      <property name="excludedMethodPatterns" type="array">
+        <element key="0" value="/__construct/"/>
+      </property>
+    </properties>
+  </rule>
+
+  <rule ref="SlevomatCodingStandard.Classes.ClassStructure">
+    <exclude-pattern>tests/*</exclude-pattern>
+    <exclude-pattern>src/*</exclude-pattern><!-- needs to be revisited -->
+  </rule>
+
+  <rule ref="SlevomatCodingStandard.Attributes.AttributesOrder">
+    <properties>
+      <property name="orderAlphabetically" value="true"/>
+    </properties>
+  </rule>
+
+  <rule ref="SlevomatCodingStandard.Files.TypeNameMatchesFileName">
+    <properties>
+      <property name="rootNamespaces" type="array">
+        <element key="src" value="SwooleBundle\SwooleBundle"/>
+        <element key="tests" value="SwooleBundle\SwooleBundle\Tests"/>
+        <element key="tests/Fixtures/Symfony/TestBundle/Migrations" value="TestBundleDoctrineMigrations"/>
+      </property>
+    </properties>
+  </rule>
+
+  <rule ref="SlevomatCodingStandard.Namespaces.UseSpacing">
+    <properties>
+      <property name="linesCountBetweenUseTypes" value="1"/>
+    </properties>
+  </rule>
+
+  <rule ref="SlevomatCodingStandard.Functions.DisallowEmptyFunction">
+    <exclude-pattern>tests/*</exclude-pattern>
+  </rule>
+
+  <file>src</file>
+  <file>tests</file>
+  <exclude-pattern>/src/Bridge/Monolog/StreamHandler\.php$</exclude-pattern>
+
+</ruleset>

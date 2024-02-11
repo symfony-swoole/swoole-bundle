@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace SwooleBundle\SwooleBundle\Bridge\OpenSwoole\Metrics;
 
 use Assert\Assertion;
+use DateTimeImmutable;
 use SwooleBundle\SwooleBundle\Metrics\Metrics;
 use SwooleBundle\SwooleBundle\Metrics\MetricsProvider as CommonMetricsProvider;
 
@@ -31,8 +32,8 @@ final class MetricsProvider implements CommonMetricsProvider
      */
     public function fromMetricsData(array $metricsData): Metrics
     {
-        $date = \DateTimeImmutable::createFromFormat(\DATE_ATOM, $metricsData['date']);
-        Assertion::isInstanceOf($date, \DateTimeImmutable::class);
+        $date = DateTimeImmutable::createFromFormat(DATE_ATOM, $metricsData['date']);
+        Assertion::isInstanceOf($date, DateTimeImmutable::class);
         $serverData = $metricsData['server'];
         $runningSeconds = $date->getTimestamp() - $serverData['start_time'];
         $totaWorkers = $serverData['workers_total'];
@@ -49,7 +50,7 @@ final class MetricsProvider implements CommonMetricsProvider
             $activeWorkers,
             $idleWorkers,
             $serverData['coroutine_num'],
-            $serverData['tasking_num'],
+            $serverData['tasking_num']
         );
     }
 }

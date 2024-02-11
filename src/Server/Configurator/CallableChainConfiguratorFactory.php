@@ -9,12 +9,15 @@ use SwooleBundle\SwooleBundle\Component\GeneratedCollection;
 
 final class CallableChainConfiguratorFactory
 {
-    public function make(iterable $configuratorCollection, ConfiguratorInterface ...$configurators): CallableChainConfigurator
+    /**
+     * @param iterable<Configurator> $configuratorCollection
+     */
+    public function make(iterable $configuratorCollection, Configurator ...$configurators): CallableChainConfigurator
     {
         return new CallableChainConfigurator(
             (new GeneratedCollection($configuratorCollection, ...$configurators))
-                ->map(function ($configurator): callable {
-                    Assertion::isInstanceOf($configurator, ConfiguratorInterface::class);
+                ->map(static function ($configurator): callable {
+                    Assertion::isInstanceOf($configurator, Configurator::class);
 
                     return $configurator->configure(...);
                 })

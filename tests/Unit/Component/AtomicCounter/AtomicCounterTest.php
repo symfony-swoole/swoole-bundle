@@ -7,7 +7,7 @@ namespace SwooleBundle\SwooleBundle\Tests\Unit\Component\AtomicCounter;
 use PHPUnit\Framework\TestCase;
 use SwooleBundle\SwooleBundle\Component\AtomicCounter;
 
-class AtomicCounterTest extends TestCase
+final class AtomicCounterTest extends TestCase
 {
     public function testConstructFromZero(): void
     {
@@ -18,12 +18,12 @@ class AtomicCounterTest extends TestCase
     public function testIncrement(): void
     {
         $atomicSpy = new AtomicSpy();
-        self::assertFalse($atomicSpy->incremented);
+        self::assertFalse($atomicSpy->getIncremented());
 
         $counter = new AtomicCounter($atomicSpy);
         $counter->increment();
 
-        self::assertTrue($atomicSpy->incremented);
+        self::assertTrue($atomicSpy->getIncremented());
     }
 
     public function testGet(): void

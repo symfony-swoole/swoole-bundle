@@ -6,17 +6,22 @@ namespace SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony;
 
 use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
 use Doctrine\Bundle\MigrationsBundle\DoctrineMigrationsBundle;
+use Exception;
+use Generator;
 use PixelFederation\DoctrineResettableEmBundle\PixelFederationDoctrineResettableEmBundle;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\SwooleBundle;
-use SwooleBundle\SwooleBundle\Bridge\Symfony\Kernel\CoroutinesSupportingKernelTrait;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Kernel\CoroutinesSupportingKernel;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\CoverageBundle\CoverageBundle;
-use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\DependencyInjection\CompilerPass\OverrideDoctrineCompilerPass;
+use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\DependencyInjection\{
+    CompilerPass\OverrideDoctrineCompilerPass,
+};
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\TestBundle;
 use Symfony\Bundle\FrameworkBundle\FrameworkBundle;
 use Symfony\Bundle\FrameworkBundle\Kernel\MicroKernelTrait;
 use Symfony\Bundle\MonologBundle\MonologBundle;
 use Symfony\Bundle\TwigBundle\TwigBundle;
 use Symfony\Bundle\WebProfilerBundle\WebProfilerBundle;
+use Symfony\Component\Config\Exception\LoaderLoadException;
 use Symfony\Component\Config\Loader\LoaderInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpFoundation\Request;
@@ -25,10 +30,10 @@ use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\HttpKernel\Kernel;
 use Symfony\Component\Routing\Loader\Configurator\RoutingConfigurator;
 
-class TestAppKernel extends Kernel
+final class TestAppKernel extends Kernel
 {
     use MicroKernelTrait;
-    use CoroutinesSupportingKernelTrait;
+    use CoroutinesSupportingKernel;
 
     private const CONFIG_EXTENSIONS = '.{php,xml,yaml,yml}';
 
@@ -42,27 +47,27 @@ class TestAppKernel extends Kernel
 
     public function __construct(string $environment, bool $debug, ?string $overrideProdEnv = null)
     {
-        if ('_cov' === \mb_substr($environment, -4, 4)) {
-            $environment = \mb_substr($environment, 0, -4);
+        if (mb_substr($environment, -4, 4) === '_cov') {
+            $environment = mb_substr($environment, 0, -4);
             $this->coverageEnabled = true;
-        } elseif ('cov' === $environment) {
+        } elseif ($environment === 'cov') {
             $this->coverageEnabled = true;
         } else {
             $this->coverageEnabled = false;
         }
 
-        if ('profiler' === $environment) {
+        if ($environment === 'profiler') {
             $this->profilerEnabled = true;
         }
 
         $enableSessionCache = false;
 
-        if ('_http_cache' === \mb_substr($environment, -11, 11)) {
-            $environment = \mb_substr($environment, 0, -11);
+        if (mb_substr($environment, -11, 11) === '_http_cache') {
+            $environment = mb_substr($environment, 0, -11);
             $enableSessionCache = true;
         }
 
-        if (null !== $overrideProdEnv) {
+        if ($overrideProdEnv !== null) {
             $overrideProdEnv = trim($overrideProdEnv);
         }
 
@@ -70,22 +75,24 @@ class TestAppKernel extends Kernel
 
         parent::__construct($environment, $debug);
 
-        if ($enableSessionCache) {
-            $this->cacheKernel = new TestCacheKernel($this);
+        if (!$enableSessionCache) {
+            return;
         }
+
+        $this->cacheKernel = new TestCacheKernel($this);
     }
 
     public function getCacheDir(): string
     {
-        return $this->getVarDir().'/cache/'.$this->environment;
+        return $this->getVarDir() . '/cache/' . $this->environment;
     }
 
     public function getLogDir(): string
     {
-        return $this->getVarDir().'/log';
+        return $this->getVarDir() . '/log';
     }
 
-    public function registerBundles(): \Generator
+    public function registerBundles(): Generator
     {
         yield new FrameworkBundle();
         yield new TwigBundle();
@@ -100,20 +107,25 @@ class TestAppKernel extends Kernel
             yield new CoverageBundle();
         }
 
-        if ($this->profilerEnabled) {
-            yield new WebProfilerBundle();
+        if (!$this->profilerEnabled) {
+            return;
         }
+
+        yield new WebProfilerBundle();
     }
 
     public function getProjectDir(): string
     {
-        return __DIR__.'/app';
+        return __DIR__ . '/app';
     }
 
-    public function handle(Request $request, int $type = HttpKernelInterface::MAIN_REQUEST, bool $catch = true): Response
-    {
+    public function handle(
+        Request $request,
+        int $type = HttpKernelInterface::MAIN_REQUEST,
+        bool $catch = true,
+    ): Response {
         // Use CacheKernel if available.
-        if (null !== $this->cacheKernel) {
+        if ($this->cacheKernel !== null) {
             // Prevent endless loop. Unset $this->cacheKernel, handle the request and then restore it.
             $cacheKernel = $this->cacheKernel;
             $this->cacheKernel = null;
@@ -140,11 +152,9 @@ class TestAppKernel extends Kernel
     }
 
     /**
-     * @param RoutingConfigurator $routes
-     *
-     * @throws \Symfony\Component\Config\Exception\LoaderLoadException
+     * @throws LoaderLoadException
      */
-    protected function configureRoutes($routes): void
+    protected function configureRoutes(RoutingConfigurator $routes): void
     {
         $routingFile = 'routing.php';
 
@@ -152,31 +162,33 @@ class TestAppKernel extends Kernel
             $routingFile = 'routing_54.php';
         }
 
-        $routes->import($this->getProjectDir().'/'.$routingFile);
+        $routes->import($this->getProjectDir() . '/' . $routingFile);
 
-        $envRoutingFile = $this->getProjectDir().'/config/'.$this->environment.'/routing/routing.php';
+        $envRoutingFile = $this->getProjectDir() . '/config/' . $this->environment . '/routing/routing.php';
 
-        if (\file_exists($envRoutingFile)) {
-            $routes->import($envRoutingFile);
+        if (!file_exists($envRoutingFile)) {
+            return;
         }
+
+        $routes->import($envRoutingFile);
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
-    protected function configureContainer(ContainerBuilder $c, LoaderInterface $loader): void
+    protected function configureContainer(ContainerBuilder $container, LoaderInterface $loader): void
     {
-        $c->setParameter('bundle.root_dir', \dirname(__DIR__, 3));
+        $container->setParameter('bundle.root_dir', dirname(__DIR__, 3));
 
-        $confDir = $this->getProjectDir().'/config';
+        $confDir = $this->getProjectDir() . '/config';
 
-        $loader->load($confDir.'/*'.self::CONFIG_EXTENSIONS, 'glob');
-        if (\is_dir($confDir.'/'.$this->environment)) {
-            $loader->load($confDir.'/'.$this->environment.'/*'.self::CONFIG_EXTENSIONS, 'glob');
+        $loader->load($confDir . '/*' . self::CONFIG_EXTENSIONS, 'glob');
+        if (is_dir($confDir . '/' . $this->environment)) {
+            $loader->load($confDir . '/' . $this->environment . '/*' . self::CONFIG_EXTENSIONS, 'glob');
         }
 
-        if ($this->coverageEnabled && 'cov' !== $this->environment) {
-            $loader->load($confDir.'/cov/**/*'.self::CONFIG_EXTENSIONS, 'glob');
+        if ($this->coverageEnabled && $this->environment !== 'cov') {
+            $loader->load($confDir . '/cov/**/*' . self::CONFIG_EXTENSIONS, 'glob');
         }
 
         $this->loadOverrideForProdEnvironment($confDir, $loader);
@@ -184,12 +196,12 @@ class TestAppKernel extends Kernel
 
     private function getVarDir(): string
     {
-        return $this->getProjectDir().'/var';
+        return $this->getProjectDir() . '/var';
     }
 
     private function loadOverrideForProdEnvironment(string $confDir, LoaderInterface $loader): void
     {
-        if ('prod' !== $this->environment) {
+        if ($this->environment !== 'prod') {
             return;
         }
 
@@ -199,6 +211,6 @@ class TestAppKernel extends Kernel
             return;
         }
 
-        $loader->load($envPackageConfigurationDir.'/*'.self::CONFIG_EXTENSIONS, 'glob');
+        $loader->load($envPackageConfigurationDir . '/*' . self::CONFIG_EXTENSIONS, 'glob');
     }
 }

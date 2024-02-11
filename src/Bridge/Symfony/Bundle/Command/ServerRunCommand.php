@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\Command;
 
-final class ServerRunCommand extends AbstractServerStartCommand
+final class ServerRunCommand extends ServerExecutionCommand
 {
     protected function configure(): void
     {

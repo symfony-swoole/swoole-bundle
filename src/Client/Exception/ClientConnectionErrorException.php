@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Client\Exception;
 
+use RuntimeException;
+
 /**
  * @internal
  */
-final class ClientConnectionErrorException extends \RuntimeException
+final class ClientConnectionErrorException extends RuntimeException
 {
     public static function failed(int $errorCode): self
     {

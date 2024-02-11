@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\Command;
 
 use Assert\Assertion;
+use Assert\AssertionFailedException;
 use SwooleBundle\SwooleBundle\Client\Exception\ClientConnectionErrorException;
 use SwooleBundle\SwooleBundle\Coroutine\CoroutinePool;
 use SwooleBundle\SwooleBundle\Metrics\MetricsProvider;
@@ -17,7 +18,11 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
+use Throwable;
 
+/**
+ * @phpstan-import-type MetricsShape from MetricsProvider
+ */
 final class ServerStatusCommand extends Command
 {
     public function __construct(
@@ -32,14 +37,25 @@ final class ServerStatusCommand extends Command
     protected function configure(): void
     {
         $this->setDescription('Get current status of the Swoole HTTP Server by querying running API Server.')
-            ->addOption('api-host', null, InputOption::VALUE_REQUIRED, 'API Server listens on this host.', $this->parameterBag->get('swoole.http_server.api.host'))
-            ->addOption('api-port', null, InputOption::VALUE_REQUIRED, 'API Server listens on this port.', $this->parameterBag->get('swoole.http_server.api.port'))
-        ;
+            ->addOption(
+                'api-host',
+                null,
+                InputOption::VALUE_REQUIRED,
+                'API Server listens on this host.',
+                $this->parameterBag->get('swoole.http_server.api.host')
+            )
+            ->addOption(
+                'api-port',
+                null,
+                InputOption::VALUE_REQUIRED,
+                'API Server listens on this port.',
+                $this->parameterBag->get('swoole.http_server.api.port')
+            );
     }
 
     /**
-     * @throws \Assert\AssertionFailedException
-     * @throws \Throwable
+     * @throws AssertionFailedException
+     * @throws Throwable
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
@@ -51,17 +67,15 @@ final class ServerStatusCommand extends Command
         $coroutinePool = CoroutinePool::fromCoroutines(
             function () use ($io): void {
                 $status = $this->apiServerClientFactory->newClient()
-                    ->status()
-                ;
+                    ->status();
                 $io->success('Fetched status');
                 $this->showStatus($io, $status);
             },
             function () use ($io): void {
                 $metrics = $this->apiServerClientFactory->newClient()
-                    ->metrics()
-                ;
+                    ->metrics();
                 $io->success('Fetched metrics');
-                $this->showMetrics($io, $metrics);
+                $this->showMetrics($io, $metrics); /** @phpstan-ignore-line */
             },
         );
 
@@ -76,7 +90,7 @@ final class ServerStatusCommand extends Command
     }
 
     /**
-     * @throws \Assert\AssertionFailedException
+     * @throws AssertionFailedException
      */
     protected function prepareClientConfiguration(InputInterface $input): void
     {
@@ -92,6 +106,31 @@ final class ServerStatusCommand extends Command
         $this->sockets->changeApiSocket(new Socket($host, (int) $port));
     }
 
+    /**
+     * @param array{
+     *   server: array{
+     *     host: string,
+     *     port: int,
+     *     processes: array{
+     *       master: array{
+     *         pid: int,
+     *       },
+     *       manager: array{
+     *         pid: int,
+     *       },
+     *       worker: array{
+     *         id: int,
+     *         pid: int,
+     *       },
+     *     },
+     *     runningMode: string,
+     *     listeners: array<string, array{
+     *       host: string,
+     *       port: int,
+     *     }>,
+     *   },
+     * } $status
+     */
     private function showStatus(SymfonyStyle $io, array $status): void
     {
         $server = $status['server'];
@@ -116,6 +155,9 @@ final class ServerStatusCommand extends Command
         ], $rows);
     }
 
+    /**
+     * @param MetricsShape $metricsData
+     */
     private function showMetrics(SymfonyStyle $io, array $metricsData): void
     {
         $metrics = $this->metricsProvider->fromMetricsData($metricsData);

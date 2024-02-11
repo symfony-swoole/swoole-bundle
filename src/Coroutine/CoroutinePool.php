@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace SwooleBundle\SwooleBundle\Coroutine;
 
 use Assert\Assertion;
+use Closure;
 use Swoole\Coroutine;
 use Swoole\Coroutine\Channel;
 use Swoole\Coroutine\Scheduler;
+use Throwable;
 
 /**
  * @internal
@@ -27,7 +29,7 @@ final class CoroutinePool
     private array $results = [];
 
     /**
-     * @var array<\Throwable>
+     * @var array<Throwable>
      */
     private array $exceptions = [];
 
@@ -35,10 +37,10 @@ final class CoroutinePool
 
     public function __construct(
         private readonly Channel $resultsChannel,
-        callable ...$coroutines
+        callable ...$coroutines,
     ) {
         $this->coroutines = $coroutines;
-        $this->coroutinesCount = \count($coroutines);
+        $this->coroutinesCount = count($coroutines);
     }
 
     public static function fromCoroutines(callable ...$coroutines): self
@@ -48,13 +50,15 @@ final class CoroutinePool
 
     /**
      * Blocks until all coroutines have been finished.
+     *
+     * @return array<mixed>
      */
     public function run(): array
     {
         $this->start();
 
         // TODO: Create parent exception containing all child exceptions and throw it instead
-        if (\count($this->exceptions) > 0) {
+        if (count($this->exceptions) > 0) {
             throw $this->exceptions[0];
         }
 
@@ -96,26 +100,26 @@ final class CoroutinePool
         $scheduler->start();
     }
 
-    private function makeGatherResults(): \Closure
+    private function makeGatherResults(): Closure
     {
         return function (): void {
             while ($this->coroutinesCount > 0) {
                 $result = $this->resultsChannel->pop(-1);
-                $outputName = $result instanceof \Throwable ? 'exceptions' : 'results';
+                $outputName = $result instanceof Throwable ? 'exceptions' : 'results';
                 $this->{$outputName}[] = $result;
                 --$this->coroutinesCount;
             }
         };
     }
 
-    private function wrapCoroutine(Channel $resultChannel, callable $coroutine): \Closure
+    private function wrapCoroutine(Channel $resultChannel, callable $coroutine): Closure
     {
         return static function () use ($resultChannel, $coroutine): void {
             $result = null;
 
             try {
                 $result = $coroutine() ?? true;
-            } catch (\Throwable $exception) {
+            } catch (Throwable $exception) {
                 $result = $exception;
             }
             $resultChannel->push($result);
@@ -124,6 +128,6 @@ final class CoroutinePool
 
     private static function isInCoroutineContext(): bool
     {
-        return -1 !== Coroutine::getCid();
+        return Coroutine::getCid() !== -1;
     }
 }

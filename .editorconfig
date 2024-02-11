@@ -17,6 +17,11 @@ insert_final_newline = false
 [*.{yml,yaml,json}]
 indent_size = 2
 
+[*.{xml,xsd}]
+max_line_length=off
+indent_size=2
+tab_width=2
+
 [composer.json]
 indent_size = 4
 

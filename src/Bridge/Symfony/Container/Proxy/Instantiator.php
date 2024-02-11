@@ -8,23 +8,16 @@ use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\ServicePool\ServicePool;
 
 final class Instantiator
 {
-    public function __construct(private readonly Generator $proxyGenerator)
-    {
-    }
+    public function __construct(private readonly Generator $proxyGenerator) {}
 
     /**
      * @template RealObjectType of object
-     *
-     * @param ServicePool<RealObjectType>  $servicePool
+     * @param ServicePool<RealObjectType> $servicePool
      * @param class-string<RealObjectType> $wrappedSvcClass
-     *
      * @return ContextualProxy<RealObjectType>&RealObjectType
      */
     public function newInstance(ServicePool $servicePool, string $wrappedSvcClass): object
     {
-        return $this->proxyGenerator->createProxy(
-            $servicePool,
-            $wrappedSvcClass
-        );
+        return $this->proxyGenerator->createProxy($servicePool, $wrappedSvcClass);
     }
 }

@@ -6,11 +6,16 @@ namespace SwooleBundle\SwooleBundle\Tests\Unit\Server;
 
 use Swoole\Http\Server;
 
-class SwooleHttpServerMock extends Server
+abstract class SwooleHttpServerMock extends Server
 {
-    public $registeredEvent = false;
-    public $registeredEventPair = [];
-    private static $instance;
+    protected bool $registeredEvent = false;
+
+    /**
+     * @var array{0: string, 1: callable}
+     */
+    protected array $registeredEventPair = [];
+
+    private static ?self $instance = null;
 
     private function __construct()
     {
@@ -26,6 +31,19 @@ class SwooleHttpServerMock extends Server
         self::$instance->clean();
 
         return self::$instance;
+    }
+
+    public function registeredEvent(): bool
+    {
+        return $this->registeredEvent;
+    }
+
+    /**
+     * @return array{0: string, 1: callable}
+     */
+    public function registeredEventPair(): array
+    {
+        return $this->registeredEventPair;
     }
 
     private function clean(): void

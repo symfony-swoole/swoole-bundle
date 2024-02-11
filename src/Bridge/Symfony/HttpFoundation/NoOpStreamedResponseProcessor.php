@@ -8,11 +8,9 @@ use Swoole\Http\Response as SwooleResponse;
 use Symfony\Component\HttpFoundation\Response as HttpFoundationResponse;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
-final class NoOpStreamedResponseProcessor implements ResponseProcessorInterface
+final class NoOpStreamedResponseProcessor implements ResponseProcessor
 {
-    public function __construct(private readonly ResponseProcessorInterface $decorated)
-    {
-    }
+    public function __construct(private readonly ResponseProcessor $decorated) {}
 
     public function process(HttpFoundationResponse $httpFoundationResponse, SwooleResponse $swooleResponse): void
     {

@@ -36,7 +36,7 @@ final class FinalClassModifier
 
         $finalMethods = $reflClass->getMethods(ReflectionMethod::IS_PUBLIC | ReflectionMethod::IS_FINAL);
 
-        if (!$reflClass->isFinal() && 0 === count($finalMethods)) {
+        if (!$reflClass->isFinal() && count($finalMethods) === 0) {
             return;
         }
 
@@ -60,7 +60,7 @@ final class FinalClassModifier
     {
         $finalClasses = self::getCachedFinalClasses();
 
-        if (null === $finalClasses) {
+        if ($finalClasses === null) {
             return;
         }
 
@@ -69,6 +69,9 @@ final class FinalClassModifier
         }
     }
 
+    /**
+     * @return array<string>|null
+     */
     private static function getCachedFinalClasses(): ?array
     {
         $item = self::$cache->getItem('class_list');
@@ -87,15 +90,15 @@ final class FinalClassModifier
 
     private static function getCache(?string $cacheDir = null): FilesystemAdapter
     {
-        if (self::$cacheDir === $cacheDir || null === $cacheDir) {
+        if (self::$cacheDir === $cacheDir || $cacheDir === null) {
             return self::$cache;
         }
 
         return self::$cache = new FilesystemAdapter(
             '',
             0,
-            $cacheDir.DIRECTORY_SEPARATOR.ContainerConstants::PARAM_CACHE_FOLDER
-                .DIRECTORY_SEPARATOR.'final_classes'
+            $cacheDir . DIRECTORY_SEPARATOR . ContainerConstants::PARAM_CACHE_FOLDER
+                . DIRECTORY_SEPARATOR . 'final_classes'
         );
     }
 

@@ -9,9 +9,8 @@ final class SleepAndAppend
     public function __construct(
         private readonly string $fileName,
         private readonly int $sleepMs,
-        private readonly string $append
-    ) {
-    }
+        private readonly string $append,
+    ) {}
 
     public function getFileName(): string
     {

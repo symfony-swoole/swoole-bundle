@@ -5,12 +5,16 @@ declare(strict_types=1);
 namespace SwooleBundle\SwooleBundle\Bridge\Monolog;
 
 use Composer\InstalledVersions;
+use Exception;
+use InvalidArgumentException;
+use LogicException;
 use Monolog\Handler\AbstractProcessingHandler;
 use Monolog\Level;
 use Monolog\Logger;
 use Monolog\LogRecord;
 use Monolog\Utils;
 use SwooleBundle\SwooleBundle\Component\Locking\Mutex;
+use UnexpectedValueException;
 
 /*
  * This is an override of the original class from Monolog
@@ -19,27 +23,35 @@ use SwooleBundle\SwooleBundle\Component\Locking\Mutex;
  * Also, there is a mutex for setting and restoring error handlers, just to be sure, that nothing breaks.
  */
 if (version_compare(InstalledVersions::getVersion('monolog/monolog'), '3.0.0') >= 0) {
-    class StreamHandler extends AbstractProcessingHandler
+    final class StreamHandler extends AbstractProcessingHandler
     {
         protected const MAX_CHUNK_SIZE = 2_147_483_647;
+
         /** 10MB */
         protected const DEFAULT_CHUNK_SIZE = 10 * 1024 * 1024;
+
         protected int $streamChunkSize;
-        /** @var null|resource */
+
+        /**
+         * @var resource|null
+         */
         protected $stream;
         protected string|null $url = null;
         private string|null $errorMessage = null;
-        /** @var null|true */
+
+        /**
+         * @var true|null
+         */
         private bool|null $dirCreated = null;
 
         private Mutex $mutex;
 
         /**
-         * @param resource|string $stream         If a missing path can't be created, an UnexpectedValueException will be thrown on first write
-         * @param null|int        $filePermission Optional file permissions (default (0644) are only for owner read/write)
-         * @param bool            $useLocking     Try to lock log file before doing any writes
-         *
-         * @throws \InvalidArgumentException If stream is not a resource or string
+         * @param resource|string $stream If a missing path can't be created, an UnexpectedValueException will be
+         * thrown on first write
+         * @param int|null $filePermission Optional file permissions (default (0644) are only for owner read/write)
+         * @param bool $useLocking Try to lock log file before doing any writes
+         * @throws InvalidArgumentException If stream is not a resource or string
          */
         public function __construct(
             $stream,
@@ -53,14 +65,14 @@ if (version_compare(InstalledVersions::getVersion('monolog/monolog'), '3.0.0') >
             if (($phpMemoryLimit = Utils::expandIniShorthandBytes(ini_get('memory_limit'))) !== false) {
                 if ($phpMemoryLimit > 0) {
                     // use max 10% of allowed memory for the chunk size, and at least 100KB
-                    $this->streamChunkSize = min(static::MAX_CHUNK_SIZE, max((int) ($phpMemoryLimit / 10), 100 * 1024));
+                    $this->streamChunkSize = min(self::MAX_CHUNK_SIZE, max((int) ($phpMemoryLimit / 10), 100 * 1024));
                 } else {
                     // memory is unlimited, set to the default 10MB
-                    $this->streamChunkSize = static::DEFAULT_CHUNK_SIZE;
+                    $this->streamChunkSize = self::DEFAULT_CHUNK_SIZE;
                 }
             } else {
                 // no memory limit information, set to the default 10MB
-                $this->streamChunkSize = static::DEFAULT_CHUNK_SIZE;
+                $this->streamChunkSize = self::DEFAULT_CHUNK_SIZE;
             }
 
             if (is_resource($stream)) {
@@ -70,13 +82,13 @@ if (version_compare(InstalledVersions::getVersion('monolog/monolog'), '3.0.0') >
             } elseif (is_string($stream)) {
                 $this->url = Utils::canonicalizePath($stream);
             } else {
-                throw new \InvalidArgumentException('A stream must either be a resource or a string.');
+                throw new InvalidArgumentException('A stream must either be a resource or a string.');
             }
         }
 
         public function close(): void
         {
-            if (null !== $this->url && is_resource($this->stream)) {
+            if ($this->url !== null && is_resource($this->stream)) {
                 fclose($this->stream);
             }
             $this->stream = null;
@@ -86,7 +98,7 @@ if (version_compare(InstalledVersions::getVersion('monolog/monolog'), '3.0.0') >
         /**
          * Return the currently active stream if it is open.
          *
-         * @return null|resource
+         * @return resource|null
          */
         public function getStream()
         {
@@ -122,8 +134,12 @@ if (version_compare(InstalledVersions::getVersion('monolog/monolog'), '3.0.0') >
         {
             if (!is_resource($this->stream)) {
                 $url = $this->url;
-                if (null === $url || '' === $url) {
-                    throw new \LogicException('Missing stream url, the stream can not be opened. This may be caused by a premature call to close().'.Utils::getRecordMessageForException($record));
+                if ($url === null || $url === '') {
+                    throw new LogicException(
+                        'Missing stream url, the stream can not be opened. This may be caused by a premature call to close().' . Utils::getRecordMessageForException(
+                            $record
+                        )
+                    );
                 }
                 $this->createDir($url);
                 $this->errorMessage = null;
@@ -132,7 +148,7 @@ if (version_compare(InstalledVersions::getVersion('monolog/monolog'), '3.0.0') >
                     $this->mutex->acquire();
                     set_error_handler($this->customErrorHandler(...));
                     $stream = fopen($url, 'a');
-                    if (null !== $this->filePermission) {
+                    if ($this->filePermission !== null) {
                         @chmod($url, $this->filePermission);
                     }
                     restore_error_handler();
@@ -143,7 +159,14 @@ if (version_compare(InstalledVersions::getVersion('monolog/monolog'), '3.0.0') >
                 if (!is_resource($stream)) {
                     $this->stream = null;
 
-                    throw new \UnexpectedValueException(sprintf('The stream or file "%s" could not be opened in append mode: '.$this->errorMessage, $url).Utils::getRecordMessageForException($record));
+                    throw new UnexpectedValueException(
+                        sprintf(
+                            'The stream or file "%s" could not be opened in append mode: ' . $this->errorMessage,
+                            $url
+                        ) . Utils::getRecordMessageForException(
+                            $record
+                        )
+                    );
                 }
                 stream_set_chunk_size($stream, $this->streamChunkSize);
                 $this->stream = $stream;
@@ -157,9 +180,11 @@ if (version_compare(InstalledVersions::getVersion('monolog/monolog'), '3.0.0') >
 
             $this->streamWrite($stream, $record);
 
-            if ($this->useLocking) {
-                flock($stream, LOCK_UN);
+            if (!$this->useLocking) {
+                return;
             }
+
+            flock($stream, LOCK_UN);
         }
 
         /**
@@ -175,7 +200,7 @@ if (version_compare(InstalledVersions::getVersion('monolog/monolog'), '3.0.0') >
         private function getDirFromStream(string $stream): ?string
         {
             $pos = strpos($stream, '://');
-            if (false === $pos) {
+            if ($pos === false) {
                 return dirname($stream);
             }
 
@@ -189,12 +214,12 @@ if (version_compare(InstalledVersions::getVersion('monolog/monolog'), '3.0.0') >
         private function createDir(string $url): void
         {
             // Do not try to create dir if it has already been tried.
-            if (true === $this->dirCreated) {
+            if ($this->dirCreated === true) {
                 return;
             }
 
             $dir = $this->getDirFromStream($url);
-            if (null !== $dir && !is_dir($dir)) {
+            if ($dir !== null && !is_dir($dir)) {
                 $this->errorMessage = null;
 
                 try {
@@ -206,8 +231,13 @@ if (version_compare(InstalledVersions::getVersion('monolog/monolog'), '3.0.0') >
                     $this->mutex->release();
                 }
 
-                if (false === $status && !is_dir($dir) && !str_contains((string) $this->errorMessage, 'File exists')) {
-                    throw new \UnexpectedValueException(sprintf('There is no existing directory at "%s" and it could not be created: '.$this->errorMessage, $dir));
+                if ($status === false && !is_dir($dir) && !str_contains((string) $this->errorMessage, 'File exists')) {
+                    throw new UnexpectedValueException(
+                        sprintf(
+                            'There is no existing directory at "%s" and it could not be created: ' . $this->errorMessage,
+                            $dir
+                        )
+                    );
                 }
             }
             $this->dirCreated = true;
@@ -220,54 +250,79 @@ if (version_compare(InstalledVersions::getVersion('monolog/monolog'), '3.0.0') >
      * Can be used to store into php://stderr, remote and local files, etc.
      *
      * @author Jordi Boggiano <j.boggiano@seld.be>
-     *
      * @phpstan-import-type FormattedRecord from AbstractProcessingHandler
      */
-    class StreamHandler extends AbstractProcessingHandler
+    final class StreamHandler extends AbstractProcessingHandler
     {
         /** @const int */
         protected const MAX_CHUNK_SIZE = 2_147_483_647;
+
         /** @const int 10MB */
         protected const DEFAULT_CHUNK_SIZE = 10 * 1024 * 1024;
-        /** @var int */
+
+        /**
+         * @var int
+         */
         protected $streamChunkSize;
-        /** @var null|resource */
+
+        /**
+         * @var resource|null
+         */
         protected $stream;
-        /** @var ?string */
+
+        /**
+         * @var ?string
+         */
         protected $url;
-        /** @var ?int */
+
+        /**
+         * @var ?int
+         */
         protected $filePermission;
-        /** @var bool */
+
+        /**
+         * @var bool
+         */
         protected $useLocking;
-        /** @var ?string */
+
+        /**
+         * @var ?string
+         */
         private $errorMessage;
-        /** @var null|true */
+
+        /**
+         * @var true|null
+         */
         private $dirCreated;
 
         private Mutex $mutex;
 
         /**
-         * @param resource|string $stream         If a missing path can't be created, an UnexpectedValueException will be thrown on first write
-         * @param null|int        $filePermission Optional file permissions (default (0644) are only for owner read/write)
-         * @param bool            $useLocking     Try to lock log file before doing any writes
-         *
-         * @throws \InvalidArgumentException If stream is not a resource or string
+         * @param resource|string $stream If a missing path can't be created, an UnexpectedValueException will be thrown on first write
+         * @param int|null $filePermission Optional file permissions (default (0644) are only for owner read/write)
+         * @param bool $useLocking Try to lock log file before doing any writes
+         * @throws InvalidArgumentException If stream is not a resource or string
          */
-        public function __construct($stream, $level = Logger::DEBUG, bool $bubble = true, ?int $filePermission = null, bool $useLocking = false)
-        {
+        public function __construct(
+            $stream,
+            $level = Logger::DEBUG,
+            bool $bubble = true,
+            ?int $filePermission = null,
+            bool $useLocking = false,
+        ) {
             parent::__construct($level, $bubble);
 
             if (($phpMemoryLimit = Utils::expandIniShorthandBytes(ini_get('memory_limit'))) !== false) {
                 if ($phpMemoryLimit > 0) {
                     // use max 10% of allowed memory for the chunk size, and at least 100KB
-                    $this->streamChunkSize = min(static::MAX_CHUNK_SIZE, max((int) ($phpMemoryLimit / 10), 100 * 1024));
+                    $this->streamChunkSize = min(self::MAX_CHUNK_SIZE, max((int) ($phpMemoryLimit / 10), 100 * 1024));
                 } else {
                     // memory is unlimited, set to the default 10MB
-                    $this->streamChunkSize = static::DEFAULT_CHUNK_SIZE;
+                    $this->streamChunkSize = self::DEFAULT_CHUNK_SIZE;
                 }
             } else {
                 // no memory limit information, set to the default 10MB
-                $this->streamChunkSize = static::DEFAULT_CHUNK_SIZE;
+                $this->streamChunkSize = self::DEFAULT_CHUNK_SIZE;
             }
 
             if (is_resource($stream)) {
@@ -277,7 +332,7 @@ if (version_compare(InstalledVersions::getVersion('monolog/monolog'), '3.0.0') >
             } elseif (is_string($stream)) {
                 $this->url = Utils::canonicalizePath($stream);
             } else {
-                throw new \InvalidArgumentException('A stream must either be a resource or a string.');
+                throw new InvalidArgumentException('A stream must either be a resource or a string.');
             }
 
             $this->filePermission = $filePermission;
@@ -296,7 +351,7 @@ if (version_compare(InstalledVersions::getVersion('monolog/monolog'), '3.0.0') >
         /**
          * Return the currently active stream if it is open.
          *
-         * @return null|resource
+         * @return resource|null
          */
         public function getStream()
         {
@@ -332,8 +387,12 @@ if (version_compare(InstalledVersions::getVersion('monolog/monolog'), '3.0.0') >
         {
             if (!is_resource($this->stream)) {
                 $url = $this->url;
-                if (null === $url || '' === $url) {
-                    throw new \LogicException('Missing stream url, the stream can not be opened. This may be caused by a premature call to close().'.Utils::getRecordMessageForException($record));
+                if ($url === null || $url === '') {
+                    throw new LogicException(
+                        'Missing stream url, the stream can not be opened. This may be caused by a premature call to close().' . Utils::getRecordMessageForException(
+                            $record
+                        )
+                    );
                 }
                 $this->createDir($url);
                 $this->errorMessage = null;
@@ -342,7 +401,7 @@ if (version_compare(InstalledVersions::getVersion('monolog/monolog'), '3.0.0') >
                     $this->mutex->acquire();
                     set_error_handler($this->customErrorHandler(...));
                     $stream = fopen($url, 'a');
-                    if (null !== $this->filePermission) {
+                    if ($this->filePermission !== null) {
                         @chmod($url, $this->filePermission);
                     }
                     restore_error_handler();
@@ -352,7 +411,14 @@ if (version_compare(InstalledVersions::getVersion('monolog/monolog'), '3.0.0') >
                 if (!is_resource($stream)) {
                     $this->stream = null;
 
-                    throw new \UnexpectedValueException(sprintf('The stream or file "%s" could not be opened in append mode: '.$this->errorMessage, $url).Utils::getRecordMessageForException($record));
+                    throw new UnexpectedValueException(
+                        sprintf(
+                            'The stream or file "%s" could not be opened in append mode: ' . $this->errorMessage,
+                            $url
+                        ) . Utils::getRecordMessageForException(
+                            $record
+                        )
+                    );
                 }
                 stream_set_chunk_size($stream, $this->streamChunkSize);
                 $this->stream = $stream;
@@ -360,7 +426,7 @@ if (version_compare(InstalledVersions::getVersion('monolog/monolog'), '3.0.0') >
 
             $stream = $this->stream;
             if (!is_resource($stream)) {
-                throw new \LogicException('No stream was opened yet'.Utils::getRecordMessageForException($record));
+                throw new LogicException('No stream was opened yet' . Utils::getRecordMessageForException($record));
             }
 
             if ($this->useLocking) {
@@ -370,16 +436,17 @@ if (version_compare(InstalledVersions::getVersion('monolog/monolog'), '3.0.0') >
 
             $this->streamWrite($stream, $record);
 
-            if ($this->useLocking) {
-                flock($stream, LOCK_UN);
+            if (!$this->useLocking) {
+                return;
             }
+
+            flock($stream, LOCK_UN);
         }
 
         /**
          * Write to stream.
          *
          * @param resource $stream
-         *
          * @phpstan-param FormattedRecord $record
          */
         protected function streamWrite($stream, array $record): void
@@ -390,7 +457,7 @@ if (version_compare(InstalledVersions::getVersion('monolog/monolog'), '3.0.0') >
         private function getDirFromStream(string $stream): ?string
         {
             $pos = strpos($stream, '://');
-            if (false === $pos) {
+            if ($pos === false) {
                 return dirname($stream);
             }
 
@@ -409,7 +476,7 @@ if (version_compare(InstalledVersions::getVersion('monolog/monolog'), '3.0.0') >
             }
 
             $dir = $this->getDirFromStream($url);
-            if (null !== $dir && !is_dir($dir)) {
+            if ($dir !== null && !is_dir($dir)) {
                 $this->errorMessage = null;
 
                 try {
@@ -421,8 +488,13 @@ if (version_compare(InstalledVersions::getVersion('monolog/monolog'), '3.0.0') >
                     $this->mutex->release();
                 }
 
-                if (false === $status && !is_dir($dir) && !str_contains((string) $this->errorMessage, 'File exists')) {
-                    throw new \UnexpectedValueException(sprintf('There is no existing directory at "%s" and it could not be created: '.$this->errorMessage, $dir));
+                if ($status === false && !is_dir($dir) && !str_contains((string) $this->errorMessage, 'File exists')) {
+                    throw new UnexpectedValueException(
+                        sprintf(
+                            'There is no existing directory at "%s" and it could not be created: ' . $this->errorMessage,
+                            $dir
+                        )
+                    );
                 }
             }
             $this->dirCreated = true;
@@ -436,14 +508,19 @@ if (version_compare(InstalledVersions::getVersion('monolog/monolog'), '3.0.0') >
      *
      * @author Jordi Boggiano <j.boggiano@seld.be>
      */
-    class StreamHandler extends AbstractProcessingHandler
+    final class StreamHandler extends AbstractProcessingHandler
     {
-        /** @var null|resource */
+        /**
+         * @var resource|null
+         */
         protected $stream;
         protected $url;
         protected $filePermission;
         protected $useLocking;
-        /** @var null|string */
+
+        /**
+         * @var string|null
+         */
         private $errorMessage;
         private $dirCreated;
 
@@ -451,23 +528,28 @@ if (version_compare(InstalledVersions::getVersion('monolog/monolog'), '3.0.0') >
 
         /**
          * @param resource|string $stream
-         * @param int|string      $level          The minimum logging level at which this handler will be triggered
-         * @param bool            $bubble         Whether the messages that are handled can bubble up the stack or not
-         * @param null|int        $filePermission Optional file permissions (default (0644) are only for owner read/write)
-         * @param bool            $useLocking     Try to lock log file before doing any writes
-         *
-         * @throws \Exception                If a missing directory is not buildable
-         * @throws \InvalidArgumentException If stream is not a resource or string
+         * @param int|string $level The minimum logging level at which this handler will be triggered
+         * @param bool $bubble Whether the messages that are handled can bubble up the stack or not
+         * @param int|null $filePermission Optional file permissions (default (0644) are only for owner read/write)
+         * @param bool $useLocking Try to lock log file before doing any writes
+         * @throws Exception If a missing directory is not buildable
+         * @throws InvalidArgumentException If stream is not a resource or string
          */
-        public function __construct($stream, $level = Logger::DEBUG, bool $bubble = true, ?int $filePermission = null, bool $useLocking = false)
-        {
+        public function __construct(
+            $stream,
+            int|string $level = Logger::DEBUG,
+            bool $bubble = true,
+            ?int $filePermission = null,
+            bool $useLocking = false,
+        ) {
             parent::__construct($level, $bubble);
+
             if (is_resource($stream)) {
                 $this->stream = $stream;
             } elseif (is_string($stream)) {
                 $this->url = $stream;
             } else {
-                throw new \InvalidArgumentException('A stream must either be a resource or a string.');
+                throw new InvalidArgumentException('A stream must either be a resource or a string.');
             }
 
             $this->filePermission = $filePermission;
@@ -486,7 +568,7 @@ if (version_compare(InstalledVersions::getVersion('monolog/monolog'), '3.0.0') >
         /**
          * Return the currently active stream if it is open.
          *
-         * @return null|resource
+         * @return resource|null
          */
         public function getStream()
         {
@@ -509,8 +591,10 @@ if (version_compare(InstalledVersions::getVersion('monolog/monolog'), '3.0.0') >
         protected function write(array $record): void
         {
             if (!is_resource($this->stream)) {
-                if (null === $this->url || '' === $this->url) {
-                    throw new \LogicException('Missing stream url, the stream can not be opened. This may be caused by a premature call to close().');
+                if ($this->url === null || $this->url === '') {
+                    throw new LogicException(
+                        'Missing stream url, the stream can not be opened. This may be caused by a premature call to close().'
+                    );
                 }
                 $this->createDir();
                 $this->errorMessage = null;
@@ -519,7 +603,7 @@ if (version_compare(InstalledVersions::getVersion('monolog/monolog'), '3.0.0') >
                     $this->mutex->acquire();
                     set_error_handler($this->customErrorHandler(...));
                     $this->stream = fopen($this->url, 'a');
-                    if (null !== $this->filePermission) {
+                    if ($this->filePermission !== null) {
                         @chmod($this->url, $this->filePermission);
                     }
                     restore_error_handler();
@@ -529,7 +613,9 @@ if (version_compare(InstalledVersions::getVersion('monolog/monolog'), '3.0.0') >
                 if (!is_resource($this->stream)) {
                     $this->stream = null;
 
-                    throw new \UnexpectedValueException(sprintf('The stream or file "%s" could not be opened: '.$this->errorMessage, $this->url));
+                    throw new UnexpectedValueException(
+                        sprintf('The stream or file "%s" could not be opened: ' . $this->errorMessage, $this->url)
+                    );
                 }
             }
 
@@ -540,9 +626,11 @@ if (version_compare(InstalledVersions::getVersion('monolog/monolog'), '3.0.0') >
 
             $this->streamWrite($this->stream, $record);
 
-            if ($this->useLocking) {
-                flock($this->stream, LOCK_UN);
+            if (!$this->useLocking) {
+                return;
             }
+
+            flock($this->stream, LOCK_UN);
         }
 
         /**
@@ -565,7 +653,7 @@ if (version_compare(InstalledVersions::getVersion('monolog/monolog'), '3.0.0') >
         private function getDirFromStream(string $stream): ?string
         {
             $pos = strpos($stream, '://');
-            if (false === $pos) {
+            if ($pos === false) {
                 return dirname($stream);
             }
 
@@ -584,7 +672,7 @@ if (version_compare(InstalledVersions::getVersion('monolog/monolog'), '3.0.0') >
             }
 
             $dir = $this->getDirFromStream($this->url);
-            if (null !== $dir && !is_dir($dir)) {
+            if ($dir !== null && !is_dir($dir)) {
                 $this->errorMessage = null;
 
                 try {
@@ -595,8 +683,13 @@ if (version_compare(InstalledVersions::getVersion('monolog/monolog'), '3.0.0') >
                 } finally {
                     $this->mutex->release();
                 }
-                if (false === $status && !is_dir($dir)) {
-                    throw new \UnexpectedValueException(sprintf('There is no existing directory at "%s" and its not buildable: '.$this->errorMessage, $dir));
+                if ($status === false && !is_dir($dir)) {
+                    throw new UnexpectedValueException(
+                        sprintf(
+                            'There is no existing directory at "%s" and its not buildable: ' . $this->errorMessage,
+                            $dir
+                        )
+                    );
                 }
             }
             $this->dirCreated = true;

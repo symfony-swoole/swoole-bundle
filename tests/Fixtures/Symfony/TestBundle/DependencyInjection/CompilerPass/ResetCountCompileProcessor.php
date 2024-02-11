@@ -23,7 +23,7 @@ final class ResetCountCompileProcessor implements CompileProcessor
     private function decorateResetter(ContainerBuilder $container, string $resetterId): void
     {
         $formerResetterDef = $container->findDefinition($resetterId);
-        $newId = $resetterId.'.inner';
+        $newId = $resetterId . '.inner';
         $container->setDefinition($newId, $formerResetterDef);
         $counterDef = new Definition();
         $counterDef->setClass(CountingResetter::class);

@@ -8,7 +8,5 @@ use Symfony\Contracts\Service\ResetInterface;
 
 final class UnusedServiceToRemove implements ResetInterface
 {
-    public function reset(): void
-    {
-    }
+    public function reset(): void {}
 }

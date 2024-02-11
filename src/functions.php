@@ -4,15 +4,19 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle;
 
+use Closure;
+use OutOfRangeException;
+use UnexpectedValueException;
+
 /**
  * Replaces object property with provided value.
  * Property may not be public.
  *
- * @param null|string $scope class scope useful when property is inherited
+ * @param string|null $scope class scope useful when property is inherited
  */
 function replace_object_property(object $obj, string $propertyName, mixed $newValue, ?string $scope = null): void
 {
-    \Closure::bind(function (string $propertyName, $newValue): void {
+    Closure::bind(function (string $propertyName, $newValue): void {
         $this->$propertyName = $newValue;
     }, $obj, $scope ?? $obj)($propertyName, $newValue);
 }
@@ -21,12 +25,14 @@ function replace_object_property(object $obj, string $propertyName, mixed $newVa
  * Get object property (even by reference).
  * Property may not be public.
  *
- * @param null|string $scope class scope useful when property is inherited
+ * @param string|null $scope class scope useful when property is inherited
  */
+// phpcs:disable SlevomatCodingStandard.PHP.DisallowReference.DisallowedReturningReference
 function &get_object_property(object $obj, string $propertyName, ?string $scope = null): mixed
 {
-    return \Closure::bind(fn &(string $propertyName) => $this->$propertyName, $obj, $scope ?? $obj)($propertyName);
+    return Closure::bind(fn&(string $propertyName) => $this->$propertyName, $obj, $scope ?? $obj)($propertyName);
 }
+// phpcs:enable
 
 /**
  * @return int bytes
@@ -34,67 +40,66 @@ function &get_object_property(object $obj, string $propertyName, ?string $scope 
 function get_max_memory(): int
 {
     /** @var string $memoryLimit */
-    $memoryLimit = \ini_get('memory_limit');
+    $memoryLimit = ini_get('memory_limit');
 
     // if no limit
-    if ('-1' === $memoryLimit) {
+    if ($memoryLimit === '-1') {
         return 134_217_728; // 128 * 1024 * 1024 default 128mb
     }
     // if set to exact byte
-    if (\is_numeric($memoryLimit)) {
+    if (is_numeric($memoryLimit)) {
         return (int) $memoryLimit;
     }
 
     // if short hand version http://php.net/manual/en/faq.using.php#faq.using.shorthandbytes
-    $shortHandMemoryLimit = (int) \mb_substr($memoryLimit, 0, -1);
+    $shortHandMemoryLimit = (int) mb_substr($memoryLimit, 0, -1);
 
     return $shortHandMemoryLimit * [
         'g' => 1_073_741_824, // 1024 * 1024 * 1024
         'm' => 1_048_576, // 1024 * 1024
         'k' => 1024,
-    ][\mb_strtolower(\mb_substr($memoryLimit, -1))];
+    ][mb_strtolower(mb_substr($memoryLimit, -1))];
 }
 
 function format_bytes(int $bytes): string
 {
     if ($bytes < 0) {
-        throw new \OutOfRangeException('Bytes number cannot be negative.');
+        throw new OutOfRangeException('Bytes number cannot be negative.');
     }
 
     $labels = ['B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB'];
-    $labelsCount = \count($labels) - 1;
+    $labelsCount = count($labels) - 1;
     $i = 0;
     while ($bytes >= 1024 && $i < $labelsCount) {
-        ++$i;
+        $i++;
         $bytes /= 1024;
     }
 
-    return \sprintf('%s %s', (string) \round($bytes, 2), $labels[$i]);
+    return sprintf('%s %s', (string) round($bytes, 2), $labels[$i]);
 }
 
 /**
  * Simple decodes string of values as array.
  *
- * @param string        $separator  set separator
+ * @param string $separator set separator
  * @param array<string> $stripChars characters to be stripped out from string
- *
- * @return string[]
+ * @return array<string>
  */
 function decode_string_as_set(?string $stringSet, string $separator = ',', array $stripChars = ['\'', '[', ']']): array
 {
-    if (null === $stringSet || '' === $stringSet) {
+    if ($stringSet === null || $stringSet === '') {
         return [];
     }
 
-    $stringSet = \str_replace($stripChars, '', $stringSet);
-    $separator = \trim($separator);
+    $stringSet = str_replace($stripChars, '', $stringSet);
+    $separator = trim($separator);
 
-    if ('' === $separator) {
-        throw new \UnexpectedValueException(\sprintf('Invalid separator: \'%s\'.', $separator));
+    if ($separator === '') {
+        throw new UnexpectedValueException(sprintf('Invalid separator: \'%s\'.', $separator));
     }
 
-    /** @var string[] $set */
-    $set = \explode($separator, $stringSet);
+    /** @var array<string> $set */
+    $set = explode($separator, $stringSet);
 
     return $set;
 }

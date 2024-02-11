@@ -19,8 +19,7 @@ return static function (ContainerConfigurator $containerConfigurator): void {
 
     $services->defaults()
         ->autowire()
-        ->autoconfigure()
-    ;
+        ->autoconfigure();
 
     $services->alias('test_bundle.custom.exception_handler', TestCustomExceptionHandler::class);
 

@@ -14,7 +14,7 @@ final class InMemoryLogger
     public static function logMessage(string $message): void
     {
         self::$messages[] = $message;
-        print_r($message.PHP_EOL);
+        print_r($message . PHP_EOL);
     }
 
     /**
@@ -22,8 +22,6 @@ final class InMemoryLogger
      */
     public static function getAndClear(): array
     {
-        $messages = self::$messages;
-
-        return $messages;
+        return self::$messages;
     }
 }

@@ -11,7 +11,7 @@ use Swoole\Server;
  *
  * @see https://www.swoole.co.uk/docs/modules/swoole-server/callback-functions#onfinish
  */
-interface TaskFinishedHandlerInterface
+interface TaskFinishedHandler
 {
     public function handle(Server $server, int $taskId, mixed $data): void;
 }

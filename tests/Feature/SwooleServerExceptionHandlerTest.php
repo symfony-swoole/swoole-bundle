@@ -141,7 +141,11 @@ final class SwooleServerExceptionHandlerTest extends ServerTestCase
             $response2 = $client2->send('/throwable/error')['response'];
             $this->assertSame(500, $response2['statusCode']);
             $this->assertStringContainsString('text/plain', $response2['headers']['content-type']);
-            $this->assertStringContainsString('An unexpected fatal error has occurred. Please report this incident to the administrator of this service.', $response2['body']);
+            $this->assertStringContainsString(
+                'An unexpected fatal error has occurred. '
+                . 'Please report this incident to the administrator of this service.',
+                $response2['body']
+            );
         });
     }
 

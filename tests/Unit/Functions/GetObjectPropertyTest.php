@@ -8,7 +8,7 @@ use PHPUnit\Framework\TestCase;
 
 use function SwooleBundle\SwooleBundle\get_object_property;
 
-class GetObjectPropertyTest extends TestCase
+final class GetObjectPropertyTest extends TestCase
 {
     /**
      * @var TestObject

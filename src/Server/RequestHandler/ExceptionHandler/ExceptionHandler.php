@@ -6,8 +6,9 @@ namespace SwooleBundle\SwooleBundle\Server\RequestHandler\ExceptionHandler;
 
 use Swoole\Http\Request;
 use Swoole\Http\Response;
+use Throwable;
 
-interface ExceptionHandlerInterface
+interface ExceptionHandler
 {
-    public function handle(Request $request, \Throwable $exception, Response $response): void;
+    public function handle(Request $request, Throwable $exception, Response $response): void;
 }

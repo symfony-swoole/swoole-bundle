@@ -26,7 +26,7 @@ final class SymfonyEventsTest extends ServerTestCase
         $serverRun->setTimeout(10);
         $serverRun->start();
 
-        $this->runAsCoroutineAndWait(function (): void {
+        $this->runAsCoroutineAndWait(static function (): void {
             $client = HttpClient::fromDomain('localhost', 9999, false);
             self::assertTrue($client->connect(3, 1, true));
 

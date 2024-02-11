@@ -9,12 +9,12 @@ use SwooleBundle\SwooleBundle\Bridge\Swoole\Swoole;
 use SwooleBundle\SwooleBundle\Bridge\Swoole\WaitGroup;
 use SwooleBundle\SwooleBundle\Common\System\Extension;
 
-class SwooleTest extends TestCase
+final class SwooleTest extends TestCase
 {
     public function testCpuCoresCount(): void
     {
-        if (!\extension_loaded(Extension::SWOOLE)) {
-            self::markTestSkipped(\sprintf('Extension %s is not loaded.', Extension::SWOOLE));
+        if (!extension_loaded(Extension::SWOOLE)) {
+            self::markTestSkipped(sprintf('Extension %s is not loaded.', Extension::SWOOLE));
         }
 
         $swoole = new Swoole();
@@ -25,8 +25,8 @@ class SwooleTest extends TestCase
 
     public function testWaitGroup(): void
     {
-        if (!\extension_loaded(Extension::SWOOLE)) {
-            self::markTestSkipped(\sprintf('Extension %s is not loaded.', Extension::SWOOLE));
+        if (!extension_loaded(Extension::SWOOLE)) {
+            self::markTestSkipped(sprintf('Extension %s is not loaded.', Extension::SWOOLE));
         }
 
         $swoole = new Swoole();

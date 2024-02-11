@@ -31,7 +31,7 @@ final class StreamedResponseListenerPass implements CompilerPassInterface
         $newDefinition->setAutoconfigured(true);
         $newDefinition->addTag('kernel.event_subscriber');
 
-        if (null !== $oldListenerDefinition) {
+        if ($oldListenerDefinition !== null) {
             $newDefinition->setArgument('$delegate', new Reference($oldDefinitionId));
         }
 

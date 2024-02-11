@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Proxy\Generation;
 
+use InvalidArgumentException;
 use Laminas\Code\Generator\ClassGenerator;
 use Laminas\Code\Generator\MethodGenerator;
 use ProxyManager\Exception\InvalidProxiedClassException;
@@ -13,6 +14,7 @@ use ProxyManager\ProxyGenerator\PropertyGenerator\PublicPropertiesMap;
 use ProxyManager\ProxyGenerator\ProxyGeneratorInterface;
 use ProxyManager\ProxyGenerator\Util\Properties;
 use ProxyManager\ProxyGenerator\Util\ProxiedMethodsFilter;
+use ReflectionClass;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Proxy\ContextualProxy;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Proxy\Generation\MethodGenerator\GetWrappedServicePoolValue;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Proxy\Generation\MethodGenerator\MagicGet;
@@ -23,21 +25,17 @@ use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Proxy\Generation\Property
 /**
  * Generator for proxies with service pool.
  */
-class ContextualAccessForwarderGenerator implements ProxyGeneratorInterface
+final class ContextualAccessForwarderGenerator implements ProxyGeneratorInterface
 {
-    public function __construct(private readonly MethodForwarderBuilder $forwarderBuilder)
-    {
-    }
+    public function __construct(private readonly MethodForwarderBuilder $forwarderBuilder) {}
 
     /**
      * @template T of object
-     *
-     * @param \ReflectionClass<T> $originalClass
-     *
-     * @throws \InvalidArgumentException
+     * @param ReflectionClass<T> $originalClass
+     * @throws InvalidArgumentException
      * @throws InvalidProxiedClassException
      */
-    public function generate(\ReflectionClass $originalClass, ClassGenerator $classGenerator): void
+    public function generate(ReflectionClass $originalClass, ClassGenerator $classGenerator): void
     {
         CanProxyAssertion::assertClassCanBeProxied($originalClass);
 

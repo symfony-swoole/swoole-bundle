@@ -18,17 +18,15 @@ final class FirstTimeOnlyMutex implements Mutex
 
     private int $waitingCount = 0;
 
-    public function __construct(private ?Mutex $wrapped)
-    {
-    }
+    public function __construct(private ?Mutex $wrapped) {}
 
     public function acquire(): void
     {
-        if (self::RELEASED === $this->lockState) {
+        if ($this->lockState === self::RELEASED) {
             return;
         }
 
-        if (self::NEW === $this->lockState) {
+        if ($this->lockState === self::NEW) {
             $this->lockState = self::LOCKED;
         } else {
             ++$this->waitingCount;
@@ -39,7 +37,7 @@ final class FirstTimeOnlyMutex implements Mutex
 
     public function release(): void
     {
-        if (self::RELEASED === $this->lockState) {
+        if ($this->lockState === self::RELEASED) {
             return;
         }
 
@@ -53,6 +51,6 @@ final class FirstTimeOnlyMutex implements Mutex
 
     public function isAcquired(): bool
     {
-        return null !== $this->wrapped && $this->wrapped->isAcquired();
+        return $this->wrapped !== null && $this->wrapped->isAcquired();
     }
 }

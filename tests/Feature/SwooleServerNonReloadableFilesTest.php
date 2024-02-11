@@ -39,11 +39,12 @@ final class SwooleServerNonReloadableFilesTest extends ServerTestCase
             $this->assertHelloWorldRequestSucceeded($client);
         });
 
-        $nonReloadableFiles = $this->getVarDirectoryPath().'/cache/'.$env.'/swoole_bundle/nonReloadableFiles.txt';
-        $nonReloadableAppFiles = $this->getVarDirectoryPath().'/cache/'.$env.'/swoole_bundle/nonReloadableAppFiles.txt';
+        $nonReloadableFiles = $this->getVarDirectoryPath() . '/cache/' . $env . '/swoole_bundle/nonReloadableFiles.txt';
+        $nonReloadableAppFiles = $this->getVarDirectoryPath() . '/cache/' . $env
+            . '/swoole_bundle/nonReloadableAppFiles.txt';
         $this->assertFileExists($nonReloadableFiles);
         $this->assertFileExists($nonReloadableAppFiles);
-        $this->assertNotEmpty(\file_get_contents($nonReloadableFiles));
-        $this->assertNotEmpty(\file_get_contents($nonReloadableAppFiles));
+        $this->assertNotEmpty(file_get_contents($nonReloadableFiles));
+        $this->assertNotEmpty(file_get_contents($nonReloadableAppFiles));
     }
 }

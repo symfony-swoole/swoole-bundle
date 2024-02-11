@@ -18,8 +18,8 @@ final class CoWrapper
 
     public function defer(): void
     {
-        \Co::defer(function (): void {
-            $this->servicePoolContainer->releaseFromCoroutine(\Co::getCid());
+        Co::defer(function (): void {
+            $this->servicePoolContainer->releaseFromCoroutine(Co::getCid());
         });
     }
 
@@ -39,7 +39,7 @@ final class CoWrapper
 
     private static function getInstance(): self
     {
-        if (null === self::$instance) {
+        if (self::$instance === null) {
             throw UsageBeforeInitialization::notInitializedYet();
         }
 

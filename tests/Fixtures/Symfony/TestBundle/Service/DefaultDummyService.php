@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Service;
 
 use Doctrine\ORM\EntityManagerInterface;
+use InvalidArgumentException;
 use Ramsey\Uuid\UuidFactoryInterface;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Entity\Test;
 use Symfony\Contracts\Service\ResetInterface;
+use UnexpectedValueException;
 
 final class DefaultDummyService implements ResetInterface, DummyService
 {
@@ -16,16 +18,15 @@ final class DefaultDummyService implements ResetInterface, DummyService
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
         private readonly UuidFactoryInterface $uuidFactory,
-        private readonly RepositoryFactory $factory
+        private readonly RepositoryFactory $factory,
     ) {
         $this->tmpRepository = $this->factory->newInstance();
     }
 
     /**
-     * @throws \InvalidArgumentException
-     * @throws \UnexpectedValueException
-     *
-     * @return Test[]
+     * @return array<Test>
+     * @throws InvalidArgumentException
+     * @throws UnexpectedValueException
      */
     public function process(): array
     {

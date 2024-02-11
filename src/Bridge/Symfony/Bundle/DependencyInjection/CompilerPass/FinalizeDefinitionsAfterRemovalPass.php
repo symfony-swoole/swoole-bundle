@@ -31,7 +31,8 @@ final class FinalizeDefinitionsAfterRemovalPass implements CompilerPassInterface
      * when using coroutines, all resettable services need to be instantiated on first reset, because otherwise,
      * it would be possible for a coroutine to acquire them not resetted in the scenario described below.
      *
-     * 1) coroutine 1 starts, service reset runs but the resettable service is not instantiated yet, so there is no reset
+     * 1) coroutine 1 starts, service reset runs but the resettable service is not instantiated yet,
+     *    so there is no reset
      * 2) coroutine 2 starts in the same manner
      * 3) coroutine 1 needs the service so it instantiates the service pool
      * 4) coroutine 1 uses the stateful service and returns it to the service pool (not resetted)
@@ -39,9 +40,11 @@ final class FinalizeDefinitionsAfterRemovalPass implements CompilerPassInterface
      *    in coroutine 1 (which still is not resetted and coroutine 2 is already after the reset phase)
      * 6) coroutine 2 uses the not resetted service with state remembered from the other coroutine
      *
-     * the instantiation on first reset is forced by using the RUNTIME_EXCEPTION_ON_INVALID_REFERENCE in service reference
+     * the instantiation on first reset is forced by using the RUNTIME_EXCEPTION_ON_INVALID_REFERENCE
+     * in service reference
      *
-     * all this is only happening for resetters that are global and which have not been changed to service pool resetters
+     * all this is only happening for resetters that are global and which have not been changed
+     * to service pool resetters
      */
     private function makeResettableServicesActive(ContainerBuilder $container): void
     {
@@ -61,7 +64,10 @@ final class FinalizeDefinitionsAfterRemovalPass implements CompilerPassInterface
                 continue;
             }
 
-            $newReferences[$key] = new Reference((string) $reference, ContainerInterface::RUNTIME_EXCEPTION_ON_INVALID_REFERENCE);
+            $newReferences[$key] = new Reference(
+                (string) $reference,
+                ContainerInterface::RUNTIME_EXCEPTION_ON_INVALID_REFERENCE
+            );
         }
 
         $resetters->setValues($newReferences);

@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Controller;
 
 use Doctrine\DBAL\Connection;
+use Exception;
+use ReflectionClass;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Proxy\ContextualProxy;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\ServicePool\BaseServicePool;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\ServicePool\ServicePoolContainer;
@@ -33,22 +35,18 @@ final class SleepController
         private readonly DummyService $dummyService,
         private readonly Connection $connection,
         private readonly ContainerInterface $container,
-        private readonly ServicePoolContainer $servicePoolContainer
-    ) {
-    }
+        private readonly ServicePoolContainer $servicePoolContainer,
+    ) {}
 
     /**
      * @RouteAnnotation(
      *     methods={"GET"},
      *     path="/sleep"
      * )
-     *
-     * @throws \Exception
-     *
-     * @return Response
+     * @throws Exception
      */
     #[Route(path: '/sleep', methods: ['GET'])]
-    public function index()
+    public function index(): Response
     {
         $firstCount = $this->servicePoolContainer->count();
         $this->nonShared[] = $this->container->get(NonSharedExample::class);
@@ -64,7 +62,7 @@ final class SleepController
         $isProxified2 = $this->shouldBeProxified2 instanceof ContextualProxy ? 'was' : 'WAS NOT';
         /** @phpstan-ignore-next-line */
         $servicePool = $this->shouldBeProxified2->getServicePool();
-        $rc = new \ReflectionClass(BaseServicePool::class);
+        $rc = new ReflectionClass(BaseServicePool::class);
         $limitProperty = $rc->getProperty('instancesLimit');
         $limitProperty->setAccessible(true);
         $limit = $limitProperty->getValue($servicePool);
@@ -74,7 +72,7 @@ final class SleepController
         $safeDummyIsProxy = $alwaysResetSafe instanceof ContextualProxy ? 'IS' : 'is not';
         $safeAlwaysResetWorks = $alwaysResetSafe->getWasReset();
 
-        $rc2 = new \ReflectionClass(DefaultDummyService::class);
+        $rc2 = new ReflectionClass(DefaultDummyService::class);
         $tmpRepoProperty = $rc2->getProperty('tmpRepository');
         $tmpRepoProperty->setAccessible(true);
         /** @phpstan-ignore-next-line */
@@ -90,15 +88,15 @@ final class SleepController
 
         return new Response(
             "<html><body>Sleep was fine. Count was {$counter}. Check was {$check}. "
-                    ."Checks: {$checks}. "
-                    ."Service {$isProxified} proxified. Service2 {$isProxified2} proxified. "
-                    .'Always reset '.($alwaysResetWorks ? 'works' : 'did not work').'. '
-                    ."Safe always reseter {$safeDummyIsProxy} a proxy. "
-                    .'Safe Always reset '.($safeAlwaysResetWorks ? 'works' : 'did not work').'. '
-                    ."Service2 limit is {$limit}. TmpRepo {$isProxified3} proxified. "
-                    ."TmpRepo limit is {$limit2}. "
-                    ."Connection limit is {$connlimit}.</body></html> "
-                    .'Service pool for NonShared was '.($poolWasAdded ? '' : 'NOT ').'added.'
+                    . "Checks: {$checks}. "
+                    . "Service {$isProxified} proxified. Service2 {$isProxified2} proxified. "
+                    . 'Always reset ' . ($alwaysResetWorks ? 'works' : 'did not work') . '. '
+                    . "Safe always reseter {$safeDummyIsProxy} a proxy. "
+                    . 'Safe Always reset ' . ($safeAlwaysResetWorks ? 'works' : 'did not work') . '. '
+                    . "Service2 limit is {$limit}. TmpRepo {$isProxified3} proxified. "
+                    . "TmpRepo limit is {$limit2}. "
+                    . "Connection limit is {$connlimit}.</body></html> "
+                    . 'Service pool for NonShared was ' . ($poolWasAdded ? '' : 'NOT ') . 'added.'
         );
     }
 }

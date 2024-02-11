@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Container;
 
-final class UsageBeforeInitialization extends \RuntimeException
+use RuntimeException;
+use Throwable;
+
+final class UsageBeforeInitialization extends RuntimeException
 {
-    private function __construct(string $message = '', int $code = 0, \Throwable $previous = null)
+    private function __construct(string $message = '', int $code = 0, ?Throwable $previous = null)
     {
         parent::__construct($message, $code, $previous);
     }

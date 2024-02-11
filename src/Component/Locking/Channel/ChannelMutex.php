@@ -35,7 +35,7 @@ final class ChannelMutex implements Mutex
 
     public function release(): void
     {
-        if (0 === count($this->channels)) {
+        if (count($this->channels) === 0) {
             $this->isAcquired = false;
 
             return;
@@ -55,7 +55,7 @@ final class ChannelMutex implements Mutex
     {
         $channel = array_shift(self::$spareChannels);
 
-        if (null === $channel) {
+        if ($channel === null) {
             $channel = new Channel(1);
         }
 

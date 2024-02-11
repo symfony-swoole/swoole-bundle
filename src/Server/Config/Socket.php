@@ -5,17 +5,20 @@ declare(strict_types=1);
 namespace SwooleBundle\SwooleBundle\Server\Config;
 
 use Assert\Assertion;
+use Assert\AssertionFailedException;
+use InvalidArgumentException;
 
 final class Socket
 {
-    private const CONSTANT_SWOOLE_SSL_IS_NOT_DEFINED_ERROR_MESSAGE = 'Constant SWOOLE_SSL is not defined. Please compile swoole extension with SSL support enabled.';
+    private const CONSTANT_SWOOLE_SSL_IS_NOT_DEFINED_ERROR_MESSAGE = 'Constant SWOOLE_SSL is not defined. '
+        . 'Please compile swoole extension with SSL support enabled.';
     private const SWOOLE_SOCKET_TYPE = [
-        'tcp' => \SWOOLE_SOCK_TCP,
-        'tcp_ipv6' => \SWOOLE_SOCK_TCP6,
-        'udp' => \SWOOLE_SOCK_UDP,
-        'udp_ipv6' => \SWOOLE_SOCK_UDP6,
-        'unix_dgram' => \SWOOLE_SOCK_UNIX_DGRAM,
-        'unix_stream' => \SWOOLE_SOCK_UNIX_STREAM,
+        'tcp' => SWOOLE_SOCK_TCP,
+        'tcp_ipv6' => SWOOLE_SOCK_TCP6,
+        'udp' => SWOOLE_SOCK_UDP,
+        'udp_ipv6' => SWOOLE_SOCK_UDP6,
+        'unix_dgram' => SWOOLE_SOCK_UNIX_DGRAM,
+        'unix_stream' => SWOOLE_SOCK_UNIX_STREAM,
     ];
 
     /**
@@ -34,13 +37,13 @@ final class Socket
     private $ssl;
 
     /**
-     * @throws \Assert\AssertionFailedException
+     * @throws AssertionFailedException
      */
     public function __construct(
         string $host = '0.0.0.0',
         int $port = 9501,
         private string $type = 'tcp',
-        bool $ssl = false
+        bool $ssl = false,
     ) {
         $this->setHost($host);
         $this->setPort($port);
@@ -52,10 +55,13 @@ final class Socket
     }
 
     /**
-     * @throws \Assert\AssertionFailedException
+     * @throws AssertionFailedException
      */
-    public static function fromAddressPort(string $addressPort = '127.0.0.1:9501', string $socketType = 'tcp', bool $enableSsl = false): self
-    {
+    public static function fromAddressPort(
+        string $addressPort = '127.0.0.1:9501',
+        string $socketType = 'tcp',
+        bool $enableSsl = false,
+    ): self {
         [$host, $port] = self::splitAddressPort($addressPort);
 
         return new self($host, $port, $socketType, $enableSsl);
@@ -81,8 +87,8 @@ final class Socket
         $resolvedSocketType = self::SWOOLE_SOCKET_TYPE[$this->type];
 
         if ($this->ssl) {
-            if (!\defined('SWOOLE_SSL')) {
-                throw new \InvalidArgumentException(self::CONSTANT_SWOOLE_SSL_IS_NOT_DEFINED_ERROR_MESSAGE);
+            if (!defined('SWOOLE_SSL')) {
+                throw new InvalidArgumentException(self::CONSTANT_SWOOLE_SSL_IS_NOT_DEFINED_ERROR_MESSAGE);
             }
             $resolvedSocketType |= SWOOLE_SSL;
         }
@@ -113,17 +119,18 @@ final class Socket
     }
 
     /**
-     * @return array values:
-     *               - string host
-     *               - int port
+     * @return array{string, int}
+     * values:
+     *   - string host
+     *   - int port
      */
     private static function splitAddressPort(string $addressPort): array
     {
         $pos = mb_strrpos($addressPort, ':');
 
-        if (false !== $pos) {
+        if ($pos !== false) {
             $host = mb_substr($addressPort, 0, $pos);
-            if ('*' === $host) {
+            if ($host === '*') {
                 $host = '0.0.0.0';
             }
             $port = mb_substr($addressPort, $pos + 1);

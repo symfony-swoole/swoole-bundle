@@ -14,15 +14,14 @@ use Symfony\Component\DependencyInjection\Argument\IteratorArgument;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
+use UnexpectedValueException;
 
 final class DoctrineProcessor implements CompileProcessor
 {
     /**
      * @param array{global_limit?: int, limits?: array<string, int>} $config
      */
-    public function __construct(private array $config = [])
-    {
-    }
+    public function __construct(private array $config = []) {}
 
     public function process(ContainerBuilder $container, Proxifier $proxifier): void
     {
@@ -38,14 +37,14 @@ final class DoctrineProcessor implements CompileProcessor
 
         $entityManagers = $container->getParameter('doctrine.entity_managers');
 
-        if (!\is_array($entityManagers)) {
-            throw new \UnexpectedValueException('Cannot obtain array of entity managers.');
+        if (!is_array($entityManagers)) {
+            throw new UnexpectedValueException('Cannot obtain array of entity managers.');
         }
 
         $connectionSvcIds = $container->getParameter('doctrine.connections');
 
-        if (!\is_array($connectionSvcIds)) {
-            throw new \UnexpectedValueException('Cannot obtain array of doctrine connections.');
+        if (!is_array($connectionSvcIds)) {
+            throw new UnexpectedValueException('Cannot obtain array of doctrine connections.');
         }
 
         $this->createEntityManagerResetterDefinition($container);
@@ -57,7 +56,7 @@ final class DoctrineProcessor implements CompileProcessor
             $tagParams = ['resetter' => EntityManagerResetter::class];
             $limit = $this->getLimitFromEntityManagerConnection($container, $emDef);
 
-            if (null !== $limit) {
+            if ($limit !== null) {
                 $tagParams['limit'] = $limit;
             }
 
@@ -89,6 +88,9 @@ final class DoctrineProcessor implements CompileProcessor
         $emDef->setConfigurator([new Reference($newConfiguratorDefSvcId), 'configure']);
     }
 
+    /**
+     * @param array<string,string> $connectionSvcIds
+     */
     private function prepareConnectionsForProxification(ContainerBuilder $container, array $connectionSvcIds): void
     {
         $dbalAliveKeeperDef = $container->findDefinition(DBALPlatformAliveKeeper::class);
@@ -172,7 +174,7 @@ final class DoctrineProcessor implements CompileProcessor
         $methodCalls = $configuratorDef->getMethodCalls();
 
         foreach ($methodCalls as $index => $methodCall) {
-            if ('setRepositoryFactory' !== $methodCall[0]) {
+            if ($methodCall[0] !== 'setRepositoryFactory') {
                 continue;
             }
 
@@ -212,12 +214,9 @@ final class DoctrineProcessor implements CompileProcessor
     private function tryToCreateKeepAliveResetter(
         ContainerBuilder $container,
         string $connectionName,
-        Reference $aliveKeeperRef
+        Reference $aliveKeeperRef,
     ): string {
-        $resetterSvcId = sprintf(
-            'swoole_bundle.coroutines_support.doctrine.connection_resetter.%s',
-            $connectionName
-        );
+        $resetterSvcId = sprintf('swoole_bundle.coroutines_support.doctrine.connection_resetter.%s', $connectionName);
         $resetterDef = new Definition();
         $resetterDef->setClass(ConnectionKeepAliveResetter::class);
         $resetterDef->setArgument(0, $aliveKeeperRef);

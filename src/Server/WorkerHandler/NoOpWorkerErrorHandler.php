@@ -6,7 +6,7 @@ namespace SwooleBundle\SwooleBundle\Server\WorkerHandler;
 
 use Swoole\Server;
 
-final class NoOpWorkerErrorHandler implements WorkerErrorHandlerInterface
+final class NoOpWorkerErrorHandler implements WorkerErrorHandler
 {
     public function handle(Server $worker, int $workerId): void
     {

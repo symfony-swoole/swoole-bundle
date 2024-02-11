@@ -9,18 +9,22 @@ use Swoole\Coroutine\Scheduler;
 use Swoole\Runtime;
 use SwooleBundle\SwooleBundle\Component\Locking\Channel\ChannelMutex;
 use SwooleBundle\SwooleBundle\Component\Locking\FirstTimeOnly\FirstTimeOnlyMutex;
+use Throwable;
 
+// phpcs:disable SlevomatCodingStandard.PHP.DisallowReference.DisallowedInheritingVariableByReference
 final class FirstTimeOnlyMutexTest extends TestCase
 {
     protected function setUp(): void
     {
         parent::setUp();
+
         Runtime::enableCoroutine();
     }
 
     protected function tearDown(): void
     {
         parent::tearDown();
+
         Runtime::enableCoroutine(false);
     }
 
@@ -31,7 +35,7 @@ final class FirstTimeOnlyMutexTest extends TestCase
         $mutex = new FirstTimeOnlyMutex(new ChannelMutex());
         $scheduler = new Scheduler();
 
-        $scheduler->add(function () use (&$i, $mutex) {
+        $scheduler->add(static function () use (&$i, $mutex): void {
             try {
                 $mutex->acquire();
 
@@ -44,7 +48,7 @@ final class FirstTimeOnlyMutexTest extends TestCase
             }
         });
 
-        $scheduler->add(function () use (&$i, &$failureOccurred, $mutex) {
+        $scheduler->add(static function () use (&$i, &$failureOccurred, $mutex): void {
             try {
                 $mutex->acquire();
 
@@ -53,7 +57,7 @@ final class FirstTimeOnlyMutexTest extends TestCase
 
                 try {
                     self::assertSame(-2, $i);
-                } catch (\Throwable) {
+                } catch (Throwable) {
                     $failureOccurred = true;
                 }
 
@@ -63,7 +67,7 @@ final class FirstTimeOnlyMutexTest extends TestCase
             }
         });
 
-        $scheduler->add(function () use (&$i, &$failureOccurred, $mutex) {
+        $scheduler->add(static function () use (&$i, &$failureOccurred, $mutex): void {
             try {
                 $mutex->acquire();
 
@@ -72,7 +76,7 @@ final class FirstTimeOnlyMutexTest extends TestCase
 
                 try {
                     self::assertSame(-3, $i);
-                } catch (\Throwable) {
+                } catch (Throwable) {
                     $failureOccurred = true;
                 }
 

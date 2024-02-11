@@ -8,7 +8,7 @@ use PHPUnit\Framework\TestCase;
 use SwooleBundle\SwooleBundle\Server\Runtime\HMR\NonReloadableFiles;
 use Symfony\Component\Filesystem\Filesystem;
 
-class NonReloadableFilesTest extends TestCase
+final class NonReloadableFilesTest extends TestCase
 {
     public function testBootDumpFiles(): void
     {

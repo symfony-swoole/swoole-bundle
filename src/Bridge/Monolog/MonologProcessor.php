@@ -19,74 +19,30 @@ final class MonologProcessor implements CompileProcessor
     {
         $loggerAliases = array_filter(
             $container->getAliases(),
-            fn (Alias $alias): bool => str_starts_with((string) $alias, 'monolog.logger')
+            static fn(Alias $alias): bool => str_starts_with((string) $alias, 'monolog.logger')
         );
-        $loggerSvcIds = array_map(fn (Alias $alias): string => (string) $alias, $loggerAliases);
+        $loggerSvcIds = array_map(static fn(Alias $alias): string => (string) $alias, $loggerAliases);
         $loggerSvcIds = array_unique($loggerSvcIds);
-        $handlers = [];
 
         foreach ($loggerSvcIds as $loggerSvcId) {
-            $loggerDef = $container->getDefinition($loggerSvcId);
-            $handlers = array_merge($handlers, $this->getHandlersFromConstructor($loggerDef));
-            $handlers = array_merge($handlers, $this->getPushedHandlers($loggerDef));
             $proxifier->proxifyService($loggerSvcId);
         }
 
-        $this->overrideStreamHandlers($container, $handlers);
+        $this->overrideStreamHandlers($container);
     }
 
-    /**
-     * @return array<string, Reference>
-     */
-    private function getHandlersFromConstructor(Definition $loggerDef): array
-    {
-        $arguments = $loggerDef->getArguments();
-
-        if (!isset($arguments[1])) {
-            return [];
-        }
-
-        $constrHandlers = $loggerDef->getArgument(1);
-        $handlerRefs = [];
-
-        if (is_array($constrHandlers) && count($constrHandlers) > 0) {
-            foreach ($constrHandlers as $handler) {
-                $handlerRefs[(string) $handler] = $handler;
-            }
-        }
-
-        return $handlerRefs;
-    }
-
-    /**
-     * @return array<string, Reference>
-     */
-    private function getPushedHandlers(Definition $loggerDef): array
-    {
-        $calls = $loggerDef->getMethodCalls();
-        $handlers = [];
-
-        foreach ($calls as $call) {
-            if ('pushHandler' === $call[0]) {
-                $handlers[(string) $call[1][0]] = $call[1][0];
-            }
-        }
-
-        return $handlers;
-    }
-
-    private function overrideStreamHandlers(ContainerBuilder $container, array $handlers): void
+    private function overrideStreamHandlers(ContainerBuilder $container): void
     {
         $streamHandlers = array_filter(
             $container->getDefinitions(),
-            fn (Definition $def): bool => OriginalStreamHandler::class === $def->getClass()
+            static fn(Definition $def): bool => $def->getClass() === OriginalStreamHandler::class
         );
 
         $handlerMutexDef = new Definition(Mutex::class);
         $handlerMutexDef->setFactory([new Reference('swoole_bundle.service_pool.locking'), 'newMutex']);
         $container->setDefinition('swoole_bundle.monolog_stream_handler.locking', $handlerMutexDef);
 
-        foreach ($streamHandlers as $streamHandlerId => $streamHandlerDef) {
+        foreach ($streamHandlers as $streamHandlerDef) {
             $streamHandlerDef->setClass(StreamHandler::class);
             $streamHandlerDef->addMethodCall(
                 'setMutex',

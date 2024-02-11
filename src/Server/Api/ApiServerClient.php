@@ -7,14 +7,14 @@ namespace SwooleBundle\SwooleBundle\Server\Api;
 use SwooleBundle\SwooleBundle\Client\Http;
 use SwooleBundle\SwooleBundle\Client\HttpClient;
 
-final class ApiServerClient implements ApiServerInterface
+final class ApiServerClient implements Api
 {
-    public function __construct(private readonly HttpClient $client)
-    {
-    }
+    public function __construct(private readonly HttpClient $client) {}
 
     /**
      * Get Swoole HTTP Server status.
+     *
+     * {@inheritDoc}
      */
     public function status(): array
     {
@@ -39,6 +39,8 @@ final class ApiServerClient implements ApiServerInterface
 
     /**
      * Get Swoole HTTP Server metrics.
+     *
+     * {@inheritDoc}
      */
     public function metrics(): array
     {

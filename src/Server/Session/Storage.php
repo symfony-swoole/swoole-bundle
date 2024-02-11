@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Server\Session;
 
-interface StorageInterface
+interface Storage
 {
     /**
      * Add or update session storage storage by key.
@@ -26,10 +26,10 @@ interface StorageInterface
     /**
      * Get session storage data by key.
      *
-     * @param null|callable $expired What to do when key has expired (for example: delete data)
-     *                               Signature: function(string $key, $data): void {}
-     *
-     * @return null|mixed data Should return the same type as provided in set(), null when data is not available or expired
+     * @param callable(string $key, mixed $data):void|null $expired What to do when key has expired
+     *                                                              (for example: delete data)
+     * @return mixed|null data Should return the same type as provided in set(),
+     *                    null when data is not available or expired
      */
-    public function get(string $key, ?callable $expired = null);
+    public function get(string $key, ?callable $expired = null): mixed;
 }

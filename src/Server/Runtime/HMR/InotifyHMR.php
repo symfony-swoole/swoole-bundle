@@ -7,19 +7,19 @@ namespace SwooleBundle\SwooleBundle\Server\Runtime\HMR;
 use Assert\Assertion;
 use Assert\AssertionFailedException;
 use Swoole\Server;
-use SwooleBundle\SwooleBundle\Server\Runtime\BootableInterface;
+use SwooleBundle\SwooleBundle\Server\Runtime\Bootable;
 
-final class InotifyHMR implements HotModuleReloaderInterface, BootableInterface
+final class InotifyHMR implements HotModuleReloader, Bootable
 {
     /**
-     * @var array file path => true map
+     * @var array<string, true> file path => true map
      */
-    private $nonReloadableFiles;
+    private array $nonReloadableFiles;
 
     /**
-     * @var array file path => true map
+     * @var array<string, false|int> file path => int|false map
      */
-    private $watchedFiles;
+    private array $watchedFiles = [];
 
     /**
      * @var resource returned by \inotify_init
@@ -29,31 +29,37 @@ final class InotifyHMR implements HotModuleReloaderInterface, BootableInterface
     /**
      * @var int \IN_ATRIB
      */
-    private $watchMask;
+    private int $watchMask;
 
     /**
+     * @param array<string> $nonReloadableFiles
      * @throws AssertionFailedException
      */
     public function __construct(array $nonReloadableFiles = [])
     {
-        Assertion::extensionLoaded('inotify', 'Swoole HMR requires "inotify" PHP Extension present and loaded in the system.');
-        $this->watchMask = \defined('IN_ATTRIB') ? (int) \constant('IN_ATTRIB') : 4;
+        Assertion::extensionLoaded(
+            'inotify',
+            'Swoole HMR requires "inotify" PHP Extension present and loaded in the system.'
+        );
+        $this->watchMask = defined('IN_ATTRIB') ? (int) constant('IN_ATTRIB') : 4;
 
         $this->setNonReloadableFiles($nonReloadableFiles);
     }
 
     public function __destruct()
     {
-        if (null !== $this->inotify) {
-            fclose($this->inotify);
+        if ($this->inotify === null) {
+            return;
         }
+
+        fclose($this->inotify);
     }
 
     public function tick(Server $server): void
     {
         $events = inotify_read($this->inotify);
 
-        if (false !== $events) {
+        if ($events !== false) {
             $server->reload();
         }
 
@@ -61,6 +67,8 @@ final class InotifyHMR implements HotModuleReloaderInterface, BootableInterface
     }
 
     /**
+     * {@inheritDoc}
+     *
      * @throws AssertionFailedException
      */
     public function boot(array $runtimeConfiguration = []): void
@@ -74,14 +82,16 @@ final class InotifyHMR implements HotModuleReloaderInterface, BootableInterface
         $this->initializeInotify();
     }
 
+    /**
+     * @return array<string>
+     */
     public function getNonReloadableFiles(): array
     {
         return array_keys($this->nonReloadableFiles);
     }
 
     /**
-     * @param string[] $nonReloadableFiles files
-     *
+     * @param array<string> $nonReloadableFiles files
      * @throws AssertionFailedException
      */
     private function setNonReloadableFiles(array $nonReloadableFiles): void
@@ -92,12 +102,17 @@ final class InotifyHMR implements HotModuleReloaderInterface, BootableInterface
         }
     }
 
+    /**
+     * @param array<string> $files
+     */
     private function watchFiles(array $files): void
     {
         foreach ($files as $file) {
-            if (!isset($this->nonReloadableFiles[$file]) && !isset($this->watchedFiles[$file])) {
-                $this->watchedFiles[$file] = inotify_add_watch($this->inotify, $file, $this->watchMask);
+            if (isset($this->nonReloadableFiles[$file]) || isset($this->watchedFiles[$file])) {
+                continue;
             }
+
+            $this->watchedFiles[$file] = inotify_add_watch($this->inotify, $file, $this->watchMask);
         }
     }
 

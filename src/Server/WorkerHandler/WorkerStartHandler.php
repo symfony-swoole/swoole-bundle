@@ -6,10 +6,10 @@ namespace SwooleBundle\SwooleBundle\Server\WorkerHandler;
 
 use Swoole\Server;
 
-interface WorkerErrorHandlerInterface
+interface WorkerStartHandler
 {
     /**
-     * Handle onWorkerError event.
+     * Handle onWorkerStart event.
      * Info: Function will be executed in worker process.
      *
      * To differentiate between server worker and task worker use snippet:

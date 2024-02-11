@@ -6,16 +6,14 @@ namespace SwooleBundle\SwooleBundle\Bridge\Symfony\HttpKernel;
 
 use Symfony\Component\HttpKernel\KernelInterface;
 
-final class CoroutineKernelPool implements KernelPoolInterface
+final class CoroutineKernelPool implements KernelPool
 {
     /**
      * @var array<KernelInterface>
      */
     private array $kernels = [];
 
-    public function __construct(private readonly KernelInterface $kernel)
-    {
-    }
+    public function __construct(private readonly KernelInterface $kernel) {}
 
     public function boot(): void
     {

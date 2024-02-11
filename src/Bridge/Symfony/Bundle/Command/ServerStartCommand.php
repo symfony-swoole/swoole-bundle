@@ -6,9 +6,6 @@ namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\Command;
 
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\Exception\CouldNotCreatePidFileException;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\Exception\PidFileNotAccessibleException;
-
-use function SwooleBundle\SwooleBundle\get_object_property;
-
 use SwooleBundle\SwooleBundle\Server\HttpServer;
 use SwooleBundle\SwooleBundle\Server\HttpServerConfiguration;
 use Symfony\Component\Console\Input\InputInterface;
@@ -18,28 +15,40 @@ use Symfony\Component\Console\Output\StreamOutput;
 use Symfony\Component\Console\Style\OutputStyle;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
-final class ServerStartCommand extends AbstractServerStartCommand
+use function SwooleBundle\SwooleBundle\get_object_property;
+
+final class ServerStartCommand extends ServerExecutionCommand
 {
     protected function configure(): void
     {
         $this->setDescription('Run Swoole HTTP server in the background.')
-            ->addOption('pid-file', null, InputOption::VALUE_REQUIRED, 'Pid file', $this->getProjectDirectory().'/var/swoole.pid')
-        ;
+            ->addOption(
+                'pid-file',
+                null,
+                InputOption::VALUE_REQUIRED,
+                'Pid file',
+                $this->getProjectDirectory() . '/var/swoole.pid'
+            );
 
         parent::configure();
     }
 
-    protected function prepareServerConfiguration(HttpServerConfiguration $serverConfiguration, InputInterface $input): void
-    {
-        /** @var null|string $pidFile */
+    protected function prepareServerConfiguration(
+        HttpServerConfiguration $serverConfiguration,
+        InputInterface $input,
+    ): void {
+        /** @var string|null $pidFile */
         $pidFile = $input->getOption('pid-file');
         $serverConfiguration->daemonize($pidFile);
 
         parent::prepareServerConfiguration($serverConfiguration, $input);
     }
 
-    protected function startServer(HttpServerConfiguration $serverConfiguration, HttpServer $server, SymfonyStyle $io): void
-    {
+    protected function startServer(
+        HttpServerConfiguration $serverConfiguration,
+        HttpServer $server,
+        SymfonyStyle $io,
+    ): void {
         $pidFile = $serverConfiguration->getPidFile();
 
         if (!touch($pidFile)) {
@@ -81,7 +90,7 @@ final class ServerStartCommand extends AbstractServerStartCommand
 
     private function closeStreamOutput(StreamOutput $output): void
     {
-        $output->setVerbosity(\PHP_INT_MIN);
+        $output->setVerbosity(PHP_INT_MIN);
         fclose($output->getStream());
     }
 }

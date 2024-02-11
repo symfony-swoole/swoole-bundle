@@ -9,17 +9,18 @@ use Laminas\Code\Generator\Exception\InvalidArgumentException;
 use Laminas\Code\Generator\PropertyGenerator;
 use Laminas\Code\Generator\TypeGenerator;
 use ProxyManager\Generator\Util\IdentifierSuffixer;
+use ReflectionClass;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\ServicePool\ServicePool;
 
 /**
  * Property that contains the wrapped Symfony container.
  */
-class ServicePoolProperty extends PropertyGenerator
+final class ServicePoolProperty extends PropertyGenerator
 {
     /**
-     * @var null|\ReflectionClass<ServicePool<object>>
+     * @var ReflectionClass<ServicePool<object>>|null
      */
-    private static ?\ReflectionClass $servicePoolReflection = null;
+    private static ?ReflectionClass $servicePoolReflection = null;
 
     /**
      * Constructor.
@@ -33,7 +34,7 @@ class ServicePoolProperty extends PropertyGenerator
         $docBlock = new DocBlockGenerator();
 
         $docBlock->setWordWrap(false);
-        $docBlock->setLongDescription('@var \\'.self::getServicePoolReflection()->getName().' ServicePool holder');
+        $docBlock->setLongDescription('@var \\' . self::getServicePoolReflection()->getName() . ' ServicePool holder');
         $this->setDocBlock($docBlock);
         $this->setVisibility(self::VISIBILITY_PRIVATE);
         $this->setType(TypeGenerator::fromTypeString(ServicePool::class));
@@ -41,13 +42,13 @@ class ServicePoolProperty extends PropertyGenerator
     }
 
     /**
-     * @return \ReflectionClass<ServicePool<object>>
+     * @return ReflectionClass<ServicePool<object>>
      */
-    private static function getServicePoolReflection(): \ReflectionClass
+    private static function getServicePoolReflection(): ReflectionClass
     {
-        if (null === self::$servicePoolReflection) {
-            /** @var \ReflectionClass<ServicePool<object>> $reflection */
-            $reflection = new \ReflectionClass(ServicePool::class);
+        if (self::$servicePoolReflection === null) {
+            /** @var ReflectionClass<ServicePool<object>> $reflection */
+            $reflection = new ReflectionClass(ServicePool::class);
             self::$servicePoolReflection = $reflection;
         }
 

@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection;
 
-use function SwooleBundle\SwooleBundle\decode_string_as_set;
-
+use InvalidArgumentException;
+use RuntimeException;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\Config\Definition\Exception\InvalidTypeException;
+
+use function SwooleBundle\SwooleBundle\decode_string_as_set;
 
 final class Configuration implements ConfigurationInterface
 {
@@ -17,13 +19,11 @@ final class Configuration implements ConfigurationInterface
 
     private const CONFIG_NAME = 'swoole';
 
-    public function __construct(private readonly TreeBuilder $builder)
-    {
-    }
+    public function __construct(private readonly TreeBuilder $builder) {}
 
     /**
-     * @throws \InvalidArgumentException
-     * @throws \RuntimeException
+     * @throws InvalidArgumentException
+     * @throws RuntimeException
      */
     public function getConfigTreeBuilder(): TreeBuilder
     {
@@ -44,14 +44,14 @@ final class Configuration implements ConfigurationInterface
                             ->defaultValue([])
                             ->beforeNormalization()
                                 ->ifString()
-                                ->then(fn ($v): array => decode_string_as_set($v))
+                                ->then(static fn($v): array => decode_string_as_set($v))
                             ->end()
                         ->end()
                         ->variableNode('trusted_proxies')
                             ->defaultValue([])
                             ->beforeNormalization()
                                 ->ifString()
-                                ->then(fn ($v): array => decode_string_as_set($v))
+                                ->then(static fn($v): array => decode_string_as_set($v))
                             ->end()
                         ->end()
                         ->enumNode('running_mode')
@@ -85,8 +85,10 @@ final class Configuration implements ConfigurationInterface
                         ->arrayNode('api')
                             ->addDefaultsIfNotSet()
                             ->beforeNormalization()
-                                ->ifTrue(fn ($v): bool => \is_string($v) || \is_bool($v) || is_numeric($v) || null === $v)
-                                ->then(fn ($v): array => [
+                                ->ifTrue(
+                                    static fn($v): bool => is_string($v) || is_bool($v) || is_numeric($v) || $v === null
+                                )
+                                ->then(static fn($v): array => [
                                     'enabled' => (bool) $v,
                                     'host' => '0.0.0.0',
                                     'port' => 9200,
@@ -110,10 +112,10 @@ final class Configuration implements ConfigurationInterface
                             ->addDefaultsIfNotSet()
                             ->beforeNormalization()
                                 ->ifString()
-                                ->then(fn ($v): array => [
-                                    'strategy' => $v,
-                                    'public_dir' => 'off' === $v ? null : self::DEFAULT_PUBLIC_DIR,
+                                ->then(static fn($v): array => [
                                     'mime_types' => [],
+                                    'public_dir' => $v === 'off' ? null : self::DEFAULT_PUBLIC_DIR,
+                                    'strategy' => $v,
                                 ])
                             ->end()
                             ->children()
@@ -129,15 +131,21 @@ final class Configuration implements ConfigurationInterface
                                     ->info('File extensions to mime types map.')
                                     ->defaultValue([])
                                     ->validate()
-                                        ->always(function ($mimeTypes) {
+                                        ->always(static function ($mimeTypes) {
                                             $validValues = [];
 
                                             foreach ((array) $mimeTypes as $extension => $mimeType) {
                                                 $extension = trim((string) $extension);
                                                 $mimeType = trim((string) $mimeType);
 
-                                                if ('' === $extension || '' === $mimeType) {
-                                                    throw new InvalidTypeException(sprintf('Invalid mime type %s for file extension %s.', $mimeType, $extension));
+                                                if ($extension === '' || $mimeType === '') {
+                                                    throw new InvalidTypeException(
+                                                        sprintf(
+                                                            'Invalid mime type %s for file extension %s.',
+                                                            $mimeType,
+                                                            $extension
+                                                        )
+                                                    );
                                                 }
 
                                                 $validValues[$extension] = $mimeType;
@@ -153,10 +161,10 @@ final class Configuration implements ConfigurationInterface
                             ->addDefaultsIfNotSet()
                             ->beforeNormalization()
                                 ->ifString()
-                                ->then(fn ($v): array => [
+                                ->then(static fn($v): array => [
+                                    'handler_id' => null,
                                     'type' => $v,
                                     'verbosity' => 'auto',
-                                    'handler_id' => null,
                                 ])
                             ->end()
                             ->children()
@@ -185,7 +193,8 @@ final class Configuration implements ConfigurationInterface
                                     ->setDeprecated(
                                         'k911/swoole-bundle',
                                         '0.11',
-                                        'The "%node%" option is deprecated. It is no longer needed to provide debug http kernel.'
+                                        'The "%node%" option is deprecated. '
+                                        . 'It is no longer needed to provide debug http kernel.'
                                     )
                                 ->end()
                                 ->booleanNode('trust_all_proxies_handler')
@@ -196,14 +205,13 @@ final class Configuration implements ConfigurationInterface
                                     ->defaultFalse()
                                     ->treatNullLike(false)
                                 ->end()
-                                ->booleanNode('entity_manager_handler')
-                                    ->defaultNull()
-                                ->end()
                                 ->booleanNode('blackfire_profiler')
-                                    ->defaultNull()
+                                    ->defaultFalse()
+                                    ->treatNullLike(false)
                                 ->end()
                                 ->booleanNode('blackfire_monitoring')
-                                    ->defaultNull()
+                                    ->defaultFalse()
+                                    ->treatNullLike(false)
                                 ->end()
                                 ->arrayNode('tideways_apm')
                                     ->addDefaultsIfNotSet()
@@ -214,7 +222,7 @@ final class Configuration implements ConfigurationInterface
                                         ->end()
                                         ->scalarNode('service_name')
                                             ->validate()
-                                                ->always(fn (string $serviceName): string => trim($serviceName))
+                                                ->always(static fn(string $serviceName): string => trim($serviceName))
                                             ->end()
                                         ->end()
                                     ->end()
@@ -312,13 +320,15 @@ final class Configuration implements ConfigurationInterface
                                 ->scalarNode('max_coroutines')
                                     ->defaultValue(100000) // swoole default
                                     ->validate()
-                                        ->always(function (?int $max): ?int {
-                                            if (null === $max) {
+                                        ->always(static function (?int $max): ?int {
+                                            if ($max === null) {
                                                 return $max;
                                             }
 
                                             if ($max < 1 || $max > 100000) {
-                                                throw new InvalidConfigurationException(sprintf('Max coroutines %d should be between 1 and 100000.', $max));
+                                                throw new InvalidConfigurationException(
+                                                    sprintf('Max coroutines %d should be between 1 and 100000.', $max)
+                                                );
                                             }
 
                                             return $max;
@@ -328,13 +338,15 @@ final class Configuration implements ConfigurationInterface
                                     ->scalarNode('max_concurrency')
                                     ->defaultNull()
                                     ->validate()
-                                        ->always(function (?int $max): ?int {
-                                            if (null === $max) {
+                                        ->always(static function (?int $max): ?int {
+                                            if ($max === null) {
                                                 return $max;
                                             }
 
                                             if ($max < 1 || $max > 100000) {
-                                                throw new InvalidConfigurationException(sprintf('Max concurrency %d should be between 1 and 100000.', $max));
+                                                throw new InvalidConfigurationException(
+                                                    sprintf('Max concurrency %d should be between 1 and 100000.', $max)
+                                                );
                                             }
 
                                             return $max;
@@ -344,13 +356,18 @@ final class Configuration implements ConfigurationInterface
                                 ->scalarNode('max_service_instances')
                                     ->defaultNull()
                                     ->validate()
-                                    ->always(function (?int $max): ?int {
-                                        if (null === $max) {
+                                    ->always(static function (?int $max): ?int {
+                                        if ($max === null) {
                                             return $max;
                                         }
 
                                         if ($max < 1 || $max > 100000) {
-                                            throw new InvalidConfigurationException(sprintf('Max service instances (%d) should be between 1 and 100000.', $max));
+                                            throw new InvalidConfigurationException(
+                                                sprintf(
+                                                    'Max service instances (%d) should be between 1 and 100000.',
+                                                    $max
+                                                )
+                                            );
                                         }
 
                                         return $max;
@@ -361,7 +378,7 @@ final class Configuration implements ConfigurationInterface
                                     ->scalarPrototype()
                                     ->beforeNormalization()
                                         ->ifString()
-                                            ->then(fn (string $v): string => trim($v))
+                                            ->then(static fn(string $v): string => trim($v))
                                         ->end()
                                     ->end()
                                 ->end()
@@ -369,7 +386,7 @@ final class Configuration implements ConfigurationInterface
                                     ->arrayPrototype()
                                         ->beforeNormalization()
                                             ->ifString()
-                                                ->then(fn (string $v): array => ['class' => $v])
+                                                ->then(static fn(string $v): array => ['class' => $v])
                                             ->end()
                                         ->children()
                                             ->scalarNode('class')
@@ -408,8 +425,7 @@ final class Configuration implements ConfigurationInterface
                         ->end() // end coroutines
                     ->end()
                 ->end() // platform
-            ->end()
-        ;
+            ->end();
 
         return $this->builder;
     }

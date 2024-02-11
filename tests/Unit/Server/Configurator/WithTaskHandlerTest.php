@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Tests\Unit\Server\Configurator;
 
+use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 use PHPUnit\Framework\TestCase;
+use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
 use SwooleBundle\SwooleBundle\Server\Configurator\WithTaskHandler;
 use SwooleBundle\SwooleBundle\Server\HttpServerConfiguration;
@@ -12,26 +14,16 @@ use SwooleBundle\SwooleBundle\Server\TaskHandler\NoOpTaskHandler;
 use SwooleBundle\SwooleBundle\Tests\Unit\Server\IntMother;
 use SwooleBundle\SwooleBundle\Tests\Unit\Server\SwooleHttpServerMockFactory;
 
-/**
- * @runTestsInSeparateProcesses
- */
-class WithTaskHandlerTest extends TestCase
+#[RunTestsInSeparateProcesses]
+final class WithTaskHandlerTest extends TestCase
 {
-    use \Prophecy\PhpUnit\ProphecyTrait;
-    /**
-     * @var NoOpTaskHandler
-     */
-    private $noOpTaskHandler;
+    use ProphecyTrait;
 
-    /**
-     * @var WithTaskHandler
-     */
-    private $configurator;
+    private NoOpTaskHandler $noOpTaskHandler;
 
-    /**
-     * @var HttpServerConfiguration|ObjectProphecy
-     */
-    private $configurationProphecy;
+    private WithTaskHandler $configurator;
+
+    private HttpServerConfiguration|ObjectProphecy $configurationProphecy;
 
     protected function setUp(): void
     {
@@ -48,28 +40,26 @@ class WithTaskHandlerTest extends TestCase
     {
         $this->configurationProphecy->getTaskWorkerCount()
             ->willReturn(IntMother::randomPositive())
-            ->shouldBeCalled()
-        ;
+            ->shouldBeCalled();
 
         $swooleServerOnEventSpy = SwooleHttpServerMockFactory::make();
 
         $this->configurator->configure($swooleServerOnEventSpy);
 
-        self::assertTrue($swooleServerOnEventSpy->registeredEvent);
-        self::assertSame(['task', [$this->noOpTaskHandler, 'handle']], $swooleServerOnEventSpy->registeredEventPair);
+        self::assertTrue($swooleServerOnEventSpy->registeredEvent());
+        self::assertSame(['task', [$this->noOpTaskHandler, 'handle']], $swooleServerOnEventSpy->registeredEventPair());
     }
 
     public function testDoNotConfigureWhenNoTaskWorkers(): void
     {
         $this->configurationProphecy->getTaskWorkerCount()
             ->willReturn(0)
-            ->shouldBeCalled()
-        ;
+            ->shouldBeCalled();
 
         $swooleServerOnEventSpy = SwooleHttpServerMockFactory::make();
 
         $this->configurator->configure($swooleServerOnEventSpy);
 
-        self::assertFalse($swooleServerOnEventSpy->registeredEvent);
+        self::assertFalse($swooleServerOnEventSpy->registeredEvent());
     }
 }

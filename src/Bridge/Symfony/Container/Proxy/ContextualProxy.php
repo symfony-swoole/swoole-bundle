@@ -18,7 +18,6 @@ interface ContextualProxy
 
     /**
      * @param ServicePool<RealObjectType> $servicePool
-     *
      * @return ContextualProxy<RealObjectType>&RealObjectType
      */
     public static function staticProxyConstructor(ServicePool $servicePool): object;

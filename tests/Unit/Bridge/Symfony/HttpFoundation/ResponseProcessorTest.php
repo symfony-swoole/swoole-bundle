@@ -5,32 +5,34 @@ declare(strict_types=1);
 namespace SwooleBundle\SwooleBundle\Tests\Unit\Bridge\Symfony\HttpFoundation;
 
 use PHPUnit\Framework\TestCase;
+use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
 use Swoole\Http\Response as SwooleResponse;
-use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation\ResponseProcessor;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation\EndResponseProcessor;
 use Symfony\Component\HttpFoundation\Response as HttpFoundationResponse;
 
-class ResponseProcessorTest extends TestCase
+final class ResponseProcessorTest extends TestCase
 {
-    use \Prophecy\PhpUnit\ProphecyTrait;
+    use ProphecyTrait;
+
     /**
-     * @var ResponseProcessor
+     * @var EndResponseProcessor
      */
     protected $responseProcessor;
 
     /**
-     * @var null|HttpFoundationResponse
+     * @var HttpFoundationResponse|null
      */
     protected $symfonyResponse;
 
     /**
-     * @var null|ObjectProphecy|SwooleResponse
+     * @var ObjectProphecy|SwooleResponse|null
      */
     protected $swooleResponse;
 
     protected function setUp(): void
     {
-        $this->responseProcessor = new ResponseProcessor();
+        $this->responseProcessor = new EndResponseProcessor();
         $this->swooleResponse = $this->prophesize(SwooleResponse::class);
     }
 

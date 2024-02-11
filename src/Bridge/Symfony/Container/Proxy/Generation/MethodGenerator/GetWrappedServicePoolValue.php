@@ -13,7 +13,7 @@ use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\ServicePool\ServicePool;
  * Implementation for {@see \ProxyManager\Proxy\ValueHolderInterface::getWrappedValueHolderValue}
  * for lazy loading value holder objects.
  */
-class GetWrappedServicePoolValue extends MethodGenerator
+final class GetWrappedServicePoolValue extends MethodGenerator
 {
     /**
      * Constructor.
@@ -23,7 +23,8 @@ class GetWrappedServicePoolValue extends MethodGenerator
     public function __construct(ServicePoolProperty $servicePoolHolderProperty)
     {
         parent::__construct('getServicePool');
-        $this->setBody('return $this->'.$servicePoolHolderProperty->getName().';');
+
+        $this->setBody('return $this->' . $servicePoolHolderProperty->getName() . ';');
         $this->setReturnType(ServicePool::class);
     }
 }
