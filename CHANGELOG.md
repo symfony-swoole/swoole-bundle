@@ -1,3 +1,12 @@
+# [0.21.0](https://github.com/openswoole-bundle/openswoole-bundle/compare/v0.20.0...v0.21.0) (2024-02-12)
+
+[Full changelog](https://github.com/symfony-swoole/swoole-bundle/compare/v0.20.0...v0.21.0)
+
+### Features
+
+* **codestyle:** added phpcs to php tooling, added and applied new PER coding style, tweaked php-cs-fixer configuration accordingly ([5394f45](https://github.com/openswoole-bundle/openswoole-bundle/commit/5394f457cfbe54fc6f42a019d8e3fc192928d1ef))
+* **symfony:** added support for Symfony 7.0 ([c0ea0d4](https://github.com/openswoole-bundle/openswoole-bundle/commit/c0ea0d416f21682b5fd3782976ba51153ae64dc9))
+
 # [0.20.0](https://github.com/openswoole-bundle/openswoole-bundle/compare/v0.19.0...v0.20.0) (2023-12-30)
 
 [Full changelog](https://github.com/symfony-swoole/swoole-bundle/compare/v0.19.0...v0.20.0)
