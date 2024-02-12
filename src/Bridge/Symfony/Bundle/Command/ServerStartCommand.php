@@ -90,6 +90,7 @@ final class ServerStartCommand extends ServerExecutionCommand
 
     private function closeStreamOutput(StreamOutput $output): void
     {
+        // @phpstan-ignore-next-line - proper constant from OutputInterface does not work properly
         $output->setVerbosity(PHP_INT_MIN);
         fclose($output->getStream());
     }
