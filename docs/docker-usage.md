@@ -52,6 +52,11 @@ services:
 
 This way you'll have logs locally in `var/logs/swoole_*.log` file and printed to `stdout` while running in docker.
 
+### Debug log configuration
+
+To enable debug log processor when Symfony is run from CLI set env variable `APP_RUNTIME_MODE: 'web=1'`, or parameter `kernel.runtime_mode.web: true` (Since Symfony ^6.4). 
+Without debug log processor, there are no logs being shown in the symfony profiler.
+
 ## Recommended Dockerfile
 
 Features:
