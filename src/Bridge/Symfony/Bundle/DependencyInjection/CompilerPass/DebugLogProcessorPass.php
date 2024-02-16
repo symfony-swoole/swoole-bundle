@@ -13,6 +13,7 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
  * Without debug log processor, there are no logs being shown in the symfony profiler. This override
  * replaces the original configurator for 'monolog.logger_prototype' with a custom one, which removes
  * the debug log processor only when being run from PHPDBG.
+ * Since Symfony 6.4, use env variable `APP_RUNTIME_MODE: 'web=1'`, or parameter `kernel.runtime_mode.web: true`.
  */
 final class DebugLogProcessorPass implements CompilerPassInterface
 {
