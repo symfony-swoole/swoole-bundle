@@ -50,13 +50,13 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
     }
 
     /**
-     * @param array<array<array{
+     * @param array{
      *    APP_ENV: string,
      *    APP_DEBUG: string,
      *    WORKER_COUNT: string,
      *    REACTOR_COUNT: string,
      *    OVERRIDE_PROD_ENV?: string,
-     *  }>> $envs
+     *  } $envs
      */
     #[DataProvider('coroutineTestDataProvider')]
     public function testCoroutinesWithEnvs(array $envs): void
@@ -136,13 +136,13 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
     }
 
     /**
-     * @param array<array<array{
+     * @param array{
      *    APP_ENV: string,
      *    APP_DEBUG: string,
      *    WORKER_COUNT: string,
      *    REACTOR_COUNT: string,
      *    OVERRIDE_PROD_ENV?: string,
-     *  }>> $envs
+     *  } $envs
      */
     #[DataProvider('coroutineTestDataProvider')]
     public function testCoroutinesAndDoctrineWithEnvs(array $envs): void
@@ -247,13 +247,13 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
     }
 
     /**
-     * @param array<array<array{
+     * @param array{
      *    APP_ENV: string,
      *    APP_DEBUG: string,
      *    WORKER_COUNT: string,
      *    REACTOR_COUNT: string,
      *    OVERRIDE_PROD_ENV?: string,
-     *  }>> $envs
+     *  } $envs
      */
     #[DataProvider('coroutineTestDataProvider')]
     public function testCoroutinesAndAdvancedDoctrineWithEnvs(array $envs): void
@@ -342,14 +342,14 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
     }
 
     /**
-     * @param array<array<array{
+     * @param array{
      *    APP_ENV: string,
      *    APP_DEBUG: string,
      *    WORKER_COUNT: string,
      *    REACTOR_COUNT: string,
      *    TASK_WORKER_COUNT: string,
      *    OVERRIDE_PROD_ENV?: string,
-     *  }>> $envs
+     *  } $envs
      */
     #[DataProvider('coroutineTestDataProviderForTaskWorkers')]
     public function testCoroutinesAndTaskWorkersWithEnvs(array $envs): void
@@ -421,14 +421,14 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
     }
 
     /**
-     * @param array<array<array{
+     * @param array{
      *    APP_ENV: string,
      *    APP_DEBUG: string,
      *    WORKER_COUNT: string,
      *    REACTOR_COUNT: string,
      *    TASK_WORKER_COUNT: string,
      *    OVERRIDE_PROD_ENV?: string,
-     *  }>> $envs
+     *  } $envs
      */
     #[DataProvider('coroutineTestDataProviderForTaskWorkers')]
     public function testCoroutinesWithTaskWorkersWithDoctrine(array $envs): void

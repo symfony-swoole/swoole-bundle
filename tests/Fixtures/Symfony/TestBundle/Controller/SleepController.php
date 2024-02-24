@@ -19,8 +19,7 @@ use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Service\Sleeping
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Service\SleepingCounterChecker;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route as RouteAnnotation;
-use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Routing\Annotation\Route;
 
 final class SleepController
 {
@@ -39,10 +38,6 @@ final class SleepController
     ) {}
 
     /**
-     * @RouteAnnotation(
-     *     methods={"GET"},
-     *     path="/sleep"
-     * )
      * @throws Exception
      */
     #[Route(path: '/sleep', methods: ['GET'])]

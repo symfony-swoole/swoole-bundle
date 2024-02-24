@@ -1,13 +1,4 @@
 {
-    "doctrine/annotations": {
-        "version": "1.14",
-        "recipe": {
-            "repo": "github.com/symfony/recipes",
-            "branch": "main",
-            "version": "1.10",
-            "ref": "64d8583af5ea57b7afa4aba4b159907f3a148b05"
-        }
-    },
     "doctrine/doctrine-bundle": {
         "version": "2.10",
         "recipe": {

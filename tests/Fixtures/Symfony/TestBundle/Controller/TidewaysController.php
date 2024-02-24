@@ -7,17 +7,12 @@ namespace SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Controller
 use Exception;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route as RouteAnnotation;
-use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Routing\Annotation\Route;
 use Tideways\Profiler;
 
 final class TidewaysController
 {
     /**
-     * @RouteAnnotation(
-     *     methods={"GET"},
-     *     path="/tideways/index"
-     * )
      * @throws Exception
      */
     #[Route(path: '/tideways/index', methods: ['GET'])]

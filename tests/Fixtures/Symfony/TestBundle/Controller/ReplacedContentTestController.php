@@ -5,19 +5,12 @@ declare(strict_types=1);
 namespace SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Controller;
 
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route as RouteAnnotation;
-use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Routing\Annotation\Route;
 
 final class ReplacedContentTestController
 {
     private const BASH_REPLACE_PATTERN = 'Wrong response!';
 
-    /**
-     * @RouteAnnotation(
-     *     methods={"GET"},
-     *     path="/test/replaced/content"
-     * )
-     */
     #[Route(path: '/test/replaced/content', methods: ['GET'])]
     public function index(): Response
     {
