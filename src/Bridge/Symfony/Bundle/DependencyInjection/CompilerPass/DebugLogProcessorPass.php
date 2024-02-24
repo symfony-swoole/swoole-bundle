@@ -6,6 +6,7 @@ namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\Co
 
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\HttpKernel\Kernel;
 
 /**
  * This is an override for Symfony\Bundle\FrameworkBundle\DependencyInjection\Compiler\AddDebugLogProcessorPass
@@ -19,6 +20,11 @@ final class DebugLogProcessorPass implements CompilerPassInterface
 {
     public function process(ContainerBuilder $container): void
     {
+        /** @phpstan-ignore-next-line */
+        if (version_compare(Kernel::VERSION, '6.4', '>=')) {
+            return;
+        }
+
         if (!$container->hasDefinition('profiler')) {
             return;
         }
