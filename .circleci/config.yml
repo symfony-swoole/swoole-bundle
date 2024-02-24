@@ -117,7 +117,8 @@ aliases:
   - &docker-remote-version
     setup_remote_docker:
       # https://circleci.com/docs/2.0/building-docker-images/#docker-version
-      version: 20.10.14
+      version: default
+      docker_layer_caching: true
 
   # Filters
   - &filter-run-on-local-branches
@@ -136,14 +137,14 @@ orbs:
   codecov: codecov/codecov@3.3.0
 
 executors:
-  woole-bundle-docker-client:
+  swoole-bundle-docker-client:
     docker:
-      - image: symfonywithswoole/docker-client:20.10.17-compose
+      - image: symfonywithswoole/docker-client:25.0.3
     working_directory: ~/workdir
 
   swoole-bundle-release-version:
     docker:
-      - image: docker.io/symfonywithswoole/release-version-script:0.5.0
+      - image: docker.io/symfonywithswoole/release-version-script:0.5.1
     working_directory: /usr/src/app
 
 jobs:
@@ -180,7 +181,7 @@ jobs:
           command: release-version
 
   docker-buildx-bake:
-    executor: woole-bundle-docker-client
+    executor: swoole-bundle-docker-client
     parameters:
       php-version:
         type: string
