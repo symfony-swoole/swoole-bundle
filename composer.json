@@ -46,7 +46,6 @@
     "require-dev": {
         "ext-ffi": "^8.1",
         "blackfire/php-sdk": "^1.30",
-        "doctrine/annotations": "^1.13",
         "doctrine/dbal": "^3.4",
         "doctrine/doctrine-bundle": "^2.7",
         "doctrine/doctrine-migrations-bundle": "^3.2.4",

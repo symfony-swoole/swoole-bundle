@@ -10,16 +10,11 @@ use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Message\SleepAnd
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Messenger\MessageBusInterface;
-use Symfony\Component\Routing\Annotation\Route as RouteAnnotation;
-use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Routing\Annotation\Route;
 
 final class CoroutinesTaskController
 {
     /**
-     * @RouteAnnotation(
-     *     methods={"GET","POST"},
-     *     path="/coroutines/message/sleep-and-append"
-     * )
      * @throws Exception
      */
     #[Route(path: '/coroutines/message/sleep-and-append', methods: ['GET', 'POST'])]
@@ -35,13 +30,9 @@ final class CoroutinesTaskController
     }
 
     /**
-     * @RouteAnnotation(
-     *     methods={"GET","POST"},
-     *     path="/coroutines/message/run-dummy"
-     * )
      * @throws Exception
      */
-    #[Route(methods: ['GET', 'POST'], path: '/coroutines/message/run-dummy')]
+    #[Route(path: '/coroutines/message/run-dummy', methods: ['GET', 'POST'])]
     public function dispatchRunDummyMessage(MessageBusInterface $bus): Response
     {
         $message = new RunDummy();

@@ -8,16 +8,11 @@ use BlackfireProbe;
 use Exception;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route as RouteAnnotation;
-use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Routing\Annotation\Route;
 
 final class BlackfireController
 {
     /**
-     * @RouteAnnotation(
-     *     methods={"GET"},
-     *     path="/blackfire/index"
-     * )
      * @throws Exception
      */
     #[Route(path: '/blackfire/index', methods: ['GET'])]

@@ -7,16 +7,11 @@ namespace SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Controller
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\StreamedResponse;
-use Symfony\Component\Routing\Annotation\Route as RouteAnnotation;
-use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Routing\Annotation\Route;
 
 final class SymfonyHttpController
 {
     /**
-     * @RouteAnnotation(
-     *     methods={"GET"},
-     *     path="/http/request/uri"
-     * )
      * @see \SwooleBundle\SwooleBundle\Tests\Feature\SymfonyHttpRequestContainsRequestUriTest::testWhetherCurrentSymfonyHttpRequestContainsRequestUri()
      */
     #[Route(path: '/http/request/uri', methods: ['GET'])]
@@ -25,12 +20,6 @@ final class SymfonyHttpController
         return new JsonResponse(['requestUri' => $currentRequest->getRequestUri()], 200);
     }
 
-    /**
-     * @RouteAnnotation(
-     *     methods={"GET"},
-     *     path="/http/request/streamed-uri"
-     * )
-     */
     #[Route(path: '/http/request/streamed-uri', methods: ['GET'])]
     public function getStreamedRequestUri(Request $currentRequest): StreamedResponse
     {
