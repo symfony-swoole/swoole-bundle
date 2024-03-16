@@ -59,9 +59,9 @@ final class ServerStartCommand extends ServerExecutionCommand
             throw CouldNotCreatePidFileException::forPath($pidFile);
         }
 
-        $this->closeSymfonyStyle($io);
-
         $server->start();
+
+        $this->closeSymfonyStyle($io);
     }
 
     private function closeSymfonyStyle(SymfonyStyle $io): void
