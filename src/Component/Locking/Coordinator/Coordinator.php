@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Component\Locking\Coordinator;
 
+use Swoole\Coroutine;
 use Swoole\Coroutine\Channel;
 
 class Coordinator
@@ -24,7 +25,9 @@ class Coordinator
      */
     public function yield(float|int $timeout = -1): bool
     {
-        $this->channel->pop((float) $timeout);
+        Coroutine::create(function() use ($timeout) {
+            $this->channel->pop((float) $timeout);
+        });
 
         return $this->channel->errCode === SWOOLE_CHANNEL_CLOSED;
     }
@@ -34,6 +37,8 @@ class Coordinator
      */
     public function resume(): void
     {
-        $this->channel->close();
+        Coroutine::create(function() {
+            $this->channel->close();
+        });
     }
 }
