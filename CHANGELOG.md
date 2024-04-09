@@ -1,3 +1,12 @@
+## [0.21.1](https://github.com/openswoole-bundle/openswoole-bundle/compare/v0.21.0...v0.21.1) (2024-03-18)
+
+[Full changelog](https://github.com/symfony-swoole/swoole-bundle/compare/v0.21.0...v0.21.1)
+
+### Bug Fixes
+
+* **command:** close console output after server start to prevent bad file descriptor in docker ([9197522](https://github.com/openswoole-bundle/openswoole-bundle/commit/9197522d245668f7d801042558ef4de51406d9e8))
+* **phpstan:** suppress phpstan for output verbosity because OutputInterface constants don't work properly ([7c01db5](https://github.com/openswoole-bundle/openswoole-bundle/commit/7c01db5d8eafb37ff602a1a874b6640eb35e75a9))
+
 # [0.21.0](https://github.com/openswoole-bundle/openswoole-bundle/compare/v0.20.0...v0.21.0) (2024-02-12)
 
 [Full changelog](https://github.com/symfony-swoole/swoole-bundle/compare/v0.20.0...v0.21.0)
