@@ -51,7 +51,7 @@ final class SimpleAccessLogFormatter implements AccessLogFormatter
                 'A' => $map->getLocalIp(),
                 'B' => $map->getResponseBodySize('0'),
                 'b' => $map->getResponseBodySize('-'),
-                'D' => $map->getRequestDuration('us'),
+                'D' => $map->getRequestDuration('ms'),
                 'f' => $map->getFilename(),
                 'h' => $map->getRemoteHostname(),
                 'H' => $map->getProtocol(),
