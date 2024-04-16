@@ -31,9 +31,9 @@ final class AccessLogFormatterTest extends TestCase
             ->method('getRequestDuration')
             ->willReturnCallback(
                 static fn(string $format) => match ([$format]) { // @phpstan-ignore-line
-                    ['ms'] => '4321', // %D
-                    ['s'] => '22', // %T
-                    ['us'] => '22', // %{us}T
+                    ['ms'] => '4321', // %{ms}T
+                    ['s'] => '4', // %T
+                    ['us'] => '4321210', // %{us}T, %D
                 }
             );
         $dataMap->method('getFilename')->willReturn(__FILE__); // %f
@@ -84,7 +84,7 @@ final class AccessLogFormatterTest extends TestCase
             '127.0.0.1',
             '1234',
             '1234',
-            '4321',
+            '4321210',
             __FILE__,
             $hostname,
             'HTTP/1.1',
@@ -94,7 +94,7 @@ final class AccessLogFormatterTest extends TestCase
             'POST /path?foo=bar HTTP/1.1',
             '202',
             '[1234567890]',
-            '22',
+            '4',
             'swoole',
             '/path',
             'swoole.local',
@@ -108,7 +108,7 @@ final class AccessLogFormatterTest extends TestCase
             'response',
             '9999',
             '[1234567890]',
-            '22',
+            '4321210',
         ];
         $expected = implode(' ', $expected);
 

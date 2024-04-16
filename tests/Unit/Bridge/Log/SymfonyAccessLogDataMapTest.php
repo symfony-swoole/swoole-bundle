@@ -98,4 +98,18 @@ final class SymfonyAccessLogDataMapTest extends TestCase
 
         $this->assertSame('[02/Dec/2021:02:21:12 ' . $date->format('O') . ']', $requestTime);
     }
+
+    public function testGetHttpFoundationRequestTimeInDifferentTimeZoneAsUTC(): void
+    {
+        $oldTZ = date_default_timezone_get();
+        date_default_timezone_set('Europe/Bratislava');
+        $tz = new DateTimeZone(date_default_timezone_get());
+        $date = new DateTimeImmutable('2021-12-02T02:21:12.4242', $tz);
+        $this->request->server = new ServerBag(['REQUEST_TIME_FLOAT' => (float) $date->getTimestamp()]);
+        $map = new SymfonyAccessLogDataMap($this->request, $this->response, false);
+        $requestTime = $map->getRequestTime('begin:%d/%b/%Y:%H:%M:%S %z');
+
+        $this->assertSame('[02/Dec/2021:02:21:12 ' . $date->format('O') . ']', $requestTime);
+        date_default_timezone_set($oldTZ);
+    }
 }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace SwooleBundle\SwooleBundle\Bridge\Log;
 
 use DateTimeImmutable;
+use DateTimeZone;
 use IntlDateFormatter;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -301,6 +302,7 @@ final class SymfonyAccessLogDataMap implements AccessLogDataMap
             default:
                 // Cast to int first, as it may be a float
                 $requestTime = new DateTimeImmutable('@' . (int) $time);
+                $requestTime = $requestTime->setTimezone(new DateTimeZone(date_default_timezone_get()));
 
                 return IntlDateFormatter::formatObject(
                     $requestTime,
