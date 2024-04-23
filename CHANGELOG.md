@@ -1,3 +1,12 @@
+## [0.21.2](https://github.com/openswoole-bundle/openswoole-bundle/compare/v0.21.1...v0.21.2) (2024-04-18)
+
+[Full changelog](https://github.com/symfony-swoole/swoole-bundle/compare/v0.21.1...v0.21.2)
+
+### Bug Fixes
+
+* **access-log:** fixed log format %D, the time taken to serve the request, in microseconds ([94d9314](https://github.com/openswoole-bundle/openswoole-bundle/commit/94d931494e92b55cfff12fa245f21ca742a5ff32))
+* **access-log:** set default timezone from php since $timezone parameter and the current timezone are ignored when the $datetime parameter is a UNIX timestamp (starts with @) ([8a21b1d](https://github.com/openswoole-bundle/openswoole-bundle/commit/8a21b1d2f1f916be159457e4c2b596d1cb1c40eb))
+
 ## [0.21.1](https://github.com/openswoole-bundle/openswoole-bundle/compare/v0.21.0...v0.21.1) (2024-03-18)
 
 [Full changelog](https://github.com/symfony-swoole/swoole-bundle/compare/v0.21.0...v0.21.1)
