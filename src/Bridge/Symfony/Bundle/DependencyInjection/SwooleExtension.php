@@ -75,6 +75,8 @@ use ZEngine\Core;
  *   public_dir: string,
  *   log_level: 'auto'|'debug'|'trace'|'info'|'notice'|'warning'|'error',
  *   enable_coroutine: bool,
+ *   user: string,
+ *   group: string,
  * }
  * @phpstan-type TaskWorkerServicesConfig = array{
  *   reset_handler: bool,

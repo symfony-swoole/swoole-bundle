@@ -265,6 +265,7 @@ abstract class ServerExecutionCommand extends Command
             ['extension', System::create()->extension()->toString()],
             ['env', $kernelEnv],
             ['debug', (string) var_export($this->parameterBag->get('kernel.debug'), true)],
+            ['user:group', $serverConfiguration->getUser() . ':' . $serverConfiguration->getGroup()],
             ['running_mode', $serverConfiguration->getRunningMode()],
             ['coroutines', $serverConfiguration->getCoroutinesEnabled() ? 'enabled' : 'disabled'],
             ['worker_count', (string) $serverConfiguration->getWorkerCount()],

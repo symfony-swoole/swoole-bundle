@@ -28,9 +28,10 @@ use SwooleBundle\SwooleBundle\Server\Config\Sockets;
  *   enable_coroutine?: bool,
  *   task_enable_coroutine?: bool,
  *   task_use_object?: bool,
- *   hook_flags?: int,
  *   log_file?: string,
  *   log_level?: string,
+ *   user?: string,
+ *   group?: string,
  * }
  * @phpstan-import-type SwooleSettingsShape from HttpServerConfiguration
  * @todo Create interface and split this class
@@ -56,6 +57,8 @@ final class DefaultHttpServerConfiguration implements HttpServerConfiguration
     private const SWOOLE_HTTP_SERVER_CONFIG_TASK_ENABLE_COROUTINE = 'task_enable_coroutine';
     private const SWOOLE_HTTP_SERVER_CONFIG_TASK_USE_OBJECT = 'task_use_object';
     private const SWOOLE_HTTP_SERVER_CONFIG_COROUTINE_HOOK_FLAGS = 'hook_flags';
+    private const SWOOLE_HTTP_SERVER_CONFIG_USER = 'user';
+    private const SWOOLE_HTTP_SERVER_CONFIG_GROUP = 'group';
 
     /**
      * @todo add more
@@ -80,7 +83,8 @@ final class DefaultHttpServerConfiguration implements HttpServerConfiguration
         self::SWOOLE_HTTP_SERVER_CONFIG_TASK_WORKER_COUNT => 'task_worker_num',
         self::SWOOLE_HTTP_SERVER_CONFIG_WORKER_COUNT => 'worker_num',
         self::SWOOLE_HTTP_SERVER_CONFIG_WORKER_MAX_REQUEST => 'max_request',
-        self::SWOOLE_HTTP_SERVER_CONFIG_WORKER_MAX_REQUEST_GRACE => 'max_request_grace',
+        self::SWOOLE_HTTP_SERVER_CONFIG_USER => 'user',
+        self::SWOOLE_HTTP_SERVER_CONFIG_GROUP => 'group',
     ];
 
     private const SWOOLE_SERVE_STATIC = [
@@ -118,6 +122,8 @@ final class DefaultHttpServerConfiguration implements HttpServerConfiguration
      *                        - task_enable_coroutine: enable coroutines in task workers
      *                        - task_use_object: enable OOP style task API
      *                        - hook_flags: coroutine hook flags
+     *                        - user: operating system user of the worker and task worker child processes
+     *                        - group: group of the worker and task worker child processes
      * @throws AssertionFailedException
      */
     public function __construct(
@@ -197,6 +203,22 @@ final class DefaultHttpServerConfiguration implements HttpServerConfiguration
     {
         return isset($this->settings[self::SWOOLE_HTTP_SERVER_CONFIG_ENABLE_COROUTINE])
             && $this->settings[self::SWOOLE_HTTP_SERVER_CONFIG_ENABLE_COROUTINE];
+    }
+
+    public function getUser(): string
+    {
+        // @phpstan-ignore-next-line
+        return $this->settings[self::SWOOLE_HTTP_SERVER_CONFIG_USER] ?? (extension_loaded('posix') ? posix_getpwuid(
+            posix_geteuid()
+        )['name'] : '-');
+    }
+
+    public function getGroup(): string
+    {
+        // @phpstan-ignore-next-line
+        return $this->settings[self::SWOOLE_HTTP_SERVER_CONFIG_GROUP] ?? (extension_loaded('posix') ? posix_getgrgid(
+            posix_getgid()
+        )['name'] : '-');
     }
 
     /**
