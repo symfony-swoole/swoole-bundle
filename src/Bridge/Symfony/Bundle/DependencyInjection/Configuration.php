@@ -284,6 +284,10 @@ final class Configuration implements ConfigurationInterface
                                 ->scalarNode('worker_max_request_grace')
                                     ->defaultNull()
                                 ->end()
+                                ->scalarNode('user')
+                                ->end()
+                                ->scalarNode('group')
+                                ->end()
                             ->end()
                         ->end() // settings
                     ->end()

@@ -29,6 +29,8 @@ use SwooleBundle\SwooleBundle\Server\Config\Sockets;
  *   hook_flags?: int,
  *   log_file: string,
  *   log_level: string,
+ *   user?: string,
+ *   group?: string,
  * }
  */
 interface HttpServerConfiguration
@@ -57,6 +59,10 @@ interface HttpServerConfiguration
     public function getRunningMode(): string;
 
     public function getCoroutinesEnabled(): bool;
+
+    public function getUser(): string;
+
+    public function getGroup(): string;
 
     /**
      * @throws AssertionFailedException
