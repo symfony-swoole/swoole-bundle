@@ -9,6 +9,9 @@ use Symfony\Component\Messenger\Transport\Serialization\SerializerInterface;
 use Symfony\Component\Messenger\Transport\TransportFactoryInterface;
 use Symfony\Component\Messenger\Transport\TransportInterface;
 
+/**
+ * @implements TransportFactoryInterface<SwooleServerTaskTransport>
+ */
 final class SwooleServerTaskTransportFactory implements TransportFactoryInterface
 {
     public function __construct(private readonly HttpServer $server) {}
