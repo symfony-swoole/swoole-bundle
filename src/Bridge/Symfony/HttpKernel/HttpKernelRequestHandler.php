@@ -10,6 +10,8 @@ use Swoole\Http\Response as SwooleResponse;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation\RequestFactory;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation\ResponseProcessor;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation\ResponseProcessorInjector;
+use SwooleBundle\SwooleBundle\Component\Locking\Coordinator\Constants;
+use SwooleBundle\SwooleBundle\Component\Locking\Coordinator\CoordinatorManager;
 use SwooleBundle\SwooleBundle\Server\RequestHandler\RequestHandler;
 use SwooleBundle\SwooleBundle\Server\Runtime\Bootable;
 use Symfony\Component\HttpKernel\TerminableInterface;
@@ -39,6 +41,7 @@ final class HttpKernelRequestHandler implements RequestHandler, Bootable
      */
     public function handle(SwooleRequest $request, SwooleResponse $response): void
     {
+        CoordinatorManager::until(Constants::WORKER_START)->yield();
         $httpFoundationRequest = $this->requestFactory->make($request);
         $this->processorInjector->injectProcessor($httpFoundationRequest, $response);
         $kernel = $this->kernelPool->get();
