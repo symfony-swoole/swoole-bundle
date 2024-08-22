@@ -106,6 +106,10 @@ swoole:
     # swoole http server settings
     # see https://openswoole.com/docs/modules/swoole-server/configuration
     settings:
+      # user and group for worker and task worker child processes
+      # user: some-user
+      # group: some-group
+    
       reactor_count: 2
       worker_count: 4
       # when not set, swoole sets these are automatically set based on count of host CPU cores

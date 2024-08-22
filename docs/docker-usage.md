@@ -192,7 +192,7 @@ else
     fi
 
     # if modification time is different, there are more events/files in same sec, we want only first
-    if [[ ${lastModificationTime} < "$changedTime" ]]; then
+    if [[ "$changedTime" =~ ^[0-9]+$ && ${lastModificationTime} -lt "$changedTime" ]]; then
 
       lastModificationTime=$changedTime;
 
