@@ -1,3 +1,11 @@
+# [0.22.0](https://github.com/openswoole-bundle/openswoole-bundle/compare/v0.21.2...v0.22.0) (2024-08-22)
+
+[Full changelog](https://github.com/symfony-swoole/swoole-bundle/compare/v0.21.2...v0.22.0)
+
+### Features
+
+* **settings:** allow set user and group for worker and task worker child processes ([210c143](https://github.com/openswoole-bundle/openswoole-bundle/commit/210c143f2e933b5c1c47ecfc4f249ee8aacd5532))
+
 ## [0.21.2](https://github.com/openswoole-bundle/openswoole-bundle/compare/v0.21.1...v0.21.2) (2024-04-18)
 
 [Full changelog](https://github.com/symfony-swoole/swoole-bundle/compare/v0.21.1...v0.21.2)
