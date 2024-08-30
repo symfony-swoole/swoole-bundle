@@ -18,16 +18,25 @@ final class SymfonyAccessLogDataMap implements AccessLogDataMap
      * Timestamp when created, indicating end of request processing.
      */
     private float $endTime;
+    private IntlDateFormatter $dateFormatter;
+    private string $dateFormatterIcuFormat = '';
+    private Request $request;
+    private Response $response;
 
     /**
      * @param bool $useHostnameLookups whether or not to do a hostname lookup when retrieving the remote host name
      */
     public function __construct(
-        private readonly Request $request,
-        private readonly Response $response,
         private readonly bool $useHostnameLookups = false,
-    ) {
+    ) {}
+
+    public function setRequestResponse(Request $request, Response $response): self
+    {
+        $this->request = $request;
+        $this->response = $response;
         $this->endTime = microtime(true);
+
+        return $this;
     }
 
     /**
@@ -304,10 +313,18 @@ final class SymfonyAccessLogDataMap implements AccessLogDataMap
                 $requestTime = new DateTimeImmutable('@' . (int) $time);
                 $requestTime = $requestTime->setTimezone(new DateTimeZone(date_default_timezone_get()));
 
-                return IntlDateFormatter::formatObject(
-                    $requestTime,
-                    '[' . StrftimeToICUFormatMap::mapStrftimeToICU($format, $requestTime) . ']'
-                );
+                $icuFormat = '[' . StrftimeToICUFormatMap::mapStrftimeToICU($format, $requestTime) . ']';
+
+                if ($icuFormat !== $this->dateFormatterIcuFormat) {
+                    $this->dateFormatter = new IntlDateFormatter(
+                        null,
+                        timezone: date_default_timezone_get(),
+                        pattern: $icuFormat
+                    );
+                    $this->dateFormatterIcuFormat = $icuFormat;
+                }
+
+                return (string) $this->dateFormatter->format($requestTime);
         }
     }
 

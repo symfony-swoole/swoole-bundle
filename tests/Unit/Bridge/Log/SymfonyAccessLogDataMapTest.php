@@ -72,7 +72,7 @@ final class SymfonyAccessLogDataMapTest extends TestCase
     {
         $this->request->server = new ServerBag($server);
         $this->request->headers = new HeaderBag($headers);
-        $map = new SymfonyAccessLogDataMap($this->request, $this->response, false);
+        $map = (new SymfonyAccessLogDataMap(false))->setRequestResponse($this->request, $this->response);
 
         $this->assertEquals($expectedIp, $map->getClientIp());
     }
@@ -82,7 +82,7 @@ final class SymfonyAccessLogDataMapTest extends TestCase
         $tz = new DateTimeZone(date_default_timezone_get());
         $date = new DateTimeImmutable('2021-12-02T02:21:12.4242', $tz);
         $this->request->server = new ServerBag(['REQUEST_TIME_FLOAT' => (float) $date->getTimestamp()]);
-        $map = new SymfonyAccessLogDataMap($this->request, $this->response, false);
+        $map = (new SymfonyAccessLogDataMap(false))->setRequestResponse($this->request, $this->response);
         $requestTime = $map->getRequestTime('begin:%d/%b/%Y:%H:%M:%S %z');
 
         $this->assertSame('[02/Dec/2021:02:21:12 ' . $date->format('O') . ']', $requestTime);
@@ -93,10 +93,17 @@ final class SymfonyAccessLogDataMapTest extends TestCase
         $tz = new DateTimeZone(date_default_timezone_get());
         $date = new DateTimeImmutable('2021-12-02T02:21:12.4242', $tz);
         $this->request->server = new ServerBag(['REQUEST_TIME_FLOAT' => (float) $date->getTimestamp()]);
-        $map = new SymfonyAccessLogDataMap($this->request, $this->response, false);
+        $map = (new SymfonyAccessLogDataMap(false))->setRequestResponse($this->request, $this->response);
         $requestTime = $map->getRequestTime('begin:%d/%b/%Y:%H:%M:%S %z');
 
         $this->assertSame('[02/Dec/2021:02:21:12 ' . $date->format('O') . ']', $requestTime);
+
+        $date = new DateTimeImmutable('2021-12-03T02:22:12.4242', $tz);
+        $this->request->server = new ServerBag(['REQUEST_TIME_FLOAT' => (float) $date->getTimestamp()]);
+        $map = (new SymfonyAccessLogDataMap(false))->setRequestResponse($this->request, $this->response);
+        $requestTime = $map->getRequestTime('begin:%d/%b/%Y:%H:%M:%S %z');
+
+        $this->assertSame('[03/Dec/2021:02:22:12 ' . $date->format('O') . ']', $requestTime);
     }
 
     public function testGetHttpFoundationRequestTimeInDifferentTimeZoneAsUTC(): void
@@ -106,7 +113,7 @@ final class SymfonyAccessLogDataMapTest extends TestCase
         $tz = new DateTimeZone(date_default_timezone_get());
         $date = new DateTimeImmutable('2021-12-02T02:21:12.4242', $tz);
         $this->request->server = new ServerBag(['REQUEST_TIME_FLOAT' => (float) $date->getTimestamp()]);
-        $map = new SymfonyAccessLogDataMap($this->request, $this->response, false);
+        $map = (new SymfonyAccessLogDataMap(false))->setRequestResponse($this->request, $this->response);
         $requestTime = $map->getRequestTime('begin:%d/%b/%Y:%H:%M:%S %z');
 
         $this->assertSame('[02/Dec/2021:02:21:12 ' . $date->format('O') . ']', $requestTime);

@@ -11,10 +11,14 @@ use Symfony\Component\HttpKernel\KernelEvents;
 
 final class AccessLogOnKernelTerminate implements EventSubscriberInterface
 {
+    private SymfonyAccessLogDataMap $symfonyAccessLogDataMap;
+
     public function __construct(
         private readonly LoggerInterface $accessLogLogger,
         private readonly AccessLogFormatter $formatter,
-    ) {}
+    ) {
+        $this->symfonyAccessLogDataMap = new SymfonyAccessLogDataMap();
+    }
 
     public function onKernelTerminate(TerminateEvent $event): void
     {
@@ -22,7 +26,9 @@ final class AccessLogOnKernelTerminate implements EventSubscriberInterface
             return;
         }
 
-        $message = $this->formatter->format(new SymfonyAccessLogDataMap($event->getRequest(), $event->getResponse()));
+        $message = $this->formatter->format(
+            $this->symfonyAccessLogDataMap->setRequestResponse($event->getRequest(), $event->getResponse())
+        );
         $this->accessLogLogger->info($message);
     }
 
