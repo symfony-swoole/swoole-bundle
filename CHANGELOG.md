@@ -1,3 +1,11 @@
+## [0.22.1](https://github.com/openswoole-bundle/openswoole-bundle/compare/v0.22.0...v0.22.1) (2024-09-08)
+
+[Full changelog](https://github.com/symfony-swoole/swoole-bundle/compare/v0.22.0...v0.22.1)
+
+### Performance Improvements
+
+* **access-log:** initialize IntlDateFormatter once based on icu format instead of slow static StrftimeToICUFormatMap::mapStrftimeToICU() ([466146d](https://github.com/openswoole-bundle/openswoole-bundle/commit/466146d76ba1e7c294df5e0af59cd581329cc9c1))
+
 # [0.22.0](https://github.com/openswoole-bundle/openswoole-bundle/compare/v0.21.2...v0.22.0) (2024-08-22)
 
 [Full changelog](https://github.com/symfony-swoole/swoole-bundle/compare/v0.21.2...v0.22.0)
