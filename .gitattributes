@@ -1,0 +1,8 @@
+/.circleci export-ignore
+/.github export-ignore
+/tests export-ignore
+/.codeclimate.yml export-ignore
+/.codecov.yml export-ignore
+/commitlint.config.js export-ignore
+/phpunit* export-ignore
+/phpstan* export-ignore
