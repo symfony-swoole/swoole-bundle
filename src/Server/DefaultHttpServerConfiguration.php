@@ -210,7 +210,7 @@ final class DefaultHttpServerConfiguration implements HttpServerConfiguration
         // @phpstan-ignore-next-line
         return $this->settings[self::SWOOLE_HTTP_SERVER_CONFIG_USER] ?? (extension_loaded('posix') ? posix_getpwuid(
             posix_geteuid()
-        )['name'] : '-');
+        )['name'] ?? (string) posix_geteuid() : '-');
     }
 
     public function getGroup(): string
@@ -218,7 +218,7 @@ final class DefaultHttpServerConfiguration implements HttpServerConfiguration
         // @phpstan-ignore-next-line
         return $this->settings[self::SWOOLE_HTTP_SERVER_CONFIG_GROUP] ?? (extension_loaded('posix') ? posix_getgrgid(
             posix_getgid()
-        )['name'] : '-');
+        )['name'] ?? (string) posix_getgid() : '-');
     }
 
     /**
