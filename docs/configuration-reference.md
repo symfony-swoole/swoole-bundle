@@ -1,9 +1,6 @@
 # Swoole Bundle Configuration
 
-Documentation of available configuration parameters. See also symfony [bundle configuration](./../src/Bridge/Symfony/Bundle/DependencyInjection/Configuration.php) file or [swoole documentation](https://github.com/swoole/swoole-docs/tree/master/modules).
-
-- [Swoole Bundle Configuration](#swoole-bundle-configuration)
-  - [HTTP Server](#http-server)
+Documentation of available configuration parameters. See also symfony [bundle configuration](./../src/Bridge/Symfony/Bundle/DependencyInjection/Configuration.php) file or [swoole documentation](https://wiki.swoole.com/en/#/)/[openswoole documentation](https://openswoole.com/docs).
 
 ## HTTP Server
 
@@ -35,7 +32,7 @@ swoole:
     # strategy can be one of: (default) auto, off, advanced, default
     #   - off: turn off feature
     #   - auto: use 'advanced' when debug enabled or not production environment
-    #   - advanced: use request handler class \K911\Swoole\Server\RequestHandler\AdvancedStaticFilesServer
+    #   - advanced: use request handler class \SwooleBundle\SwooleBundle\Server\RequestHandler\AdvancedStaticFilesServer
     #   - default: use default swoole static serving (faster than advanced, but supports less content types)
     # ---
     # mime types registration by file extension for static files serving in format: 'file extension': 'mime type'
@@ -47,13 +44,13 @@ swoole:
     #       sqlite: 'application/x-sqlite3'
 
     # enables hot module reload using inotify
-    hmr: 
+    hmr:
       enabled: auto
     # hmr enabled can be one of: off, (default) auto, inotify, external
     #   - off: turn off feature
     #   - auto: use inotify if installed in the system
     #   - inotify: use inotify
-    #   - external: dump files included before server start to text files, 
+    #   - external: dump files included before server start to text files,
     # files are parsed and used in swoole entrypoint command to decide if hard/soft reload is needed
     # files location, usually %kernel.cache_dir%/swoole_bundle/
     #
@@ -74,34 +71,34 @@ swoole:
     # additional swoole symfony bundle services
     services:
 
-      # see: \K911\Swoole\Bridge\Symfony\HttpFoundation\TrustAllProxiesRequestHandler
+      # see: \SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation\TrustAllProxiesRequestHandler
       trust_all_proxies_handler: true
 
-      # see: \K911\Swoole\Bridge\Symfony\HttpFoundation\CloudFrontRequestFactory
+      # see: \SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation\CloudFrontRequestFactory
       cloudfront_proto_header_handler: true
 
-      # see: \K911\Swoole\Bridge\Upscale\Blackfire\WithProfiler
+      # see: \SwooleBundle\SwooleBundle\Bridge\Upscale\Blackfire\WithProfiler
       blackfire_profiler: false
 
-      # see: \K911\Swoole\Bridge\Upscale\Blackfire\WithApm
+      # see: \SwooleBundle\SwooleBundle\Bridge\Upscale\Blackfire\WithApm
       blackfire_monitoring: false
 
-      # see: \K911\Swoole\Bridge\Tideways\Apm\WithApm
+      # see: \SwooleBundle\SwooleBundle\Bridge\Tideways\Apm\WithApm
       tideways_apm:
-        enabled: true
+        enabled: false
         service_name: 'app_name' # service name for Tideways APM UI
 
       # enable swoole logging
       access_log:
-          enabled: false
-          # define custom format or use some from AccessLogFormatter
-          format: !php/const K911\Swoole\Bridge\Log\AccessLogFormatter::FORMAT_COMMON_TIME
-          # whatever register monolog line formatter service
-          register_monolog_formatter_service: true
-          # service id, can be used in monolog -> handlers -> formatter
-          monolog_formatter_service_name: 'monolog.formatter.line.swoole.access_log'
-          # custom line formatter format, extra section is used by monolog processors
-          monolog_formatter_format: "%%message%% %%context%% %%extra%%\n"
+        enabled: false
+        # define custom format or use some from AccessLogFormatter
+        format: '!php/const: SwooleBundle\SwooleBundle\Bridge\Log\SimpleAccessLogFormatter::FORMAT_COMMON_TIME'
+        # whatever register monolog line formatter service
+        register_monolog_formatter_service: true
+        # service id, can be used in monolog -> handlers -> formatter
+        monolog_formatter_service_name: 'monolog.formatter.line.swoole.access_log'
+        # custom line formatter format, extra section is used by monolog processors
+        monolog_formatter_format: "%%message%% %%context%% %%extra%%\n"
 
     # swoole http server settings
     # see https://openswoole.com/docs/modules/swoole-server/configuration
@@ -109,7 +106,7 @@ swoole:
       # user and group for worker and task worker child processes
       # user: some-user
       # group: some-group
-    
+
       reactor_count: 2
       worker_count: 4
       # when not set, swoole sets these are automatically set based on count of host CPU cores
@@ -134,12 +131,12 @@ swoole:
       worker_max_request_grace: ~
       # 'grace period' for worker reloading. If not set, default is worker_max_request / 2. Worker reloads
       # after 'worker_max_request + rand(0,worker_max_request_grace)' requests
-      
+
   task_worker: # task workers' specific settings
-      services:
-        reset_handler: true # default true, set to false to disable services resetter on task processing end
-      settings:
-        worker_count: 2 # one of: positive number, "auto", or null to disable creation of task worker processes (default: null)
+    services:
+      reset_handler: true # default true, set to false to disable services resetter on task processing end
+    settings:
+      worker_count: 2 # one of: positive number, "auto", or null to disable creation of task worker processes (default: null)
   platform:
     coroutines:
       enabled: false
@@ -159,7 +156,7 @@ swoole:
       # it is important to limit the amount of stateful service instances, that need to be created,
       # otherwise there would be at least so many service instances as coroutines, which might be quite enough
       # regarding how much coroutines can be run concurrently (e.g. 100000)
-      # this number is by default equal to max_concurrency or max_coroutines, since it doesn't make sense to have 
+      # this number is by default equal to max_concurrency or max_coroutines, since it doesn't make sense to have
       # more stateful services than coroutines, but sometimes it might have sense to have less instances (e.g. if max_coroutines is too high)
       stateful_services:
         - SomeStatefulServiceId
@@ -175,7 +172,7 @@ swoole:
       # configuration options for doctrine processor - set instance limits for each connection type, or global limit
       doctrine_processor_config:
         # max connections in each swoole process for each doctrine connections, default is max_service_instances
-        global_limit: 10 
+        global_limit: 10
         limits:
           # connection with name 'default' will have max 9 instances per swoole process, if not set, default is global_limit
           default: 9
@@ -216,7 +213,7 @@ To work as intended, please use `swoole-bundle/z-engine`.
 ### Application kernel modification
 
 To be able to use coroutines in your application the following trait has to be used in the application kernel class:
-`K911\Swoole\Bridge\Symfony\Kernel\CoroutinesSupportingKernelTrait`. 
+`SwooleBundle\SwooleBundle\Bridge\Symfony\Kernel\CoroutinesSupportingKernel`. 
 
 This trait will disable state resetting of the app kernel while cloning it and makes some default overrides 
 and initializations.
@@ -239,7 +236,7 @@ of custom services unknown to the proxification mechanism in this bundle. The in
 way to proxify chosen services or to add special tags to services ina a dynamic way.
 
 All compile processors have to implement the interface 
-`K911\Swoole\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices\CompileProcessor`.
+`K\SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices\CompileProcessor`.
 Compile processors run in the proxification phase of the `StatefulServicePass` compiler pass at the end of application
 compilation. 
 
@@ -254,11 +251,11 @@ This is an example compile processor:
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Tests\Fixtures\Symfony\TestBundle\DependencyInjection\CompilerPass;
+namespace SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\DependencyInjection\CompilerPass;
 
-use K911\Swoole\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices\CompileProcessor;
-use K911\Swoole\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices\Proxifier;
-use K911\Swoole\Tests\Fixtures\Symfony\TestBundle\Service\SleepingCounter;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices\CompileProcessor;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices\Proxifier;
+use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Service\SleepingCounter;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 
 final class SleepingCounterCompileProcessor implements CompileProcessor
@@ -310,7 +307,7 @@ a solution for this, using connection pingers
 from [pixelfederation/doctrine-resettable-em-bundle](https://github.com/pixelfederation/doctrine-resettable-em-bundle)).
 
 For special cases like this, you can implement a custom service resetter. The resetter has to implement
-the `K911\Swoole\Bridge\Symfony\Container\Resetter` interface and has to be registered in the SF container
+the `SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Resetter` interface and has to be registered in the SF container
 as a service. After that, you can configure any stateful service to use the resetter just by adding the resetter
 service id to the stateful service tag like this:
 
@@ -337,10 +334,10 @@ that need to be reset on each request. To activate this, use the `reset_on_each_
 
 ### Stability checkers
 
-Stability checkers are services services which make run-time checks for paired stateful services. They check,
+Stability checkers are services which make run-time checks for paired stateful services. They check,
 if the paired service is stable and is able to be used for the next request (e.g. it can check if the entity manager is still open).
 A stability checker usually doesn't have to be tagged manually, autoconfiguration will tag all services implementing
-the `K911\Swoole\Bridge\Symfony\Container\StabilityChecker` interface automatically.
+the `SwooleBundle\SwooleBundle\Bridge\Symfony\Container\StabilityChecker` interface automatically.
 
 An example of a stability checker:
 
@@ -349,10 +346,10 @@ An example of a stability checker:
 
 declare(strict_types=1);
 
-namespace K911\Swoole\Bridge\Doctrine\ORM;
+namespace SwooleBundle\SwooleBundle\Bridge\Doctrine\ORM;
 
 use Doctrine\ORM\EntityManager;
-use K911\Swoole\Bridge\Symfony\Container\StabilityChecker;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\StabilityChecker;
 use UnexpectedValueException;
 
 final class EntityManagerStabilityChecker implements StabilityChecker
@@ -374,7 +371,7 @@ final class EntityManagerStabilityChecker implements StabilityChecker
 ```
 
 When the checker returns false, the coroutine engine will forget the unstable service and will fetch a fresh instance
-from the DI container. Otherwise the engine will mark the service instance as unused and will assign it to a coroutine 
+from the DI container. Otherwise, the engine will mark the service instance as unused and will assign it to a coroutine 
 in the next web request.
 
 ## Opcache problems
