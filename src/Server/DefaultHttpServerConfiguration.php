@@ -207,7 +207,6 @@ final class DefaultHttpServerConfiguration implements HttpServerConfiguration
 
     public function getUser(): string
     {
-        // @phpstan-ignore-next-line
         return $this->settings[self::SWOOLE_HTTP_SERVER_CONFIG_USER] ?? (extension_loaded('posix') ? posix_getpwuid(
             posix_geteuid()
         )['name'] ?? (string) posix_geteuid() : '-');
@@ -215,7 +214,6 @@ final class DefaultHttpServerConfiguration implements HttpServerConfiguration
 
     public function getGroup(): string
     {
-        // @phpstan-ignore-next-line
         return $this->settings[self::SWOOLE_HTTP_SERVER_CONFIG_GROUP] ?? (extension_loaded('posix') ? posix_getgrgid(
             posix_getgid()
         )['name'] ?? (string) posix_getgid() : '-');
