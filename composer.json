@@ -41,7 +41,7 @@
         "symfony/process": "^5.4.28|^6.4|^7.0",
         "symfony/proxy-manager-bridge": "^5.4.21|^6.4|^7.0",
         "upscale/ext-openswoole": "^v22.1.2",
-        "upscale/ext-swoole": "^5.1.0"
+        "upscale/ext-swoole": "^5.1.0|^6.0.0"
     },
     "require-dev": {
         "ext-ffi": "^8.1",
