@@ -7,21 +7,26 @@ aliases:
 
   # Supported lowest Swoole versions
   - &coverage-swooles
-    swoole: [ 'openswoole-v22.1.2', 'swoole-5.1.1' ]
+    swoole: [ 'openswoole-v22.1.2', 'swoole-5.1.1', 'swoole-6.0.0' ]
 
   # Supported PHP versions
   - &php-versions
-    php-version: ['8.1', '8.2', '8.3']
+    php-version: ['8.1', '8.2', '8.3', '8.4']
 
   # Supported Swoole/OpenSwoole versions
   - &swooles
-    swoole: [ 'openswoole-v22.1.2', 'swoole-5.1.1' ]
+    swoole: [ 'openswoole-v22.1.2', 'swoole-5.1.1', 'swoole-6.0.0' ]
 
   # Docker bake matrix - combinations of PHP version with Swoole extension and version
   - &bake-matrix
     parameters:
       <<: *php-versions
       <<: *swooles
+    exclude:
+      - php-version: '8.4'
+        swoole: 'openswoole-v22.1.2'
+      - php-version: '8.4'
+        swoole: 'swoole-5.1.1'
 
   # CI matrix - combinations of PHP version with Symfony versions
   # and composer dependencies (std/locked, latest, lowest)
@@ -112,6 +117,54 @@ aliases:
         php-version: '8.1'
         swoole: 'openswoole-v22.1.2'
         symfony-version: '7.0.*'
+      - composer-build: 'latest'
+        php-version: '8.4'
+        swoole: 'openswoole-v22.1.2'
+        symfony-version: '^5.4.21'
+      - composer-build: 'latest'
+        php-version: '8.4'
+        swoole: 'swoole-5.1.1'
+        symfony-version: '^5.4.21'
+      - composer-build: 'latest'
+        php-version: '8.4'
+        swoole: 'openswoole-v22.1.2'
+        symfony-version: '^6.4.*'
+      - composer-build: 'latest'
+        php-version: '8.4'
+        swoole: 'swoole-5.1.1'
+        symfony-version: '^6.4.*'
+      - composer-build: 'std'
+        php-version: '8.4'
+        swoole: 'openswoole-v22.1.2'
+        symfony-version: '^5.4.21'
+      - composer-build: 'std'
+        php-version: '8.4'
+        swoole: 'swoole-5.1.1'
+        symfony-version: '^5.4.21'
+      - composer-build: 'std'
+        php-version: '8.4'
+        swoole: 'openswoole-v22.1.2'
+        symfony-version: '^6.4.*'
+      - composer-build: 'std'
+        php-version: '8.4'
+        swoole: 'swoole-5.1.1'
+        symfony-version: '^6.4.*'
+      - composer-build: 'lowest'
+        php-version: '8.4'
+        swoole: 'openswoole-v22.1.2'
+        symfony-version: '^5.4.21'
+      - composer-build: 'lowest'
+        php-version: '8.4'
+        swoole: 'swoole-5.1.1'
+        symfony-version: '^5.4.21'
+      - composer-build: 'lowest'
+        php-version: '8.4'
+        swoole: 'openswoole-v22.1.2'
+        symfony-version: '^6.4.*'
+      - composer-build: 'lowest'
+        php-version: '8.4'
+        swoole: 'swoole-5.1.1'
+        symfony-version: '^6.4.*'
 
   # Remote Docker config
   - &docker-remote-version
