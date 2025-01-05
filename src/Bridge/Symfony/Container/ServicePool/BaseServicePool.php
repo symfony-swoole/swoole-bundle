@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Container\ServicePool;
 
-use Co;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Resetter;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\StabilityChecker;
+use SwooleBundle\SwooleBundle\Common\Adapter\Swoole;
 use SwooleBundle\SwooleBundle\Component\Locking\Mutex;
 
 /**
@@ -28,6 +28,7 @@ abstract class BaseServicePool implements ServicePool
     private array $assignedPool = [];
 
     public function __construct(
+        private readonly Swoole $swoole,
         private readonly Mutex $mutex,
         private readonly int $instancesLimit = 50,
         private readonly ?Resetter $resetter = null,
@@ -92,7 +93,7 @@ abstract class BaseServicePool implements ServicePool
 
     private function getCoroutineId(): int
     {
-        return Co::getCid();
+        return $this->swoole->getCoroutineId();
     }
 
     private function isServiceStable(object $service): bool

@@ -190,7 +190,7 @@ abstract class ServerExecutionCommand extends Command
         /** @var string $port */
         $port = $input->getOption('port');
 
-        /** @var string $host */
+        /** @var string|null $host */
         $host = $input->getOption('host');
 
         Assertion::numeric($port, 'Port must be a number.');
@@ -228,12 +228,14 @@ abstract class ServerExecutionCommand extends Command
         InputInterface $input,
     ): array {
         $trustedHosts = $input->getOption('trusted-hosts');
+        Assertion::isArray($trustedHosts);
+        Assertion::allString($trustedHosts);
         $trustedProxies = $input->getOption('trusted-proxies');
+        Assertion::isArray($trustedProxies);
+        Assertion::allString($trustedProxies);
         $runtimeConfiguration = [];
         $runtimeConfiguration['trustedHosts'] = $this->decodeSet($trustedHosts);
         $runtimeConfiguration['trustedProxies'] = $this->decodeSet($trustedProxies);
-
-        Assertion::isArray($runtimeConfiguration['trustedProxies']);
 
         if (in_array('*', $runtimeConfiguration['trustedProxies'], true)) {
             $runtimeConfiguration['trustAllProxies'] = true;
@@ -369,6 +371,7 @@ abstract class ServerExecutionCommand extends Command
     }
 
     /**
+     * @param array<string>|string $set
      * @return array<string>
      * @throws AssertionFailedException
      */
@@ -377,8 +380,6 @@ abstract class ServerExecutionCommand extends Command
         if (is_string($set)) {
             return decode_string_as_set($set);
         }
-
-        Assertion::isArray($set);
 
         if (count($set) === 1) {
             return decode_string_as_set($set[0]);

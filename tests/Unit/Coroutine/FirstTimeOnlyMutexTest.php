@@ -40,7 +40,7 @@ final class FirstTimeOnlyMutexTest extends TestCase
 
                     $i = -1;
                     usleep(1000);
-                    self::assertSame(-1, $i);
+                    self::assertSame(-1, $i); /** @phpstan-ignore staticMethod.alreadyNarrowedType */
                     $i = 1;
                 } finally {
                     $mutex->release();
@@ -55,7 +55,7 @@ final class FirstTimeOnlyMutexTest extends TestCase
                     usleep(1000);
 
                     try {
-                        self::assertSame(-2, $i);
+                        self::assertSame(-2, $i); /** @phpstan-ignore staticMethod.alreadyNarrowedType */
                     } catch (Throwable) {
                         $failureOccurred = true;
                     }
@@ -74,7 +74,7 @@ final class FirstTimeOnlyMutexTest extends TestCase
                     usleep(1000);
 
                     try {
-                        self::assertSame(-3, $i);
+                        self::assertSame(-3, $i); /** @phpstan-ignore staticMethod.alreadyNarrowedType */
                     } catch (Throwable) {
                         $failureOccurred = true;
                     }

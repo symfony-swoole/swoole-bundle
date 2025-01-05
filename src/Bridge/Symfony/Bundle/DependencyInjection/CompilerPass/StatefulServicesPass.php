@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass;
 
+use Assert\Assertion;
+use Closure;
 use SwooleBundle\SwooleBundle\Bridge\Doctrine\DoctrineProcessor;
 use SwooleBundle\SwooleBundle\Bridge\Monolog\MonologProcessor;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices\{
@@ -98,10 +100,11 @@ final class StatefulServicesPass implements CompilerPassInterface
         $compileProcessors = array_merge(array_values($defaultProcessors), $compileProcessors);
 
         /**
-         * @var callable(
+         * @var Closure(
          *  array<int, array<array{class: class-string<CompileProcessor>, config?: array<string, mixed>}>>,
          *  array{class: class-string<CompileProcessor>, priority?: int, config?: array<string, mixed>}
-         * ): array<int, array<array{class: class-string<CompileProcessor>, config?: array<string, mixed>}>> $reducer
+         *  ): array<int, array<array{class: class-string<CompileProcessor>, config?: array<string, mixed>}>> $reducer
+         * @phpstan-ignore varTag.nativeType
          */
         $reducer = static function (array $processors, array $processorConfig): array {
             $priority = $processorConfig['priority'] ?? 0;
@@ -213,10 +216,6 @@ final class StatefulServicesPass implements CompilerPassInterface
             $stabilityCheckers[$supportedClass] = $svcId;
         }
 
-        if (!is_array($stabilityCheckers)) {
-            throw new UnexpectedValueException('Invalid stability checkers provided.');
-        }
-
         return new Proxifier($container, $finalProcessor, $stabilityCheckers);
     }
 
@@ -238,6 +237,7 @@ final class StatefulServicesPass implements CompilerPassInterface
         /** @var ServiceLocatorArgument $resetters */
         $resetters = $resetterDef->getArgument(0);
         $resetMethods = $resetterDef->getArgument(1);
+        Assertion::isArray($resetMethods);
         $newResetters = [];
         $newResetMethods = [];
 

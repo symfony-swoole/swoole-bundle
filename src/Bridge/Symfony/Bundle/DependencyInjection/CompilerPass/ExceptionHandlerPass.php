@@ -18,7 +18,7 @@ final class ExceptionHandlerPass implements CompilerPassInterface
 {
     public function process(ContainerBuilder $container): void
     {
-        if (Kernel::MAJOR_VERSION === 5) {
+        if (Kernel::MAJOR_VERSION === 5) { /** @phpstan-ignore identical.alwaysTrue */
             return;
         }
 

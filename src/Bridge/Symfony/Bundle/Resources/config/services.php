@@ -6,14 +6,12 @@ use ProxyManager\Configuration;
 use ProxyManager\Factory\AccessInterceptorValueHolderFactory;
 use ProxyManager\FileLocator\FileLocator;
 use ProxyManager\GeneratorStrategy\FileWriterGeneratorStrategy;
+use SwooleBundle\SwooleBundle\Bridge\CommonSwoole\SystemSwooleFactory;
 use SwooleBundle\SwooleBundle\Bridge\Doctrine\ORM\EntityManagerStabilityChecker;
 use SwooleBundle\SwooleBundle\Bridge\OpenSwoole\Metrics\MetricsProvider as OpenSwooleMetricsProvider;
-use SwooleBundle\SwooleBundle\Bridge\OpenSwoole\OpenSwooleFactory;
 use SwooleBundle\SwooleBundle\Bridge\Swoole\Metrics\MetricsProvider as SwooleMetricsProvider;
-use SwooleBundle\SwooleBundle\Bridge\Swoole\SwooleFactory;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices\{
-    NonSharedSvcPoolConfigurator,
-};
+    NonSharedSvcPoolConfigurator,};
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\EventDispatcher\EventDispatchingServerStartHandler;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\EventDispatcher\EventDispatchingWorkerErrorHandler;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\EventDispatcher\EventDispatchingWorkerExitHandler;
@@ -46,7 +44,6 @@ use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpKernel\SimpleKernelPool;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Messenger\ExceptionLoggingTransportHandler;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Messenger\ServiceResettingTransportHandler;
 use SwooleBundle\SwooleBundle\Common\Adapter\Swoole;
-use SwooleBundle\SwooleBundle\Common\Adapter\SystemSwooleFactory;
 use SwooleBundle\SwooleBundle\Common\System\Extension;
 use SwooleBundle\SwooleBundle\Common\System\System;
 use SwooleBundle\SwooleBundle\Component\AtomicCounter;
@@ -412,7 +409,8 @@ return static function (ContainerConfigurator $containerConfigurator): void {
         ->arg('$instantiator', service(Instantiator::class))
         ->arg('$servicePoolContainer', service(ServicePoolContainer::class))
         ->arg('$limitLocking', service('swoole_bundle.service_pool.locking'))
-        ->arg('$newInstanceLocking', service('swoole_bundle.unmanaged_factory_first_time.locking'));
+        ->arg('$newInstanceLocking', service('swoole_bundle.unmanaged_factory_first_time.locking'))
+        ->arg('$swoole', service(Swoole::class));
 
     $services->set('swoole_bundle.filesystem', Filesystem::class);
 
@@ -441,7 +439,8 @@ return static function (ContainerConfigurator $containerConfigurator): void {
         ->arg('$proxiesDirectory', '%swoole_bundle.service_proxy_cache_dir%');
 
     $services->set(CoWrapper::class)
-        ->arg('$servicePoolContainer', service(ServicePoolContainer::class));
+        ->arg('$servicePoolContainer', service(ServicePoolContainer::class))
+        ->arg('$swoole', service(Swoole::class));
 
     $services->set(ServicePoolContainer::class)
         ->arg('$pools', [
@@ -476,22 +475,8 @@ return static function (ContainerConfigurator $containerConfigurator): void {
             'get',
         ]);
 
-    $services->set(OpenSwooleFactory::class)
-        ->tag('swoole_bundle.swoole_adapter_factory', [
-            'extension' => Extension::OPENSWOOLE,
-        ]);
-
-    $services->set(SwooleFactory::class)
-        ->tag('swoole_bundle.swoole_adapter_factory', [
-            'extension' => Extension::SWOOLE,
-        ]);
-
     $services->set(SystemSwooleFactory::class)
-        ->arg('$system', service(System::class))
-        ->arg(
-            '$adapterFactories',
-            tagged_iterator(tag: 'swoole_bundle.swoole_adapter_factory', indexAttribute: 'extension')
-        );
+        ->factory([SystemSwooleFactory::class, 'newFactoryInstance']);
 
     $services->set(Swoole::class)
         ->factory([

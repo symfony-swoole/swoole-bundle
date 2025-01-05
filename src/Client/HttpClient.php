@@ -199,16 +199,16 @@ final class HttpClient
      *     headers: array<string, string>,
      *     body: string,
      *     cookies: array<string, string>,
-     *     uploadFiles: array<array<string, string>>,
+     *     uploadFiles: array<array<string, string>>
      *   },
      *   response: array{
      *     cookies: array<string, string>,
      *     headers: array<string, string>,
      *     statusCode: int,
-     *     body: array|string,
+     *     body: array<mixed>|string,
      *     downloadFile: string,
-     *     downloadOffset: int,
-     *   },
+     *     downloadOffset: int
+     *   }
      * }
      */
     private function resolveResponse(Client $client, int $timeout): array
@@ -253,6 +253,9 @@ final class HttpClient
         }
     }
 
+    /**
+     * @return array<mixed>|string
+     */
     private function resolveResponseBody(Client $client): array|string
     {
         if ($client->statusCode === 204 || $client->body === '') {

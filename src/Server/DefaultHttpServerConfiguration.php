@@ -465,6 +465,7 @@ final class DefaultHttpServerConfiguration implements HttpServerConfiguration
 
                 break;
             case self::SWOOLE_HTTP_SERVER_CONFIG_PUBLIC_DIR:
+                Assertion::string($value);
                 Assertion::directory($value, 'Public directory does not exists. Tried "%s".');
 
                 break;

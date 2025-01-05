@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Bridge\Log;
 
+use Assert\Assertion;
 use DateTimeInterface;
 use RuntimeException;
 use Webmozart\Assert\Assert;
@@ -21,11 +22,14 @@ final class StrftimeToICUFormatMap
 {
     public static function mapStrftimeToICU(string $format, DateTimeInterface $requestTime): string
     {
-        return preg_replace_callback(
+        $replaced = preg_replace_callback(
             '/(?P<token>%[aAbBcCdDeFgGhHIjklmMpPrRsSTuUVwWxXyYzZ])/',
             self::generateMapCallback($requestTime),
             $format
         );
+        Assertion::string($replaced);
+
+        return $replaced;
     }
 
     /**

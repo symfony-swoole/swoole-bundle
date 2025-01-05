@@ -12,6 +12,7 @@ use RuntimeException;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Resetter;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\ServicePool\ServicePoolContainer;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\ServicePool\UnmanagedFactoryServicePool;
+use SwooleBundle\SwooleBundle\Common\Adapter\Swoole;
 use SwooleBundle\SwooleBundle\Component\Locking\MutexFactory;
 
 final class UnmanagedFactoryInstantiator
@@ -22,6 +23,7 @@ final class UnmanagedFactoryInstantiator
         private ServicePoolContainer $servicePoolContainer,
         private readonly MutexFactory $limitLocking,
         private readonly MutexFactory $newInstanceLocking,
+        private readonly Swoole $swoole,
     ) {}
 
     /**
@@ -49,6 +51,7 @@ final class UnmanagedFactoryInstantiator
         $prefixInterceptors = [];
         $servicePoolContainer = $this->servicePoolContainer;
         $instantiator = $this->instantiator;
+        $swoole = $this->swoole;
 
         if (empty($factoryConfigs)) {
             throw new RuntimeException(sprintf('Factory methods missing for class %s', $instance::class));
@@ -70,6 +73,7 @@ final class UnmanagedFactoryInstantiator
              *  array<string, mixed>=,
              *  bool=
              * ): mixed $interceptor
+             * @phpstan-ignore varTag.nativeType
              */
             $interceptor = function (
                 object $proxy,
@@ -77,7 +81,7 @@ final class UnmanagedFactoryInstantiator
                 string $method,
                 array $params,
                 bool &$returnEarly, // phpcs:ignore
-            ) use ($servicePoolContainer, $instantiator, $factoryConfig, $mutex, $globalInstancesLimit) {
+            ) use ($servicePoolContainer, $instantiator, $factoryConfig, $mutex, $globalInstancesLimit, $swoole) {
                 $returnEarly = true;
                 $factoryInstantiator = static function () use ($instance, $method, $params, $mutex): object {
                     $mutex->acquire();
@@ -99,6 +103,7 @@ final class UnmanagedFactoryInstantiator
                 $resetter = $factoryConfig['resetter'] ?? null;
                 $servicePool = new UnmanagedFactoryServicePool(
                     $factoryInstantiator,
+                    $swoole,
                     $limitMutex,
                     $instancesLimit,
                     $resetter

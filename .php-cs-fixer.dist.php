@@ -48,6 +48,7 @@ return $config->setRules([
         'nullable_type_declaration_for_default_null_value' => false,
         'ordered_class_elements' => true,
         'ordered_imports' => ['sort_algorithm' => 'alpha', 'imports_order' => ['class', 'function', 'const']],
+        'no_unused_imports' => true,
         'phpdoc_order' => [
             'order' => ['param', 'return', 'throws'],
         ],

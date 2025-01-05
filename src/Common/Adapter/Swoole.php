@@ -15,4 +15,6 @@ interface Swoole
     public function enableCoroutines(int $flags = SWOOLE_HOOK_ALL): void;
 
     public function disableCoroutines(): void;
+
+    public function getCoroutineId(): int;
 }

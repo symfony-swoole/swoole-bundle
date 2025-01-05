@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Bridge\Symfony\ErrorHandler;
 
+use Assert\Assertion;
 use ReflectionMethod;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -22,12 +23,14 @@ final class ResponseDelayingExceptionHandler
 
     public function __invoke(Throwable $e): void
     {
-        $this->response = $this->throwableHandler->invoke(
+        $response = $this->throwableHandler->invoke(
             $this->kernel,
             $e,
             $this->request,
             HttpKernelInterface::MAIN_REQUEST
         );
+        Assertion::isInstanceOf($response, Response::class);
+        $this->response = $response;
     }
 
     public function getResponse(): ?Response

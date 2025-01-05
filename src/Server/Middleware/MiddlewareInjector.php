@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Server\Middleware;
 
+use Assert\Assertion;
 use ReflectionException;
 use ReflectionProperty;
 use Swoole\Http\Server;
@@ -50,7 +51,10 @@ final class MiddlewareInjector
             $property = new ReflectionProperty($observer, $propertyName);
             $property->setAccessible(true);
 
-            return $property->getValue($observer);
+            $toReturn = $property->getValue($observer);
+            Assertion::isCallable($toReturn);
+
+            return $toReturn;
         } catch (ReflectionException) {
             return null;
         }

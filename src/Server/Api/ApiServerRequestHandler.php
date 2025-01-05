@@ -168,6 +168,9 @@ final class ApiServerRequestHandler implements RequestHandler
         return array_map(static fn(array $route): array => array_keys($route), $this->routes);
     }
 
+    /**
+     * @param array<mixed> $data
+     */
     private function sendResponse(Response $response, int $statusCode = 200, ?array $data = []): void
     {
         if (empty($data) || $statusCode === 204) {

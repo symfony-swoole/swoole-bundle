@@ -18,6 +18,7 @@ class AdvancedTest // phpcs:ignore SlevomatCodingStandard.Classes.RequireAbstrac
     private int $counter = 0;
 
     public function __construct(
+        /** @phpstan-ignore-next-line */
         #[ORM\Column(type: 'guid')]
         #[ORM\Id]
         private UuidInterface $uuid,

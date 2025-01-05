@@ -9,5 +9,5 @@ use Symfony\Component\HttpFoundation\Response as HttpFoundationResponse;
 
 interface ResponseProcessor
 {
-    public function process(HttpFoundationResponse $httpFoundationResponse, SwooleResponse $swooleSwooleResponse): void;
+    public function process(HttpFoundationResponse $httpFoundationResponse, SwooleResponse $swooleResponse): void;
 }

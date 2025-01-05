@@ -6,6 +6,7 @@ namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Container\ServicePool;
 
 use Closure;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Resetter;
+use SwooleBundle\SwooleBundle\Common\Adapter\Swoole;
 use SwooleBundle\SwooleBundle\Component\Locking\Mutex;
 
 /**
@@ -19,11 +20,12 @@ final class UnmanagedFactoryServicePool extends BaseServicePool
      */
     public function __construct(
         private Closure $instantiator,
+        Swoole $swoole,
         Mutex $mutex,
         int $instancesLimit = 50,
         ?Resetter $resetter = null,
     ) {
-        parent::__construct($mutex, $instancesLimit, $resetter);
+        parent::__construct($swoole, $mutex, $instancesLimit, $resetter);
     }
 
     /**

@@ -36,7 +36,7 @@ final class ChannelMutexTest extends TestCase
 
                 $i = -1;
                 usleep(1000);
-                self::assertSame(-1, $i);
+                self::assertSame(-1, $i); /** @phpstan-ignore staticMethod.alreadyNarrowedType */
                 $i = 1;
 
                 $mutex->release();
@@ -47,7 +47,7 @@ final class ChannelMutexTest extends TestCase
 
                 $i = -2;
                 usleep(1000);
-                self::assertSame(-2, $i);
+                self::assertSame(-2, $i); /** @phpstan-ignore staticMethod.alreadyNarrowedType */
                 $i = 2;
 
                 $mutex->release();
@@ -58,7 +58,7 @@ final class ChannelMutexTest extends TestCase
 
                 $i = -3;
                 usleep(1000);
-                self::assertSame(-3, $i);
+                self::assertSame(-3, $i); /** @phpstan-ignore staticMethod.alreadyNarrowedType */
                 $i = 3;
 
                 $mutex->release();

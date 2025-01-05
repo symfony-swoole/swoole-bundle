@@ -78,8 +78,11 @@ final class SwooleTableStorage implements Storage
 
     public function garbageCollect(): void
     {
+        /**
+         * @var string $key
+         * @var array{expires_at: int} $row
+         */
         foreach ($this->sharedMemory as $key => $row) {
-            /** @var int $expiresAt */
             $expiresAt = $row[self::TABLE_COLUMN_EXPIRES_AT];
             if (time() < $expiresAt) {
                 continue;

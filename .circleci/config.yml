@@ -516,13 +516,6 @@ workflows:
             - shellcheck
             - check-composer-config
             - validate-commit-message
-      - grumphp-ci:
-          name: grumphp-ci-php-<< matrix.php-version >>-<< matrix.swoole >>-symfony-<< matrix.symfony-version >>-<< matrix.composer-build >>
-          context: release-version-script-github
-          matrix:
-            <<: *ci-matrix
-          requires:
-            - docker-buildx-bake-<< matrix.php-version >>-<< matrix.swoole >>
       - code-coverage-pcov-php-lowest:
           context: release-version-script-dockerhub
           matrix:
@@ -537,6 +530,13 @@ workflows:
             parameters:
               <<: *coverage-php-version
               <<: *coverage-swooles
+          requires:
+            - docker-buildx-bake-<< matrix.php-version >>-<< matrix.swoole >>
+      - grumphp-ci:
+          name: grumphp-ci-php-<< matrix.php-version >>-<< matrix.swoole >>-symfony-<< matrix.symfony-version >>-<< matrix.composer-build >>
+          context: release-version-script-github
+          matrix:
+            <<: *ci-matrix
           requires:
             - docker-buildx-bake-<< matrix.php-version >>-<< matrix.swoole >>
       - process-coverage-results:

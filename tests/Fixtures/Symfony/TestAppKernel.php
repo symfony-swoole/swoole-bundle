@@ -158,7 +158,7 @@ final class TestAppKernel extends Kernel
     {
         $routingFile = 'routing.php';
 
-        if (self::MAJOR_VERSION === 5) {
+        if (self::MAJOR_VERSION === 5) { /** @phpstan-ignore identical.alwaysTrue */
             $routingFile = 'routing_54.php';
         }
 

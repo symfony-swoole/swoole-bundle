@@ -4,13 +4,12 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Tests\Unit\Common\Adapter;
 
-use ArrayIterator;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
+use SwooleBundle\SwooleBundle\Bridge\CommonSwoole\SystemSwooleFactory;
 use SwooleBundle\SwooleBundle\Common\Adapter\Swoole;
 use SwooleBundle\SwooleBundle\Common\Adapter\SwooleFactory;
-use SwooleBundle\SwooleBundle\Common\Adapter\SystemSwooleFactory;
 use SwooleBundle\SwooleBundle\Common\System\Extension;
 use SwooleBundle\SwooleBundle\Common\System\System;
 
@@ -33,10 +32,10 @@ final class SystemSwooleFactoryTest extends TestCase
 
         $factory = new SystemSwooleFactory(
             System::create(),
-            new ArrayIterator([
+            [
                 Extension::SWOOLE => $swooleFactory,
                 Extension::OPENSWOOLE => $openSwooleFactory,
-            ])
+            ],
         );
 
         $factory->newInstance();
@@ -49,7 +48,7 @@ final class SystemSwooleFactoryTest extends TestCase
 
         $factory = new SystemSwooleFactory(
             System::create(),
-            new ArrayIterator([])
+            [],
         );
 
         $factory->newInstance();

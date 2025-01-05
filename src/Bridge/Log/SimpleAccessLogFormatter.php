@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Bridge\Log;
 
+use Assert\Assertion;
+
 final class SimpleAccessLogFormatter implements AccessLogFormatter
 {
     /**
@@ -42,7 +44,7 @@ final class SimpleAccessLogFormatter implements AccessLogFormatter
 
     private function replaceConstantDirectives(string $format, AccessLogDataMap $map): string
     {
-        return preg_replace_callback(
+        $replaced = preg_replace_callback(
             '/%(?:[<>])?([%aABbDfhHklLmpPqrRstTuUvVXIOS])/',
             /* @phpstan-ignore-next-line */
             static fn(array $matches) => match ($matches[1]) {
@@ -73,11 +75,14 @@ final class SimpleAccessLogFormatter implements AccessLogFormatter
             },
             $format
         );
+        Assertion::string($replaced);
+
+        return $replaced;
     }
 
     private function replaceVariableDirectives(string $format, AccessLogDataMap $map): string
     {
-        return preg_replace_callback(
+        $replaced = preg_replace_callback(
             '/%(?:[<>])?{([^}]+)}([aCeinopPtT])/',
             static fn(array $matches) => match ($matches[2]) {
                 'a' => $map->getClientIp(),
@@ -92,5 +97,8 @@ final class SimpleAccessLogFormatter implements AccessLogFormatter
             },
             $format
         );
+        Assertion::string($replaced);
+
+        return $replaced;
     }
 }

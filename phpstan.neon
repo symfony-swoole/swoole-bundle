@@ -1,12 +1,10 @@
 parameters:
     inferPrivatePropertyTypeFromConstructor: true
-    checkMissingIterableValueType: false
-    level: 7
+    level: 9
     paths:
         - src
     excludePaths:
         - src/Bridge/Symfony/Bundle/DependencyInjection/Configuration.php
-        - src/Bridge/Symfony/Container/ContainerModifier.php
         - src/Bridge/Monolog/StreamHandler.php
         # Internal error: Expected to find an ancestor with class name Swoole\Timer on Swoole\Server, but none was found.
         - src/Server/WorkerHandler/HMRWorkerStartHandler.php
@@ -16,7 +14,11 @@ parameters:
         - src/Bridge/OpenSwoole/WaitGroup.php
         - src/Bridge/Swoole/WaitGroup.php
         - src/Common/System/System.php
+        - src/Bridge/Swoole/Swoole.php
+        # remove after upgrade to PHP 8.2
+        - src/Server/HttpServer.php
     ignoreErrors:
         # Put false positives here
         - '#PHPDoc tag @var for variable \$row contains unresolvable type#'
+        - '#PHPDoc tag @SuppressWarnings has invalid value#'
     tmpDir: /tmp/phpstan_src

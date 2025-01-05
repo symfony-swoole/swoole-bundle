@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Common\XdebugHandler;
 
+use Assert\Assertion;
 use Generator;
 use RuntimeException;
 use Symfony\Component\Process\Process;
@@ -46,6 +47,7 @@ final class XdebugHandler
         $command = [PHP_BINARY, '-n', '-c', $this->createPreparedTempIniFile()];
         // phpcs:ignore SlevomatCodingStandard.Variables.DisallowSuperGlobalVariable.DisallowedSuperGlobalVariable
         $currentCommand = $_SERVER['argv'];
+        Assertion::isArray($currentCommand);
         $command = array_merge($command, $currentCommand);
 
         $process = new Process($command, null, $this->prepareEnvs());
@@ -170,7 +172,7 @@ final class XdebugHandler
     /**
      * Returns default, changed and command-line ini settings.
      *
-     * @param array<string, string> $loadedConfig All current ini settings
+     * @param array<mixed> $loadedConfig All current ini settings
      * @param array<string, string> $iniConfig Settings from user ini files
      */
     private function mergeLoadedConfig(array $loadedConfig, array $iniConfig): string

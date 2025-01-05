@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace SwooleBundle\SwooleBundle\Bridge\Doctrine;
 
 use Doctrine\Common\Proxy\Proxy;
+use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\Proxy\ProxyFactory;
 use SwooleBundle\SwooleBundle\Component\Locking\FirstTimeOnly\FirstTimeOnlyMutex;
 use SwooleBundle\SwooleBundle\Component\Locking\FirstTimeOnly\FirstTimeOnlyMutexFactory;
@@ -42,8 +43,10 @@ final class BlockingProxyFactory extends ProxyFactory
     }
 
     /**
-     * {@inheritDoc}
+     * @param array<ClassMetadata<object>> $classes
+     * @param string|null $proxyDir
      */
+    // phpcs:ignore SlevomatCodingStandard.TypeHints.ParameterTypeHint.MissingNativeTypeHint
     public function generateProxyClasses(array $classes, $proxyDir = null): int
     {
         return $this->wrapped->generateProxyClasses($classes, $proxyDir);

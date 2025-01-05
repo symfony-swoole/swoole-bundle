@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Bridge\Log;
 
+use Assert\Assertion;
 use DateTimeImmutable;
 use DateTimeZone;
 use IntlDateFormatter;
@@ -48,7 +49,10 @@ final class SymfonyAccessLogDataMap implements AccessLogDataMap
 
         foreach ($headers as $header) {
             if ($this->request->headers->has($header)) {
-                return $this->request->headers->get($header);
+                $ip = (string) $this->request->headers->get($header);
+                Assertion::ip($ip);
+
+                return $ip;
             }
         }
 
@@ -100,7 +104,10 @@ final class SymfonyAccessLogDataMap implements AccessLogDataMap
      */
     public function getProtocol(): string
     {
-        return $this->getServerParam('SERVER_PROTOCOL');
+        $toReturn = $this->getServerParam('SERVER_PROTOCOL');
+        Assertion::string($toReturn);
+
+        return $toReturn;
     }
 
     /**
@@ -108,7 +115,10 @@ final class SymfonyAccessLogDataMap implements AccessLogDataMap
      */
     public function getMethod(): string
     {
-        return $this->getServerParam('REQUEST_METHOD');
+        $toReturn = $this->getServerParam('REQUEST_METHOD');
+        Assertion::string($toReturn);
+
+        return $toReturn;
     }
 
     /**
@@ -116,7 +126,7 @@ final class SymfonyAccessLogDataMap implements AccessLogDataMap
      */
     public function getRequestHeader(string $name): string
     {
-        return $this->request->headers->get(strtolower($name), '-');
+        return (string) $this->request->headers->get(strtolower($name), '-');
     }
 
     /**
@@ -124,7 +134,7 @@ final class SymfonyAccessLogDataMap implements AccessLogDataMap
      */
     public function getResponseHeader(string $name): string
     {
-        return $this->response->headers->get(strtolower($name), '-');
+        return (string) $this->response->headers->get(strtolower($name), '-');
     }
 
     /**
@@ -151,9 +161,14 @@ final class SymfonyAccessLogDataMap implements AccessLogDataMap
         switch ($format) {
             case 'canonical':
             case 'local':
-                preg_match(self::HOST_PORT_REGEX, $this->request->headers->get(strtolower('host'), ''), $matches);
+                preg_match(
+                    self::HOST_PORT_REGEX,
+                    (string) $this->request->headers->get(strtolower('host'), ''),
+                    $matches
+                );
                 $port = $matches['port'] ?? null;
                 $port = $port ?: $this->getServerParam('SERVER_PORT', '80');
+                Assertion::string($port);
                 $scheme = $this->getServerParam('HTTPS', '');
 
                 return $scheme && $port === '80' ? '443' : $port;
@@ -186,7 +201,10 @@ final class SymfonyAccessLogDataMap implements AccessLogDataMap
      */
     public function getRemoteUser(): string
     {
-        return $this->getServerParam('REMOTE_USER');
+        $toReturn = $this->getServerParam('REMOTE_USER');
+        Assertion::string($toReturn);
+
+        return $toReturn;
     }
 
     /**
@@ -292,7 +310,8 @@ final class SymfonyAccessLogDataMap implements AccessLogDataMap
      */
     public function getRequestTime(string $format): string
     {
-        $time = (int) $this->getServerParam('REQUEST_TIME_FLOAT');
+        $time = $this->getServerParam('REQUEST_TIME_FLOAT');
+        Assertion::float($time);
 
         if (str_starts_with($format, 'begin:')) {
             $format = substr($format, 6);
@@ -336,8 +355,8 @@ final class SymfonyAccessLogDataMap implements AccessLogDataMap
      */
     public function getRequestDuration(string $format): string
     {
-        /** @var float $begin */
         $begin = $this->getServerParam('REQUEST_TIME_FLOAT');
+        Assertion::float($begin);
 
         return match ($format) {
             'us' => (string) round(($this->endTime - $begin) * 1E6),
@@ -349,9 +368,9 @@ final class SymfonyAccessLogDataMap implements AccessLogDataMap
     /**
      * Returns an server parameter value.
      */
-    private function getServerParam(string $key, string $default = '-'): string
+    private function getServerParam(string $key, string $default = '-'): mixed
     {
-        return (string) $this->request->server->get(strtoupper($key), $default);
+        return $this->request->server->get(strtoupper($key), $default);
     }
 
     /**
@@ -360,6 +379,7 @@ final class SymfonyAccessLogDataMap implements AccessLogDataMap
     private function getServerParamIp(string $key): string
     {
         $ip = $this->getServerParam($key);
+        Assertion::string($ip);
 
         return filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 | FILTER_FLAG_IPV6) === false
             ? '-'

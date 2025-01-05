@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Bridge\Symfony\ErrorHandler;
 
+use Assert\Assertion;
 use Symfony\Component\ErrorHandler\ErrorHandler;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -21,7 +22,9 @@ final class ErrorResponder
         $exceptionHandler = $this->handlerFactory->newExceptionHandler($request);
         $this->errorHandler->setExceptionHandler($exceptionHandler);
         $this->errorHandler->handleException($throwable);
+        $toReturn = $exceptionHandler->getResponse();
+        Assertion::isInstanceOf($toReturn, Response::class);
 
-        return $exceptionHandler->getResponse();
+        return $toReturn;
     }
 }

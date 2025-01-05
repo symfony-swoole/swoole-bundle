@@ -16,6 +16,9 @@ final class FinalClassModifier
 
     private static string $cacheDir = '';
 
+    /**
+     * @var array<class-string, class-string>
+     */
     private static array $originalFinalClasses = [];
 
     public static function initialize(string $cacheDir): void
@@ -25,6 +28,9 @@ final class FinalClassModifier
         self::modifyStoredClasses();
     }
 
+    /**
+     * @param class-string $className
+     */
     public static function removeFinalFlagsFromClass(string $className): void
     {
         $reflClass = new ReflectionClass($className);
@@ -70,7 +76,7 @@ final class FinalClassModifier
     }
 
     /**
-     * @return array<string>|null
+     * @return array<class-string>|null
      */
     private static function getCachedFinalClasses(): ?array
     {
@@ -80,7 +86,10 @@ final class FinalClassModifier
             return null;
         }
 
-        return $item->get();
+        /** @var array<class-string> $toReturn */
+        $toReturn = $item->get();
+
+        return $toReturn;
     }
 
     private static function initializeCache(string $cacheDir): void
