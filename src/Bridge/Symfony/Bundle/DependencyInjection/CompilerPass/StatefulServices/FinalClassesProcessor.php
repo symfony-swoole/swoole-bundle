@@ -12,6 +12,9 @@ final class FinalClassesProcessor
 {
     private string $cacheDir;
 
+    /**
+     * @var array<string, true>
+     */
     private array $processedClasses = [];
 
     public function __construct(ContainerBuilder $container)
@@ -19,6 +22,9 @@ final class FinalClassesProcessor
         $this->setCacheDir($container);
     }
 
+    /**
+     * @param class-string $className
+     */
     public function process(string $className): void
     {
         if (isset($this->processedClasses[$className])) {

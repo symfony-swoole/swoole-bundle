@@ -4,11 +4,15 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Kernel;
 
+use SwooleBundle\SwooleBundle\Bridge\CommonSwoole\SystemSwooleFactory;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\ContainerConstants;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\BlockingContainer;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Modifier\Modifier;
 use SwooleBundle\SwooleBundle\Reflection\FinalClassModifier;
 
+/**
+ * @phpstan-ignore trait.unused
+ */
 trait CoroutinesSupportingKernel
 {
     /**
@@ -38,7 +42,8 @@ trait CoroutinesSupportingKernel
     {
         FinalClassModifier::initialize($this->getCacheDir());
         $cacheDir = $this->getCacheDir();
-        BlockingContainer::initializeMutex();
+        $swooleFactory = SystemSwooleFactory::newFactoryInstance();
+        BlockingContainer::initializeMutex($swooleFactory->newInstance());
 
         parent::initializeContainer();
 

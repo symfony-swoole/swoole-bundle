@@ -104,11 +104,10 @@ abstract class ServerTestCase extends KernelTestCase
     public function assertProcessSucceeded(Process $process): void
     {
         $status = $process->isSuccessful();
+
         if (!$status) {
             throw new ProcessFailedException($process);
         }
-
-        self::assertTrue($status);
     }
 
     public function assertCommandTesterDisplayContainsString(string $expected, CommandTester $commandTester): void

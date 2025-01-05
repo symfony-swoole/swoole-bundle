@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass;
 
+use Assert\Assertion;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpKernel\Kernel;
@@ -50,6 +51,9 @@ final class DebugLogProcessorPass implements CompilerPassInterface
         }
 
         if (PHP_SAPI === 'cli') {
+            Assertion::isArray($_SERVER['argv']); // phpcs:ignore
+            Assertion::allString($_SERVER['argv']); // phpcs:ignore
+
             foreach ($_SERVER['argv'] as $arg) { // phpcs:ignore
                 if (mb_strpos((string) $arg, 'swoole:server:') !== false) {
                     return;

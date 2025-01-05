@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Component\Locking\RecursiveOwner;
 
-use Co;
+use Assert\Assertion;
 use RuntimeException;
+use SwooleBundle\SwooleBundle\Common\Adapter\Swoole;
 use SwooleBundle\SwooleBundle\Component\Locking\Mutex;
 
 final class RecursiveOwnerMutex implements Mutex
@@ -16,14 +17,18 @@ final class RecursiveOwnerMutex implements Mutex
 
     private int $currentOwnerUsageCount = 0;
 
-    public function __construct(private readonly ?Mutex $wrapped) {}
+    public function __construct(
+        private readonly Swoole $swoole,
+        private readonly ?Mutex $wrapped,
+    ) {}
 
     public function acquire(): void
     {
-        $possibleOwnerId = Co::getCid();
+        $possibleOwnerId = $this->swoole->getCoroutineId();
 
         if ($this->canBeAcquired($possibleOwnerId)) {
             if (!$this->isAcquired()) {
+                Assertion::notNull($this->wrapped);
                 $this->wrapped->acquire();
                 $this->ownerId = $possibleOwnerId;
             }
@@ -32,6 +37,7 @@ final class RecursiveOwnerMutex implements Mutex
             return;
         }
 
+        Assertion::notNull($this->wrapped);
         $this->wrapped->acquire();
         $this->ownerId = $possibleOwnerId;
         ++$this->currentOwnerUsageCount;
@@ -39,7 +45,7 @@ final class RecursiveOwnerMutex implements Mutex
 
     public function release(): void
     {
-        $possibleOwnerId = Co::getCid();
+        $possibleOwnerId = $this->swoole->getCoroutineId();
 
         if (!$this->isOwnedBy($possibleOwnerId)) {
             throw new RuntimeException(sprintf('Mutex cannot be released by %d.', $possibleOwnerId));
@@ -52,6 +58,7 @@ final class RecursiveOwnerMutex implements Mutex
         }
 
         $this->ownerId = self::NO_OWNER;
+        Assertion::notNull($this->wrapped);
         $this->wrapped->release();
     }
 

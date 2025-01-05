@@ -1,6 +1,5 @@
 parameters:
     inferPrivatePropertyTypeFromConstructor: true
-    checkMissingIterableValueType: false
     level: 4
     paths:
       - tests
@@ -8,9 +7,7 @@ parameters:
       - tests/Unit/Server/SwooleHttpServerMock
     excludePaths:
         - tests/Fixtures/Symfony/app/var
-        - tests/Fixtures/Symfony/app/TestAppKernel
         # Internal error: Expected to find an ancestor with class name Swoole\Timer on Swoole\Server, but none was found.
-        - tests/Unit/Server/SwooleHttpServerDummy.php
         - tests/Unit/Server/SwooleServerMock.php
         - tests/Unit/Server/SwooleHttpServerMock
         # Open/Swoole problems when only one extension installed
@@ -18,7 +15,6 @@ parameters:
         - tests/Unit/Common/System/VersionTest.php
     ignoreErrors:
         # Put false positives here
-
         # Symfony configuration files
         - '#Variable \$container might not be defined#'
     tmpDir: /tmp/phpstan_tests

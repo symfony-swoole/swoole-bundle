@@ -12,6 +12,7 @@ use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Proxy\Instantiator;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\ServicePool\DiServicePool;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\SimpleResetter;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\StabilityChecker;
+use SwooleBundle\SwooleBundle\Common\Adapter\Swoole;
 use SwooleBundle\SwooleBundle\Component\Locking\Channel\ChannelMutex;
 use Symfony\Component\DependencyInjection\Argument\IteratorArgument;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -125,12 +126,14 @@ final class Proxifier
             }
 
             $decoratedServiceId = $decoratedServiceDef->innerServiceId;
-        } while ($decoratedServiceDef !== null);
+        } while ($decoratedServiceDef !== null); /** @phpstan-ignore notIdentical.alwaysTrue */
     }
 
     private function prepareProxifiedService(Definition $serviceDef): void
     {
-        $this->finalProcessor->process($serviceDef->getClass());
+        /** @var class-string $className */
+        $className = $serviceDef->getClass();
+        $this->finalProcessor->process($className);
         $serviceDef->setPublic(true);
         $serviceDef->setShared(false);
     }
@@ -149,7 +152,8 @@ final class Proxifier
 
         $svcPoolDef->setArgument(0, $wrappedServiceId);
         $svcPoolDef->setArgument(1, new Reference('service_container'));
-        $svcPoolDef->setArgument(2, $this->prepareServicePoolMutex());
+        $svcPoolDef->setArgument(2, new Reference(Swoole::class));
+        $svcPoolDef->setArgument(3, $this->prepareServicePoolMutex());
         $instanceLimit = $this->container->getParameter(ContainerConstants::PARAM_COROUTINES_MAX_SVC_INSTANCES);
 
         if (!is_int($instanceLimit)) {
@@ -172,8 +176,8 @@ final class Proxifier
             $customResetter = $serviceTag->getResetter();
         }
 
-        $svcPoolDef->setArgument(3, $instanceLimit);
-        $svcPoolDef->setArgument(4, null);
+        $svcPoolDef->setArgument(4, $instanceLimit);
+        $svcPoolDef->setArgument(5, null);
 
         $resetterDefOrRef = null;
 
@@ -188,7 +192,7 @@ final class Proxifier
         }
 
         if ($resetterDefOrRef) {
-            $svcPoolDef->setArgument(4, $resetterDefOrRef);
+            $svcPoolDef->setArgument(5, $resetterDefOrRef);
         }
 
         if (!isset($this->stabilityCheckers[$serviceClass])) {
@@ -197,7 +201,7 @@ final class Proxifier
 
         $checkerSvcId = $this->stabilityCheckers[$serviceClass];
         $this->container->findDefinition($checkerSvcId);
-        $svcPoolDef->setArgument(5, new Reference($checkerSvcId));
+        $svcPoolDef->setArgument(6, new Reference($checkerSvcId));
 
         return $svcPoolDef;
     }

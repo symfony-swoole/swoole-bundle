@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices;
 
+use Assert\Assertion;
 use ReflectionClass;
 use ReflectionException;
 use ReflectionNamedType;
@@ -18,7 +19,7 @@ final class UnmanagedFactoryTags
     private readonly array $tags;
 
     /**
-     * @var array<array{factoryMethod: string, returnType: class-string|string, limit?: int, resetter?: string}>|null
+     * @var array<array{factoryMethod: string, returnType: class-string, limit?: int, resetter?: string}>|null
      */
     private ?array $factoryMethodConfigs = null;
 
@@ -41,7 +42,7 @@ final class UnmanagedFactoryTags
     /**
      * @return array<array{
      *     factoryMethod: string,
-     *     returnType: class-string|string,
+     *     returnType: class-string,
      *     limit?: int,
      *     resetter?: string
      * }>
@@ -62,13 +63,10 @@ final class UnmanagedFactoryTags
 
                     if (str_starts_with($config['returnType'], '%')) {
                         $returnType = $container->getParameter(trim($config['returnType'], '%'));
-
-                        if (!is_string($returnType)) {
-                            throw new RuntimeException('Return type is not a string.');
-                        }
-
                         $config['returnType'] = $returnType;
                     }
+
+                    Assertion::classExists($config['returnType']);
 
                     return $config;
                 },

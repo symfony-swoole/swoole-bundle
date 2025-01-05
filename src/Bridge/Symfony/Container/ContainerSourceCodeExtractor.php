@@ -15,6 +15,9 @@ use ZEngine\Reflection\ReflectionMethod;
  */
 final class ContainerSourceCodeExtractor
 {
+    /**
+     * @var array<int, string>
+     */
     private readonly array $sourceCode;
 
     public function __construct(string $sourceCode)

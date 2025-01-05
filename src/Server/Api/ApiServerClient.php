@@ -7,6 +7,10 @@ namespace SwooleBundle\SwooleBundle\Server\Api;
 use SwooleBundle\SwooleBundle\Client\Http;
 use SwooleBundle\SwooleBundle\Client\HttpClient;
 
+/**
+ * @phpstan-import-type MetricsShape from Api
+ * @phpstan-import-type ServerStatusShape from Api
+ */
 final class ApiServerClient implements Api
 {
     public function __construct(private readonly HttpClient $client) {}
@@ -18,7 +22,10 @@ final class ApiServerClient implements Api
      */
     public function status(): array
     {
-        return $this->client->send('/api/server')['response']['body'];
+        /** @var ServerStatusShape $toReturn */
+        $toReturn = $this->client->send('/api/server')['response']['body'];
+
+        return $toReturn;
     }
 
     /**
@@ -44,6 +51,9 @@ final class ApiServerClient implements Api
      */
     public function metrics(): array
     {
-        return $this->client->send('/api/server/metrics')['response']['body'];
+        /** @var array{date: string, server: MetricsShape} $toReturn */
+        $toReturn = $this->client->send('/api/server/metrics')['response']['body'];
+
+        return $toReturn;
     }
 }

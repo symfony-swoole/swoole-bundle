@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Server\Configurator;
 
-use Assert\Assertion;
 use SwooleBundle\SwooleBundle\Component\GeneratedCollection;
 
 final class CallableChainConfiguratorFactory
@@ -16,11 +15,7 @@ final class CallableChainConfiguratorFactory
     {
         return new CallableChainConfigurator(
             (new GeneratedCollection($configuratorCollection, ...$configurators))
-                ->map(static function ($configurator): callable {
-                    Assertion::isInstanceOf($configurator, Configurator::class);
-
-                    return $configurator->configure(...);
-                })
+                ->map(static fn(Configurator $configurator): callable => $configurator->configure(...)),
         );
     }
 }

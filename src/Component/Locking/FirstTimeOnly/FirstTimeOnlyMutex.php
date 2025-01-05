@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Component\Locking\FirstTimeOnly;
 
+use Assert\Assertion;
 use SwooleBundle\SwooleBundle\Component\Locking\Mutex;
 
 final class FirstTimeOnlyMutex implements Mutex
@@ -32,6 +33,7 @@ final class FirstTimeOnlyMutex implements Mutex
             ++$this->waitingCount;
         }
 
+        Assertion::notNull($this->wrapped);
         $this->wrapped->acquire();
     }
 
@@ -41,6 +43,7 @@ final class FirstTimeOnlyMutex implements Mutex
             return;
         }
 
+        Assertion::notNull($this->wrapped);
         for ($i = 0; $i < $this->waitingCount; ++$i) {
             $this->wrapped->release();
         }

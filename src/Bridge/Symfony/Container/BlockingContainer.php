@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Container;
 
+use SwooleBundle\SwooleBundle\Common\Adapter\Swoole;
 use SwooleBundle\SwooleBundle\Component\Locking\Channel\ChannelMutexFactory;
 use SwooleBundle\SwooleBundle\Component\Locking\RecursiveOwner\RecursiveOwnerMutex;
 use SwooleBundle\SwooleBundle\Component\Locking\RecursiveOwner\RecursiveOwnerMutexFactory;
@@ -34,13 +35,13 @@ abstract class BlockingContainer extends Container
         self::$buildContainerNs = $buildContainerNs;
     }
 
-    public static function initializeMutex(): void
+    public static function initializeMutex(Swoole $swoole): void
     {
         if (self::$isMutexInitialized) {
             return;
         }
 
-        self::$mutex = (new RecursiveOwnerMutexFactory(new ChannelMutexFactory()))->newMutex();
+        self::$mutex = (new RecursiveOwnerMutexFactory($swoole, new ChannelMutexFactory()))->newMutex();
         self::$isMutexInitialized = true;
     }
 }

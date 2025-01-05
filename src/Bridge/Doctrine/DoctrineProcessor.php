@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Bridge\Doctrine;
 
+use Assert\Assertion;
 use PixelFederation\DoctrineResettableEmBundle\DBAL\Connection\DBALPlatformAliveKeeper;
 use SwooleBundle\SwooleBundle\Bridge\Doctrine\DBAL\ConnectionKeepAliveResetter;
 use SwooleBundle\SwooleBundle\Bridge\Doctrine\ORM\EntityManagerResetter;
@@ -78,6 +79,8 @@ final class DoctrineProcessor implements CompileProcessor
     private function overrideEmConfigurator(ContainerBuilder $container, Definition $emDef): void
     {
         $configuratorCallback = $emDef->getConfigurator();
+        Assertion::isArray($configuratorCallback);
+        Assertion::keyIsset($configuratorCallback, 0);
         /** @var Reference $configuratorRef */
         $configuratorRef = $configuratorCallback[0];
         $newConfiguratorDefSvcId = sprintf('%s.swoole_coop.blocking', (string) $configuratorRef);
@@ -94,6 +97,7 @@ final class DoctrineProcessor implements CompileProcessor
     private function prepareConnectionsForProxification(ContainerBuilder $container, array $connectionSvcIds): void
     {
         $dbalAliveKeeperDef = $container->findDefinition(DBALPlatformAliveKeeper::class);
+        /** @var array<string, Reference> $aliveKeepers */
         $aliveKeepers = $dbalAliveKeeperDef->getArgument(1);
         $dbalAliveKeeperDef->setArgument(1, []);
 
@@ -125,8 +129,8 @@ final class DoctrineProcessor implements CompileProcessor
 
     private function getLimitFromEntityManagerConnection(ContainerBuilder $container, Definition $emDef): ?int
     {
-        /** @vat Reference $connRef */
         $connRef = $emDef->getArgument(0);
+        Assertion::isInstanceOf($connRef, Reference::class);
         $connDef = $container->findDefinition((string) $connRef);
         $statefulSvcTag = $connDef->getTag(ContainerConstants::TAG_STATEFUL_SERVICE);
 
@@ -157,6 +161,7 @@ final class DoctrineProcessor implements CompileProcessor
         $resetterValues = $resetters->getValues();
         $resetterValues['doctrine.debug_data_holder'] = new Reference('doctrine.debug_data_holder');
         $resetters->setValues($resetterValues);
+        /** @var array{string, mixed} $resetMethods */
         $resetMethods = $resetterDef->getArgument(1);
         $resetMethods['doctrine.debug_data_holder'] = ['reset'];
         $resetterDef->setArgument(1, $resetMethods);

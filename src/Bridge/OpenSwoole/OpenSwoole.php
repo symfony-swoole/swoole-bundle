@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Bridge\OpenSwoole;
 
+use OpenSwoole\Coroutine;
 use OpenSwoole\Runtime;
 use OpenSwoole\Util;
 use SwooleBundle\SwooleBundle\Common\Adapter\CommonSwoole;
@@ -29,5 +30,10 @@ final class OpenSwoole extends CommonSwoole
     public function disableCoroutines(): void
     {
         Runtime::enableCoroutine(false);
+    }
+
+    public function getCoroutineId(): int
+    {
+        return Coroutine::getCid();
     }
 }

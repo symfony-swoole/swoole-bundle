@@ -8,6 +8,8 @@ clover.xml
 *.tmp
 mutagen.yml.lock
 tests/Fixtures/Symfony/app/data/*
+tests/Fixtures/Symfony/app/var/*
+!tests/Fixtures/Symfony/app/var/.gitkeep
 docker-compose.override.yml
 Dockerfile.override
 ext

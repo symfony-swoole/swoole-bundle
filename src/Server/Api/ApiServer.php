@@ -69,7 +69,7 @@ final class ApiServer implements Api
     private function extractListenersStatus(HttpServer $server): array
     {
         return array_values(array_map(static fn(Port $listener): array => [
-            'host' => property_exists($listener, 'host') ? $listener->host : '-',
+            'host' => $listener->host,
             'port' => $listener->port,
         ], $server->getListeners()));
     }

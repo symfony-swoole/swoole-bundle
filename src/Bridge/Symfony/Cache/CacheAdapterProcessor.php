@@ -25,7 +25,10 @@ final class CacheAdapterProcessor implements CompileProcessor
 
         foreach ($container->getDefinitions() as $definition) {
             try {
-                if (!$definition->isAbstract() && is_subclass_of($definition->getClass(), AbstractAdapter::class)) {
+                /** @var class-string $className */
+                $className = $definition->getClass();
+
+                if (!$definition->isAbstract() && is_subclass_of($className, AbstractAdapter::class)) {
                     foreach ($definition->getArguments() as $argument) {
                         if ($argument instanceof AbstractArgument) {
                             continue 2;

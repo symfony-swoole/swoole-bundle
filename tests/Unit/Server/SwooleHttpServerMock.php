@@ -11,7 +11,7 @@ abstract class SwooleHttpServerMock extends Server
     protected bool $registeredEvent = false;
 
     /**
-     * @var array{0: string, 1: callable}
+     * @var array{0?: string, 1?: callable}
      */
     protected array $registeredEventPair = [];
 
@@ -25,7 +25,7 @@ abstract class SwooleHttpServerMock extends Server
     public static function make(): static
     {
         if (!self::$instance instanceof static) {
-            self::$instance = new static();
+            self::$instance = new static(); /** @phpstan-ignore new.static */
         }
 
         self::$instance->clean();

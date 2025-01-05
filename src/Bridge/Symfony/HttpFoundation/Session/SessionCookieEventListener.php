@@ -23,10 +23,27 @@ use Symfony\Component\HttpKernel\KernelEvents;
  */
 final class SessionCookieEventListener implements EventSubscriberInterface
 {
+    /**
+     * @var array{
+     *   domain: string,
+     *   httponly: bool,
+     *   lifetime: int,
+     *   path: string,
+     *   secure: bool|null,
+     *   samesite: ''|'lax'|'none'|'strict'|null
+     * }
+     */
     private array $sessionCookieParameters;
 
     /**
-     * @param array<string, mixed> $sessionOptions
+     * @param array{
+     *    cookie_domain?: string,
+     *    cookie_httponly?: bool,
+     *    cookie_lifetime?: int,
+     *    cookie_path?: string,
+     *    cookie_secure?: bool|null,
+     *    cookie_samesite?: ''|'lax'|'none'|'strict'|null
+     *  } $sessionOptions
      */
     public function __construct(
         private readonly RequestStack $requestStack,
@@ -137,8 +154,22 @@ final class SessionCookieEventListener implements EventSubscriberInterface
     }
 
     /**
-     * @param array<string, mixed> $sessionOptions
-     * @return array<string, mixed>
+     * @param array{
+     *   cookie_domain?: string,
+     *   cookie_httponly?: bool,
+     *   cookie_lifetime?: int,
+     *   cookie_path?: string,
+     *   cookie_secure?: bool|null,
+     *   cookie_samesite?: ''|'lax'|'none'|'strict'|null
+     * } $sessionOptions
+     * @return array{
+     *    domain: string,
+     *    httponly: bool,
+     *    lifetime: int,
+     *    path: string,
+     *    secure: bool,
+     *    samesite: ''|'lax'|'none'|'strict'|null
+     *  }
      */
     private function mergeCookieParams(array $sessionOptions): array
     {
@@ -151,7 +182,7 @@ final class SessionCookieEventListener implements EventSubscriberInterface
             $params[mb_substr($k, 7)] = $v;
         }
 
-        return $params;
+        return $params; /** @phpstan-ignore-line */ // phpcs:ignore
     }
 
     private function isSessionRelated(KernelEvent $event): bool

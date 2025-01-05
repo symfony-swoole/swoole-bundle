@@ -115,7 +115,7 @@ final class Tags implements IteratorAggregate
     }
 
     /**
-     * @return array<array<array<string, mixed>>>
+     * @return array<array<string, mixed>>
      */
     private function findByName(string $name): array
     {
@@ -123,7 +123,7 @@ final class Tags implements IteratorAggregate
     }
 
     /**
-     * @return array<array<array<string, mixed>>>
+     * @return array<array<string, mixed>>
      */
     private function getByName(string $name): array
     {

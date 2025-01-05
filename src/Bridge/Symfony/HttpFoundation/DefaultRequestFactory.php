@@ -30,7 +30,7 @@ final class DefaultRequestFactory implements RequestFactory
             $request->cookie ?? [],
             $request->files ?? [],
             $server,
-            $rawContent === false ? '' : $rawContent
+            $rawContent === false ? '' : (string) $rawContent,
         );
     }
 }

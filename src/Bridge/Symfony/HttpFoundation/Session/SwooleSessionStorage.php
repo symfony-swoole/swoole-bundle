@@ -27,6 +27,9 @@ final class SwooleSessionStorage implements SessionStorageInterface
      */
     private array $bags = [];
 
+    /**
+     * @var array<string, mixed>
+     */
     private array $data = [];
 
     private MetadataBag $metadataBag;
@@ -77,7 +80,7 @@ final class SwooleSessionStorage implements SessionStorageInterface
             $this->storage->delete($this->currentId);
         }
 
-        if (!headers_sent() && $lifetime !== null && $lifetime !== ini_get('session.cookie_lifetime')) {
+        if (!headers_sent() && $lifetime !== null && $lifetime !== (int) ini_get('session.cookie_lifetime')) {
             ini_set('session.cookie_lifetime', (string) $lifetime);
         }
 
@@ -209,8 +212,10 @@ final class SwooleSessionStorage implements SessionStorageInterface
         }
 
         Assertion::string($sessionData);
+        /** @var array<string, mixed> $toReturn */
+        $toReturn = json_decode($sessionData, true, 512, JSON_THROW_ON_ERROR);
 
-        return json_decode($sessionData, true, 512, JSON_THROW_ON_ERROR);
+        return $toReturn;
     }
 
     /**
@@ -230,6 +235,7 @@ final class SwooleSessionStorage implements SessionStorageInterface
         foreach ($this->allBags() as $bag) {
             $key = $bag->getStorageKey();
             $data[$key] ??= [];
+            Assertion::isArray($data[$key]);
             $bag->initialize($data[$key]);
         }
     }

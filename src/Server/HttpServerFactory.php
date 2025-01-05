@@ -6,6 +6,7 @@ namespace SwooleBundle\SwooleBundle\Server;
 
 use Assert\Assertion;
 use Swoole\Http\Server;
+use Swoole\Server\Port;
 use SwooleBundle\SwooleBundle\Server\Config\Socket;
 
 final class HttpServerFactory
@@ -34,6 +35,7 @@ final class HttpServerFactory
             );
 
             $additionalServer = $mainServer->addListener($socket->host(), $socket->port(), $socket->type());
+            Assertion::isInstanceOf($additionalServer, Port::class);
             $usedPorts[$additionalServer->port] = true;
         }
 

@@ -28,7 +28,7 @@ final class RecursiveOwnerMutexTest extends TestCase
         $swoole->enableCoroutines();
 
         try {
-            $mutex = new RecursiveOwnerMutex(new ChannelMutex());
+            $mutex = new RecursiveOwnerMutex($swoole, new ChannelMutex());
             $scheduler = new Scheduler();
             $recursiveFn = static function (int $testNr) use ($mutex, &$recursiveFn): void {
                 $mutex->acquire();

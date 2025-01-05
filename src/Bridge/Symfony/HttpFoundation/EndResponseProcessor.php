@@ -15,7 +15,8 @@ final class EndResponseProcessor implements ResponseProcessor
         if ($httpFoundationResponse instanceof BinaryFileResponse) {
             $swooleResponse->sendfile($httpFoundationResponse->getFile()->getRealPath());
         } else {
-            $swooleResponse->end($httpFoundationResponse->getContent());
+            $content = $httpFoundationResponse->getContent();
+            $swooleResponse->end($content !== false ? $content : null);
         }
     }
 }

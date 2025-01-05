@@ -42,7 +42,9 @@ final class UnmanagedFactoryProxifier
     private function prepareProxifiedService(string $serviceId): Definition
     {
         $serviceDef = $this->container->findDefinition($serviceId);
-        $this->finalProcessor->process($serviceDef->getClass());
+        /** @var class-string $className */
+        $className = $serviceDef->getClass();
+        $this->finalProcessor->process($className);
 
         return $serviceDef;
     }

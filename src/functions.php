@@ -12,7 +12,7 @@ use UnexpectedValueException;
  * Replaces object property with provided value.
  * Property may not be public.
  *
- * @param string|null $scope class scope useful when property is inherited
+ * @param class-string|null $scope class scope useful when property is inherited
  */
 function replace_object_property(object $obj, string $propertyName, mixed $newValue, ?string $scope = null): void
 {
@@ -25,7 +25,7 @@ function replace_object_property(object $obj, string $propertyName, mixed $newVa
  * Get object property (even by reference).
  * Property may not be public.
  *
- * @param string|null $scope class scope useful when property is inherited
+ * @param class-string|null $scope class scope useful when property is inherited
  */
 // phpcs:disable SlevomatCodingStandard.PHP.DisallowReference.DisallowedReturningReference
 function &get_object_property(object $obj, string $propertyName, ?string $scope = null): mixed

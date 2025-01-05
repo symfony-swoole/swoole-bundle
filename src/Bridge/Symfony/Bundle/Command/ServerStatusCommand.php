@@ -94,7 +94,7 @@ final class ServerStatusCommand extends Command
      */
     protected function prepareClientConfiguration(InputInterface $input): void
     {
-        /** @var string $host */
+        /** @var string|null $host */
         $host = $input->getOption('api-host');
 
         /** @var string $port */

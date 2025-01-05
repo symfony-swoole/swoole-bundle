@@ -57,4 +57,9 @@ final class SwooleSpy implements Swoole
     {
         // not needed for tests
     }
+
+    public function getCoroutineId(): int
+    {
+        return -1;
+    }
 }

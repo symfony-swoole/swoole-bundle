@@ -73,7 +73,7 @@ namespace Tideways {
 
         public static function logException(Throwable $exception): void {}
 
-        public static function getTransactionName(): ?string
+        public static function getTransactionName(): ?string /** @phpstan-ignore return.unusedType */
         {
             return null;
         }
@@ -114,7 +114,7 @@ namespace Tideways {
 
         public static function setCustomVariable(string $name, bool|float|int|object|string|null $value): void {}
 
-        public static function currentTraceId(): ?string
+        public static function currentTraceId(): ?string /** @phpstan-ignore return.unusedType */
         {
             return null;
         }

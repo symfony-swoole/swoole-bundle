@@ -17,6 +17,7 @@ final class SwooleServerTaskTransportFactory implements TransportFactoryInterfac
     public function __construct(private readonly HttpServer $server) {}
 
     /**
+     * @param array<string, mixed> $options
      * {@inheritDoc}
      */
     public function createTransport(string $dsn, array $options, SerializerInterface $serializer): TransportInterface
@@ -28,6 +29,7 @@ final class SwooleServerTaskTransportFactory implements TransportFactoryInterfac
     }
 
     /**
+     * @param array<string, mixed> $options
      * {@inheritDoc}
      */
     public function supports(string $dsn, array $options): bool
