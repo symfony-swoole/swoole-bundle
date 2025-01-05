@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "7b6defe2e736fc69a95108c38442df5f",
+    "content-hash": "d5c9b24b16e5a5cf65ea01ce8182e0a9",
     "packages": [
         {
             "name": "beberlei/assert",
@@ -2583,31 +2583,31 @@
             "time": "2024-09-25T14:18:03+00:00"
         },
         {
-            "name": "upscale/ext-swoole",
-            "version": "v5.1.0",
+            "name": "upscale/ext-openswoole",
+            "version": "v22.1.2",
             "source": {
                 "type": "git",
-                "url": "https://github.com/upscalesoftware/ext-swoole.git",
-                "reference": "8b383646115716d513cf4d11e74eedcb7120df36"
+                "url": "https://github.com/upscalesoftware/ext-openswoole.git",
+                "reference": "7f2a52e2265c1a8f1f6c85ceca6da74fb07938ba"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/upscalesoftware/ext-swoole/zipball/8b383646115716d513cf4d11e74eedcb7120df36",
-                "reference": "8b383646115716d513cf4d11e74eedcb7120df36",
+                "url": "https://api.github.com/repos/upscalesoftware/ext-openswoole/zipball/7f2a52e2265c1a8f1f6c85ceca6da74fb07938ba",
+                "reference": "7f2a52e2265c1a8f1f6c85ceca6da74fb07938ba",
                 "shasum": ""
             },
             "require": {
-                "ext-swoole": "self.version"
+                "ext-openswoole": "self.version"
             },
             "replace": {
-                "upscale/ext-openswoole": "*"
+                "upscale/ext-swoole": "*"
             },
             "type": "metapackage",
             "notification-url": "https://packagist.org/downloads/",
             "license": [
                 "Apache-2.0"
             ],
-            "description": "Wrapper for ext-swoole interchangeable with ext-openswoole",
+            "description": "Wrapper for ext-openswoole interchangeable with ext-swoole",
             "keywords": [
                 "Open Swoole",
                 "ext-openswoole",
@@ -2617,10 +2617,10 @@
                 "swoole"
             ],
             "support": {
-                "issues": "https://github.com/upscalesoftware/ext-swoole/issues",
-                "source": "https://github.com/upscalesoftware/ext-swoole/tree/v5.1.0"
+                "issues": "https://github.com/upscalesoftware/ext-openswoole/issues",
+                "source": "https://github.com/upscalesoftware/ext-openswoole/tree/v22.1.2"
             },
-            "time": "2023-02-08T01:45:07+00:00"
+            "time": "2023-12-01T00:07:08+00:00"
         }
     ],
     "packages-dev": [
@@ -9276,16 +9276,16 @@
         },
         {
             "name": "swoole/ide-helper",
-            "version": "5.1.5",
+            "version": "6.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/swoole/ide-helper.git",
-                "reference": "a4207701bb55fe0cea06f840d2054cbc4a90b943"
+                "reference": "86a61562a1f1634339ee52f3b8988591f51a2799"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/swoole/ide-helper/zipball/a4207701bb55fe0cea06f840d2054cbc4a90b943",
-                "reference": "a4207701bb55fe0cea06f840d2054cbc4a90b943",
+                "url": "https://api.github.com/repos/swoole/ide-helper/zipball/86a61562a1f1634339ee52f3b8988591f51a2799",
+                "reference": "86a61562a1f1634339ee52f3b8988591f51a2799",
                 "shasum": ""
             },
             "type": "library",
@@ -9302,9 +9302,9 @@
             "description": "IDE help files for Swoole.",
             "support": {
                 "issues": "https://github.com/swoole/ide-helper/issues",
-                "source": "https://github.com/swoole/ide-helper/tree/5.1.5"
+                "source": "https://github.com/swoole/ide-helper/tree/6.0.0"
             },
-            "time": "2024-11-05T07:35:30+00:00"
+            "time": "2025-01-03T19:08:24+00:00"
         },
         {
             "name": "symfony/clock",
@@ -11326,7 +11326,7 @@
     },
     "platform-overrides": {
         "ext-openswoole": "v22.1.2",
-        "ext-swoole": "5.1.0"
+        "ext-swoole": "6.0.0"
     },
-    "plugin-api-version": "2.6.0"
+    "plugin-api-version": "2.3.0"
 }

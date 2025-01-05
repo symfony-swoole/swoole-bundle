@@ -47,4 +47,14 @@ final class SwooleSpy implements Swoole
     {
         return $this->registeredTickTuple;
     }
+
+    public function enableCoroutines(int $flags = SWOOLE_HOOK_ALL): void
+    {
+        // not needed for tests
+    }
+
+    public function disableCoroutines(): void
+    {
+        // not needed for tests
+    }
 }

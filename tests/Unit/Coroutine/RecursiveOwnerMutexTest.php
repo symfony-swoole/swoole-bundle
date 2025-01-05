@@ -6,58 +6,60 @@ namespace SwooleBundle\SwooleBundle\Tests\Unit\Coroutine;
 
 use PHPUnit\Framework\TestCase;
 use Swoole\Coroutine\Scheduler;
-use Swoole\Runtime;
+use SwooleBundle\SwooleBundle\Bridge\OpenSwoole\OpenSwoole;
+use SwooleBundle\SwooleBundle\Bridge\Swoole\Swoole;
+use SwooleBundle\SwooleBundle\Common\System\Extension;
 use SwooleBundle\SwooleBundle\Component\Locking\Channel\ChannelMutex;
 use SwooleBundle\SwooleBundle\Component\Locking\RecursiveOwner\RecursiveOwnerMutex;
 
 final class RecursiveOwnerMutexTest extends TestCase
 {
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        Runtime::enableCoroutine();
-    }
-
-    protected function tearDown(): void
-    {
-        parent::tearDown();
-
-        Runtime::enableCoroutine(false);
-    }
-
     // phpcs:disable SlevomatCodingStandard.PHP.DisallowReference.DisallowedInheritingVariableByReference
     public function testMutexWorks(): void
     {
-        $mutex = new RecursiveOwnerMutex(new ChannelMutex());
-        $scheduler = new Scheduler();
-        $recursiveFn = static function (int $testNr) use ($mutex, &$recursiveFn): void {
-            $mutex->acquire();
+        if (extension_loaded(Extension::SWOOLE)) {
+            $swoole = new Swoole();
+        } elseif (extension_loaded(Extension::OPENSWOOLE)) {
+            $swoole = new OpenSwoole();
+        } else {
+            self::markTestSkipped('No supported extension loaded.');
+        }
 
-            $i = -$testNr;
-            usleep(1000);
-            self::assertSame(-$testNr, $i);
-            $i = $testNr; // phpcs:ignore
+        $swoole->enableCoroutines();
 
-            if ($testNr < 1000) {
-                $recursiveFn($testNr * 10);
-            }
+        try {
+            $mutex = new RecursiveOwnerMutex(new ChannelMutex());
+            $scheduler = new Scheduler();
+            $recursiveFn = static function (int $testNr) use ($mutex, &$recursiveFn): void {
+                $mutex->acquire();
 
-            $mutex->release();
-        };
+                $i = -$testNr;
+                usleep(1000);
+                self::assertSame(-$testNr, $i);
+                $i = $testNr; // phpcs:ignore
 
-        $scheduler->add(static function () use ($recursiveFn): void {
-            $recursiveFn(1);
-        });
+                if ($testNr < 1000) {
+                    $recursiveFn($testNr * 10);
+                }
 
-        $scheduler->add(static function () use ($recursiveFn): void {
-            $recursiveFn(2);
-        });
+                $mutex->release();
+            };
 
-        $scheduler->add(static function () use ($recursiveFn): void {
-            $recursiveFn(3);
-        });
+            $scheduler->add(static function () use ($recursiveFn): void {
+                $recursiveFn(1);
+            });
 
-        $scheduler->start();
+            $scheduler->add(static function () use ($recursiveFn): void {
+                $recursiveFn(2);
+            });
+
+            $scheduler->add(static function () use ($recursiveFn): void {
+                $recursiveFn(3);
+            });
+
+            $scheduler->start();
+        } finally {
+            $swoole->disableCoroutines();
+        }
     }
 }

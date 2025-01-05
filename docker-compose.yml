@@ -1,4 +1,3 @@
-version: "3.8"
 x-env-aliases:
   - &DEFAULT_BUILD_ARGS
     PHP_TAG: "${PHP_VERSION:-8.1}-cli-alpine${ALPINE_VERSION:-3.19}"

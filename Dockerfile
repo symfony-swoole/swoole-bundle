@@ -1,4 +1,4 @@
-ARG PHP_TAG="8.0-cli-alpine3.16"
+ARG PHP_TAG="8.1-cli-alpine3.21"
 ARG COMPOSER_TAG="2.5.2"
 
 FROM php:$PHP_TAG AS ext-builder
@@ -64,7 +64,7 @@ RUN addgroup -g 1000 -S runner && \
     chown app:runner /usr/src/app
 RUN apk add --no-cache libstdc++ icu lsof libffi vim
 # php -i | grep 'PHP API' | sed -e 's/PHP API => //'
-ARG PHP_API_VERSION="20200930"
+ARG PHP_API_VERSION="20210902"
 ARG SWOOLE_EXTENSION="openswoole"
 COPY --from=ext-swoole /usr/local/lib/php/extensions/no-debug-non-zts-${PHP_API_VERSION}/${SWOOLE_EXTENSION}.so /usr/local/lib/php/extensions/no-debug-non-zts-${PHP_API_VERSION}/${SWOOLE_EXTENSION}.so
 COPY --from=ext-swoole /usr/local/etc/php/conf.d/docker-php-ext-${SWOOLE_EXTENSION}.ini /usr/local/etc/php/conf.d/docker-php-ext-${SWOOLE_EXTENSION}.ini
@@ -91,7 +91,7 @@ RUN apk add --no-cache git gpg gpg-agent gpgv
 
 FROM composer AS base-coverage-xdebug
 RUN apk add --no-cache bash
-ARG PHP_API_VERSION="20200930"
+ARG PHP_API_VERSION="20210902"
 COPY --from=ext-xdebug /usr/local/lib/php/extensions/no-debug-non-zts-${PHP_API_VERSION}/xdebug.so /usr/local/lib/php/extensions/no-debug-non-zts-${PHP_API_VERSION}/xdebug.so
 COPY --from=ext-xdebug /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
 USER app:runner
@@ -100,7 +100,7 @@ ENV COVERAGE="1" \
     XDEBUG_MODE="coverage"
 
 FROM composer AS base-coverage-pcov
-ARG PHP_API_VERSION="20200930"
+ARG PHP_API_VERSION="20210902"
 COPY --from=ext-pcov /usr/local/lib/php/extensions/no-debug-non-zts-${PHP_API_VERSION}/pcov.so /usr/local/lib/php/extensions/no-debug-non-zts-${PHP_API_VERSION}/pcov.so
 COPY --from=ext-pcov /usr/local/etc/php/conf.d/docker-php-ext-pcov.ini /usr/local/etc/php/conf.d/docker-php-ext-pcov.ini
 USER app:runner
@@ -108,7 +108,7 @@ ENV COVERAGE="1" \
     COMPOSER_ALLOW_SUPERUSER="1"
 
 FROM ci AS base-pcov-xdebug
-ARG PHP_API_VERSION="20200930"
+ARG PHP_API_VERSION="20210902"
 COPY --from=ext-pcov /usr/local/lib/php/extensions/no-debug-non-zts-${PHP_API_VERSION}/pcov.so /usr/local/lib/php/extensions/no-debug-non-zts-${PHP_API_VERSION}/pcov.so
 COPY --from=ext-pcov /usr/local/etc/php/conf.d/docker-php-ext-pcov.ini /usr/local/etc/php/conf.d/docker-php-ext-pcov.ini
 COPY --from=ext-xdebug /usr/local/lib/php/extensions/no-debug-non-zts-${PHP_API_VERSION}/xdebug.so /usr/local/lib/php/extensions/no-debug-non-zts-${PHP_API_VERSION}/xdebug.so
