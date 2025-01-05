@@ -6,65 +6,67 @@ namespace SwooleBundle\SwooleBundle\Tests\Unit\Coroutine;
 
 use PHPUnit\Framework\TestCase;
 use Swoole\Coroutine\Scheduler;
-use Swoole\Runtime;
+use SwooleBundle\SwooleBundle\Bridge\OpenSwoole\OpenSwoole;
+use SwooleBundle\SwooleBundle\Bridge\Swoole\Swoole;
+use SwooleBundle\SwooleBundle\Common\System\Extension;
 use SwooleBundle\SwooleBundle\Component\Locking\Channel\ChannelMutex;
 
 final class ChannelMutexTest extends TestCase
 {
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        Runtime::enableCoroutine();
-    }
-
-    protected function tearDown(): void
-    {
-        parent::tearDown();
-
-        Runtime::enableCoroutine(false);
-    }
-
     // phpcs:disable SlevomatCodingStandard.PHP.DisallowReference.DisallowedInheritingVariableByReference
     public function testMutexWorks(): void
     {
-        $i = 0;
-        $mutex = new ChannelMutex();
-        $scheduler = new Scheduler();
+        if (extension_loaded(Extension::SWOOLE)) {
+            $swoole = new Swoole();
+        } elseif (extension_loaded(Extension::OPENSWOOLE)) {
+            $swoole = new OpenSwoole();
+        } else {
+            self::markTestSkipped('No supported extension loaded.');
+        }
 
-        $scheduler->add(static function () use (&$i, $mutex): void {
-            $mutex->acquire();
+        $swoole->enableCoroutines();
 
-            $i = -1;
-            usleep(1000);
-            self::assertSame(-1, $i);
-            $i = 1;
+        try {
+            $i = 0;
+            $mutex = new ChannelMutex();
+            $scheduler = new Scheduler();
 
-            $mutex->release();
-        });
+            $scheduler->add(static function () use (&$i, $mutex): void {
+                $mutex->acquire();
 
-        $scheduler->add(static function () use (&$i, $mutex): void {
-            $mutex->acquire();
+                $i = -1;
+                usleep(1000);
+                self::assertSame(-1, $i);
+                $i = 1;
 
-            $i = -2;
-            usleep(1000);
-            self::assertSame(-2, $i);
-            $i = 2;
+                $mutex->release();
+            });
 
-            $mutex->release();
-        });
+            $scheduler->add(static function () use (&$i, $mutex): void {
+                $mutex->acquire();
 
-        $scheduler->add(static function () use (&$i, $mutex): void {
-            $mutex->acquire();
+                $i = -2;
+                usleep(1000);
+                self::assertSame(-2, $i);
+                $i = 2;
 
-            $i = -3;
-            usleep(1000);
-            self::assertSame(-3, $i);
-            $i = 3;
+                $mutex->release();
+            });
 
-            $mutex->release();
-        });
+            $scheduler->add(static function () use (&$i, $mutex): void {
+                $mutex->acquire();
 
-        $scheduler->start();
+                $i = -3;
+                usleep(1000);
+                self::assertSame(-3, $i);
+                $i = 3;
+
+                $mutex->release();
+            });
+
+            $scheduler->start();
+        } finally {
+            $swoole->disableCoroutines();
+        }
     }
 }

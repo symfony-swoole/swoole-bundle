@@ -11,4 +11,8 @@ interface Swoole
     public function cpuCoresCount(): int;
 
     public function waitGroup(int $delta = 0): WaitGroup;
+
+    public function enableCoroutines(int $flags = SWOOLE_HOOK_ALL): void;
+
+    public function disableCoroutines(): void;
 }

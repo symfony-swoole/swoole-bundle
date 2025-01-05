@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Bridge\Swoole;
 
+use Swoole\Runtime;
 use SwooleBundle\SwooleBundle\Common\Adapter\CommonSwoole;
 use SwooleBundle\SwooleBundle\Common\Adapter\WaitGroup as CommonWaitGroup;
 
@@ -17,5 +18,15 @@ final class Swoole extends CommonSwoole
     public function waitGroup(int $delta = 0): CommonWaitGroup
     {
         return new WaitGroup($delta);
+    }
+
+    public function enableCoroutines(int $flags = SWOOLE_HOOK_ALL): void
+    {
+        Runtime::enableCoroutine($flags);
+    }
+
+    public function disableCoroutines(): void
+    {
+        Runtime::enableCoroutine(0);
     }
 }
