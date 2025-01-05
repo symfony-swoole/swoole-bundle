@@ -1,3 +1,16 @@
+# [0.23.0](https://github.com/openswoole-bundle/openswoole-bundle/compare/v0.22.1...v0.23.0) (2025-01-05)
+
+[Full changelog](https://github.com/symfony-swoole/swoole-bundle/compare/v0.22.1...v0.23.0)
+
+### Bug Fixes
+
+* **configuration:** Prevent invalid array access when posix_getpwuid returns false ([73da504](https://github.com/openswoole-bundle/openswoole-bundle/commit/73da504abd1e4c5a6178837d81162c3b17506eae))
+
+
+### Features
+
+* **swoole:** swoole updated to v6.0.0 ([a0d349d](https://github.com/openswoole-bundle/openswoole-bundle/commit/a0d349d9e3243dcc1d25af7f999c7c52be65a69d))
+
 ## [0.22.1](https://github.com/openswoole-bundle/openswoole-bundle/compare/v0.22.0...v0.22.1) (2024-09-08)
 
 [Full changelog](https://github.com/symfony-swoole/swoole-bundle/compare/v0.22.0...v0.22.1)
