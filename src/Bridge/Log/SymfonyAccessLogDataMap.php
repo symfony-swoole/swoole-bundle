@@ -318,8 +318,11 @@ final class SymfonyAccessLogDataMap implements AccessLogDataMap
                 if ($icuFormat !== $this->dateFormatterIcuFormat) {
                     $this->dateFormatter = new IntlDateFormatter(
                         null,
-                        timezone: date_default_timezone_get(),
-                        pattern: $icuFormat
+                        IntlDateFormatter::FULL,
+                        IntlDateFormatter::FULL,
+                        date_default_timezone_get(),
+                        null,
+                        $icuFormat
                     );
                     $this->dateFormatterIcuFormat = $icuFormat;
                 }
