@@ -131,6 +131,15 @@ swoole:
       worker_max_request_grace: ~
       # 'grace period' for worker reloading. If not set, default is worker_max_request / 2. Worker reloads
       # after 'worker_max_request + rand(0,worker_max_request_grace)' requests
+      
+      upload_tmp_dir: /tmp
+      # directory for temporary files upload
+      
+      user: www-data
+      # user for worker and task worker processes
+        
+      group: www-data
+      # group for worker and task worker processes
 
   task_worker: # task workers' specific settings
     services:

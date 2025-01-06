@@ -75,6 +75,7 @@ use ZEngine\Core;
  *   public_dir: string,
  *   log_level: 'auto'|'debug'|'trace'|'info'|'notice'|'warning'|'error',
  *   enable_coroutine: bool,
+ *   upload_tmp_dir: string,
  *   user: string,
  *   group: string,
  * }

@@ -19,6 +19,7 @@ use SwooleBundle\SwooleBundle\Server\Config\Sockets;
  *   task_worker_count?: int,
  *   serve_static: string,
  *   public_dir: string,
+ *   upload_tmp_dir: string,
  *   buffer_output_size?: string,
  *   package_max_length?: string,
  *   worker_max_request: int,
@@ -90,6 +91,11 @@ interface HttpServerConfiguration
      * @throws AssertionFailedException
      */
     public function getPublicDir(): string;
+
+    /**
+     * @throws AssertionFailedException
+     */
+    public function getUploadTmpDir(): string;
 
     /**
      * @return SwooleSettingsShape
