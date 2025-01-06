@@ -289,6 +289,10 @@ abstract class ServerExecutionCommand extends Command
             $rows[] = ['public_dir', $serverConfiguration->getPublicDir()];
         }
 
+        if ($this->serverConfiguration->hasPublicDir()) {
+            $rows[] = ['upload_tmp_dir', $serverConfiguration->getUploadTmpDir()];
+        }
+
         return $rows;
     }
 

@@ -21,6 +21,7 @@ use SwooleBundle\SwooleBundle\Server\Config\Sockets;
  *   task_worker_count?: int|string,
  *   serve_static?: string,
  *   public_dir?: string,
+ *   upload_tmp_dir?: string,
  *   buffer_output_size?: string,
  *   package_max_length?: string,
  *   worker_max_request?: int,
@@ -45,6 +46,7 @@ final class DefaultHttpServerConfiguration implements HttpServerConfiguration
     private const SWOOLE_HTTP_SERVER_CONFIG_WORKER_COUNT = 'worker_count';
     private const SWOOLE_HTTP_SERVER_CONFIG_TASK_WORKER_COUNT = 'task_worker_count';
     private const SWOOLE_HTTP_SERVER_CONFIG_PUBLIC_DIR = 'public_dir';
+    private const SWOOLE_HTTP_SERVER_CONFIG_UPLOAD_TMP_DIR = 'upload_tmp_dir';
     private const SWOOLE_HTTP_SERVER_CONFIG_LOG_FILE = 'log_file';
     private const SWOOLE_HTTP_SERVER_CONFIG_LOG_LEVEL = 'log_level';
     private const SWOOLE_HTTP_SERVER_CONFIG_PID_FILE = 'pid_file';
@@ -76,6 +78,7 @@ final class DefaultHttpServerConfiguration implements HttpServerConfiguration
         self::SWOOLE_HTTP_SERVER_CONFIG_PACKAGE_MAX_LENGTH => 'package_max_length',
         self::SWOOLE_HTTP_SERVER_CONFIG_PID_FILE => 'pid_file',
         self::SWOOLE_HTTP_SERVER_CONFIG_PUBLIC_DIR => 'document_root',
+        self::SWOOLE_HTTP_SERVER_CONFIG_UPLOAD_TMP_DIR => 'upload_tmp_dir',
         self::SWOOLE_HTTP_SERVER_CONFIG_REACTOR_COUNT => 'reactor_num',
         self::SWOOLE_HTTP_SERVER_CONFIG_SERVE_STATIC => 'enable_static_handler',
         self::SWOOLE_HTTP_SERVER_CONFIG_TASK_ENABLE_COROUTINE => 'task_enable_coroutine',
@@ -156,6 +159,11 @@ final class DefaultHttpServerConfiguration implements HttpServerConfiguration
     public function hasPublicDir(): bool
     {
         return !empty($this->settings[self::SWOOLE_HTTP_SERVER_CONFIG_PUBLIC_DIR]);
+    }
+
+    public function hasUploadTmpDir(): bool
+    {
+        return !empty($this->settings[self::SWOOLE_HTTP_SERVER_CONFIG_UPLOAD_TMP_DIR]);
     }
 
     public function changeServerSocket(Socket $socket): void
@@ -287,6 +295,16 @@ final class DefaultHttpServerConfiguration implements HttpServerConfiguration
         );
 
         return $this->settings[self::SWOOLE_HTTP_SERVER_CONFIG_PUBLIC_DIR];
+    }
+
+    public function getUploadTmpDir(): string
+    {
+        Assertion::true(
+            $this->hasUploadTmpDir(),
+            sprintf('Setting "%s" is not set or empty.', self::SWOOLE_HTTP_SERVER_CONFIG_UPLOAD_TMP_DIR)
+        );
+
+        return $this->settings[self::SWOOLE_HTTP_SERVER_CONFIG_UPLOAD_TMP_DIR];
     }
 
     /**
@@ -466,7 +484,12 @@ final class DefaultHttpServerConfiguration implements HttpServerConfiguration
                 break;
             case self::SWOOLE_HTTP_SERVER_CONFIG_PUBLIC_DIR:
                 Assertion::string($value);
-                Assertion::directory($value, 'Public directory does not exists. Tried "%s".');
+                Assertion::directory($value, 'Public directory does not exist. Tried "%s".');
+
+                break;
+            case self::SWOOLE_HTTP_SERVER_CONFIG_UPLOAD_TMP_DIR:
+                Assertion::string($value);
+                Assertion::directory($value, 'Temporary upload directory does not exist. Tried "%s".');
 
                 break;
             case self::SWOOLE_HTTP_SERVER_CONFIG_LOG_LEVEL:
