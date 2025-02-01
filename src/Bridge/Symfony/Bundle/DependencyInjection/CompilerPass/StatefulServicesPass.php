@@ -168,6 +168,18 @@ final class StatefulServicesPass implements CompilerPassInterface
             }
 
             $resetter = $resetters[$serviceId] ?? null;
+
+            if ($resetter !== null && str_starts_with($resetter, '?')) {
+                $definition = $container->findDefinition($serviceId);
+                $definitionClass = $definition->getClass();
+                Assertion::classExists($definitionClass);
+                $resetter = substr($resetter, 1);
+
+                if (!method_exists($definitionClass, $resetter)) {
+                    $resetter = null;
+                }
+            }
+
             $proxifier->proxifyService($serviceId, $resetter);
         }
     }
