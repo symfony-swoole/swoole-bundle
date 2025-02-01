@@ -96,5 +96,6 @@ return static function (ContainerConfigurator $containerConfigurator): void {
     $services->set(NonSharedExample::class)
         ->public()
         ->share(false)
-        ->tag('swoole_bundle.stateful_service');
+        ->tag('swoole_bundle.stateful_service')
+        ->tag('kernel.reset', ['method' => '?optionalReset']);
 };
