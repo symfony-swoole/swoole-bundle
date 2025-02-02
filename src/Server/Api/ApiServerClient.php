@@ -11,9 +11,9 @@ use SwooleBundle\SwooleBundle\Client\HttpClient;
  * @phpstan-import-type MetricsShape from Api
  * @phpstan-import-type ServerStatusShape from Api
  */
-final class ApiServerClient implements Api
+final readonly class ApiServerClient implements Api
 {
-    public function __construct(private readonly HttpClient $client) {}
+    public function __construct(private HttpClient $client) {}
 
     /**
      * Get Swoole HTTP Server status.

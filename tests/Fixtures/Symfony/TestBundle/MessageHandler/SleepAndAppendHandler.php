@@ -8,9 +8,9 @@ use Co;
 use Psr\Log\LoggerInterface;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Message\SleepAndAppend;
 
-final class SleepAndAppendHandler
+final readonly class SleepAndAppendHandler
 {
-    public function __construct(private readonly LoggerInterface $logger) {}
+    public function __construct(private LoggerInterface $logger) {}
 
     public function __invoke(SleepAndAppend $message): void
     {

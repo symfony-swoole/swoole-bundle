@@ -6,9 +6,9 @@ namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Proxy;
 
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\ServicePool\ServicePool;
 
-final class Instantiator
+final readonly class Instantiator
 {
-    public function __construct(private readonly Generator $proxyGenerator) {}
+    public function __construct(private Generator $proxyGenerator) {}
 
     /**
      * @template RealObjectType of object

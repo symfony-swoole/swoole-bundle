@@ -13,13 +13,13 @@ use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\HttpKernel\TerminableInterface;
 use Throwable;
 
-final class SymfonyExceptionHandler implements ExceptionHandler
+final readonly class SymfonyExceptionHandler implements ExceptionHandler
 {
     public function __construct(
-        private readonly HttpKernelInterface $kernel,
-        private readonly RequestFactory $requestFactory,
-        private readonly ResponseProcessor $responseProcessor,
-        private readonly ErrorResponder $errorResponder,
+        private HttpKernelInterface $kernel,
+        private RequestFactory $requestFactory,
+        private ResponseProcessor $responseProcessor,
+        private ErrorResponder $errorResponder,
     ) {}
 
     public function handle(Request $request, Throwable $exception, Response $response): void

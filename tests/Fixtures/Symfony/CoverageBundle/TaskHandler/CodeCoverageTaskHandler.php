@@ -8,11 +8,11 @@ use Swoole\Server;
 use SwooleBundle\SwooleBundle\Server\TaskHandler\TaskHandler;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\CoverageBundle\Coverage\CodeCoverageManager;
 
-final class CodeCoverageTaskHandler implements TaskHandler
+final readonly class CodeCoverageTaskHandler implements TaskHandler
 {
     public function __construct(
-        private readonly TaskHandler $decorated,
-        private readonly CodeCoverageManager $codeCoverageManager,
+        private TaskHandler $decorated,
+        private CodeCoverageManager $codeCoverageManager,
     ) {}
 
     public function handle(Server $server, Server\Task $task): void

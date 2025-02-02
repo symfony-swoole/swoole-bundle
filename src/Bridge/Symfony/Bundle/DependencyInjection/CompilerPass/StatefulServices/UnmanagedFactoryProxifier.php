@@ -12,17 +12,19 @@ use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
 use UnexpectedValueException;
 
-final class UnmanagedFactoryProxifier
+final readonly class UnmanagedFactoryProxifier
 {
+    use ProxifierAssertions;
+
     public function __construct(
-        private readonly ContainerBuilder $container,
-        private readonly FinalClassesProcessor $finalProcessor,
+        private ContainerBuilder $container,
+        private FinalClassesProcessor $finalProcessor,
     ) {}
 
     /**
      * returns new service id of the proxified service.
      */
-    public function proxifyService(string $serviceId, ?string $externalResetter = null): string
+    public function proxifyService(string $serviceId): string
     {
         if (!$this->container->has($serviceId)) {
             throw new RuntimeException(sprintf('Service missing: %s', $serviceId));
@@ -30,7 +32,7 @@ final class UnmanagedFactoryProxifier
 
         $serviceDef = $this->prepareProxifiedService($serviceId);
         $wrappedServiceId = sprintf('%s.swoole_coop.wrapped_factory', $serviceId);
-        $proxyDef = $this->prepareProxy($wrappedServiceId, $serviceDef, $externalResetter);
+        $proxyDef = $this->prepareProxy($wrappedServiceId, $serviceDef);
         $serviceDef->clearTags();
 
         $this->container->setDefinition($serviceId, $proxyDef); // proxy swap
@@ -42,6 +44,8 @@ final class UnmanagedFactoryProxifier
     private function prepareProxifiedService(string $serviceId): Definition
     {
         $serviceDef = $this->container->findDefinition($serviceId);
+        $this->assertServiceIsNotReadOnly($serviceId, $serviceDef);
+
         /** @var class-string $className */
         $className = $serviceDef->getClass();
         $this->finalProcessor->process($className);
@@ -49,11 +53,8 @@ final class UnmanagedFactoryProxifier
         return $serviceDef;
     }
 
-    private function prepareProxy(
-        string $wrappedServiceId,
-        Definition $serviceDef,
-        ?string $externalResetter = null,
-    ): Definition {
+    private function prepareProxy(string $wrappedServiceId, Definition $serviceDef): Definition
+    {
         /** @var class-string $serviceClass */
         $serviceClass = $serviceDef->getClass();
         $proxyDef = new Definition($serviceClass);

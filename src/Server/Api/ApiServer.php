@@ -13,11 +13,11 @@ use SwooleBundle\SwooleBundle\Server\HttpServerConfiguration;
  * API Server for Swoole HTTP Server. If enabled, is running on another port, than regular server.
  * Used to control original Swoole HTTP Server.
  */
-final class ApiServer implements Api
+final readonly class ApiServer implements Api
 {
     public function __construct(
-        private readonly HttpServer $server,
-        private readonly HttpServerConfiguration $serverConfiguration,
+        private HttpServer $server,
+        private HttpServerConfiguration $serverConfiguration,
     ) {}
 
     /**

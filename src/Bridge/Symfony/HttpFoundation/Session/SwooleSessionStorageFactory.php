@@ -12,13 +12,13 @@ use Symfony\Component\HttpFoundation\Session\Storage\MetadataBag;
 use Symfony\Component\HttpFoundation\Session\Storage\SessionStorageFactoryInterface;
 use Symfony\Component\HttpFoundation\Session\Storage\SessionStorageInterface;
 
-final class SwooleSessionStorageFactory implements SessionStorageFactoryInterface
+final readonly class SwooleSessionStorageFactory implements SessionStorageFactoryInterface
 {
     public function __construct(
-        private readonly Storage $storage,
-        private readonly EventDispatcherInterface $dispatcher,
-        private readonly ?MetadataBag $metadataBag = null,
-        private readonly int $lifetimeSeconds = 86400,
+        private Storage $storage,
+        private EventDispatcherInterface $dispatcher,
+        private ?MetadataBag $metadataBag = null,
+        private int $lifetimeSeconds = 86400,
     ) {}
 
     public function createStorage(?Request $request): SessionStorageInterface

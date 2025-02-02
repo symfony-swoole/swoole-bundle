@@ -8,11 +8,11 @@ use Swoole\Http\Server;
 use SwooleBundle\SwooleBundle\Server\HttpServerConfiguration;
 use SwooleBundle\SwooleBundle\Server\TaskHandler\TaskHandler;
 
-final class WithTaskHandler implements Configurator
+final readonly class WithTaskHandler implements Configurator
 {
     public function __construct(
-        private readonly TaskHandler $handler,
-        private readonly HttpServerConfiguration $configuration,
+        private TaskHandler $handler,
+        private HttpServerConfiguration $configuration,
     ) {}
 
     public function configure(Server $server): void
@@ -21,6 +21,6 @@ final class WithTaskHandler implements Configurator
             return;
         }
 
-        $server->on('task', [$this->handler, 'handle']);
+        $server->on('task', $this->handler->handle(...));
     }
 }

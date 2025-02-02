@@ -8,11 +8,11 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Repository\RepositoryFactory;
 use Doctrine\Persistence\ObjectRepository;
 
-final class ServicePooledRepositoryFactory implements RepositoryFactory
+final readonly class ServicePooledRepositoryFactory implements RepositoryFactory
 {
     public function __construct(
-        private readonly RepositoryFactory $decorated,
-        private readonly EntityManagerInterface $pooledEm,
+        private RepositoryFactory $decorated,
+        private EntityManagerInterface $pooledEm,
     ) {}
 
     /**

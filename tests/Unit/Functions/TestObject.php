@@ -18,8 +18,9 @@ final class TestObject
     public string $publicProp; // phpcs:ignore
     protected string $protectedProp;
 
-    public function __construct(private string $privateProp = self::WRONG_VALUE)
-    {
+    public function __construct(
+        private string $privateProp = self::WRONG_VALUE,
+    ) {
         $this->protectedProp = $privateProp;
         $this->publicProp = $privateProp;
         $this->dynamicProp = $privateProp;

@@ -9,11 +9,11 @@ use PixelFederation\DoctrineResettableEmBundle\DBAL\Connection\DBALAliveKeeper;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Resetter;
 use UnexpectedValueException;
 
-final class ConnectionKeepAliveResetter implements Resetter
+final readonly class ConnectionKeepAliveResetter implements Resetter
 {
     public function __construct(
-        private readonly DBALAliveKeeper $aliveKeeper,
-        private readonly string $connectionName,
+        private DBALAliveKeeper $aliveKeeper,
+        private string $connectionName,
     ) {}
 
     public function reset(object $service): void

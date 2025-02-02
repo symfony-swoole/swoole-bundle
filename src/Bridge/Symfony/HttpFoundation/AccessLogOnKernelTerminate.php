@@ -9,13 +9,13 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpKernel\Event\TerminateEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
 
-final class AccessLogOnKernelTerminate implements EventSubscriberInterface
+final readonly class AccessLogOnKernelTerminate implements EventSubscriberInterface
 {
     private SymfonyAccessLogDataMap $symfonyAccessLogDataMap;
 
     public function __construct(
-        private readonly LoggerInterface $accessLogLogger,
-        private readonly AccessLogFormatter $formatter,
+        private LoggerInterface $accessLogLogger,
+        private AccessLogFormatter $formatter,
     ) {
         $this->symfonyAccessLogDataMap = new SymfonyAccessLogDataMap();
     }

@@ -12,14 +12,14 @@ use SwooleBundle\SwooleBundle\Common\Adapter\SwooleFactory as CommonSwooleFactor
 use SwooleBundle\SwooleBundle\Common\System\Extension;
 use SwooleBundle\SwooleBundle\Common\System\System;
 
-final class SystemSwooleFactory implements CommonSwooleFactory
+final readonly class SystemSwooleFactory implements CommonSwooleFactory
 {
     /**
      * @param array<string, CommonSwooleFactory> $adapterFactories
      */
     public function __construct(
-        private readonly System $system,
-        private readonly array $adapterFactories,
+        private System $system,
+        private array $adapterFactories,
     ) {}
 
     public function newInstance(): Swoole

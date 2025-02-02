@@ -9,11 +9,11 @@ use Swoole\Http\Response;
 use SwooleBundle\SwooleBundle\Server\RequestHandler\ExceptionHandler\ExceptionHandler;
 use Throwable;
 
-final class ExceptionRequestHandler implements RequestHandler
+final readonly class ExceptionRequestHandler implements RequestHandler
 {
     public function __construct(
-        private readonly RequestHandler $decorated,
-        private readonly ExceptionHandler $exceptionHandler,
+        private RequestHandler $decorated,
+        private ExceptionHandler $exceptionHandler,
     ) {}
 
     public function handle(Request $request, Response $response): void

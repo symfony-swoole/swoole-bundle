@@ -9,10 +9,10 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
-final class SettingsController
+final readonly class SettingsController
 {
     public function __construct(
-        private readonly HttpServer $httpServer,
+        private HttpServer $httpServer,
     ) {}
 
     #[Route(path: '/settings', methods: ['GET'])]

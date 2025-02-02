@@ -8,11 +8,11 @@ use Swoole\Http\Server;
 use SwooleBundle\SwooleBundle\Server\HttpServerConfiguration;
 use SwooleBundle\SwooleBundle\Server\LifecycleHandler\ServerStartHandler;
 
-final class WithServerStartHandler implements Configurator
+final readonly class WithServerStartHandler implements Configurator
 {
     public function __construct(
-        private readonly ServerStartHandler $handler,
-        private readonly HttpServerConfiguration $configuration,
+        private ServerStartHandler $handler,
+        private HttpServerConfiguration $configuration,
     ) {}
 
     public function configure(Server $server): void
@@ -22,6 +22,6 @@ final class WithServerStartHandler implements Configurator
             return;
         }
 
-        $server->on('start', [$this->handler, 'handle']);
+        $server->on('start', $this->handler->handle(...));
     }
 }

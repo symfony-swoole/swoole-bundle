@@ -8,20 +8,17 @@ use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 use PHPUnit\Framework\TestCase;
 use SwooleBundle\SwooleBundle\Server\Configurator\WithServerShutdownHandler;
 use SwooleBundle\SwooleBundle\Server\LifecycleHandler\NoOpServerShutdownHandler;
+use SwooleBundle\SwooleBundle\Tests\Unit\Server\SameClosureAssertion;
 use SwooleBundle\SwooleBundle\Tests\Unit\Server\SwooleHttpServerMockFactory;
 
 #[RunTestsInSeparateProcesses]
 final class WithServerShutdownHandlerTest extends TestCase
 {
-    /**
-     * @var NoOpServerShutdownHandler
-     */
-    private $noOpServerShutdownHandler;
+    use SameClosureAssertion;
 
-    /**
-     * @var WithServerShutdownHandler
-     */
-    private $configurator;
+    private NoOpServerShutdownHandler $noOpServerShutdownHandler;
+
+    private WithServerShutdownHandler $configurator;
 
     protected function setUp(): void
     {
@@ -37,9 +34,10 @@ final class WithServerShutdownHandlerTest extends TestCase
         $this->configurator->configure($swooleServerOnEventSpy);
 
         self::assertTrue($swooleServerOnEventSpy->registeredEvent());
-        self::assertSame(
-            ['shutdown', [$this->noOpServerShutdownHandler, 'handle']],
-            $swooleServerOnEventSpy->registeredEventPair()
+        self::assertSame('shutdown', $swooleServerOnEventSpy->registeredEventPair()[0]);
+        self::assertSameClosure(
+            $this->noOpServerShutdownHandler->handle(...),
+            $swooleServerOnEventSpy->registeredEventPair()[1],
         );
     }
 }

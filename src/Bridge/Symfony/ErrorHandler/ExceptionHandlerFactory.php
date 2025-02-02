@@ -8,11 +8,11 @@ use ReflectionMethod;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 
-final class ExceptionHandlerFactory
+final readonly class ExceptionHandlerFactory
 {
     public function __construct(
-        private readonly HttpKernelInterface $kernel,
-        private readonly ReflectionMethod $throwableHandler,
+        private HttpKernelInterface $kernel,
+        private ReflectionMethod $throwableHandler,
     ) {}
 
     public function newExceptionHandler(Request $request): ResponseDelayingExceptionHandler

@@ -7,12 +7,12 @@ namespace SwooleBundle\SwooleBundle\Server\Configurator;
 use Swoole\Http\Server;
 use SwooleBundle\SwooleBundle\Server\LifecycleHandler\ServerManagerStartHandler;
 
-final class WithServerManagerStartHandler implements Configurator
+final readonly class WithServerManagerStartHandler implements Configurator
 {
-    public function __construct(private readonly ServerManagerStartHandler $handler) {}
+    public function __construct(private ServerManagerStartHandler $handler) {}
 
     public function configure(Server $server): void
     {
-        $server->on('ManagerStart', [$this->handler, 'handle']);
+        $server->on('ManagerStart', $this->handler->handle(...));
     }
 }

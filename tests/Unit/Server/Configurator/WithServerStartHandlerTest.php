@@ -11,11 +11,13 @@ use Prophecy\Prophecy\ObjectProphecy;
 use SwooleBundle\SwooleBundle\Server\Configurator\WithServerStartHandler;
 use SwooleBundle\SwooleBundle\Server\HttpServerConfiguration;
 use SwooleBundle\SwooleBundle\Server\LifecycleHandler\NoOpServerStartHandler;
+use SwooleBundle\SwooleBundle\Tests\Unit\Server\SameClosureAssertion;
 use SwooleBundle\SwooleBundle\Tests\Unit\Server\SwooleHttpServerMockFactory;
 
 #[RunTestsInSeparateProcesses]
 final class WithServerStartHandlerTest extends TestCase
 {
+    use SameClosureAssertion;
     use ProphecyTrait;
 
     private NoOpServerStartHandler $noOpServerStartHandler;
@@ -46,9 +48,10 @@ final class WithServerStartHandlerTest extends TestCase
         $this->configurator->configure($swooleServerOnEventSpy);
 
         self::assertTrue($swooleServerOnEventSpy->registeredEvent());
-        self::assertSame(
-            ['start', [$this->noOpServerStartHandler, 'handle']],
-            $swooleServerOnEventSpy->registeredEventPair()
+        self::assertSame('start', $swooleServerOnEventSpy->registeredEventPair()[0]);
+        self::assertSameClosure(
+            $this->noOpServerStartHandler->handle(...),
+            $swooleServerOnEventSpy->registeredEventPair()[1],
         );
     }
 

@@ -11,9 +11,9 @@ use Swoole\Http\Response;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation\RequestFactory;
 use Symfony\Component\HttpFoundation\Request as SymfonyRequest;
 
-final class RequestMonitoring
+final readonly class RequestMonitoring
 {
-    public function __construct(private readonly RequestFactory $requestFactory) {}
+    public function __construct(private RequestFactory $requestFactory) {}
 
     public function monitor(Closure $fn, Request $request, Response $response): void
     {

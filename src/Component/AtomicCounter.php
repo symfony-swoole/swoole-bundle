@@ -6,9 +6,9 @@ namespace SwooleBundle\SwooleBundle\Component;
 
 use Swoole\Atomic;
 
-final class AtomicCounter
+final readonly class AtomicCounter
 {
-    public function __construct(private readonly Atomic $counter) {}
+    public function __construct(private Atomic $counter) {}
 
     public function increment(): void
     {

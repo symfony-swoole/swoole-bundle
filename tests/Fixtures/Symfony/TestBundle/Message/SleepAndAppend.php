@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Message;
 
-final class SleepAndAppend
+final readonly class SleepAndAppend
 {
     public function __construct(
-        private readonly string $fileName,
-        private readonly int $sleepMs,
-        private readonly string $append,
+        private string $fileName,
+        private int $sleepMs,
+        private string $append,
     ) {}
 
     public function getFileName(): string

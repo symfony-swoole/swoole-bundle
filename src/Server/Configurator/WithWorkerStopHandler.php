@@ -7,12 +7,12 @@ namespace SwooleBundle\SwooleBundle\Server\Configurator;
 use Swoole\Http\Server;
 use SwooleBundle\SwooleBundle\Server\WorkerHandler\WorkerStopHandler;
 
-final class WithWorkerStopHandler implements Configurator
+final readonly class WithWorkerStopHandler implements Configurator
 {
-    public function __construct(private readonly WorkerStopHandler $handler) {}
+    public function __construct(private WorkerStopHandler $handler) {}
 
     public function configure(Server $server): void
     {
-        $server->on('WorkerStop', [$this->handler, 'handle']);
+        $server->on('WorkerStop', $this->handler->handle(...));
     }
 }

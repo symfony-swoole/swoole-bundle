@@ -7,12 +7,12 @@ namespace SwooleBundle\SwooleBundle\Server\Configurator;
 use Swoole\Http\Server;
 use SwooleBundle\SwooleBundle\Server\WorkerHandler\WorkerExitHandler;
 
-final class WithWorkerExitHandler implements Configurator
+final readonly class WithWorkerExitHandler implements Configurator
 {
-    public function __construct(private readonly WorkerExitHandler $handler) {}
+    public function __construct(private WorkerExitHandler $handler) {}
 
     public function configure(Server $server): void
     {
-        $server->on('WorkerExit', [$this->handler, 'handle']);
+        $server->on('WorkerExit', $this->handler->handle(...));
     }
 }

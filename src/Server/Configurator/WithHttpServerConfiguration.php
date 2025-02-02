@@ -8,9 +8,9 @@ use Co;
 use Swoole\Http\Server;
 use SwooleBundle\SwooleBundle\Server\HttpServerConfiguration;
 
-final class WithHttpServerConfiguration implements Configurator
+final readonly class WithHttpServerConfiguration implements Configurator
 {
-    public function __construct(private readonly HttpServerConfiguration $configuration) {}
+    public function __construct(private HttpServerConfiguration $configuration) {}
 
     public function configure(Server $server): void
     {

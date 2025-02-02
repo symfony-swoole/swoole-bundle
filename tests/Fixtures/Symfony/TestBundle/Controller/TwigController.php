@@ -13,11 +13,11 @@ use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
 
-final class TwigController
+final readonly class TwigController
 {
     public function __construct(
-        private readonly Environment $environment,
-        private readonly LoggerInterface $logger,
+        private Environment $environment,
+        private LoggerInterface $logger,
     ) {}
 
     /**

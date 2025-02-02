@@ -18,7 +18,7 @@ $config = new PhpCsFixer\Config();
  */
 return $config->setRules([
         '@PER-CS2.0' => true,
-        '@PHP81Migration' => true,
+        '@PHP82Migration' => true,
         'array_indentation' => true,
         'array_syntax' => ['syntax' => 'short'],
         'blank_line_before_statement' => true,

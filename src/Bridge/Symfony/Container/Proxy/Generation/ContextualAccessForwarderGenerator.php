@@ -25,9 +25,9 @@ use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Proxy\Generation\Property
 /**
  * Generator for proxies with service pool.
  */
-final class ContextualAccessForwarderGenerator implements ProxyGeneratorInterface
+final readonly class ContextualAccessForwarderGenerator implements ProxyGeneratorInterface
 {
-    public function __construct(private readonly MethodForwarderBuilder $forwarderBuilder) {}
+    public function __construct(private MethodForwarderBuilder $forwarderBuilder) {}
 
     /**
      * @template T of object

@@ -8,13 +8,13 @@ use Swoole\Server;
 use SwooleBundle\SwooleBundle\Common\Adapter\Swoole;
 use SwooleBundle\SwooleBundle\Server\Runtime\HMR\HotModuleReloader;
 
-final class HMRWorkerStartHandler implements WorkerStartHandler
+final readonly class HMRWorkerStartHandler implements WorkerStartHandler
 {
     public function __construct(
-        private readonly HotModuleReloader $hmr,
-        private readonly Swoole $swoole,
-        private readonly int $interval = 2000,
-        private readonly ?WorkerStartHandler $decorated = null,
+        private HotModuleReloader $hmr,
+        private Swoole $swoole,
+        private int $interval = 2000,
+        private ?WorkerStartHandler $decorated = null,
     ) {}
 
     public function handle(Server $worker, int $workerId): void

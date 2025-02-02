@@ -6,13 +6,13 @@ namespace SwooleBundle\SwooleBundle\Common\System;
 
 use RuntimeException;
 
-final class Extension
+final readonly class Extension
 {
     public const OPENSWOOLE = 'openswoole';
     public const SWOOLE = 'swoole';
 
     private function __construct(
-        private readonly string $extension,
+        private string $extension,
     ) {}
 
     public static function create(): self

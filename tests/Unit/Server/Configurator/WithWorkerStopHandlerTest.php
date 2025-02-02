@@ -8,20 +8,17 @@ use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 use PHPUnit\Framework\TestCase;
 use SwooleBundle\SwooleBundle\Server\Configurator\WithWorkerStopHandler;
 use SwooleBundle\SwooleBundle\Server\WorkerHandler\NoOpWorkerStopHandler;
+use SwooleBundle\SwooleBundle\Tests\Unit\Server\SameClosureAssertion;
 use SwooleBundle\SwooleBundle\Tests\Unit\Server\SwooleHttpServerMockFactory;
 
 #[RunTestsInSeparateProcesses]
 final class WithWorkerStopHandlerTest extends TestCase
 {
-    /**
-     * @var NoOpWorkerStopHandler
-     */
-    private $noOpWorkerStopHandler;
+    use SameClosureAssertion;
 
-    /**
-     * @var WithWorkerStopHandler
-     */
-    private $configurator;
+    private NoOpWorkerStopHandler $noOpWorkerStopHandler;
+
+    private WithWorkerStopHandler $configurator;
 
     protected function setUp(): void
     {
@@ -37,9 +34,10 @@ final class WithWorkerStopHandlerTest extends TestCase
         $this->configurator->configure($swooleServerOnEventSpy);
 
         self::assertTrue($swooleServerOnEventSpy->registeredEvent());
-        self::assertSame(
-            ['WorkerStop', [$this->noOpWorkerStopHandler, 'handle']],
-            $swooleServerOnEventSpy->registeredEventPair()
+        self::assertSame('WorkerStop', $swooleServerOnEventSpy->registeredEventPair()[0]);
+        self::assertSameClosure(
+            $this->noOpWorkerStopHandler->handle(...),
+            $swooleServerOnEventSpy->registeredEventPair()[1],
         );
     }
 }

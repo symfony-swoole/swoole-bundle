@@ -10,11 +10,11 @@ use Swoole\Http\Request;
 use Swoole\Http\Response;
 use SwooleBundle\SwooleBundle\Server\Middleware\Middleware;
 
-final class MonitoringMiddleware implements Middleware
+final readonly class MonitoringMiddleware implements Middleware
 {
-    private readonly Closure $nextMiddleware;
+    private Closure $nextMiddleware;
 
-    public function __construct(callable $nextMiddleware, private readonly RequestMonitoring $monitoring)
+    public function __construct(callable $nextMiddleware, private RequestMonitoring $monitoring)
     {
         $this->nextMiddleware = Closure::fromCallable($nextMiddleware);
     }

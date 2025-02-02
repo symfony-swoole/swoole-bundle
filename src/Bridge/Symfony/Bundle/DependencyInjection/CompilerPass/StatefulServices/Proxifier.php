@@ -22,6 +22,8 @@ use UnexpectedValueException;
 
 final class Proxifier
 {
+    use ProxifierAssertions;
+
     private const DEFAULT_STABILITY_CHECKERS = [
         EntityManager::class => EntityManagerStabilityChecker::class,
     ];
@@ -57,6 +59,7 @@ final class Proxifier
         /** @var class-string $class */
         $class = $serviceDef->getClass();
         $tags = new Tags($class, $serviceDef->getTags());
+        $this->assertServiceIsNotReadOnly($serviceId, $serviceDef);
 
         if ($tags->hasSafeStatefulServiceTag()) {
             return;
@@ -251,6 +254,7 @@ final class Proxifier
             return false;
         }
 
+        $this->assertServiceIsNotReadOnly($serviceId, $serviceDef);
         $factory = $serviceDef->getFactory();
 
         if (!is_array($factory)) {

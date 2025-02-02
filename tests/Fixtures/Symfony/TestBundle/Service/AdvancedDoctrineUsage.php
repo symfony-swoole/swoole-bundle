@@ -8,11 +8,11 @@ use Doctrine\Bundle\DoctrineBundle\Registry;
 use Ramsey\Uuid\UuidFactoryInterface;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Entity\AdvancedTest;
 
-final class AdvancedDoctrineUsage
+final readonly class AdvancedDoctrineUsage
 {
     public function __construct(
-        private readonly UuidFactoryInterface $uuidFactory,
-        private readonly Registry $doctrine,
+        private UuidFactoryInterface $uuidFactory,
+        private Registry $doctrine,
     ) {}
 
     public function run(): int

@@ -9,11 +9,11 @@ use Swoole\Server;
 use SwooleBundle\SwooleBundle\Server\TaskHandler\TaskHandler;
 use Throwable;
 
-final class ExceptionLoggingTransportHandler implements TaskHandler
+final readonly class ExceptionLoggingTransportHandler implements TaskHandler
 {
     public function __construct(
-        private readonly TaskHandler $decorated,
-        private readonly LoggerInterface $logger,
+        private TaskHandler $decorated,
+        private LoggerInterface $logger,
     ) {}
 
     /**

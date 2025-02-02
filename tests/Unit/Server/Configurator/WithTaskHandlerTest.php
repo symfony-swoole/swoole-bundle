@@ -12,11 +12,13 @@ use SwooleBundle\SwooleBundle\Server\Configurator\WithTaskHandler;
 use SwooleBundle\SwooleBundle\Server\HttpServerConfiguration;
 use SwooleBundle\SwooleBundle\Server\TaskHandler\NoOpTaskHandler;
 use SwooleBundle\SwooleBundle\Tests\Unit\Server\IntMother;
+use SwooleBundle\SwooleBundle\Tests\Unit\Server\SameClosureAssertion;
 use SwooleBundle\SwooleBundle\Tests\Unit\Server\SwooleHttpServerMockFactory;
 
 #[RunTestsInSeparateProcesses]
 final class WithTaskHandlerTest extends TestCase
 {
+    use SameClosureAssertion;
     use ProphecyTrait;
 
     private NoOpTaskHandler $noOpTaskHandler;
@@ -47,7 +49,8 @@ final class WithTaskHandlerTest extends TestCase
         $this->configurator->configure($swooleServerOnEventSpy);
 
         self::assertTrue($swooleServerOnEventSpy->registeredEvent());
-        self::assertSame(['task', [$this->noOpTaskHandler, 'handle']], $swooleServerOnEventSpy->registeredEventPair());
+        self::assertSame('task', $swooleServerOnEventSpy->registeredEventPair()[0]);
+        self::assertSameClosure($this->noOpTaskHandler->handle(...), $swooleServerOnEventSpy->registeredEventPair()[1]);
     }
 
     public function testDoNotConfigureWhenNoTaskWorkers(): void

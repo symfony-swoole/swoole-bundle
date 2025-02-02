@@ -10,11 +10,11 @@ use SwooleBundle\SwooleBundle\Server\TaskHandler\TaskHandler;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\MessageBusInterface;
 
-final class SwooleServerTaskTransportHandler implements TaskHandler
+final readonly class SwooleServerTaskTransportHandler implements TaskHandler
 {
     public function __construct(
-        private readonly MessageBusInterface $bus,
-        private readonly ?TaskHandler $decorated = null,
+        private MessageBusInterface $bus,
+        private ?TaskHandler $decorated = null,
     ) {}
 
     public function handle(Server $server, Server\Task $task): void

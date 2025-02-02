@@ -6,7 +6,7 @@ namespace SwooleBundle\SwooleBundle\Bridge\Log;
 
 use Assert\Assertion;
 
-final class SimpleAccessLogFormatter implements AccessLogFormatter
+final readonly class SimpleAccessLogFormatter implements AccessLogFormatter
 {
     /**
      * @see http://httpd.apache.org/docs/2.4/mod/mod_log_config.html#examples
@@ -30,7 +30,7 @@ final class SimpleAccessLogFormatter implements AccessLogFormatter
     final public const FORMAT_COMBINED_DEBIAN = '%h %l %u %t “%r” %>s %O “%{Referer}i” “%{User-Agent}i”';
     final public const FORMAT_VHOST_COMBINED_DEBIAN = '%v:%p %h %l %u %t “%r” %>s %O “%{Referer}i” “%{User-Agent}i"';
 
-    public function __construct(private readonly string $format = self::FORMAT_COMMON) {}
+    public function __construct(private string $format = self::FORMAT_COMMON) {}
 
     /**
      * Transform a log format to the final string to log.

@@ -7,9 +7,9 @@ namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\Co
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\ServicePool\BaseServicePool;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\ServicePool\ServicePoolContainer;
 
-final class NonSharedSvcPoolConfigurator
+final readonly class NonSharedSvcPoolConfigurator
 {
-    public function __construct(private readonly ServicePoolContainer $container) {}
+    public function __construct(private ServicePoolContainer $container) {}
 
     /**
      * @param BaseServicePool<object> $servicePool

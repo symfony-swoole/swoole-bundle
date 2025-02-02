@@ -10,13 +10,13 @@ use Swoole\Http\Response;
 use SwooleBundle\SwooleBundle\Server\Middleware\Middleware;
 use Tideways\Profiler;
 
-final class ProfilingMiddleware implements Middleware
+final readonly class ProfilingMiddleware implements Middleware
 {
-    private readonly Closure $nextMiddleware;
+    private Closure $nextMiddleware;
 
     public function __construct(
         callable $nextMiddleware,
-        private readonly RequestProfiler $profiler,
+        private RequestProfiler $profiler,
     ) {
         $this->nextMiddleware = Closure::fromCallable($nextMiddleware);
     }

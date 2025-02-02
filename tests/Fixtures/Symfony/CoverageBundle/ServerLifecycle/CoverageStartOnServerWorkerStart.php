@@ -8,11 +8,11 @@ use Swoole\Server;
 use SwooleBundle\SwooleBundle\Server\WorkerHandler\WorkerStartHandler;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\CoverageBundle\Coverage\CodeCoverageManager;
 
-final class CoverageStartOnServerWorkerStart implements WorkerStartHandler
+final readonly class CoverageStartOnServerWorkerStart implements WorkerStartHandler
 {
     public function __construct(
-        private readonly CodeCoverageManager $codeCoverageManager,
-        private readonly ?WorkerStartHandler $decorated = null,
+        private CodeCoverageManager $codeCoverageManager,
+        private ?WorkerStartHandler $decorated = null,
     ) {}
 
     public function handle(Server $worker, int $workerId): void

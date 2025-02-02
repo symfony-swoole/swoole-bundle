@@ -14,7 +14,7 @@ use Symfony\Component\Process\Process;
  *
  * @see https://github.com/composer/xdebug-handler/blob/master/src/XdebugHandler.php
  */
-final class XdebugHandler
+final readonly class XdebugHandler
 {
     private const SIGNALS_MAP = [
         2 => 'SIGINT',
@@ -24,7 +24,7 @@ final class XdebugHandler
     ];
 
     public function __construct(
-        private readonly string $allowXdebugEnvName = 'SWOOLE_ALLOW_XDEBUG',
+        private string $allowXdebugEnvName = 'SWOOLE_ALLOW_XDEBUG',
     ) {}
 
     public function shouldRestart(): bool
