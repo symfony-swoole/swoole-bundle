@@ -17,13 +17,13 @@ use Symfony\Component\HttpKernel\TerminableInterface;
 /**
  * @phpstan-import-type RuntimeConfiguration from Bootable
  */
-final class HttpKernelRequestHandler implements RequestHandler, Bootable
+final readonly class HttpKernelRequestHandler implements RequestHandler, Bootable
 {
     public function __construct(
-        private readonly KernelPool $kernelPool,
-        private readonly RequestFactory $requestFactory,
-        private readonly ResponseProcessorInjector $processorInjector,
-        private readonly ResponseProcessor $responseProcessor,
+        private KernelPool $kernelPool,
+        private RequestFactory $requestFactory,
+        private ResponseProcessorInjector $processorInjector,
+        private ResponseProcessor $responseProcessor,
     ) {}
 
     /**

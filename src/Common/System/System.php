@@ -6,11 +6,11 @@ namespace SwooleBundle\SwooleBundle\Common\System;
 
 use OpenSwoole\Util;
 
-final class System
+final readonly class System
 {
     private function __construct(
-        private readonly Extension $extension,
-        private readonly Version $version,
+        private Extension $extension,
+        private Version $version,
     ) {}
 
     public static function create(): self

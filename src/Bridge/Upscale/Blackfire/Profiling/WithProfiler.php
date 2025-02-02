@@ -7,9 +7,9 @@ namespace SwooleBundle\SwooleBundle\Bridge\Upscale\Blackfire\Profiling;
 use Swoole\Http\Server;
 use SwooleBundle\SwooleBundle\Server\Configurator\Configurator;
 
-final class WithProfiler implements Configurator
+final readonly class WithProfiler implements Configurator
 {
-    public function __construct(private readonly ProfilerActivator $profilerActivator) {}
+    public function __construct(private ProfilerActivator $profilerActivator) {}
 
     public function configure(Server $server): void
     {

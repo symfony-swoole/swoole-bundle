@@ -29,7 +29,7 @@ final class InotifyHMR implements HotModuleReloader, Bootable
     /**
      * @var int \IN_ATRIB
      */
-    private int $watchMask;
+    private readonly int $watchMask;
 
     /**
      * @param array<string> $nonReloadableFiles

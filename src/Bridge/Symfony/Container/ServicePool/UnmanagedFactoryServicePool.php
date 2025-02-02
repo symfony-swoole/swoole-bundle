@@ -19,7 +19,7 @@ final class UnmanagedFactoryServicePool extends BaseServicePool
      * @param Closure(): T $instantiator
      */
     public function __construct(
-        private Closure $instantiator,
+        private readonly Closure $instantiator,
         Swoole $swoole,
         Mutex $mutex,
         int $instancesLimit = 50,

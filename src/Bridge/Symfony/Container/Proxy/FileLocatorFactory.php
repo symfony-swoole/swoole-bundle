@@ -7,9 +7,9 @@ namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Proxy;
 use ProxyManager\FileLocator\FileLocator;
 use ProxyManager\FileLocator\FileLocatorInterface;
 
-final class FileLocatorFactory
+final readonly class FileLocatorFactory
 {
-    public function __construct(private readonly ProxyDirectoryHandler $directoryHandler) {}
+    public function __construct(private ProxyDirectoryHandler $directoryHandler) {}
 
     public function createFileLocator(string $proxiesDirectory): FileLocatorInterface
     {

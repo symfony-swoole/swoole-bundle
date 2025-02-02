@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Tests\Unit\Server;
 
+use Closure;
 use Swoole\Http\Server;
 
 abstract class SwooleHttpServerMock extends Server
@@ -11,7 +12,7 @@ abstract class SwooleHttpServerMock extends Server
     protected bool $registeredEvent = false;
 
     /**
-     * @var array{0?: string, 1?: callable}
+     * @var array{0?: string, 1?: Closure}
      */
     protected array $registeredEventPair = [];
 
@@ -39,7 +40,7 @@ abstract class SwooleHttpServerMock extends Server
     }
 
     /**
-     * @return array{0: string, 1: callable}
+     * @return array{0: string, 1: Closure}
      */
     public function registeredEventPair(): array
     {

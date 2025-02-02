@@ -13,12 +13,12 @@ use ZEngine\Reflection\ReflectionMethod;
  *   key2?: string
  * }
  */
-final class ContainerSourceCodeExtractor
+final readonly class ContainerSourceCodeExtractor
 {
     /**
      * @var array<int, string>
      */
-    private readonly array $sourceCode;
+    private array $sourceCode;
 
     public function __construct(string $sourceCode)
     {

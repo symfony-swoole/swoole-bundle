@@ -10,10 +10,7 @@ use function SwooleBundle\SwooleBundle\get_object_property;
 
 final class GetObjectPropertyTest extends TestCase
 {
-    /**
-     * @var TestObject
-     */
-    private $testObject;
+    private TestObject $testObject;
 
     protected function setUp(): void
     {

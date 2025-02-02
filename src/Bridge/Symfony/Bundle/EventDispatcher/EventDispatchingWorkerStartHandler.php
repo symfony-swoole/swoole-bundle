@@ -9,9 +9,9 @@ use SwooleBundle\SwooleBundle\Bridge\Symfony\Event\WorkerStartedEvent;
 use SwooleBundle\SwooleBundle\Server\WorkerHandler\WorkerStartHandler;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
-final class EventDispatchingWorkerStartHandler implements WorkerStartHandler
+final readonly class EventDispatchingWorkerStartHandler implements WorkerStartHandler
 {
-    public function __construct(private readonly EventDispatcherInterface $eventDispatcher) {}
+    public function __construct(private EventDispatcherInterface $eventDispatcher) {}
 
     public function handle(Server $server, int $workerId): void
     {

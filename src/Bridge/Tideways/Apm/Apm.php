@@ -7,11 +7,11 @@ namespace SwooleBundle\SwooleBundle\Bridge\Tideways\Apm;
 use Swoole\Http\Server;
 use SwooleBundle\SwooleBundle\Server\Middleware\MiddlewareInjector;
 
-final class Apm
+final readonly class Apm
 {
     public function __construct(
-        private readonly MiddlewareInjector $injector,
-        private readonly TidewaysMiddlewareFactory $middlewareFactory,
+        private MiddlewareInjector $injector,
+        private TidewaysMiddlewareFactory $middlewareFactory,
     ) {}
 
     /**

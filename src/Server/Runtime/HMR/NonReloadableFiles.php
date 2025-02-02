@@ -7,12 +7,12 @@ namespace SwooleBundle\SwooleBundle\Server\Runtime\HMR;
 use SwooleBundle\SwooleBundle\Server\Runtime\Bootable;
 use Symfony\Component\Filesystem\Filesystem;
 
-final class NonReloadableFiles implements Bootable
+final readonly class NonReloadableFiles implements Bootable
 {
     public function __construct(
-        private readonly string $kernelCacheDir,
-        private readonly string $filePathDir,
-        private readonly Filesystem $fileSystem,
+        private string $kernelCacheDir,
+        private string $filePathDir,
+        private Filesystem $fileSystem,
     ) {}
 
     /**

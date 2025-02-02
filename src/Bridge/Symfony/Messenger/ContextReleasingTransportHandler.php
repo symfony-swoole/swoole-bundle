@@ -9,11 +9,11 @@ use Swoole\Server;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\CoWrapper;
 use SwooleBundle\SwooleBundle\Server\TaskHandler\TaskHandler;
 
-final class ContextReleasingTransportHandler implements TaskHandler
+final readonly class ContextReleasingTransportHandler implements TaskHandler
 {
     public function __construct(
-        private readonly TaskHandler $decorated,
-        private readonly CoWrapper $coWrapper,
+        private TaskHandler $decorated,
+        private CoWrapper $coWrapper,
     ) {}
 
     /**

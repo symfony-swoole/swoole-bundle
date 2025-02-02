@@ -10,11 +10,11 @@ use SwooleBundle\SwooleBundle\Client\Http;
 use SwooleBundle\SwooleBundle\Component\ExceptionArrayTransformer;
 use Throwable;
 
-final class JsonExceptionHandler implements ExceptionHandler
+final readonly class JsonExceptionHandler implements ExceptionHandler
 {
     public function __construct(
-        private readonly ExceptionArrayTransformer $exceptionArrayTransformer,
-        private readonly string $verbosity = 'default',
+        private ExceptionArrayTransformer $exceptionArrayTransformer,
+        private string $verbosity = 'default',
     ) {}
 
     public function handle(Request $request, Throwable $exception, Response $response): void

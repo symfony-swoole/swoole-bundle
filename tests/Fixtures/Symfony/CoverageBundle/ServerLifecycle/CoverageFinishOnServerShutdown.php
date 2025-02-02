@@ -9,11 +9,11 @@ use SwooleBundle\SwooleBundle\Server\LifecycleHandler\ServerShutdownHandler;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\CoverageBundle\Coverage\CodeCoverageManager;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\CoverageBundle\Coverage\NameGenerator;
 
-final class CoverageFinishOnServerShutdown implements ServerShutdownHandler
+final readonly class CoverageFinishOnServerShutdown implements ServerShutdownHandler
 {
     public function __construct(
-        private readonly CodeCoverageManager $codeCoverageManager,
-        private readonly ?ServerShutdownHandler $decorated = null,
+        private CodeCoverageManager $codeCoverageManager,
+        private ?ServerShutdownHandler $decorated = null,
     ) {}
 
     public function handle(Server $server): void

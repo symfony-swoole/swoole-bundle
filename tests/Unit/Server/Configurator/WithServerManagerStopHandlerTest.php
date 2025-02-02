@@ -8,20 +8,17 @@ use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 use PHPUnit\Framework\TestCase;
 use SwooleBundle\SwooleBundle\Server\Configurator\WithServerManagerStopHandler;
 use SwooleBundle\SwooleBundle\Server\LifecycleHandler\NoOpServerManagerStopHandler;
+use SwooleBundle\SwooleBundle\Tests\Unit\Server\SameClosureAssertion;
 use SwooleBundle\SwooleBundle\Tests\Unit\Server\SwooleHttpServerMockFactory;
 
 #[RunTestsInSeparateProcesses]
 final class WithServerManagerStopHandlerTest extends TestCase
 {
-    /**
-     * @var NoOpServerManagerStopHandler
-     */
-    private $noOpServerManagerStopHandler;
+    use SameClosureAssertion;
 
-    /**
-     * @var WithServerManagerStopHandler
-     */
-    private $configurator;
+    private NoOpServerManagerStopHandler $noOpServerManagerStopHandler;
+
+    private WithServerManagerStopHandler $configurator;
 
     protected function setUp(): void
     {
@@ -37,9 +34,10 @@ final class WithServerManagerStopHandlerTest extends TestCase
         $this->configurator->configure($swooleServerOnEventSpy);
 
         self::assertTrue($swooleServerOnEventSpy->registeredEvent());
-        self::assertSame(
-            ['ManagerStop', [$this->noOpServerManagerStopHandler, 'handle']],
-            $swooleServerOnEventSpy->registeredEventPair()
+        self::assertSame('ManagerStop', $swooleServerOnEventSpy->registeredEventPair()[0]);
+        self::assertSameClosure(
+            $this->noOpServerManagerStopHandler->handle(...),
+            $swooleServerOnEventSpy->registeredEventPair()[1],
         );
     }
 }

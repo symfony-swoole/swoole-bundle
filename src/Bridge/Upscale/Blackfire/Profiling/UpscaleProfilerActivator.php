@@ -9,9 +9,9 @@ use Upscale\Swoole\Blackfire\Profiler;
 use Upscale\Swoole\Blackfire\ProfilerDecorator;
 use Upscale\Swoole\Reflection\Http\Server as UpscaleServer;
 
-final class UpscaleProfilerActivator implements ProfilerActivator
+final readonly class UpscaleProfilerActivator implements ProfilerActivator
 {
-    public function __construct(private readonly Profiler $profiler) {}
+    public function __construct(private Profiler $profiler) {}
 
     public function activate(Server $server): void
     {

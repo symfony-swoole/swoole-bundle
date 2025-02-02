@@ -206,8 +206,7 @@ final class StatefulServicesPass implements CompilerPassInterface
                 continue;
             }
 
-            $resetter = $resetters[$serviceId] ?? null;
-            $factoryProxifier->proxifyService($serviceId, $resetter);
+            $factoryProxifier->proxifyService($serviceId);
         }
     }
 

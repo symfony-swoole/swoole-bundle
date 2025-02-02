@@ -7,9 +7,9 @@ namespace SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation;
 use Swoole\Http\Request as SwooleRequest;
 use Symfony\Component\HttpFoundation\Request as HttpFoundationRequest;
 
-final class CloudFrontRequestFactory implements RequestFactory
+final readonly class CloudFrontRequestFactory implements RequestFactory
 {
-    public function __construct(private readonly RequestFactory $decorated) {}
+    public function __construct(private RequestFactory $decorated) {}
 
     /**
      * @see https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/header-caching.html#header-caching-web-protocol

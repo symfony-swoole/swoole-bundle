@@ -9,11 +9,11 @@ use Psr\Log\LoggerInterface;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Message\RunDummy;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Service\DummyService;
 
-final class RunDummyHandler
+final readonly class RunDummyHandler
 {
     public function __construct(
-        private readonly DummyService $dummyService,
-        private readonly LoggerInterface $logger,
+        private DummyService $dummyService,
+        private LoggerInterface $logger,
     ) {}
 
     public function __invoke(RunDummy $message): void

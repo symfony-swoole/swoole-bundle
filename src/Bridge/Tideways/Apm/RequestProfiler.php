@@ -10,12 +10,12 @@ use Swoole\Http\Response;
 use Throwable;
 use Tideways\Profiler;
 
-final class RequestProfiler
+final readonly class RequestProfiler
 {
-    private readonly string $serviceName;
+    private string $serviceName;
 
     public function __construct(
-        private readonly RequestDataProvider $dataProvider,
+        private RequestDataProvider $dataProvider,
         string $serviceName = 'web',
     ) {
         $serviceName = trim($serviceName);

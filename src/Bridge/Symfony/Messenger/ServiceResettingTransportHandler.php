@@ -9,11 +9,11 @@ use Swoole\Server;
 use SwooleBundle\SwooleBundle\Server\TaskHandler\TaskHandler;
 use Symfony\Component\HttpKernel\DependencyInjection\ServicesResetter;
 
-final class ServiceResettingTransportHandler implements TaskHandler
+final readonly class ServiceResettingTransportHandler implements TaskHandler
 {
     public function __construct(
-        private readonly TaskHandler $decorated,
-        private readonly ServicesResetter $resetter,
+        private TaskHandler $decorated,
+        private ServicesResetter $resetter,
     ) {}
 
     /**

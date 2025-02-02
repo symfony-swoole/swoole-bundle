@@ -8,20 +8,17 @@ use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 use PHPUnit\Framework\TestCase;
 use SwooleBundle\SwooleBundle\Server\Configurator\WithWorkerExitHandler;
 use SwooleBundle\SwooleBundle\Server\WorkerHandler\NoOpWorkerExitHandler;
+use SwooleBundle\SwooleBundle\Tests\Unit\Server\SameClosureAssertion;
 use SwooleBundle\SwooleBundle\Tests\Unit\Server\SwooleHttpServerMockFactory;
 
 #[RunTestsInSeparateProcesses]
 final class WithWorkerExitHandlerTest extends TestCase
 {
-    /**
-     * @var NoOpWorkerExitHandler
-     */
-    private $noOpWorkerExitHandler;
+    use SameClosureAssertion;
 
-    /**
-     * @var WithWorkerExitHandler
-     */
-    private $configurator;
+    private NoOpWorkerExitHandler $noOpWorkerExitHandler;
+
+    private WithWorkerExitHandler $configurator;
 
     protected function setUp(): void
     {
@@ -37,9 +34,10 @@ final class WithWorkerExitHandlerTest extends TestCase
         $this->configurator->configure($swooleServerOnEventSpy);
 
         self::assertTrue($swooleServerOnEventSpy->registeredEvent());
-        self::assertSame(
-            ['WorkerExit', [$this->noOpWorkerExitHandler, 'handle']],
-            $swooleServerOnEventSpy->registeredEventPair()
+        self::assertSame('WorkerExit', $swooleServerOnEventSpy->registeredEventPair()[0]);
+        self::assertSameClosure(
+            $this->noOpWorkerExitHandler->handle(...),
+            $swooleServerOnEventSpy->registeredEventPair()[1],
         );
     }
 }

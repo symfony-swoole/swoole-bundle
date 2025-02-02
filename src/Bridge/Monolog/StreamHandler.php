@@ -276,16 +276,6 @@ if (version_compare(InstalledVersions::getVersion('monolog/monolog'), '3.0.0') >
         protected $url;
 
         /**
-         * @var ?int
-         */
-        protected $filePermission;
-
-        /**
-         * @var bool
-         */
-        protected $useLocking;
-
-        /**
          * @var ?string
          */
         private $errorMessage;
@@ -307,8 +297,8 @@ if (version_compare(InstalledVersions::getVersion('monolog/monolog'), '3.0.0') >
             $stream,
             $level = Logger::DEBUG,
             bool $bubble = true,
-            ?int $filePermission = null,
-            bool $useLocking = false,
+            protected ?int $filePermission = null,
+            protected bool $useLocking = false,
         ) {
             parent::__construct($level, $bubble);
 
@@ -334,9 +324,6 @@ if (version_compare(InstalledVersions::getVersion('monolog/monolog'), '3.0.0') >
             } else {
                 throw new InvalidArgumentException('A stream must either be a resource or a string.');
             }
-
-            $this->filePermission = $filePermission;
-            $this->useLocking = $useLocking;
         }
 
         public function close(): void
@@ -515,8 +502,6 @@ if (version_compare(InstalledVersions::getVersion('monolog/monolog'), '3.0.0') >
          */
         protected $stream;
         protected $url;
-        protected $filePermission;
-        protected $useLocking;
 
         /**
          * @var string|null
@@ -539,8 +524,8 @@ if (version_compare(InstalledVersions::getVersion('monolog/monolog'), '3.0.0') >
             $stream,
             int|string $level = Logger::DEBUG,
             bool $bubble = true,
-            ?int $filePermission = null,
-            bool $useLocking = false,
+            protected ?int $filePermission = null,
+            protected bool $useLocking = false,
         ) {
             parent::__construct($level, $bubble);
 
@@ -551,9 +536,6 @@ if (version_compare(InstalledVersions::getVersion('monolog/monolog'), '3.0.0') >
             } else {
                 throw new InvalidArgumentException('A stream must either be a resource or a string.');
             }
-
-            $this->filePermission = $filePermission;
-            $this->useLocking = $useLocking;
         }
 
         public function close(): void

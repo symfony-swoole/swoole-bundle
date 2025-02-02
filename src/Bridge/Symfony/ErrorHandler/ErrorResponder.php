@@ -10,11 +10,11 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 
-final class ErrorResponder
+final readonly class ErrorResponder
 {
     public function __construct(
-        private readonly ErrorHandler $errorHandler,
-        private readonly ExceptionHandlerFactory $handlerFactory,
+        private ErrorHandler $errorHandler,
+        private ExceptionHandlerFactory $handlerFactory,
     ) {}
 
     public function processErroredRequest(Request $request, Throwable $throwable): Response

@@ -9,9 +9,9 @@ use SwooleBundle\SwooleBundle\Bridge\Symfony\Event\ServerStartedEvent;
 use SwooleBundle\SwooleBundle\Server\LifecycleHandler\ServerStartHandler;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
-final class EventDispatchingServerStartHandler implements ServerStartHandler
+final readonly class EventDispatchingServerStartHandler implements ServerStartHandler
 {
-    public function __construct(private readonly EventDispatcherInterface $eventDispatcher) {}
+    public function __construct(private EventDispatcherInterface $eventDispatcher) {}
 
     public function handle(Server $server): void
     {

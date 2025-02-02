@@ -9,11 +9,11 @@ use Swoole\Http\Response;
 use SwooleBundle\SwooleBundle\Server\RequestHandler\RequestHandler;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\CoverageBundle\Coverage\CodeCoverageManager;
 
-final class CodeCoverageRequestHandler implements RequestHandler
+final readonly class CodeCoverageRequestHandler implements RequestHandler
 {
     public function __construct(
-        private readonly RequestHandler $decorated,
-        private readonly CodeCoverageManager $codeCoverageManager,
+        private RequestHandler $decorated,
+        private CodeCoverageManager $codeCoverageManager,
     ) {}
 
     public function handle(Request $request, Response $response): void

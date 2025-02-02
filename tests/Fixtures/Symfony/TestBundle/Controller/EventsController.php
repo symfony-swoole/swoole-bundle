@@ -8,9 +8,9 @@ use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\EventHandler\Lif
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
 
-final class EventsController
+final readonly class EventsController
 {
-    public function __construct(private readonly LifecycleEventsEventHandler $eventHandler) {}
+    public function __construct(private LifecycleEventsEventHandler $eventHandler) {}
 
     #[Route(path: '/list-events', methods: ['GET'])]
     public function listEvents(): JsonResponse

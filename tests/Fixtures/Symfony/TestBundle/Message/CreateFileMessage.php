@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Message;
 
-final class CreateFileMessage
+final readonly class CreateFileMessage
 {
     public function __construct(
-        private readonly string $fileName,
-        private readonly string $content,
+        private string $fileName,
+        private string $content,
     ) {}
 
     public function fileName(): string

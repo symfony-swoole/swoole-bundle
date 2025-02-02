@@ -24,7 +24,7 @@ final class ApiServerRequestHandler implements RequestHandler
     /**
      * @var array<string>
      */
-    private array $SUPPORTED_HTTP_METHOD_VALUES;
+    private readonly array $SUPPORTED_HTTP_METHOD_VALUES;
 
     /**
      * @var array<string, array<string, array{code: int, handler: callable}>>

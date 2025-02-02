@@ -6,10 +6,10 @@ namespace SwooleBundle\SwooleBundle\Common\System;
 
 use UnexpectedValueException;
 
-final class Version
+final readonly class Version
 {
     private function __construct(
-        private readonly string $versionString,
+        private string $versionString,
     ) {}
 
     public static function fromVersionString(string $versionString): self

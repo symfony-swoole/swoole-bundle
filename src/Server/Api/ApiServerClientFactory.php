@@ -8,9 +8,9 @@ use Assert\Assertion;
 use SwooleBundle\SwooleBundle\Client\HttpClient;
 use SwooleBundle\SwooleBundle\Server\Config\Sockets;
 
-final class ApiServerClientFactory
+final readonly class ApiServerClientFactory
 {
-    public function __construct(private readonly Sockets $sockets) {}
+    public function __construct(private Sockets $sockets) {}
 
     /**
      * Create new API Server client.

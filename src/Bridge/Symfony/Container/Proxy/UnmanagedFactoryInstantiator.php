@@ -15,15 +15,15 @@ use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\ServicePool\UnmanagedFact
 use SwooleBundle\SwooleBundle\Common\Adapter\Swoole;
 use SwooleBundle\SwooleBundle\Component\Locking\MutexFactory;
 
-final class UnmanagedFactoryInstantiator
+final readonly class UnmanagedFactoryInstantiator
 {
     public function __construct(
-        private readonly AccessInterceptorValueHolderFactory $proxyFactory,
+        private AccessInterceptorValueHolderFactory $proxyFactory,
         private Instantiator $instantiator,
         private ServicePoolContainer $servicePoolContainer,
-        private readonly MutexFactory $limitLocking,
-        private readonly MutexFactory $newInstanceLocking,
-        private readonly Swoole $swoole,
+        private MutexFactory $limitLocking,
+        private MutexFactory $newInstanceLocking,
+        private Swoole $swoole,
     ) {}
 
     /**

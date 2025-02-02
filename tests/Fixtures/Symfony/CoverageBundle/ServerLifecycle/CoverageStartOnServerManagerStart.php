@@ -9,11 +9,11 @@ use SwooleBundle\SwooleBundle\Server\LifecycleHandler\ServerManagerStartHandler;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\CoverageBundle\Coverage\CodeCoverageManager;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\CoverageBundle\Coverage\NameGenerator;
 
-final class CoverageStartOnServerManagerStart implements ServerManagerStartHandler
+final readonly class CoverageStartOnServerManagerStart implements ServerManagerStartHandler
 {
     public function __construct(
-        private readonly CodeCoverageManager $codeCoverageManager,
-        private readonly ?ServerManagerStartHandler $decorated = null,
+        private CodeCoverageManager $codeCoverageManager,
+        private ?ServerManagerStartHandler $decorated = null,
     ) {}
 
     public function handle(Server $server): void

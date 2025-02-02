@@ -9,9 +9,9 @@ use SwooleBundle\SwooleBundle\Bridge\Symfony\Event\WorkerExitedEvent;
 use SwooleBundle\SwooleBundle\Server\WorkerHandler\WorkerExitHandler;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
-final class EventDispatchingWorkerExitHandler implements WorkerExitHandler
+final readonly class EventDispatchingWorkerExitHandler implements WorkerExitHandler
 {
-    public function __construct(private readonly EventDispatcherInterface $eventDispatcher) {}
+    public function __construct(private EventDispatcherInterface $eventDispatcher) {}
 
     public function handle(Server $server, int $workerId): void
     {

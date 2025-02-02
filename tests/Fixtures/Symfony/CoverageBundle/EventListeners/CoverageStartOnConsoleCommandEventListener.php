@@ -8,9 +8,9 @@ use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\CoverageBundle\Coverage\Cod
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\CoverageBundle\Coverage\NameGenerator;
 use Symfony\Component\Console\Event\ConsoleCommandEvent;
 
-final class CoverageStartOnConsoleCommandEventListener
+final readonly class CoverageStartOnConsoleCommandEventListener
 {
-    public function __construct(private readonly CodeCoverageManager $coverageManager) {}
+    public function __construct(private CodeCoverageManager $coverageManager) {}
 
     public function __invoke(ConsoleCommandEvent $commandEvent): void
     {

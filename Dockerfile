@@ -1,5 +1,5 @@
-ARG PHP_TAG="8.1-cli-alpine3.21"
-ARG COMPOSER_TAG="2.5.2"
+ARG PHP_TAG="8.2-cli-alpine3.21"
+ARG COMPOSER_TAG="2.8.5"
 
 FROM php:$PHP_TAG AS ext-builder
 RUN apk add --no-cache linux-headers

@@ -10,11 +10,11 @@ use Swoole\Http\Response as SwooleResponse;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\CoWrapper;
 use SwooleBundle\SwooleBundle\Server\RequestHandler\RequestHandler;
 
-final class ContextReleasingHttpKernelRequestHandler implements RequestHandler
+final readonly class ContextReleasingHttpKernelRequestHandler implements RequestHandler
 {
     public function __construct(
-        private readonly RequestHandler $decorated,
-        private readonly CoWrapper $coWrapper,
+        private RequestHandler $decorated,
+        private CoWrapper $coWrapper,
     ) {}
 
     /**

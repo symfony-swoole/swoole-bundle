@@ -8,9 +8,9 @@ use Swoole\Http\Response as SwooleResponse;
 use Symfony\Component\HttpFoundation\Request as HttpFoundationRequest;
 use Symfony\Component\HttpFoundation\Response as HttpFoundationResponse;
 
-final class DefaultResponseProcessorInjector implements ResponseProcessorInjector
+final readonly class DefaultResponseProcessorInjector implements ResponseProcessorInjector
 {
-    public function __construct(private readonly ResponseProcessor $responseProcessor) {}
+    public function __construct(private ResponseProcessor $responseProcessor) {}
 
     public function injectProcessor(HttpFoundationRequest $request, SwooleResponse $swooleResponse): void
     {

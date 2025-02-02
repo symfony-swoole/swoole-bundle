@@ -12,11 +12,11 @@ use SwooleBundle\SwooleBundle\Server\RequestHandler\RequestHandler;
 /**
  * @internal This class will be dropped, once named server listeners will be implemented
  */
-final class WithApiServerConfiguration implements Configurator
+final readonly class WithApiServerConfiguration implements Configurator
 {
     public function __construct(
-        private readonly Sockets $sockets,
-        private readonly RequestHandler $requestHandler,
+        private Sockets $sockets,
+        private RequestHandler $requestHandler,
     ) {}
 
     public function configure(Server $server): void

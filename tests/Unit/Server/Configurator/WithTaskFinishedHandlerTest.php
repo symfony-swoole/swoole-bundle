@@ -12,27 +12,20 @@ use SwooleBundle\SwooleBundle\Server\Configurator\WithTaskFinishedHandler;
 use SwooleBundle\SwooleBundle\Server\HttpServerConfiguration;
 use SwooleBundle\SwooleBundle\Server\TaskHandler\NoOpTaskFinishedHandler;
 use SwooleBundle\SwooleBundle\Tests\Unit\Server\IntMother;
+use SwooleBundle\SwooleBundle\Tests\Unit\Server\SameClosureAssertion;
 use SwooleBundle\SwooleBundle\Tests\Unit\Server\SwooleHttpServerMockFactory;
 
 #[RunTestsInSeparateProcesses]
 final class WithTaskFinishedHandlerTest extends TestCase
 {
+    use SameClosureAssertion;
     use ProphecyTrait;
 
-    /**
-     * @var NoOpTaskFinishedHandler
-     */
-    private $noOpTaskFinishedHandler;
+    private NoOpTaskFinishedHandler $noOpTaskFinishedHandler;
 
-    /**
-     * @var WithTaskFinishedHandler
-     */
-    private $configurator;
+    private WithTaskFinishedHandler $configurator;
 
-    /**
-     * @var HttpServerConfiguration|ObjectProphecy
-     */
-    private $configurationProphecy;
+    private HttpServerConfiguration|ObjectProphecy $configurationProphecy;
 
     protected function setUp(): void
     {
@@ -56,9 +49,10 @@ final class WithTaskFinishedHandlerTest extends TestCase
         $this->configurator->configure($swooleServerOnEventSpy);
 
         self::assertTrue($swooleServerOnEventSpy->registeredEvent());
-        self::assertSame(
-            ['finish', [$this->noOpTaskFinishedHandler, 'handle']],
-            $swooleServerOnEventSpy->registeredEventPair()
+        self::assertSame('finish', $swooleServerOnEventSpy->registeredEventPair()[0]);
+        self::assertSameClosure(
+            $this->noOpTaskFinishedHandler->handle(...),
+            $swooleServerOnEventSpy->registeredEventPair()[1],
         );
     }
 

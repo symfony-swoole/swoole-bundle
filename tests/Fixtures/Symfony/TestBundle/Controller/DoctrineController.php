@@ -13,17 +13,17 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
-final class DoctrineController
+final readonly class DoctrineController
 {
     /**
      * @param array<string, CountingResetter> $resetters
      */
     public function __construct(
-        private readonly DummyService $dummyService,
-        private readonly AdvancedDoctrineUsage $advancedUsage,
-        private readonly ResetCountingRegistry $registry,
-        private readonly array $resetters = [],
-        private readonly ?DebugDataHolder $dataHolder = null,
+        private DummyService $dummyService,
+        private AdvancedDoctrineUsage $advancedUsage,
+        private ResetCountingRegistry $registry,
+        private array $resetters = [],
+        private ?DebugDataHolder $dataHolder = null,
     ) {}
 
     #[Route(path: '/doctrine', methods: ['GET'])]
