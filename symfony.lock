@@ -64,9 +64,6 @@
             "tests/bootstrap.php"
         ]
     },
-    "pixelfederation/doctrine-resettable-em-bundle": {
-        "version": "7.0.0"
-    },
     "squizlabs/php_codesniffer": {
         "version": "3.8",
         "recipe": {
@@ -78,6 +75,9 @@
         "files": [
             "phpcs.xml.dist"
         ]
+    },
+    "swoole-bundle/resetter-bundle": {
+        "version": "1.0.0"
     },
     "symfony/console": {
         "version": "5.4",

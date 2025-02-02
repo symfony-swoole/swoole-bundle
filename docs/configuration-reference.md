@@ -313,7 +313,7 @@ them to the service pools for each resettable service. That means, there is no n
 Sometimes there are special cases that emerge for using Symfony with coroutines turned on, like pinging DBAL connections
 before the first query on each request (because the connections may be already closed, btw this bundle already has
 a solution for this, using connection pingers 
-from [pixelfederation/doctrine-resettable-em-bundle](https://github.com/pixelfederation/doctrine-resettable-em-bundle)).
+from [swoole-bundle/resetter-bundle](https://github.com/symfony-swoole/resetter-bundle)).
 
 For special cases like this, you can implement a custom service resetter. The resetter has to implement
 the `SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Resetter` interface and has to be registered in the SF container
