@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace SwooleBundle\SwooleBundle\Bridge\Doctrine;
 
 use Assert\Assertion;
-use PixelFederation\DoctrineResettableEmBundle\DBAL\Connection\DBALPlatformAliveKeeper;
+use SwooleBundle\ResetterBundle\DBAL\Connection\DBALPlatformAliveKeeper;
 use SwooleBundle\SwooleBundle\Bridge\Doctrine\DBAL\ConnectionKeepAliveResetter;
 use SwooleBundle\SwooleBundle\Bridge\Doctrine\ORM\EntityManagerResetter;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices\CompileProcessor;

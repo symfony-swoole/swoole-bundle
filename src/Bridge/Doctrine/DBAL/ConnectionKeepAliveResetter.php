@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace SwooleBundle\SwooleBundle\Bridge\Doctrine\DBAL;
 
 use Doctrine\DBAL\Connection;
-use PixelFederation\DoctrineResettableEmBundle\DBAL\Connection\DBALAliveKeeper;
+use SwooleBundle\ResetterBundle\DBAL\Connection\DBALAliveKeeper;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Resetter;
 use UnexpectedValueException;
 

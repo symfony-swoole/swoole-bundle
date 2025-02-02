@@ -8,7 +8,7 @@ use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
 use Doctrine\Bundle\MigrationsBundle\DoctrineMigrationsBundle;
 use Exception;
 use Generator;
-use PixelFederation\DoctrineResettableEmBundle\PixelFederationDoctrineResettableEmBundle;
+use SwooleBundle\ResetterBundle\SwooleBundleResetterBundle;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\SwooleBundle;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Kernel\CoroutinesSupportingKernel;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\CoverageBundle\CoverageBundle;
@@ -101,7 +101,7 @@ final class TestAppKernel extends Kernel
         yield new TestBundle();
         yield new DoctrineBundle();
         yield new DoctrineMigrationsBundle();
-        yield new PixelFederationDoctrineResettableEmBundle();
+        yield new SwooleBundleResetterBundle();
 
         if ($this->coverageEnabled) {
             yield new CoverageBundle();
