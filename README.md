@@ -113,11 +113,7 @@ Symfony integration with [Open Swoole](https://openswoole.com/) to speed up your
 -   PHP version `>= 8.2 && <= 8.3`
 -   Open Swoole PHP Extension `^v22.1.2`
 -   Swoole PHP Extension `^6.0.0`
--   Symfony `^6.4 || ^7.0`
-
-### Future versions
-
--   Symfony `^7.1`
+-   Symfony `^6.4 || ^7.2`
 
 Additional requirements to enable specific features:
 
