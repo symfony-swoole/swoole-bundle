@@ -7,7 +7,7 @@ namespace SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Controller
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\StreamedResponse;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 
 final class SymfonyHttpController
 {

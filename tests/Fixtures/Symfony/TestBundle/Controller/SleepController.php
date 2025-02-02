@@ -19,7 +19,7 @@ use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Service\Sleeping
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Service\SleepingCounterChecker;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 
 final class SleepController
 {

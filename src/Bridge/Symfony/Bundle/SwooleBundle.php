@@ -6,7 +6,6 @@ namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle;
 
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\{
     BlackfireMonitoringPass,
-    DebugLogProcessorPass,
     ExceptionHandlerPass,
     FinalizeDefinitionsAfterRemovalPass,
     MessengerTransportFactoryPass,
@@ -23,7 +22,6 @@ final class SwooleBundle extends Bundle
     public function build(ContainerBuilder $container): void
     {
         $container->addCompilerPass(new BlackfireMonitoringPass());
-        $container->addCompilerPass(new DebugLogProcessorPass());
         $container->addCompilerPass(new StreamedResponseListenerPass());
         $container->addCompilerPass(new SessionStorageListenerPass());
         $container->addCompilerPass(new MessengerTransportFactoryPass());

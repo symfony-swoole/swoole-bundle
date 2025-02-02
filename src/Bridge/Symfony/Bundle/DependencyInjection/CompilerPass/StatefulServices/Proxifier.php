@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices;
 
+use Assert\Assertion;
 use Doctrine\ORM\EntityManager;
 use RuntimeException;
 use SwooleBundle\SwooleBundle\Bridge\Doctrine\ORM\EntityManagerStabilityChecker;
@@ -129,6 +130,7 @@ final class Proxifier
             }
 
             $decoratedServiceId = $decoratedServiceDef->innerServiceId;
+            Assertion::string($decoratedServiceId);
         } while ($decoratedServiceDef !== null); /** @phpstan-ignore notIdentical.alwaysTrue */
     }
 

@@ -157,11 +157,6 @@ final class TestAppKernel extends Kernel
     protected function configureRoutes(RoutingConfigurator $routes): void
     {
         $routingFile = 'routing.php';
-
-        if (self::MAJOR_VERSION === 5) { /** @phpstan-ignore identical.alwaysTrue */
-            $routingFile = 'routing_54.php';
-        }
-
         $routes->import($this->getProjectDir() . '/' . $routingFile);
 
         $envRoutingFile = $this->getProjectDir() . '/config/' . $this->environment . '/routing/routing.php';

@@ -7,7 +7,7 @@ namespace SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Controller
 use Error;
 use Exception;
 use RuntimeException;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use Throwable;
 
 final class ThrowableController

@@ -302,7 +302,11 @@ abstract class ServerTestCase extends KernelTestCase
     protected function deleteVarDirectory(): void
     {
         $fs = new Filesystem();
-        $fs->remove(self::WORKING_DIRECTORY . '/var');
+        $fs->remove([
+            self::WORKING_DIRECTORY . '/var/cache',
+            self::WORKING_DIRECTORY . '/var/log',
+            self::WORKING_DIRECTORY . '/var/swoole.pid',
+        ]);
     }
 
     protected function getVarDirectoryPath(): string
