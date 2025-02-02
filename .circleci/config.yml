@@ -29,25 +29,9 @@ aliases:
     parameters:
       <<: *php-versions
       <<: *swooles
-      symfony-version: [ '^5.4.21', '6.4.*', '7.0.*' ]
+      symfony-version: [ '6.4.*', '7.0.*' ]
       composer-build: [ 'std', 'lowest', 'latest' ]
     exclude:
-      - composer-build: 'std'
-        php-version: '8.2'
-        swoole: 'openswoole-v22.1.2'
-        symfony-version: '6.4.*'
-      - composer-build: 'std'
-        php-version: '8.2'
-        swoole: 'swoole-6.0.0'
-        symfony-version: '6.4.*'
-      - composer-build: 'std'
-        php-version: '8.3'
-        swoole: 'openswoole-v22.1.2'
-        symfony-version: '^5.4.21'
-      - composer-build: 'std'
-        php-version: '8.3'
-        swoole: 'swoole-6.0.0'
-        symfony-version: '^5.4.21'
       - composer-build: 'std'
         php-version: '8.3'
         swoole: 'openswoole-v22.1.2'

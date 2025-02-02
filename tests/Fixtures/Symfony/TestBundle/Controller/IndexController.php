@@ -6,7 +6,7 @@ namespace SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Controller
 
 use co;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 
 final class IndexController
 {
