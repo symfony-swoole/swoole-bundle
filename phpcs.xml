@@ -123,6 +123,11 @@
     <exclude-pattern>tests/*</exclude-pattern>
   </rule>
 
+  <rule ref="PSR1.Classes.ClassDeclaration.MultipleClasses">
+    <exclude-pattern>src/Bridge/Doctrine/BlockingProxyFactory.php</exclude-pattern>
+    <exclude-pattern>src/Bridge/Doctrine/ServicePooledRepositoryFactory.php</exclude-pattern>
+  </rule>
+
   <file>src</file>
   <file>tests</file>
   <exclude-pattern>/src/Bridge/Monolog/StreamHandler\.php$</exclude-pattern>

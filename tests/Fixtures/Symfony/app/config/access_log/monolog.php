@@ -9,7 +9,7 @@ $handlers = [
     'main' => [
         'type' => 'stream',
         'path' => '%kernel.logs_dir%/%kernel.environment%.log',
-        'level' => 'warning',
+        'level' => 'debug',
         'channels' => ['!event'],
     ],
 ];

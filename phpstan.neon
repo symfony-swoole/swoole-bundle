@@ -4,6 +4,8 @@ parameters:
     paths:
         - src
     excludePaths:
+        - src/Bridge/Doctrine/BlockingProxyFactory.php
+        - src/Bridge/Doctrine/ServicePooledRepositoryFactory.php
         - src/Bridge/Symfony/Bundle/DependencyInjection/Configuration.php
         - src/Bridge/Monolog/StreamHandler.php
         # Internal error: Expected to find an ancestor with class name Swoole\Timer on Swoole\Server, but none was found.
@@ -21,4 +23,7 @@ parameters:
         # Put false positives here
         - '#PHPDoc tag @var for variable \$row contains unresolvable type#'
         - '#PHPDoc tag @SuppressWarnings has invalid value#'
+        -
+            message: '#invalid (return )?type Doctrine\\Common\\Proxy\\Proxy#'
+            path: src/Bridge/Doctrine/BlockingProxyFactory.php
     tmpDir: /tmp/phpstan_src

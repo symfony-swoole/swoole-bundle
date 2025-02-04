@@ -47,11 +47,11 @@
         "ext-ffi": "^8.2",
         "ext-intl": "*",
         "blackfire/php-sdk": "^1.30",
-        "doctrine/dbal": "^3.4",
+        "doctrine/dbal": "^3.7 || ^4.0",
         "doctrine/doctrine-bundle": "^2.7",
         "doctrine/doctrine-migrations-bundle": "^3.2.4",
         "doctrine/migrations": "^3.5",
-        "doctrine/orm": "^2.13",
+        "doctrine/orm": "^2.17 || ^3.0",
         "doctrine/persistence": "^3.2",
         "friendsofphp/php-cs-fixer": "^3.7",
         "jangregor/phpstan-prophecy": "^2.0",
@@ -160,7 +160,6 @@
         "merge-code-coverage": [
             "php -dmemory_limit=512M ./vendor/bin/phpcov merge cov --clover=clover.xml"
         ],
-        "fix": "php-cs-fixer fix -v --ansi",
         "unit-tests": [
             "phpunit tests/Unit --colors=always"
         ],
