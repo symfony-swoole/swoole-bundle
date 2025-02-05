@@ -40,7 +40,7 @@ RUN pecl install "xdebug-$XDEBUG_TAG" && \
 FROM ext-builder AS ext-swoole
 RUN apk add --no-cache git
 ARG SWOOLE_EXTENSION="openswoole"
-ARG SWOOLE_VERSION="4.12.1"
+ARG SWOOLE_VERSION="25.2.0"
 RUN if $(echo "${SWOOLE_VERSION}" | grep -qE '^[4-9]\.[0-9]+\.[0-9]+$'); then SWOOLE_GIT_REF="v${SWOOLE_VERSION}"; else SWOOLE_GIT_REF="${SWOOLE_VERSION}"; fi && \
     if [ "$SWOOLE_EXTENSION" == "openswoole" ]; then SWOOLE_GIT_REPOSITORY="openswoole/ext-openswoole"; else SWOOLE_GIT_REPOSITORY="swoole/swoole-src"; fi && \
     git clone "https://github.com/${SWOOLE_GIT_REPOSITORY}.git" --branch "${SWOOLE_GIT_REF}" --depth 1 src && \
