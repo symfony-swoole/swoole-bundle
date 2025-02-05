@@ -12,4 +12,4 @@ sync:
     mode: two-way-resolved
   swoole-bundle:
     alpha: "."
-    beta: "docker://app@swoole-bundle-cli-82-openswoole-22.1.2/usr/src/app"
+    beta: "docker://app@swoole-bundle-cli-82-openswoole-25.2.0/usr/src/app"

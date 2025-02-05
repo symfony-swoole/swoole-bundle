@@ -25,6 +25,16 @@
             "homepage": "https://github.com/k911"
         }
     ],
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/symfony-swoole/swoole-blackfire"
+        },
+        {
+            "type": "vcs",
+            "url": "https://github.com/symfony-swoole/swoole-reflection"
+        }
+    ],
     "require": {
         "php": "^8.2",
         "ext-json": "*",
@@ -40,7 +50,7 @@
         "symfony/http-kernel": "^6.4|^7.2",
         "symfony/process": "^6.4|^7.2",
         "symfony/proxy-manager-bridge": "^6.4|^7.2",
-        "upscale/ext-openswoole": "^v22.1.2",
+        "upscale/ext-openswoole": "^25.2.0",
         "upscale/ext-swoole": "^6.0.0"
     },
     "require-dev": {
@@ -92,7 +102,8 @@
         "symfony/yaml": "^6.4|^7.2",
         "tideways/ext-tideways-stubs": "^5.5",
         "twig/twig": "^3.19",
-        "upscale/swoole-blackfire": "^4.0",
+        "upscale/swoole-blackfire": "dev-openswoole25",
+        "upscale/swoole-reflection": "dev-openswoole25 as 3.1.0",
         "webmozart/assert": "^1.11.0"
     },
     "suggest": {
@@ -180,7 +191,7 @@
         "process-timeout": 1200,
         "sort-packages": true,
         "platform": {
-            "ext-openswoole": "v22.1.2",
+            "ext-openswoole": "v25.2.0",
             "ext-swoole": "6.0.0"
         },
         "allow-plugins": {

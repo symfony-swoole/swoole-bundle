@@ -7,7 +7,7 @@ aliases:
 
   # Supported lowest Swoole versions
   - &coverage-swooles
-    swoole: [ 'openswoole-v22.1.2', 'swoole-6.0.0' ]
+    swoole: [ 'openswoole-v25.2.0', 'swoole-6.0.0' ]
 
   # Supported PHP versions
   - &php-versions
@@ -15,7 +15,7 @@ aliases:
 
   # Supported Swoole/OpenSwoole versions
   - &swooles
-    swoole: [ 'openswoole-v22.1.2', 'swoole-6.0.0' ]
+    swoole: [ 'openswoole-v25.2.0', 'swoole-6.0.0' ]
 
   # Docker bake matrix - combinations of PHP version with Swoole extension and version
   - &bake-matrix
@@ -34,7 +34,7 @@ aliases:
     exclude:
       - composer-build: 'std'
         php-version: '8.3'
-        swoole: 'openswoole-v22.1.2'
+        swoole: 'openswoole-v25.2.0'
         symfony-version: '6.4.*'
       - composer-build: 'std'
         php-version: '8.3'
@@ -42,7 +42,7 @@ aliases:
         symfony-version: '6.4.*'
       - composer-build: 'std'
         php-version: '8.2'
-        swoole: 'openswoole-v22.1.2'
+        swoole: 'openswoole-v25.2.0'
         symfony-version: '7.2.*'
       - composer-build: 'std'
         php-version: '8.2'
@@ -50,7 +50,7 @@ aliases:
         symfony-version: '7.2.*'
       - composer-build: 'std'
         php-version: '8.3'
-        swoole: 'openswoole-v22.1.2'
+        swoole: 'openswoole-v25.2.0'
         symfony-version: '7.2.*'
       - composer-build: 'std'
         php-version: '8.3'

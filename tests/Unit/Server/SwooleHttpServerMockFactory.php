@@ -15,7 +15,7 @@ final class SwooleHttpServerMockFactory
     {
         $system = System::create();
 
-        if ($system->extension()->isOpenswoole() && str_starts_with($system->version()->toString(), '22.')) {
+        if ($system->extension()->isOpenswoole() && str_starts_with($system->version()->toString(), '25.')) {
             return SwooleHttpServerMockOpenSwoole22::make();
         }
 

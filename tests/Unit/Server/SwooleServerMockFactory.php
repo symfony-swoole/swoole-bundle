@@ -14,7 +14,7 @@ final class SwooleServerMockFactory
         $system = System::create();
         $versionString = $system->version()->toString();
 
-        if (str_starts_with($versionString, '22.') || str_starts_with($versionString, '6.')) {
+        if (str_starts_with($versionString, '25.') || str_starts_with($versionString, '6.')) {
             return SwooleServerMock::make($taskworker);
         }
 
