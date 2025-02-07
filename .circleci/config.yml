@@ -11,7 +11,7 @@ aliases:
 
   # Supported PHP versions
   - &php-versions
-    php-version: ['8.2', '8.3']
+    php-version: ['8.2', '8.3', '8.4']
 
   # Supported Swoole/OpenSwoole versions
   - &swooles
@@ -41,6 +41,14 @@ aliases:
         swoole: 'swoole-6.0.0'
         symfony-version: '6.4.*'
       - composer-build: 'std'
+        php-version: '8.4'
+        swoole: 'openswoole-v25.2.0'
+        symfony-version: '6.4.*'
+      - composer-build: 'std'
+        php-version: '8.4'
+        swoole: 'swoole-6.0.0'
+        symfony-version: '6.4.*'
+      - composer-build: 'std'
         php-version: '8.2'
         swoole: 'openswoole-v25.2.0'
         symfony-version: '7.2.*'
@@ -54,6 +62,14 @@ aliases:
         symfony-version: '7.2.*'
       - composer-build: 'std'
         php-version: '8.3'
+        swoole: 'swoole-6.0.0'
+        symfony-version: '7.2.*'
+      - composer-build: 'std'
+        php-version: '8.4'
+        swoole: 'openswoole-v25.2.0'
+        symfony-version: '7.2.*'
+      - composer-build: 'std'
+        php-version: '8.4'
         swoole: 'swoole-6.0.0'
         symfony-version: '7.2.*'
 
@@ -219,7 +235,7 @@ jobs:
             elif [ "lowest" = "$BUILD_TYPE" ]; then
               echo "export COMPOSER_ARGS='update --prefer-lowest'" >> $BASH_ENV
               echo "export GRUMPHP_COMMAND=grumphp_tests" >> $BASH_ENV
-            fi
+            fi;
       - run:
           name: Run Composer
           command: |
