@@ -25,16 +25,6 @@
             "homepage": "https://github.com/k911"
         }
     ],
-    "repositories": [
-        {
-            "type": "vcs",
-            "url": "https://github.com/symfony-swoole/swoole-blackfire"
-        },
-        {
-            "type": "vcs",
-            "url": "https://github.com/symfony-swoole/swoole-reflection"
-        }
-    ],
     "require": {
         "php": "^8.2",
         "ext-json": "*",
@@ -102,8 +92,7 @@
         "symfony/yaml": "^6.4|^7.2",
         "tideways/ext-tideways-stubs": "^5.5",
         "twig/twig": "^3.19",
-        "upscale/swoole-blackfire": "dev-openswoole25",
-        "upscale/swoole-reflection": "dev-openswoole25 as 3.1.0",
+        "upscale/swoole-blackfire": "^4.3",
         "webmozart/assert": "^1.11.0"
     },
     "suggest": {

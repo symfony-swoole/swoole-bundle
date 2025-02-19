@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "061ee35d56a02740eff9dd0f70ece1fa",
+    "content-hash": "22fdd4b60b858044e3ac14ca4385865c",
     "packages": [
         {
             "name": "beberlei/assert",
@@ -2354,31 +2354,31 @@
             "time": "2024-09-25T14:18:03+00:00"
         },
         {
-            "name": "upscale/ext-openswoole",
-            "version": "v25.2.0",
+            "name": "upscale/ext-swoole",
+            "version": "v6.0.0",
             "source": {
                 "type": "git",
-                "url": "https://github.com/upscalesoftware/ext-openswoole.git",
-                "reference": "6cf09f63d4453ef2393b6c325feb61e2e61976be"
+                "url": "https://github.com/upscalesoftware/ext-swoole.git",
+                "reference": "8de8ec61f58df53458465bfaccdec36c5f2a3ece"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/upscalesoftware/ext-openswoole/zipball/6cf09f63d4453ef2393b6c325feb61e2e61976be",
-                "reference": "6cf09f63d4453ef2393b6c325feb61e2e61976be",
+                "url": "https://api.github.com/repos/upscalesoftware/ext-swoole/zipball/8de8ec61f58df53458465bfaccdec36c5f2a3ece",
+                "reference": "8de8ec61f58df53458465bfaccdec36c5f2a3ece",
                 "shasum": ""
             },
             "require": {
-                "ext-openswoole": "self.version"
+                "ext-swoole": "self.version"
             },
             "replace": {
-                "upscale/ext-swoole": "*"
+                "upscale/ext-openswoole": "*"
             },
             "type": "metapackage",
             "notification-url": "https://packagist.org/downloads/",
             "license": [
                 "Apache-2.0"
             ],
-            "description": "Wrapper for ext-openswoole interchangeable with ext-swoole",
+            "description": "Wrapper for ext-swoole interchangeable with ext-openswoole",
             "keywords": [
                 "Open Swoole",
                 "ext-openswoole",
@@ -2388,10 +2388,10 @@
                 "swoole"
             ],
             "support": {
-                "issues": "https://github.com/upscalesoftware/ext-openswoole/issues",
-                "source": "https://github.com/upscalesoftware/ext-openswoole/tree/v25.2.0"
+                "issues": "https://github.com/upscalesoftware/ext-swoole/issues",
+                "source": "https://github.com/upscalesoftware/ext-swoole/tree/v6.0.0"
             },
-            "time": "2025-02-01T00:08:34+00:00"
+            "time": "2024-12-01T00:20:40+00:00"
         }
     ],
     "packages-dev": [
@@ -11656,23 +11656,23 @@
         },
         {
             "name": "upscale/swoole-blackfire",
-            "version": "dev-openswoole25",
+            "version": "4.3.0",
             "source": {
                 "type": "git",
-                "url": "https://github.com/symfony-swoole/swoole-blackfire.git",
-                "reference": "8b931c2eda733579813e1fcad1e7cab3344d0b0d"
+                "url": "https://github.com/upscalesoftware/swoole-blackfire.git",
+                "reference": "68029811e25fae349d645823eeffd1e46081b298"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony-swoole/swoole-blackfire/zipball/8b931c2eda733579813e1fcad1e7cab3344d0b0d",
-                "reference": "8b931c2eda733579813e1fcad1e7cab3344d0b0d",
+                "url": "https://api.github.com/repos/upscalesoftware/swoole-blackfire/zipball/68029811e25fae349d645823eeffd1e46081b298",
+                "reference": "68029811e25fae349d645823eeffd1e46081b298",
                 "shasum": ""
             },
             "require": {
                 "blackfire/php-sdk": "^1.16||^2.0",
                 "php": ">=8.0",
                 "upscale/ext-openswoole": "^4.0||^22.0||^25.2",
-                "upscale/ext-swoole": "^4.0||^5.0",
+                "upscale/ext-swoole": "^4.0||^5.0||^6.0",
                 "upscale/swoole-reflection": "^2.0||^3.0"
             },
             "require-dev": {
@@ -11685,12 +11685,7 @@
                     "Upscale\\Swoole\\Blackfire\\": "src/"
                 }
             },
-            "autoload-dev": {
-                "psr-4": {
-                    "Upscale\\Swoole\\Blackfire\\Tests\\": "tests/",
-                    "Upscale\\Swoole\\Launchpad\\Tests\\": "vendor/upscale/swoole-launchpad/tests/"
-                }
-            },
+            "notification-url": "https://packagist.org/downloads/",
             "license": [
                 "Apache-2.0"
             ],
@@ -11703,31 +11698,32 @@
             "description": "Blackfire profiler integration for Swoole web-server",
             "homepage": "https://github.com/upscalesoftware/swoole-blackfire",
             "keywords": [
-                "Blackfire",
                 "Blackfire.io",
-                "Swoole",
+                "blackfire",
                 "companion",
                 "integration",
                 "profiler",
-                "profiling"
+                "profiling",
+                "swoole"
             ],
             "support": {
-                "source": "https://github.com/symfony-swoole/swoole-blackfire/tree/openswoole25"
+                "issues": "https://github.com/upscalesoftware/swoole-blackfire/issues",
+                "source": "https://github.com/upscalesoftware/swoole-blackfire/tree/4.3.0"
             },
-            "time": "2025-02-05T21:38:43+00:00"
+            "time": "2025-02-18T01:50:29+00:00"
         },
         {
             "name": "upscale/swoole-reflection",
-            "version": "dev-openswoole25",
+            "version": "3.2.0",
             "source": {
                 "type": "git",
-                "url": "https://github.com/symfony-swoole/swoole-reflection.git",
-                "reference": "1bb339c687688f67e60d8d7b3cd17105894b813b"
+                "url": "https://github.com/upscalesoftware/swoole-reflection.git",
+                "reference": "8e33b2d8458953e6bbf01189785b92e3ad369f78"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony-swoole/swoole-reflection/zipball/1bb339c687688f67e60d8d7b3cd17105894b813b",
-                "reference": "1bb339c687688f67e60d8d7b3cd17105894b813b",
+                "url": "https://api.github.com/repos/upscalesoftware/swoole-reflection/zipball/8e33b2d8458953e6bbf01189785b92e3ad369f78",
+                "reference": "8e33b2d8458953e6bbf01189785b92e3ad369f78",
                 "shasum": ""
             },
             "require": {
@@ -11746,12 +11742,7 @@
                     "Upscale\\Swoole\\Reflection\\": "src/"
                 }
             },
-            "autoload-dev": {
-                "psr-4": {
-                    "Upscale\\Swoole\\Reflection\\Tests\\": "tests/",
-                    "Upscale\\Swoole\\Launchpad\\Tests\\": "vendor/upscale/swoole-launchpad/tests/"
-                }
-            },
+            "notification-url": "https://packagist.org/downloads/",
             "license": [
                 "Apache-2.0"
             ],
@@ -11764,19 +11755,20 @@
             "description": "Reflection API for Swoole web-server",
             "homepage": "https://github.com/upscalesoftware/swoole-reflection",
             "keywords": [
-                "Swoole",
                 "body",
                 "event",
                 "headers",
                 "middleware",
                 "observer",
                 "reflection",
-                "subscription"
+                "subscription",
+                "swoole"
             ],
             "support": {
-                "source": "https://github.com/symfony-swoole/swoole-reflection/tree/openswoole25"
+                "issues": "https://github.com/upscalesoftware/swoole-reflection/issues",
+                "source": "https://github.com/upscalesoftware/swoole-reflection/tree/3.2.0"
             },
-            "time": "2025-02-05T22:39:44+00:00"
+            "time": "2025-02-10T05:21:37+00:00"
         },
         {
             "name": "webmozart/assert",
@@ -11837,19 +11829,9 @@
             "time": "2022-06-03T18:03:27+00:00"
         }
     ],
-    "aliases": [
-        {
-            "package": "upscale/swoole-reflection",
-            "version": "dev-openswoole25",
-            "alias": "3.1.0",
-            "alias_normalized": "3.1.0.0"
-        }
-    ],
+    "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": {
-        "upscale/swoole-blackfire": 20,
-        "upscale/swoole-reflection": 20
-    },
+    "stability-flags": {},
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
