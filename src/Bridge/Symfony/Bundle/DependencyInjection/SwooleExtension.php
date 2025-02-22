@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection;
 
-use BlackfireProbe;
+use Composer\InstalledVersions;
 use Exception;
 use Monolog\Formatter\LineFormatter;
 use ReflectionMethod;
@@ -498,7 +498,7 @@ final class SwooleExtension extends Extension
             $def->addArgument(new Reference(WithProfiler::class));
         }
 
-        if ($config['blackfire_monitoring'] && class_exists(BlackfireProbe::class)) {
+        if ($config['blackfire_monitoring'] && InstalledVersions::isInstalled('blackfire/php-sdk')) {
             $container->setParameter(ContainerConstants::PARAM_BLACKFIRE_MONITORING_ENABLED, true);
         }
 
