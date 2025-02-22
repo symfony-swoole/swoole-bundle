@@ -29,13 +29,7 @@ final readonly class RequestMonitoring
 
     private function start(SymfonyRequest $request): void
     {
-        BlackfireProbe::startTransaction($request->getPathInfo());
-        BlackfireProbe::setAttribute('http.target', $request->getPathInfo());
-        BlackfireProbe::setAttribute('http.url', $request->getRequestUri());
-        BlackfireProbe::setAttribute('http.method', $request->getMethod());
-        BlackfireProbe::setAttribute('http.host', $request->getHost());
-        BlackfireProbe::setAttribute('host', $request->getHost());
-        BlackfireProbe::setAttribute('framework', 'Symfony');
+        BlackfireProbe::startTransaction();
     }
 
     private function stop(): void
