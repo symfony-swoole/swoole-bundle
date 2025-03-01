@@ -10,6 +10,7 @@ use SwooleBundle\SwooleBundle\Bridge\Upscale\Blackfire\Monitoring\Apm;
 use SwooleBundle\SwooleBundle\Bridge\Upscale\Blackfire\Monitoring\BlackfireMiddlewareFactory;
 use SwooleBundle\SwooleBundle\Bridge\Upscale\Blackfire\Monitoring\RequestMonitoring;
 use SwooleBundle\SwooleBundle\Bridge\Upscale\Blackfire\Monitoring\WithApm;
+use SwooleBundle\SwooleBundle\Common\System\System;
 use SwooleBundle\SwooleBundle\Server\Middleware\MiddlewareInjector;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -34,7 +35,8 @@ final class BlackfireMonitoringPass implements CompilerPassInterface
             ->setAutowired(false)
             ->setAutoconfigured(false)
             ->setPublic(false)
-            ->setArgument('$requestFactory', new Reference(RequestFactory::class));
+            ->setArgument('$requestFactory', new Reference(RequestFactory::class))
+            ->setArgument('$system', new Reference(System::class));
 
         $container->register(BlackfireMiddlewareFactory::class)
             ->setClass(BlackfireMiddlewareFactory::class)

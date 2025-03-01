@@ -26,4 +26,10 @@ parameters:
         -
             message: '#invalid (return )?type Doctrine\\Common\\Proxy\\Proxy#'
             path: src/Bridge/Doctrine/BlockingProxyFactory.php
+        -
+            message: '#Static method BlackfireProbe::startTransaction\(\) invoked with 1 parameter, 0 required\.#'
+            path: src/Bridge/Upscale/Blackfire/Monitoring/RequestMonitoring.php
+        -
+            message: "#Call to function method_exists\\(\\) with 'BlackfireProbe' and 'setAttribute' will always evaluate to false.#"
+            path: src/Bridge/Upscale/Blackfire/Monitoring/RequestMonitoring.php
     tmpDir: /tmp/phpstan_src

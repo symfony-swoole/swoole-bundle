@@ -11,7 +11,7 @@ return static function (ContainerConfigurator $containerConfigurator): void {
 
     $parameters->set('env(HOST)', '0.0.0.0');
 
-    $parameters->set('env(TRUSTED_HOSTS)', 'localhost,127.0.0.1,.*.swoole-bundle.orb.local');
+    $parameters->set('env(TRUSTED_HOSTS)', 'localhost,127.0.0.1,.*.swoole-bundle.orb.local,192.168.*.*');
 
     $parameters->set('env(TRUSTED_PROXIES)', '*,192.168.0.0/16');
 
