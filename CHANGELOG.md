@@ -1,3 +1,28 @@
+# [0.24.0](https://github.com/openswoole-bundle/openswoole-bundle/compare/v0.23.0...v0.24.0) (2025-03-01)
+
+[Full changelog](https://github.com/symfony-swoole/swoole-bundle/compare/v0.23.0...v0.24.0)
+
+### Bug Fixes
+
+* **blackfire:** minor fixes to balckfire monitoring feature ([d7c3a63](https://github.com/openswoole-bundle/openswoole-bundle/commit/d7c3a63f9e6467adc2f799de49e24a737b9231e9))
+* **date-formatter:** add default IntlDateFormatter construct parameters ([32056a0](https://github.com/openswoole-bundle/openswoole-bundle/commit/32056a0b8623a36931b275bef743489c05d3d6b8))
+* **deps:** removed dependency on forked upscale/swoole-blackfire ([9c75ea3](https://github.com/openswoole-bundle/openswoole-bundle/commit/9c75ea36e4aebee277f2b327b48aa82d5b2ea44d))
+* **monolog:** removed old overridden Monolog StreamHandler versions ([84979a0](https://github.com/openswoole-bundle/openswoole-bundle/commit/84979a0b4f1365ffb6a16d6772ce9ee766e009d7))
+* **php:** removed PHP 8.1 support, minumal supported version is PHP 8.2 ([f933bf9](https://github.com/openswoole-bundle/openswoole-bundle/commit/f933bf96d1f8ff156182029778257e6ca8a516ba))
+* **proxifier:** fixed proxification of opotional resetters ([2e67726](https://github.com/openswoole-bundle/openswoole-bundle/commit/2e677268aedfc88114519854c3674d3e245ca0dd))
+* **symfony:** removed Symfony 5.4 support, minimal supported version is 6.4 ([99f6bc8](https://github.com/openswoole-bundle/openswoole-bundle/commit/99f6bc85e94e216499edfe6837e1719e6097d4d5))
+* **symfony:** removed Symfony 7.0 support, minimal supported version is 7.2 ([c6a225e](https://github.com/openswoole-bundle/openswoole-bundle/commit/c6a225e53d1f5714581d3ce9e5742caccd336ec2))
+
+
+### Features
+
+* **deps:** integrate resetter bundle ([f0b5f7a](https://github.com/openswoole-bundle/openswoole-bundle/commit/f0b5f7a67b9b230cf0eaf595515cf82a33451545))
+* **deps:** support for blackfirephp-sdk v2.5 ([476b20d](https://github.com/openswoole-bundle/openswoole-bundle/commit/476b20d7cdbc12f4b2c9ea4f23951a90466d2176))
+* **doctrine:** Support for Doctrine v3 ([c1e7790](https://github.com/openswoole-bundle/openswoole-bundle/commit/c1e779066f79caaab0337b08f178cbec53dd2246))
+* **openswoole:** Support for OpenSwoole 25.2.0 ([9620f11](https://github.com/openswoole-bundle/openswoole-bundle/commit/9620f1127bc1752905c7486ac5a8fa3faeed5caa))
+* **php:** Support for PHP 8.4 ([26f387b](https://github.com/openswoole-bundle/openswoole-bundle/commit/26f387b404f995808fe03cef56146dbe738b7218))
+* **swoole:** added ability to override the upload_tmp_dir swoole setting ([4505c12](https://github.com/openswoole-bundle/openswoole-bundle/commit/4505c128933e3693ad60ce2f5fc22d95be208805))
+
 # [0.23.0](https://github.com/openswoole-bundle/openswoole-bundle/compare/v0.22.1...v0.23.0) (2025-01-05)
 
 [Full changelog](https://github.com/symfony-swoole/swoole-bundle/compare/v0.22.1...v0.23.0)
