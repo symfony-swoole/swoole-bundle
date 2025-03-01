@@ -30,7 +30,7 @@
         "ext-json": "*",
         "beberlei/assert": "^3.3.3",
         "laminas/laminas-code": "^4.7||^4.8",
-        "monolog/monolog": "^2.3.3|^3.0",
+        "monolog/monolog": "^3.3",
         "symfony/cache": "^6.4|^7.2",
         "symfony/config": "^6.4|^7.2",
         "symfony/console": "^6.4|^7.2",
