@@ -1,3 +1,11 @@
+## [0.24.1](https://github.com/openswoole-bundle/openswoole-bundle/compare/v0.24.0...v0.24.1) (2025-05-21)
+
+[Full changelog](https://github.com/symfony-swoole/swoole-bundle/compare/v0.24.0...v0.24.1)
+
+### Miscellaneous
+
+* Minor fixes
+
 # [0.24.0](https://github.com/openswoole-bundle/openswoole-bundle/compare/v0.23.0...v0.24.0) (2025-03-01)
 
 [Full changelog](https://github.com/symfony-swoole/swoole-bundle/compare/v0.23.0...v0.24.0)
