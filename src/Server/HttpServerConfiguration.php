@@ -32,6 +32,8 @@ use SwooleBundle\SwooleBundle\Server\Config\Sockets;
  *   log_level: string,
  *   user?: string,
  *   group?: string,
+ *   http_compression: bool,
+ *   http_compression_level: int,
  * }
  */
 interface HttpServerConfiguration
@@ -43,6 +45,8 @@ interface HttpServerConfiguration
     public function servingStaticContent(): bool;
 
     public function hasPublicDir(): bool;
+
+    public function hasHttpCompression(): bool;
 
     public function changeServerSocket(Socket $socket): void;
 
@@ -91,6 +95,11 @@ interface HttpServerConfiguration
      * @throws AssertionFailedException
      */
     public function getPublicDir(): string;
+
+    /**
+     * @throws AssertionFailedException
+     */
+    public function getHttpCompressionLevel(): int;
 
     /**
      * @throws AssertionFailedException
