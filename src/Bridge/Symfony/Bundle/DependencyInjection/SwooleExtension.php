@@ -78,6 +78,8 @@ use ZEngine\Core;
  *   upload_tmp_dir: string,
  *   user: string,
  *   group: string,
+ *   http_compression: bool,
+ *   http_compression_level: int,
  * }
  * @phpstan-type TaskWorkerServicesConfig = array{
  *   reset_handler: bool,

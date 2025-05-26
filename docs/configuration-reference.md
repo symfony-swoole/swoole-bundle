@@ -103,9 +103,9 @@ swoole:
     # swoole http server settings
     # see https://openswoole.com/docs/modules/swoole-server/configuration
     settings:
+      user: some-user
+      group: some-group
       # user and group for worker and task worker child processes
-      # user: some-user
-      # group: some-group
 
       reactor_count: 2
       worker_count: 4
@@ -134,12 +134,16 @@ swoole:
       
       upload_tmp_dir: /tmp
       # directory for temporary files upload
-      
-      user: www-data
-      # user for worker and task worker processes
-        
-      group: www-data
-      # group for worker and task worker processes
+
+      http_compression: true
+      # default false, enables HTTP compression for responses
+      # gzip, deflate, brotli, zstd (swoole >= 6.0.0) compression algorithms are supported
+      # swoole need to be compiled with zlib, brotli or zstd to work
+      # `$response->end()` uses configured compression automatically, 
+      # `$response->write()` and `$response->sendfile()` does not use compression
+
+      http_compression_level: 4
+      # can be from 1 to 9, where 1 is the fastest and 9 is the slowest compression
 
   task_worker: # task workers' specific settings
     services:

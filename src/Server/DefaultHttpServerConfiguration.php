@@ -21,6 +21,8 @@ use SwooleBundle\SwooleBundle\Server\Config\Sockets;
  *   task_worker_count?: int|string,
  *   serve_static?: string,
  *   public_dir?: string,
+ *   http_compression?: bool,
+ *   http_compression_level?: int,
  *   upload_tmp_dir?: string,
  *   buffer_output_size?: string,
  *   package_max_length?: string,
@@ -46,6 +48,8 @@ final class DefaultHttpServerConfiguration implements HttpServerConfiguration
     private const SWOOLE_HTTP_SERVER_CONFIG_WORKER_COUNT = 'worker_count';
     private const SWOOLE_HTTP_SERVER_CONFIG_TASK_WORKER_COUNT = 'task_worker_count';
     private const SWOOLE_HTTP_SERVER_CONFIG_PUBLIC_DIR = 'public_dir';
+    private const SWOOLE_HTTP_SERVER_CONFIG_HTTP_COMPRESSION = 'http_compression';
+    private const SWOOLE_HTTP_SERVER_CONFIG_HTTP_COMPRESSION_LEVEL = 'http_compression_level';
     private const SWOOLE_HTTP_SERVER_CONFIG_UPLOAD_TMP_DIR = 'upload_tmp_dir';
     private const SWOOLE_HTTP_SERVER_CONFIG_LOG_FILE = 'log_file';
     private const SWOOLE_HTTP_SERVER_CONFIG_LOG_LEVEL = 'log_level';
@@ -78,6 +82,8 @@ final class DefaultHttpServerConfiguration implements HttpServerConfiguration
         self::SWOOLE_HTTP_SERVER_CONFIG_PACKAGE_MAX_LENGTH => 'package_max_length',
         self::SWOOLE_HTTP_SERVER_CONFIG_PID_FILE => 'pid_file',
         self::SWOOLE_HTTP_SERVER_CONFIG_PUBLIC_DIR => 'document_root',
+        self::SWOOLE_HTTP_SERVER_CONFIG_HTTP_COMPRESSION => 'http_compression',
+        self::SWOOLE_HTTP_SERVER_CONFIG_HTTP_COMPRESSION_LEVEL => 'http_compression_level',
         self::SWOOLE_HTTP_SERVER_CONFIG_UPLOAD_TMP_DIR => 'upload_tmp_dir',
         self::SWOOLE_HTTP_SERVER_CONFIG_REACTOR_COUNT => 'reactor_num',
         self::SWOOLE_HTTP_SERVER_CONFIG_SERVE_STATIC => 'enable_static_handler',
@@ -159,6 +165,16 @@ final class DefaultHttpServerConfiguration implements HttpServerConfiguration
     public function hasPublicDir(): bool
     {
         return !empty($this->settings[self::SWOOLE_HTTP_SERVER_CONFIG_PUBLIC_DIR]);
+    }
+
+    public function hasHttpCompression(): bool
+    {
+        return !empty($this->settings[self::SWOOLE_HTTP_SERVER_CONFIG_HTTP_COMPRESSION]);
+    }
+
+    public function hasHttpCompressionLevel(): bool
+    {
+        return !empty($this->settings[self::SWOOLE_HTTP_SERVER_CONFIG_HTTP_COMPRESSION_LEVEL]);
     }
 
     public function hasUploadTmpDir(): bool
@@ -295,6 +311,19 @@ final class DefaultHttpServerConfiguration implements HttpServerConfiguration
         );
 
         return $this->settings[self::SWOOLE_HTTP_SERVER_CONFIG_PUBLIC_DIR];
+    }
+
+    /**
+     * @throws AssertionFailedException
+     */
+    public function getHttpCompressionLevel(): int
+    {
+        Assertion::true(
+            $this->hasHttpCompressionLevel(),
+            sprintf('Setting "%s" is not set or empty.', self::SWOOLE_HTTP_SERVER_CONFIG_HTTP_COMPRESSION_LEVEL)
+        );
+
+        return $this->settings[self::SWOOLE_HTTP_SERVER_CONFIG_HTTP_COMPRESSION_LEVEL];
     }
 
     public function getUploadTmpDir(): string
@@ -479,12 +508,23 @@ final class DefaultHttpServerConfiguration implements HttpServerConfiguration
                 break;
             case self::SWOOLE_HTTP_SERVER_CONFIG_DAEMONIZE:
             case self::SWOOLE_HTTP_SERVER_CONFIG_TASK_USE_OBJECT:
+            case self::SWOOLE_HTTP_SERVER_CONFIG_HTTP_COMPRESSION:
                 Assertion::boolean($value);
 
                 break;
             case self::SWOOLE_HTTP_SERVER_CONFIG_PUBLIC_DIR:
                 Assertion::string($value);
                 Assertion::directory($value, 'Public directory does not exist. Tried "%s".');
+
+                break;
+            case self::SWOOLE_HTTP_SERVER_CONFIG_HTTP_COMPRESSION_LEVEL:
+                Assertion::integer($value, sprintf('Setting "%s" must be an integer.', $key));
+                Assertion::between(
+                    $value,
+                    0,
+                    9,
+                    sprintf('Setting "%s" must be a positive integer between 0 and 9.', $key)
+                );
 
                 break;
             case self::SWOOLE_HTTP_SERVER_CONFIG_UPLOAD_TMP_DIR:

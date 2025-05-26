@@ -41,7 +41,7 @@ final class ServerProfileCommand extends ServerExecutionCommand
 
     /**
      * @param RuntimeConfiguration $runtimeConfiguration
-     * @return array<array<string>>
+     * @return array<array<int|string>>
      * @throws AssertionFailedException
      */
     protected function prepareConfigurationRowsToPrint(
