@@ -16,3 +16,4 @@ ext
 !ext/.gitignore
 .env
 /.phpcs-cache
+.idea

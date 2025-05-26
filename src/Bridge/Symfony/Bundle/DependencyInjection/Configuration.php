@@ -291,6 +291,13 @@ final readonly class Configuration implements ConfigurationInterface
                                 ->end()
                                 ->scalarNode('group')
                                 ->end()
+                                ->booleanNode('http_compression')
+                                    ->defaultFalse()
+                                    ->treatNullLike(false)
+                                ->end()
+                                ->scalarNode('http_compression_level')
+                                    ->defaultValue(4)
+                                ->end()
                             ->end()
                         ->end() // settings
                     ->end()
