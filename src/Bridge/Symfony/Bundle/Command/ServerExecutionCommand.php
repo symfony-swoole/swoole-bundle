@@ -253,7 +253,7 @@ abstract class ServerExecutionCommand extends Command
      * | Configuration | Value |.
      *
      * @param RuntimeConfiguration $runtimeConfiguration
-     * @return array<array<string>>
+     * @return array<array<int|string>>
      * @throws AssertionFailedException
      */
     protected function prepareConfigurationRowsToPrint(
@@ -287,6 +287,10 @@ abstract class ServerExecutionCommand extends Command
 
         if ($this->serverConfiguration->hasPublicDir()) {
             $rows[] = ['public_dir', $serverConfiguration->getPublicDir()];
+        }
+        if ($this->serverConfiguration->hasHttpCompression()) {
+            $rows[] = ['http_compression', 'enabled'];
+            $rows[] = ['http_compression_level', $serverConfiguration->getHttpCompressionLevel()];
         }
 
         if ($this->serverConfiguration->hasPublicDir()) {
