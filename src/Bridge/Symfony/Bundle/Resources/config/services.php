@@ -41,7 +41,6 @@ use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpKernel\CoroutineKernelPool;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpKernel\HttpKernelRequestHandler;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpKernel\KernelPool;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpKernel\SimpleKernelPool;
-use SwooleBundle\SwooleBundle\Bridge\Symfony\Messenger\ExceptionLoggingTransportHandler;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Messenger\ServiceResettingTransportHandler;
 use SwooleBundle\SwooleBundle\Common\Adapter\Swoole;
 use SwooleBundle\SwooleBundle\Common\System\Extension;
@@ -280,13 +279,6 @@ return static function (ContainerConfigurator $containerConfigurator): void {
     $services->set(TaskHandler::class, NoOpTaskHandler::class);
 
     $services->set(TaskFinishedHandler::class, NoOpTaskFinishedHandler::class);
-
-    $services->set(ExceptionLoggingTransportHandler::class)
-        ->arg('$decorated', null)
-        ->arg('$logger', service('logger'))
-        ->tag('monolog.logger', [
-            'channel' => 'swoole',
-        ]);
 
     $services->set(ServiceResettingTransportHandler::class)
         ->arg('$decorated', null)

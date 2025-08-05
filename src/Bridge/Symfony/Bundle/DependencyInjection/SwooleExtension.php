@@ -24,7 +24,6 @@ use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation\TrustAllProxiesReque
 use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpKernel\ContextReleasingHttpKernelRequestHandler;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpKernel\CoroutineKernelPool;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpKernel\KernelPool;
-use SwooleBundle\SwooleBundle\Bridge\Symfony\Messenger\ExceptionLoggingTransportHandler;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Messenger\ServiceResettingTransportHandler;
 use SwooleBundle\SwooleBundle\Bridge\Tideways\Apm\Apm;
 use SwooleBundle\SwooleBundle\Bridge\Tideways\Apm\RequestDataProvider;
@@ -659,13 +658,6 @@ final class SwooleExtension extends Extension
      */
     private function configureTaskWorkerServices(array $config, ContainerBuilder $container): void
     {
-        $loggingHandler = $container->findDefinition(ExceptionLoggingTransportHandler::class);
-        $loggingHandler->setArgument(
-            '$decorated',
-            new Reference(ExceptionLoggingTransportHandler::class . '.inner')
-        );
-        $loggingHandler->setDecoratedService(TaskHandler::class, null, -9998);
-
         if (!$config['reset_handler']) {
             return;
         }
