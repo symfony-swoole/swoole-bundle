@@ -72,7 +72,7 @@
         "rector/rector": "^2.0",
         "slevomat/coding-standard": "^8.14",
         "squizlabs/php_codesniffer": "^3.8",
-        "swoole-bundle/resetter-bundle": "^1.0",
+        "swoole-bundle/resetter-bundle": "^1.1",
         "swoole-bundle/z-engine": "^8.2.1|^8.3|^8.4",
         "swoole/ide-helper": "^6.0.0",
         "symfony/debug-bundle": "^6.4|^7.2",
