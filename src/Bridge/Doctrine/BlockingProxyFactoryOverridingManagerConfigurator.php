@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Bridge\Doctrine;
 
+use Assert\Assertion;
+use Composer\InstalledVersions;
 use Doctrine\Bundle\DoctrineBundle\ManagerConfigurator;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
@@ -29,7 +31,15 @@ final class BlockingProxyFactoryOverridingManagerConfigurator
             );
         }
 
-        $this->replaceProxyFactory($entityManager);
+        $ormVersion = InstalledVersions::getVersion('doctrine/orm');
+        Assertion::string($ormVersion);
+
+        if (
+            version_compare($ormVersion, '3.4.0', '<')
+            || !$entityManager->getConfiguration()->isNativeLazyObjectsEnabled()
+        ) {
+            $this->replaceProxyFactory($entityManager);
+        }
         $this->wrapped->configure($entityManager);
     }
 
