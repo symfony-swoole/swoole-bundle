@@ -1,3 +1,16 @@
+# [0.25.0](https://github.com/openswoole-bundle/openswoole-bundle/compare/v0.24.1...v0.25.0) (2025-08-14)
+
+[Full changelog](https://github.com/symfony-swoole/swoole-bundle/compare/v0.24.1...v0.25.0)
+
+### Bug Fixes
+
+* **doctrine:** skip the BlockingProxyFactory override when using Doctrine ORM >= 3.4.0 with native lazy objects enabled ([ea76802](https://github.com/openswoole-bundle/openswoole-bundle/commit/ea7680201227bc1cc269a751647abc4aa0acc8b2))
+
+
+### Features
+
+* **http-compression:** add configuration options for HTTP compression and compression level ([f348c98](https://github.com/openswoole-bundle/openswoole-bundle/commit/f348c98b8d4d2af59d45d15466c5c8be673b2d5f))
+
 ## [0.24.1](https://github.com/openswoole-bundle/openswoole-bundle/compare/v0.24.0...v0.24.1) (2025-05-21)
 
 [Full changelog](https://github.com/symfony-swoole/swoole-bundle/compare/v0.24.0...v0.24.1)
