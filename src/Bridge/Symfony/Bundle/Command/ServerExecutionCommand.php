@@ -234,10 +234,18 @@ abstract class ServerExecutionCommand extends Command
         Assertion::isArray($trustedProxies);
         Assertion::allString($trustedProxies);
         $runtimeConfiguration = [];
-        $runtimeConfiguration['trustedHosts'] = $this->decodeSet($trustedHosts);
-        $runtimeConfiguration['trustedProxies'] = $this->decodeSet($trustedProxies);
 
-        if (in_array('*', $runtimeConfiguration['trustedProxies'], true)) {
+        if ($trustedHosts !== []) {
+            $runtimeConfiguration['trustedHosts'] = $this->decodeSet($trustedHosts);
+        }
+        if ($trustedProxies !== []) {
+            $runtimeConfiguration['trustedProxies'] = $this->decodeSet($trustedProxies);
+        }
+
+        if (
+            array_key_exists('trustedProxies', $runtimeConfiguration)
+            && in_array('*', $runtimeConfiguration['trustedProxies'], true)
+        ) {
             $runtimeConfiguration['trustAllProxies'] = true;
             $runtimeConfiguration['trustedProxies'] = array_filter(
                 $runtimeConfiguration['trustedProxies'],
