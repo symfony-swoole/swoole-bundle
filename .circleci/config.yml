@@ -94,7 +94,7 @@ aliases:
         only: /pull\/[0-9]+/
 
 orbs:
-  codecov: codecov/codecov@3.3.0
+  qlty-orb: qltysh/qlty-orb@0.0
 
 executors:
   swoole-bundle-docker-client:
@@ -392,22 +392,18 @@ jobs:
           name: Run Composer
           command: |
             composer install --no-progress --no-interaction --ansi
-      - run:
-          name: Prepare CodeClimate Code Coverage reporter
-          command: |-
-            wget -O cc-test-reporter https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64
-            chmod +x ./cc-test-reporter
-            ./cc-test-reporter before-build
       - attach_workspace:
           at: /usr/src/app/cov
       - run:
           name: Merge code coverage files generated across test suites
           command: composer run merge-code-coverage
       - run:
-          name: Send Code Coverage report to CodeClimate
-          command: ./cc-test-reporter after-build -t clover --exit-code 0 --prefix /usr/src/app
-      - codecov/upload:
-          file: clover.xml
+          name: Publish Qlty coverage
+          command: |
+            bash -c '
+            curl https://qlty.sh | sh
+            ~/.qlty/bin/qlty coverage publish clover.xml
+            '
     docker:
       - image: docker.io/symfonywithswoole/swoole-bundle-merge-code-coverage:8.2-$CIRCLE_SHA1
         auth:
@@ -415,7 +411,7 @@ jobs:
           password: $DOCKER_HUB_TOKEN
         user: app
         environment:
-          CC_TEST_REPORTER_ID: bf289560199c71f3aace641542bbe012262dd7c3381558fccf46dff27855a587
+          QLTY_COVERAGE_TOKEN: ${{ secrets.QLTY_COVERAGE_TOKEN }}
 
   check-composer-config:
     docker:
