@@ -133,6 +133,9 @@ ENTRYPOINT ["composer"]
 CMD ["unit-code-coverage"]
 
 FROM base-pcov-xdebug AS MergeCodeCoverage
+USER root:root
+RUN apk add --no-cache bash
+USER app:runner
 ENTRYPOINT ["composer"]
 CMD ["merge-code-coverage"]
 

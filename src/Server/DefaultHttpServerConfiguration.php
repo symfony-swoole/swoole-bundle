@@ -113,8 +113,9 @@ final class DefaultHttpServerConfiguration implements HttpServerConfiguration
 
     /**
      * @var SwooleSettingsShape
+     * @phpstan-ignore-next-line
      */
-    private array $settings;
+    private array $settings = [];
 
     /**
      * @param SwooleSettingsInputShape $settings settings available:
@@ -357,6 +358,7 @@ final class DefaultHttpServerConfiguration implements HttpServerConfiguration
         $swooleSettings = [];
 
         foreach ($this->settings as $key => $setting) {
+            /** @phpstan-ignore-next-line */
             $swooleSettingKey = self::SWOOLE_HTTP_SERVER_CONFIGURATION[$key];
             $swooleGetter = sprintf('getSwoole%s', str_replace('_', '', $swooleSettingKey));
             if (method_exists($this, $swooleGetter)) {
@@ -447,7 +449,6 @@ final class DefaultHttpServerConfiguration implements HttpServerConfiguration
      */
     private function initializeSettings(array $init): void
     {
-        $this->settings = []; // @phpstan-ignore-line
         $cpuCores = $this->swoole->cpuCoresCount();
 
         if (!isset($init[self::SWOOLE_HTTP_SERVER_CONFIG_REACTOR_COUNT])) {

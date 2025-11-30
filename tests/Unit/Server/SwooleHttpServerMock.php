@@ -31,7 +31,6 @@ abstract class SwooleHttpServerMock extends Server
 
         self::$instance->clean();
 
-        /** @phpstan-ignore return.type */
         return self::$instance;
     }
 
