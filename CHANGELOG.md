@@ -1,3 +1,11 @@
+## [0.25.1](https://github.com/symfony-swoole/swoole-bundle/compare/v0.25.0...v0.25.1) (2025-11-30)
+
+[Full changelog](https://github.com/symfony-swoole/swoole-bundle/compare/v0.25.0...v0.25.1)
+
+### Bug Fixes
+
+* **configuration:** prevent bundle from overwriting proxies/hosts when not defined ([4f6c747](https://github.com/symfony-swoole/swoole-bundle/commit/4f6c747c7536a9cace98bfd6f922122f57258dd8))
+
 # [0.25.0](https://github.com/openswoole-bundle/openswoole-bundle/compare/v0.24.1...v0.25.0) (2025-08-14)
 
 [Full changelog](https://github.com/symfony-swoole/swoole-bundle/compare/v0.24.1...v0.25.0)
