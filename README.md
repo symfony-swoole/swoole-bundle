@@ -10,16 +10,14 @@ Symfony integration with [Open Swoole](https://openswoole.com/) to speed up your
 | Sponsored by:                         |                                                                                                 |
 |---------------------------------------|-------------------------------------------------------------------------------------------------|
 | [Blackfire.io](https://blackfire.io/) | [<img src="docs/img/blackfire-io.png" width="100" alt="Blackfire.io"/>](https://blackfire.io/)  |
-| [Travis CI](https://travis-ci.com/)   | [<img src="https://www.travis-ci.com/wp-content/uploads/2022/09/Logo.png" width="100" alt="Travis CI"/>](https://travis-ci.com/)       |
 ---
 
 ## Build Matrix
 
-| CI Job  | Branch [`master`](https://github.com/symfony-swoole/swoole-bundle/tree/master)                                                                                   | Branch [`develop`](https://github.com/symfony-swoole/swoole-bundle/tree/develop)                                                                             |
-| ------- |-------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Circle  | [![CircleCI](https://circleci.com/gh/symfony-swoole/swoole-bundle/tree/master.svg?style=svg)](https://circleci.com/gh/symfony-swoole/swoole-bundle/tree/master) | [![CircleCI](https://circleci.com/gh/symfony-swoole/swoole-bundle/tree/develop.svg?style=svg)](https://circleci.com/gh/symfony-swoole/swoole-bundle/tree/develop) |
-| CodeCov | [![codecov](https://codecov.io/gh/symfony-swoole/swoole-bundle/branch/master/graph/badge.svg)](https://codecov.io/gh/symfony-swoole/swoole-bundle)                    | [![codecov](https://codecov.io/gh/symfony-swoole/swoole-bundle/branch/develop/graph/badge.svg)](https://codecov.io/gh/symfony-swoole/swoole-bundle)               |
-| Travis  | [![Build Status](https://app.travis-ci.com/symfony-swoole/swoole-bundle.svg?branch=master)](https://travis-ci.com/symfony-swoole/swoole-bundle)                       | [![Build Status](https://app.travis-ci.com/symfony-swoole/swoole-bundle.svg?branch=develop)](https://travis-ci.com/symfony-swoole/swoole-bundle)                  |
+| CI Job | Branch [`master`](https://github.com/symfony-swoole/swoole-bundle/tree/master)                                                                                  | Branch [`develop`](https://github.com/symfony-swoole/swoole-bundle/tree/develop)                                                                             |
+|--------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Circle | [![CircleCI](https://circleci.com/gh/symfony-swoole/swoole-bundle/tree/master.svg?style=svg)](https://circleci.com/gh/symfony-swoole/swoole-bundle/tree/master) | [![CircleCI](https://circleci.com/gh/symfony-swoole/swoole-bundle/tree/develop.svg?style=svg)](https://circleci.com/gh/symfony-swoole/swoole-bundle/tree/develop) |
+| Qlty   | [![Code Coverage](https://qlty.sh/gh/symfony-swoole/projects/swoole-bundle/coverage.svg)](https://qlty.sh/gh/symfony-swoole/projects/swoole-bundle)                   | [![Maintainability](https://qlty.sh/gh/symfony-swoole/projects/swoole-bundle/maintainability.svg)](https://qlty.sh/gh/symfony-swoole/projects/swoole-bundle)               |
 
 ## Table of Contents
 
