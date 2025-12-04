@@ -59,6 +59,7 @@ use SwooleBundle\SwooleBundle\Server\Api\ApiServerClient;
 use SwooleBundle\SwooleBundle\Server\Api\ApiServerClientFactory;
 use SwooleBundle\SwooleBundle\Server\Api\ApiServerRequestHandler;
 use SwooleBundle\SwooleBundle\Server\Api\WithApiServerConfiguration;
+use SwooleBundle\SwooleBundle\Server\ConcurrentTasks;
 use SwooleBundle\SwooleBundle\Server\Config\Sockets;
 use SwooleBundle\SwooleBundle\Server\Configurator\CallableChainConfiguratorFactory;
 use SwooleBundle\SwooleBundle\Server\Configurator\WithHttpServerConfiguration;
@@ -95,9 +96,12 @@ use SwooleBundle\SwooleBundle\Server\Runtime\CallableBootManager;
 use SwooleBundle\SwooleBundle\Server\Runtime\CallableBootManagerFactory;
 use SwooleBundle\SwooleBundle\Server\Session\Storage;
 use SwooleBundle\SwooleBundle\Server\Session\SwooleTableStorage;
+use SwooleBundle\SwooleBundle\Server\TaskHandler\ConcurrentTaskHandler;
 use SwooleBundle\SwooleBundle\Server\TaskHandler\NoOpTaskFinishedHandler;
 use SwooleBundle\SwooleBundle\Server\TaskHandler\NoOpTaskHandler;
+use SwooleBundle\SwooleBundle\Server\TaskHandler\SwooleTaskFinisher;
 use SwooleBundle\SwooleBundle\Server\TaskHandler\TaskFinishedHandler;
+use SwooleBundle\SwooleBundle\Server\TaskHandler\TaskFinisher;
 use SwooleBundle\SwooleBundle\Server\TaskHandler\TaskHandler;
 use SwooleBundle\SwooleBundle\Server\WorkerHandler\WorkerErrorHandler;
 use SwooleBundle\SwooleBundle\Server\WorkerHandler\WorkerExitHandler;
@@ -483,4 +487,14 @@ return static function (ContainerConfigurator $containerConfigurator): void {
             service(SystemSwooleFactory::class),
             'newInstance',
         ]);
+
+    $services->set(ConcurrentTasks\ConcurrentTasks::class)
+        ->arg('$httpServer', service(HttpServer::class));
+
+    $services->set(TaskFinisher::class, SwooleTaskFinisher::class);
+
+    $services->set(ConcurrentTaskHandler::class)
+        ->decorate(TaskHandler::class)
+        ->arg('$decorated', service(ConcurrentTaskHandler::class . '.inner'))
+        ->arg('$taskFinisher', service(TaskFinisher::class));
 };
