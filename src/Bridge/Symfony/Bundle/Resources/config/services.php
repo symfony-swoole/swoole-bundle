@@ -424,6 +424,9 @@ return static function (ContainerConfigurator $containerConfigurator): void {
         ->call('setGeneratorStrategy', [
             service('swoole_bundle.repository_proxy_file_writer_generator'),
         ])
+        ->call('setProxiesNamespace', [
+            'PN',
+        ])
         ->call('setProxiesTargetDir', [
             '%swoole_bundle.service_proxy_cache_dir%',
         ]);

@@ -29,6 +29,7 @@ final class StatefulServicesPass implements CompilerPassInterface
 {
     private const IGNORED_SERVICES = [
         BlockingContainer::class => true,
+        'http_client.transport' => true,//Symfony\Contracts\HttpClient\HttpClientInterface
     ];
 
     private const MANDATORRY_SERVICES_TO_PROXIFY = [
