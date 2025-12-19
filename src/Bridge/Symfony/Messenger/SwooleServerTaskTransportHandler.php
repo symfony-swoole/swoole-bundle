@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Messenger;
 
-use Assert\Assertion;
 use Swoole\Server;
 use SwooleBundle\SwooleBundle\Server\TaskHandler\TaskHandler;
 use Symfony\Component\Messenger\Envelope;
@@ -19,10 +18,13 @@ final readonly class SwooleServerTaskTransportHandler implements TaskHandler
 
     public function handle(Server $server, Server\Task $task): void
     {
-        Assertion::isInstanceOf($task->data, Envelope::class);
-        /** @var Envelope $data */
-        $data = $task->data;
-        $this->bus->dispatch($data);
+        if ($task->data instanceof Envelope) {
+            /** @var Envelope $data */
+            $data = $task->data;
+            $this->bus->dispatch($data);
+
+            return;
+        }
 
         if (!($this->decorated instanceof TaskHandler)) {
             return;
