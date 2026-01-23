@@ -59,6 +59,20 @@ use SwooleBundle\SwooleBundle\Server\Api\ApiServerClient;
 use SwooleBundle\SwooleBundle\Server\Api\ApiServerClientFactory;
 use SwooleBundle\SwooleBundle\Server\Api\ApiServerRequestHandler;
 use SwooleBundle\SwooleBundle\Server\Api\WithApiServerConfiguration;
+use SwooleBundle\SwooleBundle\Server\Grpc\CallHandler\UnaryCallHandler;
+use SwooleBundle\SwooleBundle\Server\Grpc\CallHandler\ServerStreamCallHandler;
+use SwooleBundle\SwooleBundle\Server\Grpc\Factory\ContextFactory;
+use SwooleBundle\SwooleBundle\Server\Grpc\Factory\HttpFoundationFactory;
+use SwooleBundle\SwooleBundle\Server\Grpc\GrpcServerRequestHandler;
+use SwooleBundle\SwooleBundle\Server\Grpc\Interceptor\InterceptorChain;
+use SwooleBundle\SwooleBundle\Server\Grpc\Interceptor\LoggingInterceptor;
+use SwooleBundle\SwooleBundle\Server\Grpc\Serialization\PayloadDeserializer;
+use SwooleBundle\SwooleBundle\Server\Grpc\Serialization\PayloadSerializer;
+use SwooleBundle\SwooleBundle\Server\Grpc\Serialization\ProtobufSerializerDeserializer;
+use SwooleBundle\SwooleBundle\Server\Grpc\Service\GrpcToHttpKernelRequest;
+use SwooleBundle\SwooleBundle\Server\Grpc\Service\ServiceHandler;
+use SwooleBundle\SwooleBundle\Server\Grpc\Writer\ResponseWriter;
+use SwooleBundle\SwooleBundle\Server\Grpc\WithGrpcServerConfiguration;
 use SwooleBundle\SwooleBundle\Server\Config\Sockets;
 use SwooleBundle\SwooleBundle\Server\Configurator\CallableChainConfiguratorFactory;
 use SwooleBundle\SwooleBundle\Server\Configurator\WithHttpServerConfiguration;
@@ -106,6 +120,7 @@ use SwooleBundle\SwooleBundle\Server\WorkerHandler\WorkerStopHandler;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\Filesystem\Filesystem;
 
+use function Symfony\Component\DependencyInjection\Loader\Configurator\param;
 use function Symfony\Component\DependencyInjection\Loader\Configurator\service;
 use function Symfony\Component\DependencyInjection\Loader\Configurator\tagged_iterator;
 
@@ -366,6 +381,75 @@ return static function (ContainerConfigurator $containerConfigurator): void {
     $services->set('swoole_bundle.server.api_server.request_handler', ExceptionRequestHandler::class)
         ->arg('$decorated', service(ApiServerRequestHandler::class))
         ->arg('$exceptionHandler', service(ExceptionHandler::class));
+
+
+    // gRPC Serialization
+    $services->set(ProtobufSerializerDeserializer::class);
+    $services->alias(PayloadSerializer::class, ProtobufSerializerDeserializer::class);
+    $services->alias(PayloadDeserializer::class, ProtobufSerializerDeserializer::class);
+
+    // gRPC Call Handlers
+    $services->set(UnaryCallHandler::class)
+        ->arg('$serializer', service(PayloadSerializer::class))
+        ->tag('grpc.call_handler');
+
+    $services->set(ServerStreamCallHandler::class)
+        ->tag('grpc.call_handler');
+
+    // gRPC Context Factory
+    $services->set(ContextFactory::class);
+
+    // gRPC Response Writer
+    $services->set(ResponseWriter::class)
+        ->arg('$logger', service('logger'))
+        ->tag('monolog.logger', ['channel' => 'grpc']);
+
+    // gRPC Interceptors
+    $services->set(LoggingInterceptor::class)
+        ->arg('$logger', service('logger'))
+        ->arg('$priority', 100)
+        ->tag('monolog.logger', ['channel' => 'grpc'])
+        ->tag('grpc.interceptor');
+
+    // InterceptorChain with tagged interceptors
+    $services->set(InterceptorChain::class)
+        ->arg('$interceptors', tagged_iterator('grpc.interceptor'));
+
+    // gRPC Service Handler
+    $services->set(ServiceHandler::class)
+        ->arg('$services', tagged_iterator('swoole_bundle.grpc_service'))
+        ->arg('$container', service('service_container'))
+        ->arg('$deserializer', service(PayloadDeserializer::class))
+        ->arg('$callHandlers', tagged_iterator('grpc.call_handler'))
+        ->arg('$interceptorChain', service(InterceptorChain::class))
+        ->arg('$defaultPackage', param('swoole_bundle.grpc.default_package'))
+        ->arg('$interceptorsEnabled', param('swoole_bundle.grpc.interceptors'));
+
+    // gRPC to HTTP Kernel Bridge - Factory
+    $services->set(HttpFoundationFactory::class);
+
+    // gRPC to HTTP Kernel Bridge - Service
+    $services->set(GrpcToHttpKernelRequest::class)
+        ->arg('$httpFoundationFactory', service(HttpFoundationFactory::class))
+        ->tag('swoole_bundle.grpc_service');
+
+    // gRPC Request Handler (manages kernel lifecycle and boots kernel pool)
+    $services->set(GrpcServerRequestHandler::class)
+        ->arg('$server', service(HttpServer::class))
+        ->arg('$serviceHandler', service(ServiceHandler::class))
+        ->arg('$responseWriter', service(ResponseWriter::class))
+        ->arg('$contextFactory', service(ContextFactory::class))
+        ->arg('$kernelPool', service(KernelPool::class))
+        ->tag('swoole_bundle.bootable_service');
+
+    $services->set('swoole_bundle.server.grpc_server.request_handler', ExceptionRequestHandler::class)
+        ->arg('$decorated', service(GrpcServerRequestHandler::class))
+        ->arg('$exceptionHandler', service(ExceptionHandler::class));
+
+    $services->set(WithGrpcServerConfiguration::class)
+        ->arg('$sockets', service(Sockets::class))
+        ->arg('$requestHandler', service('swoole_bundle.server.grpc_server.request_handler'))
+        ->tag('swoole_bundle.server_configurator');
 
     $services->set('swoole_bundle.server.http_server.configurator_collection', GeneratedCollection::class)
         ->arg('$itemCollection', tagged_iterator('swoole_bundle.server_configurator'))

@@ -29,6 +29,7 @@
         "php": "^8.2",
         "ext-json": "*",
         "beberlei/assert": "^3.3.3",
+        "google/protobuf": "^4.32",
         "laminas/laminas-code": "^4.7||^4.8",
         "monolog/monolog": "^3.6",
         "symfony/cache": "^6.4|^7.2",

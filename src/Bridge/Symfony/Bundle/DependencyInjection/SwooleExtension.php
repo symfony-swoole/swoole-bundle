@@ -80,6 +80,8 @@ use ZEngine\Core;
  *   group: string,
  *   http_compression: bool,
  *   http_compression_level: int,
+ *   open_http2_protocol: bool,
+ *   open_tcp_nodelay: bool,
  * }
  * @phpstan-type TaskWorkerServicesConfig = array{
  *   reset_handler: bool,
@@ -134,6 +136,13 @@ use ZEngine\Core;
  *     enabled: bool,
  *     host: string,
  *     port: int,
+ *   },
+ *   grpc: array{
+ *     enabled: bool,
+ *     host: string,
+ *     port: int,
+ *     default_package: string|null,
+ *     interceptors: bool,
  *   },
  *   hmr: HmrConfig,
  *   host: string,
@@ -278,6 +287,10 @@ final class SwooleExtension extends Extension
         $container->setParameter('swoole.http_server.trusted_hosts', $config['trusted_hosts']);
         $container->setParameter('swoole.http_server.api.host', $config['api']['host']);
         $container->setParameter('swoole.http_server.api.port', $config['api']['port']);
+        $container->setParameter('swoole.http_server.grpc.host', $config['grpc']['host']);
+        $container->setParameter('swoole.http_server.grpc.port', $config['grpc']['port']);
+        $container->setParameter('swoole_bundle.grpc.default_package', $config['grpc']['default_package']);
+        $container->setParameter('swoole_bundle.grpc.interceptors', $config['grpc']['interceptors']);
 
         return $this->prepareHttpServerConfiguration($config, $container);
     }
@@ -341,6 +354,7 @@ final class SwooleExtension extends Extension
     {
         [
             'api' => $api,
+            'grpc' => $grpc,
             'hmr' => $hmr,
             'host' => $host,
             'port' => $port,
@@ -371,6 +385,10 @@ final class SwooleExtension extends Extension
             $settings['log_level'] = $this->isDebug($container) ? 'debug' : 'notice';
         }
 
+        if ($grpc['enabled']) {
+            $settings['open_http2_protocol'] = true;
+        }
+
         if ((bool) $container->getParameter(ContainerConstants::PARAM_COROUTINES_ENABLED)) {
             $settings['enable_coroutine'] = true;
             $coroutineKernelHandler = $container->findDefinition(ContextReleasingHttpKernelRequestHandler::class);
@@ -388,10 +406,14 @@ final class SwooleExtension extends Extension
         }
 
         $sockets = $container->getDefinition(Sockets::class)
-            ->addArgument(new Definition(Socket::class, [$host, $port, $socketType, $sslEnabled]));
+            ->setArgument('$serverSocket', new Definition(Socket::class, [$host, $port, $socketType, $sslEnabled]));
 
         if ($api['enabled']) {
-            $sockets->addArgument(new Definition(Socket::class, [$api['host'], $api['port']]));
+            $sockets->setArgument('$apiSocket', new Definition(Socket::class, [$api['host'], $api['port']]));
+        }
+
+        if ($grpc['enabled']) {
+            $sockets->setArgument('$grpcSocket', new Definition(Socket::class, [$grpc['host'], $grpc['port']]));
         }
 
         $this->configureHttpServerHMR($hmr, $container);

@@ -14,6 +14,7 @@ final class Sockets
     public function __construct(
         private Socket $serverSocket,
         private ?Socket $apiSocket = null,
+        private ?Socket $grpcSocket = null,
         Socket ...$additionalSockets,
     ) {
         $this->additionalSockets = $additionalSockets;
@@ -51,6 +52,28 @@ final class Sockets
         $this->apiSocket = $socket;
     }
 
+    public function getGrpcSocket(): Socket
+    {
+        Assertion::isInstanceOf($this->grpcSocket, Socket::class, 'gRPC Socket is not defined.');
+
+        return $this->grpcSocket;
+    }
+
+    public function hasGrpcSocket(): bool
+    {
+        return $this->grpcSocket instanceof Socket;
+    }
+
+    public function disableGrpcSocket(): void
+    {
+        $this->grpcSocket = null;
+    }
+
+    public function changeGrpcSocket(Socket $socket): void
+    {
+        $this->grpcSocket = $socket;
+    }
+
     /**
      * Get sockets in order:
      * - first server socket
@@ -63,6 +86,10 @@ final class Sockets
 
         if ($this->hasApiSocket()) {
             yield $this->apiSocket;
+        }
+
+        if ($this->hasGrpcSocket()) {
+            yield $this->grpcSocket;
         }
 
         yield from $this->additionalSockets;

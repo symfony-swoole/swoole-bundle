@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package SwooleBundle;
+
+option php_namespace = "SwooleBundle\\SwooleBundle\\Server\\Grpc\\Generated";
+option php_metadata_namespace = "SwooleBundle\\SwooleBundle\\Server\\Grpc\\Generated\\GPBMetadata";
+
+service GrpcToHttpKernelRequest {
+    rpc HandleRequest (Psr7Request) returns (Psr7Response);
+}
+
+message Psr7Request {
+    string method = 1;
+    string uri = 2;
+    map<string, HeaderValue> headers = 3;
+    bytes body = 4;
+    string protocol_version = 5;
+}
+
+message Psr7Response {
+    int32 status_code = 1;
+    map<string, HeaderValue> headers = 2;
+    bytes body = 3;
+    string protocol_version = 4;
+    string reason_phrase = 5;
+}
+
+message HeaderValue {
+    repeated string value = 1;
+}
