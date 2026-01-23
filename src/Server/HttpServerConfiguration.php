@@ -36,6 +36,8 @@ use SwooleBundle\SwooleBundle\Server\Config\Sockets;
  *   http_compression_level: int,
  *   use_fiber_context?: bool,
  *   enable_fiber_mock?: bool,
+ *   open_http2_protocol: bool,
+ *   open_tcp_nodelay: bool,
  * }
  */
 interface HttpServerConfiguration
@@ -157,4 +159,8 @@ interface HttpServerConfiguration
     public function getTaskWorkerCount(): int;
 
     public function isFiberContextEnabled(): bool;
+
+    public function hasOpenHttp2Protocol(): bool;
+
+    public function hasOpenTcpNodelay(): bool;
 }

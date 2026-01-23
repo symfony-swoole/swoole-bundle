@@ -36,6 +36,8 @@ use SwooleBundle\SwooleBundle\Server\Config\Sockets;
  *   user?: string,
  *   group?: string,
  *   fiber_context?: 'auto'|'off'|'on',
+ *   open_http2_protocol?: bool,
+ *   open_tcp_nodelay?: bool,
  * }
  * @phpstan-import-type SwooleSettingsShape from HttpServerConfiguration
  * @todo Create interface and split this class
@@ -66,7 +68,8 @@ final class DefaultHttpServerConfiguration implements HttpServerConfiguration
     private const string SWOOLE_HTTP_SERVER_CONFIG_COROUTINE_HOOK_FLAGS = 'hook_flags';
     private const string SWOOLE_HTTP_SERVER_CONFIG_USER = 'user';
     private const string SWOOLE_HTTP_SERVER_CONFIG_GROUP = 'group';
-
+    private const string SWOOLE_HTTP_SERVER_CONFIG_OPEN_HTTP2_PROTOCOL = 'open_http2_protocol';
+    private const string SWOOLE_HTTP_SERVER_CONFIG_OPEN_TCP_NODELAY = 'open_tcp_nodelay';
     /**
      * @todo add more
      * @see https://github.com/swoole/swoole-docs/blob/master/modules/swoole-server/configuration.md
@@ -95,6 +98,8 @@ final class DefaultHttpServerConfiguration implements HttpServerConfiguration
         self::SWOOLE_HTTP_SERVER_CONFIG_WORKER_MAX_REQUEST => 'max_request',
         self::SWOOLE_HTTP_SERVER_CONFIG_USER => 'user',
         self::SWOOLE_HTTP_SERVER_CONFIG_GROUP => 'group',
+        self::SWOOLE_HTTP_SERVER_CONFIG_OPEN_HTTP2_PROTOCOL => 'open_http2_protocol',
+        self::SWOOLE_HTTP_SERVER_CONFIG_OPEN_TCP_NODELAY => 'open_tcp_nodelay',
     ];
 
     private const array SWOOLE_SERVE_STATIC = [
@@ -185,6 +190,16 @@ final class DefaultHttpServerConfiguration implements HttpServerConfiguration
     public function hasUploadTmpDir(): bool
     {
         return !empty($this->settings[self::SWOOLE_HTTP_SERVER_CONFIG_UPLOAD_TMP_DIR]);
+    }
+
+    public function hasOpenHttp2Protocol(): bool
+    {
+        return !empty($this->settings[self::SWOOLE_HTTP_SERVER_CONFIG_OPEN_HTTP2_PROTOCOL]);
+    }
+
+    public function hasOpenTcpNodelay(): bool
+    {
+        return !empty($this->settings[self::SWOOLE_HTTP_SERVER_CONFIG_OPEN_TCP_NODELAY]);
     }
 
     public function changeServerSocket(Socket $socket): void
@@ -532,6 +547,8 @@ final class DefaultHttpServerConfiguration implements HttpServerConfiguration
             case self::SWOOLE_HTTP_SERVER_CONFIG_DAEMONIZE:
             case self::SWOOLE_HTTP_SERVER_CONFIG_TASK_USE_OBJECT:
             case self::SWOOLE_HTTP_SERVER_CONFIG_HTTP_COMPRESSION:
+            case self::SWOOLE_HTTP_SERVER_CONFIG_OPEN_HTTP2_PROTOCOL:
+            case self::SWOOLE_HTTP_SERVER_CONFIG_OPEN_TCP_NODELAY:
                 Assertion::boolean($value);
 
                 break;

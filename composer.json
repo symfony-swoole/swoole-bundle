@@ -61,6 +61,7 @@
         "doctrine/orm": "^2.17 || ^3.0",
         "doctrine/persistence": "^3.2",
         "friendsofphp/php-cs-fixer": "^3.94",
+        "google/protobuf": "^5.34",
         "jangregor/phpstan-prophecy": "^2.3",
         "openswoole/core": "^22.2",
         "openswoole/ide-helper": "^26.2",

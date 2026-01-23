@@ -9,11 +9,13 @@ use Generator;
 
 final class Sockets
 {
-    private $additionalSockets;
+    /** @var array<Socket> */
+    private array $additionalSockets;
 
     public function __construct(
         private Socket $serverSocket,
         private ?Socket $apiSocket = null,
+        private ?Socket $grpcSocket = null,
         Socket ...$additionalSockets,
     ) {
         $this->additionalSockets = $additionalSockets;
@@ -31,7 +33,7 @@ final class Sockets
 
     public function getApiSocket(): Socket
     {
-        Assertion::isInstanceOf($this->apiSocket, Socket::class, 'API Socket is not defined.');
+        Assertion::notNull($this->apiSocket, 'API Socket is not defined.');
 
         return $this->apiSocket;
     }
@@ -51,6 +53,28 @@ final class Sockets
         $this->apiSocket = $socket;
     }
 
+    public function getGrpcSocket(): Socket
+    {
+        Assertion::notNull($this->grpcSocket, 'gRPC Socket is not defined.');
+
+        return $this->grpcSocket;
+    }
+
+    public function hasGrpcSocket(): bool
+    {
+        return $this->grpcSocket instanceof Socket;
+    }
+
+    public function disableGrpcSocket(): void
+    {
+        $this->grpcSocket = null;
+    }
+
+    public function changeGrpcSocket(Socket $socket): void
+    {
+        $this->grpcSocket = $socket;
+    }
+
     /**
      * Get sockets in order:
      * - first server socket
@@ -63,6 +87,10 @@ final class Sockets
 
         if ($this->hasApiSocket()) {
             yield $this->apiSocket;
+        }
+
+        if ($this->hasGrpcSocket()) {
+            yield $this->grpcSocket;
         }
 
         yield from $this->additionalSockets;
