@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "9f597cbb2a2222fd660785b053acf3bf",
+    "content-hash": "bf7a619bc71a140094761eb38b27c661",
     "packages": [
         {
             "name": "beberlei/assert",
@@ -12027,5 +12027,5 @@
         "ext-openswoole": "v25.2.0",
         "ext-swoole": "6.0.0"
     },
-    "plugin-api-version": "2.6.0"
+    "plugin-api-version": "2.9.0"
 }
