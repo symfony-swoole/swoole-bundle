@@ -11,9 +11,12 @@ use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Entity\Test;
 use Symfony\Contracts\Service\ResetInterface;
 use UnexpectedValueException;
 
+/**
+ * cannot be readonly
+ */
 final class DefaultDummyService implements ResetInterface, DummyService
 {
-    private readonly InMemoryRepository $tmpRepository;
+    private InMemoryRepository $tmpRepository;
 
     public function __construct(
         private readonly EntityManagerInterface $entityManager,

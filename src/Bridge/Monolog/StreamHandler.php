@@ -21,7 +21,7 @@ use UnexpectedValueException;
  */
 final class StreamHandler extends AbstractProcessingHandler
 {
-    protected const MAX_CHUNK_SIZE = 2_147_483_647;
+    protected const int MAX_CHUNK_SIZE = 2_147_483_647;
 
     /** 10MB */
     protected const DEFAULT_CHUNK_SIZE = 10 * 1024 * 1024;

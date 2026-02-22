@@ -8,8 +8,8 @@ use RuntimeException;
 
 final readonly class Extension
 {
-    public const OPENSWOOLE = 'openswoole';
-    public const SWOOLE = 'swoole';
+    public const string OPENSWOOLE = 'openswoole';
+    public const string SWOOLE = 'swoole';
 
     private function __construct(
         private string $extension,

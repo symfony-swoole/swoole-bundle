@@ -6,12 +6,14 @@ namespace TestBundleDoctrineMigrations;
 
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
+use Override;
 
 /**
  * Auto-generated Migration: Please modify to your needs!
  */
 final class Version20220920150015 extends AbstractMigration
 {
+    #[Override]
     public function getDescription(): string
     {
         return '';
@@ -31,6 +33,7 @@ final class Version20220920150015 extends AbstractMigration
         );
     }
 
+    #[Override]
     public function down(Schema $schema): void
     {
         // this down() migration is auto-generated, please modify it to your needs

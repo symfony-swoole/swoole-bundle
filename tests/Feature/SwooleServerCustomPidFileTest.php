@@ -41,7 +41,7 @@ final class SwooleServerCustomPidFileTest extends ServerTestCase
             $this->deferServerStop([sprintf('--pid-file=%s', $pidFile)]);
 
             $client = HttpClient::fromDomain('localhost', 9999, false);
-            $this->assertTrue($client->connect());
+            $this->assertTrue($client->connect(waitIfNoConnection: true));
 
             $this->assertFileExists($pidFile);
             $this->assertIsNumeric(file_get_contents($pidFile));

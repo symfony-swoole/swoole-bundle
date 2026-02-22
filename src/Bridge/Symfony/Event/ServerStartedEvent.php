@@ -9,7 +9,7 @@ use Symfony\Contracts\EventDispatcher\Event;
 
 final class ServerStartedEvent extends Event
 {
-    public const NAME = 'swoole_bundle.server.started';
+    public const string NAME = 'swoole_bundle.server.started';
 
     public function __construct(private readonly Server $server) {}
 

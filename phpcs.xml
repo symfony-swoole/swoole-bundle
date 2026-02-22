@@ -11,7 +11,7 @@
   <arg value="ps"/>
 
   <config name="installed_paths" value="../../slevomat/coding-standard"/>
-  <config name="testVersion" value="8.2"/>
+  <config name="testVersion" value="8.3"/>
 
   <rule ref="PSR12">
     <exclude name="PSR2.Classes.ClassDeclaration.OpenBraceNewLine"/>
@@ -67,6 +67,7 @@
     <exclude name="SlevomatCodingStandard.ControlStructures.DisallowEmpty"/>
     <exclude name="SlevomatCodingStandard.Functions.DisallowNamedArguments"/>
     <exclude name="SlevomatCodingStandard.Operators.DisallowIncrementAndDecrementOperators"/>
+    <exclude name="SlevomatCodingStandard.TypeHints.UnionTypeHintFormat"/>
   </rule>
 
   <rule ref="SlevomatCodingStandard.Namespaces.ReferenceUsedNamesOnly">

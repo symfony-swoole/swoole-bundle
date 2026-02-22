@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Service\NoAutowiring;
 
 use Doctrine\Bundle\DoctrineBundle\Registry;
+use Override;
 
 final class ResetCountingRegistry extends Registry
 {
     private int $resetCount = 0;
 
+    #[Override]
     public function reset(): void
     {
         ++$this->resetCount;

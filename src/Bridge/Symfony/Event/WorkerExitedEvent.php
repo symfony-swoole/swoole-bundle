@@ -9,7 +9,7 @@ use Symfony\Contracts\EventDispatcher\Event;
 
 final class WorkerExitedEvent extends Event
 {
-    public const NAME = 'swoole_bundle.worker.exited';
+    public const string NAME = 'swoole_bundle.worker.exited';
 
     public function __construct(
         private readonly Server $server,

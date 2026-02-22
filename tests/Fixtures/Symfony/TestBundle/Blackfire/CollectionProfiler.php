@@ -5,6 +5,7 @@ namespace SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Blackfire;
 use Blackfire\Client;
 use Blackfire\Probe;
 use Blackfire\Profile\Configuration;
+use Override;
 use Swoole\Http\Request;
 use Swoole\Http\Response;
 use UnexpectedValueException;
@@ -19,6 +20,7 @@ final class CollectionProfiler extends Profiler
     /**
      * Starts multiple request profiling when GET parameter "profile_start" is set.
      */
+    #[Override]
     public function start(Request $request): bool
     {
         if ($this->probe) {
@@ -47,6 +49,7 @@ final class CollectionProfiler extends Profiler
     /**
      * Stops multiple request profiling when GET parameter "profile_stop" is set.
      */
+    #[Override]
     public function stop(Request $request, Response $response): bool
     {
         if (!isset($request->get['profile_stop'])) {

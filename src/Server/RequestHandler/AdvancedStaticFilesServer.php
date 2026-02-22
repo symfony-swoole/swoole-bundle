@@ -20,14 +20,14 @@ use SwooleBundle\SwooleBundle\Server\Runtime\Bootable;
  */
 final class AdvancedStaticFilesServer implements RequestHandler, Bootable
 {
-    private const MIME_TYPE_APPLICATION_OCTET_STREAM = 'application/octet-stream';
+    private const string MIME_TYPE_APPLICATION_OCTET_STREAM = 'application/octet-stream';
 
     /**
      * Default static file extensions supported.
      *
      * @see https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types/Complete_list_of_MIME_types
      */
-    private const FILE_EXTENSION_MIME_TYPE_DEFAULT_MAP = [
+    private const array FILE_EXTENSION_MIME_TYPE_DEFAULT_MAP = [
         // fallback for other file types
         '*' => self::MIME_TYPE_APPLICATION_OCTET_STREAM,
         // default list

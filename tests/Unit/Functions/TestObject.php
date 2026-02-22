@@ -12,8 +12,8 @@ use AllowDynamicProperties;
 #[AllowDynamicProperties]
 final class TestObject
 {
-    final public const GOOD_VALUE = 'good';
-    final public const WRONG_VALUE = 'wrong';
+    final public const string GOOD_VALUE = 'good';
+    final public const string WRONG_VALUE = 'wrong';
 
     public string $publicProp; // phpcs:ignore
     protected string $protectedProp;
@@ -26,9 +26,19 @@ final class TestObject
         $this->dynamicProp = $privateProp;
     }
 
+    public function setPrivateProp(string $prop): void
+    {
+        $this->privateProp = $prop;
+    }
+
     public function getPrivateProp(): string
     {
         return $this->privateProp;
+    }
+
+    public function setProtectedProp(string $prop): void
+    {
+        $this->protectedProp = $prop;
     }
 
     public function getProtectedProp(): string
@@ -39,6 +49,11 @@ final class TestObject
     public function getPublicProp(): string
     {
         return $this->publicProp;
+    }
+
+    public function setDynamicProp(string $prop): void
+    {
+        $this->dynamicProp = $prop;
     }
 
     public function getDynamicProp(): string

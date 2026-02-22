@@ -38,7 +38,7 @@ final class SwooleServerExceptionHandlerTest extends ServerTestCase
             $this->deferServerStop();
 
             $client1 = HttpClient::fromDomain('localhost', 9999, false);
-            $this->assertTrue($client1->connect());
+            $this->assertTrue($client1->connect(waitIfNoConnection: true));
             $response1 = $client1->send('/throwable/exception')['response'];
             $this->assertSame(500, $response1['statusCode']);
             $this->assertStringContainsString('text/html', $response1['headers']['content-type']);
@@ -84,7 +84,7 @@ final class SwooleServerExceptionHandlerTest extends ServerTestCase
             $this->deferServerStop([], $envs);
 
             $client1 = HttpClient::fromDomain('localhost', 9999, false);
-            $this->assertTrue($client1->connect());
+            $this->assertTrue($client1->connect(waitIfNoConnection: true));
             $response1 = $client1->send('/throwable/exception')['response'];
             $this->assertSame(500, $response1['statusCode']);
             $this->assertStringContainsString('text/html', $response1['headers']['content-type']);
@@ -173,7 +173,7 @@ final class SwooleServerExceptionHandlerTest extends ServerTestCase
             $this->deferServerStop([], $envs);
 
             $client = HttpClient::fromDomain('localhost', 9999, false);
-            $this->assertTrue($client->connect());
+            $this->assertTrue($client->connect(waitIfNoConnection: true));
             $response = $client->send('/throwable/error')['response'];
             $this->assertSame(500, $response['statusCode']);
             $this->assertStringContainsString('application/json', $response['headers']['content-type']);
@@ -212,7 +212,7 @@ final class SwooleServerExceptionHandlerTest extends ServerTestCase
             $this->deferServerStop([], $envs);
 
             $client = HttpClient::fromDomain('localhost', 9999, false);
-            $this->assertTrue($client->connect());
+            $this->assertTrue($client->connect(waitIfNoConnection: true));
             $response = $client->send('/throwable/error')['response'];
             $this->assertSame(500, $response['statusCode']);
             $this->assertStringContainsString('application/json', $response['headers']['content-type']);
@@ -293,7 +293,7 @@ final class SwooleServerExceptionHandlerTest extends ServerTestCase
             $this->deferServerStop([], $envs);
 
             $client1 = HttpClient::fromDomain('localhost', 9999, false);
-            $this->assertTrue($client1->connect());
+            $this->assertTrue($client1->connect(waitIfNoConnection: true));
             $response1 = $client1->send('/throwable/exception')['response'];
             $this->assertSame(500, $response1['statusCode']);
             $this->assertStringContainsString('text/html', $response1['headers']['content-type']);
@@ -332,7 +332,7 @@ final class SwooleServerExceptionHandlerTest extends ServerTestCase
             $this->deferServerStop([], $envs);
 
             $client = HttpClient::fromDomain('localhost', 9999, false);
-            $this->assertTrue($client->connect());
+            $this->assertTrue($client->connect(waitIfNoConnection: true));
             $response = $client->send('/throwable/error')['response'];
             $this->assertSame(500, $response['statusCode']);
             $this->assertStringContainsString('text/plain', $response['headers']['content-type']);

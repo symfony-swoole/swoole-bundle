@@ -10,9 +10,9 @@ use InvalidArgumentException;
 
 final class Socket
 {
-    private const CONSTANT_SWOOLE_SSL_IS_NOT_DEFINED_ERROR_MESSAGE = 'Constant SWOOLE_SSL is not defined. '
+    private const string CONSTANT_SWOOLE_SSL_IS_NOT_DEFINED_ERROR_MESSAGE = 'Constant SWOOLE_SSL is not defined. '
         . 'Please compile swoole extension with SSL support enabled.';
-    private const SWOOLE_SOCKET_TYPE = [
+    private const array SWOOLE_SOCKET_TYPE = [
         'tcp' => SWOOLE_SOCK_TCP,
         'tcp_ipv6' => SWOOLE_SOCK_TCP6,
         'udp' => SWOOLE_SOCK_UDP,

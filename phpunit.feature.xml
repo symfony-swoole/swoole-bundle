@@ -7,7 +7,11 @@
     bootstrap="vendor/autoload.php"
     processIsolation="true"
     cacheDirectory=".phpunit.cache"
+    displayDetailsOnTestsThatTriggerDeprecations="true"
 >
+  <php>
+    <env name="APP_RUNTIME_MODE" value="web=1&amp;worker=1"/>
+  </php>
   <testsuites>
     <testsuite name="FeatureTests">
       <directory>tests/Feature</directory>

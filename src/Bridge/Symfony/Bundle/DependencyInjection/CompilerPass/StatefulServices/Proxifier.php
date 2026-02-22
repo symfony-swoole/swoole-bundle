@@ -25,7 +25,7 @@ final class Proxifier
 {
     use ProxifierAssertions;
 
-    private const DEFAULT_STABILITY_CHECKERS = [
+    private const array DEFAULT_STABILITY_CHECKERS = [
         EntityManager::class => EntityManagerStabilityChecker::class,
     ];
 

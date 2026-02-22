@@ -11,24 +11,25 @@ final readonly class SimpleAccessLogFormatter implements AccessLogFormatter
     /**
      * @see http://httpd.apache.org/docs/2.4/mod/mod_log_config.html#examples
      */
-    final public const FORMAT_COMMON = '%h %l %u %t "%r" %>s %b';
-    final public const FORMAT_COMMON_TIME = '%a %l %u %t "%r" %>s %O "%{Referer}i" "%{User-Agent}i" %T %D';
-    final public const FORMAT_COMMON_VHOST = '%v %h %l %u %t "%r" %>s %b';
-    final public const FORMAT_COMBINED = '%h %l %u %t "%r" %>s %b "%{Referer}i" "%{User-Agent}i"';
-    final public const FORMAT_REFERER = '%{Referer}i -> %U';
-    final public const FORMAT_AGENT = '%{User-Agent}i';
+    final public const string FORMAT_COMMON = '%h %l %u %t "%r" %>s %b';
+    final public const string FORMAT_COMMON_TIME = '%a %l %u %t "%r" %>s %O "%{Referer}i" "%{User-Agent}i" %T %D';
+    final public const string FORMAT_COMMON_VHOST = '%v %h %l %u %t "%r" %>s %b';
+    final public const string FORMAT_COMBINED = '%h %l %u %t "%r" %>s %b "%{Referer}i" "%{User-Agent}i"';
+    final public const string FORMAT_REFERER = '%{Referer}i -> %U';
+    final public const string FORMAT_AGENT = '%{User-Agent}i';
 
     /**
      * @see https://httpd.apache.org/docs/2.4/logs.html#virtualhost
      */
-    final public const FORMAT_VHOST = '%v %l %u %t "%r" %>s %b';
+    final public const string FORMAT_VHOST = '%v %l %u %t "%r" %>s %b';
 
     /**
      * @see https://anonscm.debian.org/cgit/pkg-apache/apache2.git/tree/debian/config-dir/apache2.conf.in#n212
      */
-    final public const FORMAT_COMMON_DEBIAN = '%h %l %u %t “%r” %>s %O';
-    final public const FORMAT_COMBINED_DEBIAN = '%h %l %u %t “%r” %>s %O “%{Referer}i” “%{User-Agent}i”';
-    final public const FORMAT_VHOST_COMBINED_DEBIAN = '%v:%p %h %l %u %t “%r” %>s %O “%{Referer}i” “%{User-Agent}i"';
+    final public const string FORMAT_COMMON_DEBIAN = '%h %l %u %t “%r” %>s %O';
+    final public const string FORMAT_COMBINED_DEBIAN = '%h %l %u %t “%r” %>s %O “%{Referer}i” “%{User-Agent}i”';
+    final public const string FORMAT_VHOST_COMBINED_DEBIAN =
+        '%v:%p %h %l %u %t “%r” %>s %O “%{Referer}i” “%{User-Agent}i"';
 
     public function __construct(private string $format = self::FORMAT_COMMON) {}
 

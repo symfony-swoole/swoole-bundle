@@ -15,9 +15,9 @@ use function SwooleBundle\SwooleBundle\decode_string_as_set;
 
 final readonly class Configuration implements ConfigurationInterface
 {
-    public const DEFAULT_PUBLIC_DIR = '%kernel.project_dir%/public';
+    public const string DEFAULT_PUBLIC_DIR = '%kernel.project_dir%/public';
 
-    private const CONFIG_NAME = 'swoole';
+    private const string CONFIG_NAME = 'swoole';
 
     public function __construct(private TreeBuilder $builder) {}
 

@@ -11,11 +11,11 @@ use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Test\ServerTestC
 
 final class SwooleServerReloadViaHttpApiTest extends ServerTestCase
 {
-    private const CONTROLLER_TEMPLATE_ORIGINAL_TEXT = 'Wrong response!';
-    private const CONTROLLER_TEMPLATE_REPLACE_TEXT = '%REPLACE%';
-    private const CONTROLLER_TEMPLATE_SRC = __DIR__
+    private const string CONTROLLER_TEMPLATE_ORIGINAL_TEXT = 'Wrong response!';
+    private const string CONTROLLER_TEMPLATE_REPLACE_TEXT = '%REPLACE%';
+    private const string CONTROLLER_TEMPLATE_SRC = __DIR__
         . '/../Fixtures/Symfony/TestBundle/Controller/ReplacedContentTestController.php.tmpl';
-    private const CONTROLLER_TEMPLATE_DEST = __DIR__
+    private const string CONTROLLER_TEMPLATE_DEST = __DIR__
         . '/../Fixtures/Symfony/TestBundle/Controller/ReplacedContentTestController.php';
 
     protected function setUp(): void

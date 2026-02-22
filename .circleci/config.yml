@@ -3,25 +3,28 @@ version: 2.1
 aliases:
   # Supported lowest PHP version
   - &coverage-php-version
-    php-version: [ '8.2' ]
+    php-version: [ '8.3' ]
 
   # Supported lowest Swoole versions
   - &coverage-swooles
-    swoole: [ 'openswoole-v25.2.0', 'swoole-6.0.0' ]
+    swoole: [ 'openswoole-v25.2.0', 'swoole-v6.2.0-rc2' ]
 
   # Supported PHP versions
   - &php-versions
-    php-version: ['8.2', '8.3', '8.4']
+    php-version: ['8.3', '8.4', '8.5']
 
   # Supported Swoole/OpenSwoole versions
   - &swooles
-    swoole: [ 'openswoole-v25.2.0', 'swoole-6.0.0' ]
+    swoole: [ 'openswoole-v25.2.0', 'swoole-v6.2.0-rc2' ]
 
   # Docker bake matrix - combinations of PHP version with Swoole extension and version
   - &bake-matrix
     parameters:
       <<: *php-versions
       <<: *swooles
+    exclude:
+      - php-version: '8.5'
+        swoole: 'openswoole-v25.2.0'
 
   # CI matrix - combinations of PHP version with Symfony versions
   # and composer dependencies (std/locked, latest, lowest)
@@ -29,49 +32,69 @@ aliases:
     parameters:
       <<: *php-versions
       <<: *swooles
-      symfony-version: [ '6.4.*', '7.2.*' ]
+      symfony-version: [ '6.4.*', '7.4.*' ]
       composer-build: [ 'std', 'lowest', 'latest' ]
     exclude:
       - composer-build: 'std'
-        php-version: '8.3'
-        swoole: 'openswoole-v25.2.0'
-        symfony-version: '6.4.*'
-      - composer-build: 'std'
-        php-version: '8.3'
-        swoole: 'swoole-6.0.0'
-        symfony-version: '6.4.*'
-      - composer-build: 'std'
         php-version: '8.4'
         swoole: 'openswoole-v25.2.0'
         symfony-version: '6.4.*'
       - composer-build: 'std'
         php-version: '8.4'
-        swoole: 'swoole-6.0.0'
+        swoole: 'swoole-v6.2.0-rc2'
         symfony-version: '6.4.*'
       - composer-build: 'std'
-        php-version: '8.2'
+        php-version: '8.5'
         swoole: 'openswoole-v25.2.0'
-        symfony-version: '7.2.*'
+        symfony-version: '6.4.*'
       - composer-build: 'std'
-        php-version: '8.2'
-        swoole: 'swoole-6.0.0'
-        symfony-version: '7.2.*'
+        php-version: '8.5'
+        swoole: 'swoole-v6.2.0-rc2'
+        symfony-version: '6.4.*'
       - composer-build: 'std'
         php-version: '8.3'
         swoole: 'openswoole-v25.2.0'
-        symfony-version: '7.2.*'
+        symfony-version: '7.4.*'
       - composer-build: 'std'
         php-version: '8.3'
-        swoole: 'swoole-6.0.0'
-        symfony-version: '7.2.*'
+        swoole: 'swoole-v6.2.0-rc2'
+        symfony-version: '7.4.*'
       - composer-build: 'std'
         php-version: '8.4'
         swoole: 'openswoole-v25.2.0'
-        symfony-version: '7.2.*'
+        symfony-version: '7.4.*'
       - composer-build: 'std'
         php-version: '8.4'
-        swoole: 'swoole-6.0.0'
-        symfony-version: '7.2.*'
+        swoole: 'swoole-v6.2.0-rc2'
+        symfony-version: '7.4.*'
+      - composer-build: 'std'
+        php-version: '8.5'
+        swoole: 'openswoole-v25.2.0'
+        symfony-version: '6.4.*'
+      - composer-build: 'lowest'
+        php-version: '8.5'
+        swoole: 'openswoole-v25.2.0'
+        symfony-version: '6.4.*'
+      - composer-build: 'latest'
+        php-version: '8.5'
+        swoole: 'openswoole-v25.2.0'
+        symfony-version: '6.4.*'
+      - composer-build: 'std'
+        php-version: '8.5'
+        swoole: 'openswoole-v25.2.0'
+        symfony-version: '7.4.*'
+      - composer-build: 'lowest'
+        php-version: '8.5'
+        swoole: 'openswoole-v25.2.0'
+        symfony-version: '7.4.*'
+      - composer-build: 'latest'
+        php-version: '8.5'
+        swoole: 'openswoole-v25.2.0'
+        symfony-version: '7.4.*'
+      - composer-build: 'std'
+        php-version: '8.5'
+        swoole: 'swoole-v6.2.0-rc2'
+        symfony-version: '7.4.*'
 
   # Remote Docker config
   - &docker-remote-version
@@ -166,10 +189,10 @@ jobs:
 
             SWOOLE_EXTENSION=$(echo $SWOOLE | tr '-' '\n' | head -n 1)
             echo "export SWOOLE_EXTENSION='$SWOOLE_EXTENSION'" >> $BASH_ENV
-            SWOOLE_VERSION=$(echo $SWOOLE | tr '-' '\n' | tail -n 1)
+            SWOOLE_VERSION=$(echo $SWOOLE | sed 's/^[^-]*-//')
             echo "export SWOOLE_VERSION='$SWOOLE_VERSION'" >> $BASH_ENV
 
-            echo "export XDEBUG_TAG='3.2.0'" >> $BASH_ENV
+            echo "export XDEBUG_TAG='3.5.0'" >> $BASH_ENV
       - run:
           name: Print env
           command: env
@@ -195,7 +218,7 @@ jobs:
       - run:
           name: Docker Buildx Bake all required images
           command: |-
-            if [ "8.2" = "$PHP_VERSION" ]; then
+            if [ "8.3" = "$PHP_VERSION" ]; then
               export MERGE_COVERAGE_TAG="$PHP_VERSION-$CIRCLE_SHA1"
               export SERVICES="ci coverage-xdebug coverage-pcov merge-code-coverage"
             fi
@@ -226,6 +249,8 @@ jobs:
       - run:
           name: Export required dynamic env variables for Composer
           command: |-
+            echo "export COMPOSER_AUTH='${COMPOSER_AUTH}'" >> $BASH_ENV
+
             if [ "std" = "$BUILD_TYPE" ]; then
               echo "export COMPOSER_ARGS=install" >> $BASH_ENV
               echo "export GRUMPHP_COMMAND=grumphp_complete" >> $BASH_ENV
@@ -268,6 +293,7 @@ jobs:
           DATABASE_HOST: '127.0.0.1'
           SYMFONY_VERSION: << parameters.symfony-version >>
           BUILD_TYPE: << parameters.composer-build >>
+          COMPOSER_AUTH: ${{ secrets.COMPOSER_AUTH }}
       - image: cimg/mysql:8.0
         auth:
           username: $DOCKER_HUB_USERNAME
@@ -322,6 +348,7 @@ jobs:
         environment:
           DATABASE_HOST: '127.0.0.1'
           SWOOLE: << parameters.swoole >>
+          COMPOSER_AUTH: ${{ secrets.COMPOSER_AUTH }}
       - image: cimg/mysql:8.0
         auth:
           username: $DOCKER_HUB_USERNAME
@@ -373,6 +400,7 @@ jobs:
         environment:
           DATABASE_HOST: '127.0.0.1'
           SWOOLE: << parameters.swoole >>
+          COMPOSER_AUTH: ${{ secrets.COMPOSER_AUTH }}
       - image: cimg/mysql:8.0
         auth:
           username: $DOCKER_HUB_USERNAME
@@ -405,7 +433,7 @@ jobs:
             ~/.qlty/bin/qlty coverage publish clover.xml
             '
     docker:
-      - image: docker.io/symfonywithswoole/swoole-bundle-merge-code-coverage:8.2-$CIRCLE_SHA1
+      - image: docker.io/symfonywithswoole/swoole-bundle-merge-code-coverage:8.3-$CIRCLE_SHA1
         auth:
           username: $DOCKER_HUB_USERNAME
           password: $DOCKER_HUB_TOKEN

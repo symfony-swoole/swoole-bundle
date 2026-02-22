@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\Command;
 
+use Override;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\Exception\CouldNotCreatePidFileException;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\Exception\PidFileNotAccessibleException;
 use SwooleBundle\SwooleBundle\Server\HttpServer;
@@ -19,6 +20,7 @@ use function SwooleBundle\SwooleBundle\get_object_property;
 
 final class ServerStartCommand extends ServerExecutionCommand
 {
+    #[Override]
     protected function configure(): void
     {
         $this->setDescription('Run Swoole HTTP server in the background.')
@@ -33,6 +35,7 @@ final class ServerStartCommand extends ServerExecutionCommand
         parent::configure();
     }
 
+    #[Override]
     protected function prepareServerConfiguration(
         HttpServerConfiguration $serverConfiguration,
         InputInterface $input,
@@ -44,6 +47,7 @@ final class ServerStartCommand extends ServerExecutionCommand
         parent::prepareServerConfiguration($serverConfiguration, $input);
     }
 
+    #[Override]
     protected function startServer(
         HttpServerConfiguration $serverConfiguration,
         HttpServer $server,

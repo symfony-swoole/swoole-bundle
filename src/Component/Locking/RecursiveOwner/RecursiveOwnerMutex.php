@@ -11,7 +11,7 @@ use SwooleBundle\SwooleBundle\Component\Locking\Mutex;
 
 final class RecursiveOwnerMutex implements Mutex
 {
-    private const NO_OWNER = -2;
+    private const int NO_OWNER = -2;
 
     private int $ownerId = self::NO_OWNER;
 

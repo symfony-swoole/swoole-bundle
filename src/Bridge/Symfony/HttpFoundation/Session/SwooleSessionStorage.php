@@ -18,7 +18,7 @@ use Symfony\Component\HttpFoundation\Session\Storage\SessionStorageInterface;
 
 final class SwooleSessionStorage implements SessionStorageInterface
 {
-    public const DEFAULT_SESSION_NAME = 'SWOOLESSID';
+    public const string DEFAULT_SESSION_NAME = 'SWOOLESSID';
 
     private string $currentId = '';
 

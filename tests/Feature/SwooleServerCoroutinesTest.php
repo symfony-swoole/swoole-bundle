@@ -93,7 +93,7 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
                 go(function () use ($wg): void {
                     $wg->add();
                     $client = HttpClient::fromDomain('localhost', 9999, false);
-                    $this->assertTrue($client->connect());
+                    $this->assertTrue($client->connect(waitIfNoConnection: true));
                     $response = $client->send('/sleep')['response']; // request sleeps for 2 seconds
                     $this->assertSame(200, $response['statusCode']);
                     $this->assertStringContainsString('text/html', $response['headers']['content-type']);
@@ -213,7 +213,7 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
                 go(function () use ($wg): void {
                     $wg->add();
                     $client = HttpClient::fromDomain('localhost', 9999, false);
-                    $this->assertTrue($client->connect());
+                    $this->assertTrue($client->connect(waitIfNoConnection: true));
                     $response = $client->send('/doctrine')['response'];
                     $this->assertSame(200, $response['statusCode']);
                     $this->assertStringContainsString('text/html', $response['headers']['content-type']);
@@ -230,7 +230,7 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
             // this has to be the 10th request becasue PCOV coverage tests run weirdly and don't free svc pool services
             // seems like global instances limit 20 is exhausted
             $client = HttpClient::fromDomain('localhost', 9999, false);
-            $this->assertTrue($client->connect());
+            $this->assertTrue($client->connect(waitIfNoConnection: true));
             $client->send('/doctrine'); // trigger em reset
             $response = $client->send('/doctrine-resets')['response']; // request sleeps for 2 seconds
             $this->assertSame(200, $response['statusCode']);
@@ -320,7 +320,7 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
                 go(function () use ($wg): void {
                     $wg->add();
                     $client = HttpClient::fromDomain('localhost', 9999, false);
-                    $this->assertTrue($client->connect());
+                    $this->assertTrue($client->connect(waitIfNoConnection: true));
                     $response = $client->send('/doctrine-advanced')['response'];
                     $this->assertSame(200, $response['statusCode']);
                     $this->assertStringContainsString('application/json', $response['headers']['content-type']);
@@ -396,7 +396,7 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
                 go(function () use ($wg, $query): void {
                     $wg->add();
                     $client = HttpClient::fromDomain('localhost', 9999, false);
-                    $this->assertTrue($client->connect());
+                    $this->assertTrue($client->connect(waitIfNoConnection: true));
 
                     $response = $client->send('/coroutines/message/sleep-and-append' . $query)['response'];
                     $this->assertSame(200, $response['statusCode']);
@@ -495,7 +495,7 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
                 go(function () use ($wg): void {
                     $wg->add();
                     $client = HttpClient::fromDomain('localhost', 9999, false);
-                    $this->assertTrue($client->connect());
+                    $this->assertTrue($client->connect(waitIfNoConnection: true));
 
                     $response = $client->send('/coroutines/message/run-dummy')['response'];
                     $this->assertSame(200, $response['statusCode']);

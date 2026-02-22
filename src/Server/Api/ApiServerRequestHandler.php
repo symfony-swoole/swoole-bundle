@@ -13,7 +13,7 @@ use Throwable;
 
 final class ApiServerRequestHandler implements RequestHandler
 {
-    private const SUPPORTED_HTTP_METHODS = [
+    private const array SUPPORTED_HTTP_METHODS = [
         Http::METHOD_HEAD,
         Http::METHOD_GET,
         Http::METHOD_POST,
@@ -165,7 +165,7 @@ final class ApiServerRequestHandler implements RequestHandler
      */
     private function getRouteMap(): array
     {
-        return array_map(static fn(array $route): array => array_keys($route), $this->routes);
+        return array_map(array_keys(...), $this->routes);
     }
 
     /**

@@ -9,7 +9,7 @@ use Symfony\Component\HttpFoundation\Request as HttpFoundationRequest;
 
 interface ResponseProcessorInjector
 {
-    public const ATTR_KEY_RESPONSE_PROCESSOR = 'swoole_streamed_response_processor';
+    public const string ATTR_KEY_RESPONSE_PROCESSOR = 'swoole_streamed_response_processor';
 
     public function injectProcessor(HttpFoundationRequest $request, SwooleResponse $swooleResponse): void;
 }

@@ -18,8 +18,8 @@ use SwooleBundle\SwooleBundle\Tests\Unit\Server\SwooleHttpServerMockFactory;
 #[RunTestsInSeparateProcesses]
 final class WithTaskFinishedHandlerTest extends TestCase
 {
-    use SameClosureAssertion;
     use ProphecyTrait;
+    use SameClosureAssertion;
 
     private NoOpTaskFinishedHandler $noOpTaskFinishedHandler;
 

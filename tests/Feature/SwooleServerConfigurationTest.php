@@ -38,7 +38,7 @@ final class SwooleServerConfigurationTest extends ServerTestCase
             $this->deferServerStop();
 
             $client = HttpClient::fromDomain('localhost', 9999, false);
-            $this->assertTrue($client->connect());
+            $this->assertTrue($client->connect(waitIfNoConnection: true));
             /** @var array{
              *    body: array{
              *     upload_tmp_dir: string

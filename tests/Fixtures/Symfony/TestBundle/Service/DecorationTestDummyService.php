@@ -6,6 +6,9 @@ namespace SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Service;
 
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Entity\Test;
 
+/**
+ * cannot be readonly
+ */
 final class DecorationTestDummyService implements DummyService
 {
     public function __construct(private readonly DummyService $decorated) {}

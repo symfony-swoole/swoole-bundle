@@ -9,6 +9,7 @@ use Doctrine\Common\Proxy\Proxy;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\Proxy\InternalProxy;
 use Doctrine\ORM\Proxy\ProxyFactory;
+use Override;
 use SwooleBundle\SwooleBundle\Component\Locking\FirstTimeOnly\FirstTimeOnlyMutex;
 use SwooleBundle\SwooleBundle\Component\Locking\FirstTimeOnly\FirstTimeOnlyMutexFactory;
 
@@ -31,6 +32,7 @@ if (version_compare(InstalledVersions::getVersion('doctrine/orm'), '3.0.0', '<')
          * @param array<mixed> $identifier
          * @return Proxy<T>
          */
+        #[Override]
         public function getProxy($className, array $identifier): Proxy
         {
             $mutex = $this->getMutex($className);
@@ -50,6 +52,7 @@ if (version_compare(InstalledVersions::getVersion('doctrine/orm'), '3.0.0', '<')
          * @param string|null $proxyDir
          */
         // phpcs:ignore SlevomatCodingStandard.TypeHints.ParameterTypeHint.MissingNativeTypeHint
+        #[Override]
         public function generateProxyClasses(array $classes, $proxyDir = null): int
         {
             return $this->wrapped->generateProxyClasses($classes, $proxyDir);
@@ -93,6 +96,7 @@ if (version_compare(InstalledVersions::getVersion('doctrine/orm'), '3.0.0', '<')
          * @param array<mixed> $identifier
          * @return InternalProxy<T>
          */
+        #[Override]
         public function getProxy(string $className, array $identifier): InternalProxy
         {
             $mutex = $this->getMutex($className);
@@ -112,6 +116,7 @@ if (version_compare(InstalledVersions::getVersion('doctrine/orm'), '3.0.0', '<')
          * @param string|null $proxyDir
          */
         // phpcs:ignore SlevomatCodingStandard.TypeHints.ParameterTypeHint.MissingNativeTypeHint
+        #[Override]
         public function generateProxyClasses(array $classes, $proxyDir = null): int
         {
             return $this->wrapped->generateProxyClasses($classes, $proxyDir);

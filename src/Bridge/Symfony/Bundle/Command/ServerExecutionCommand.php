@@ -8,6 +8,7 @@ use Assert\Assertion;
 use Assert\AssertionFailedException;
 use Exception;
 use InvalidArgumentException;
+use Override;
 use Swoole\Http\Server;
 use SwooleBundle\SwooleBundle\Common\System\System;
 use SwooleBundle\SwooleBundle\Common\XdebugHandler\XdebugHandler;
@@ -57,6 +58,7 @@ abstract class ServerExecutionCommand extends Command
     /**
      * Disables default POSIX signal handling on application assigning. Swoole doesn't support it.
      */
+    #[Override]
     public function setApplication(?Application $application = null): void
     {
         if ($application === null) {
@@ -69,8 +71,8 @@ abstract class ServerExecutionCommand extends Command
     }
 
     /**
-     * @throws SfInvalidArgumentException
      * @throws AssertionFailedException
+     * @throws SfInvalidArgumentException
      */
     protected function configure(): void
     {
@@ -128,10 +130,10 @@ abstract class ServerExecutionCommand extends Command
     }
 
     /**
-     * @throws SfInvalidArgumentException
-     * @throws InvalidArgumentException
-     * @throws Exception
      * @throws AssertionFailedException
+     * @throws Exception
+     * @throws InvalidArgumentException
+     * @throws SfInvalidArgumentException
      */
     final protected function execute(InputInterface $input, OutputInterface $output): int
     {

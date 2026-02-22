@@ -10,9 +10,9 @@ use SwooleBundle\SwooleBundle\Server\Runtime\HMR\InotifyHMR;
 
 final class InotifyHMRTest extends TestCase
 {
-    private const NON_EXISTING_FILE = __DIR__ . '/not_exists.php';
+    private const string NON_EXISTING_FILE = __DIR__ . '/not_exists.php';
 
-    private const NON_RELOADABLE_EXISTING_FILES = [
+    private const array NON_RELOADABLE_EXISTING_FILES = [
         __DIR__ . '/HMRSpy.php',
         __DIR__ . '/InotifyHMRTest.php',
     ];

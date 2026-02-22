@@ -11,8 +11,8 @@ use Symfony\Component\HttpFoundation\Request as HttpFoundationRequest;
 
 final class SwooleRequestResponseContextManager
 {
-    private const REQUEST_ATTR_KEY = 'swoole_request';
-    private const RESPONSE_ATTR_KEY = 'swoole_response';
+    private const string REQUEST_ATTR_KEY = 'swoole_request';
+    private const string RESPONSE_ATTR_KEY = 'swoole_response';
 
     public function attachRequestResponseAttributes(
         HttpFoundationRequest $request,

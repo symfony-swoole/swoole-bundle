@@ -27,11 +27,11 @@ use UnexpectedValueException;
 
 final class StatefulServicesPass implements CompilerPassInterface
 {
-    private const IGNORED_SERVICES = [
+    private const array IGNORED_SERVICES = [
         BlockingContainer::class => true,
     ];
 
-    private const MANDATORRY_SERVICES_TO_PROXIFY = [
+    private const array MANDATORRY_SERVICES_TO_PROXIFY = [
         'annotations.reader',
         'logger',
         'profiler_listener',
@@ -40,7 +40,7 @@ final class StatefulServicesPass implements CompilerPassInterface
         'request_stack',
     ];
 
-    private const COMPILE_PROCESSORS = [
+    private const array COMPILE_PROCESSORS = [
         CacheAdapterProcessor::class => [
             'class' => CacheAdapterProcessor::class,
             'priority' => 0,

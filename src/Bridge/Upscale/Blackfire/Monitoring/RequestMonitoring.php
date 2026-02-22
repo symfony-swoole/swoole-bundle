@@ -17,8 +17,8 @@ final class RequestMonitoring
     private string|null $blackfireVersion = null;
 
     public function __construct(
-        private RequestFactory $requestFactory,
-        private System $system,
+        private readonly RequestFactory $requestFactory,
+        private readonly System $system,
     ) {}
 
     public function monitor(Closure $fn, Request $request, Response $response): void

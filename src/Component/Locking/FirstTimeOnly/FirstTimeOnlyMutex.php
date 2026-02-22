@@ -9,11 +9,11 @@ use SwooleBundle\SwooleBundle\Component\Locking\Mutex;
 
 final class FirstTimeOnlyMutex implements Mutex
 {
-    private const NEW = 0;
+    private const int NEW = 0;
 
-    private const LOCKED = 1;
+    private const int LOCKED = 1;
 
-    private const RELEASED = 2;
+    private const int RELEASED = 2;
 
     private int $lockState = self::NEW;
 

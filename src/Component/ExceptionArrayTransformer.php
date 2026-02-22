@@ -117,6 +117,6 @@ final class ExceptionArrayTransformer
      */
     private function transformTraceArgs(array $args): array
     {
-        return array_map(static fn($arg): string => get_debug_type($arg), $args);
+        return array_map(get_debug_type(...), $args);
     }
 }
