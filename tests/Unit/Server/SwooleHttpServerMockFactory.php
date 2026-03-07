@@ -6,7 +6,7 @@ namespace SwooleBundle\SwooleBundle\Tests\Unit\Server;
 
 use RuntimeException;
 use SwooleBundle\SwooleBundle\Common\System\System;
-use SwooleBundle\SwooleBundle\Tests\Unit\Server\SwooleHttpServerMock\SwooleHttpServerMockOpenSwoole22;
+use SwooleBundle\SwooleBundle\Tests\Unit\Server\SwooleHttpServerMock\SwooleHttpServerMockOpenSwoole26;
 use SwooleBundle\SwooleBundle\Tests\Unit\Server\SwooleHttpServerMock\SwooleHttpServerMockSwoole6;
 
 final class SwooleHttpServerMockFactory
@@ -15,11 +15,11 @@ final class SwooleHttpServerMockFactory
     {
         $system = System::create();
 
-        if ($system->extension()->isOpenswoole() && str_starts_with($system->version()->toString(), '25.')) {
-            return SwooleHttpServerMockOpenSwoole22::make();
+        if ($system->extension()->isOpenswoole() && str_starts_with($system->version()->toString(), '26.2.')) {
+            return SwooleHttpServerMockOpenSwoole26::make();
         }
 
-        if ($system->extension()->isSwoole() && str_starts_with($system->version()->toString(), '6.')) {
+        if ($system->extension()->isSwoole() && str_starts_with($system->version()->toString(), '6.2.')) {
             return SwooleHttpServerMockSwoole6::make();
         }
 

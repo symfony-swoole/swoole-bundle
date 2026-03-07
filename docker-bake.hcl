@@ -3,7 +3,7 @@ variable "PHP_VERSION" {
 }
 
 variable "SWOOLE" {
-    default = "openswoole-v25.2.0"
+    default = "openswoole-v26.2.0"
 }
 
 variable "COMPOSER_AUTH" {
