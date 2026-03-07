@@ -172,15 +172,16 @@ final class StatefulServicesPass implements CompilerPassInterface
             if ($resetter !== null && str_starts_with($resetter, '?')) {
                 $definition = $container->findDefinition($serviceId);
                 $definitionClass = $definition->getClass();
+                    
                 if ($definitionClass !== null && interface_exists($definitionClass)) {
                     $resetter = null;
                 } else {
-                Assertion::classExists($definitionClass);
-                $resetter = substr($resetter, 1);
+                    Assertion::classExists($definitionClass);
+                    $resetter = substr($resetter, 1);
 
-                if (!method_exists($definitionClass, $resetter)) {
-                    $resetter = null;
-                }
+                    if (!method_exists($definitionClass, $resetter)) {
+                        $resetter = null;
+                    }
                 }
             }
 
