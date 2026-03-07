@@ -11,7 +11,7 @@ use Throwable;
 
 final class ProductionExceptionHandler implements ExceptionHandler
 {
-    public const ERROR_MESSAGE = 'An unexpected fatal error has occurred. '
+    public const string ERROR_MESSAGE = 'An unexpected fatal error has occurred. '
         . 'Please report this incident to the administrator of this service.';
 
     public function handle(Request $request, Throwable $exception, Response $response): void

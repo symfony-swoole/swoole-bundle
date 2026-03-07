@@ -13,11 +13,11 @@ use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Test\ServerTestC
 
 final class SwooleServerReloadViaApiClientTest extends ServerTestCase
 {
-    private const CONTROLLER_TEMPLATE_ORIGINAL_TEXT = 'Wrong response!';
-    private const CONTROLLER_TEMPLATE_REPLACE_TEXT = '%REPLACE%';
-    private const CONTROLLER_TEMPLATE_SRC = __DIR__
+    private const string CONTROLLER_TEMPLATE_ORIGINAL_TEXT = 'Wrong response!';
+    private const string CONTROLLER_TEMPLATE_REPLACE_TEXT = '%REPLACE%';
+    private const string CONTROLLER_TEMPLATE_SRC = __DIR__
         . '/../Fixtures/Symfony/TestBundle/Controller/ReplacedContentTestController.php.tmpl';
-    private const CONTROLLER_TEMPLATE_DEST = __DIR__
+    private const string CONTROLLER_TEMPLATE_DEST = __DIR__
         . '/../Fixtures/Symfony/TestBundle/Controller/ReplacedContentTestController.php';
 
     protected function setUp(): void
@@ -55,7 +55,7 @@ final class SwooleServerReloadViaApiClientTest extends ServerTestCase
             $this->deferRestoreOriginalTemplateControllerResponse();
 
             $serverClient = HttpClient::fromDomain('localhost', 9999, false);
-            $this->assertTrue($serverClient->connect());
+            $this->assertTrue($serverClient->connect(waitIfNoConnection: true));
 
             $response1 = $serverClient->send('/test/replaced/content')['response'];
 
@@ -106,7 +106,7 @@ final class SwooleServerReloadViaApiClientTest extends ServerTestCase
             $this->deferRestoreOriginalTemplateControllerResponse();
 
             $serverClient = HttpClient::fromDomain('localhost', 9999, false);
-            $this->assertTrue($serverClient->connect());
+            $this->assertTrue($serverClient->connect(waitIfNoConnection: true));
 
             $response1 = $serverClient->send('/test/replaced/content')['response'];
 

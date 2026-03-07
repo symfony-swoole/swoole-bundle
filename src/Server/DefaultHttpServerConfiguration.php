@@ -42,36 +42,36 @@ use SwooleBundle\SwooleBundle\Server\Config\Sockets;
  */
 final class DefaultHttpServerConfiguration implements HttpServerConfiguration
 {
-    private const SWOOLE_HTTP_SERVER_CONFIG_DAEMONIZE = 'daemonize';
-    private const SWOOLE_HTTP_SERVER_CONFIG_SERVE_STATIC = 'serve_static';
-    private const SWOOLE_HTTP_SERVER_CONFIG_REACTOR_COUNT = 'reactor_count';
-    private const SWOOLE_HTTP_SERVER_CONFIG_WORKER_COUNT = 'worker_count';
-    private const SWOOLE_HTTP_SERVER_CONFIG_TASK_WORKER_COUNT = 'task_worker_count';
-    private const SWOOLE_HTTP_SERVER_CONFIG_PUBLIC_DIR = 'public_dir';
-    private const SWOOLE_HTTP_SERVER_CONFIG_HTTP_COMPRESSION = 'http_compression';
-    private const SWOOLE_HTTP_SERVER_CONFIG_HTTP_COMPRESSION_LEVEL = 'http_compression_level';
-    private const SWOOLE_HTTP_SERVER_CONFIG_UPLOAD_TMP_DIR = 'upload_tmp_dir';
-    private const SWOOLE_HTTP_SERVER_CONFIG_LOG_FILE = 'log_file';
-    private const SWOOLE_HTTP_SERVER_CONFIG_LOG_LEVEL = 'log_level';
-    private const SWOOLE_HTTP_SERVER_CONFIG_PID_FILE = 'pid_file';
-    private const SWOOLE_HTTP_SERVER_CONFIG_BUFFER_OUTPUT_SIZE = 'buffer_output_size';
-    private const SWOOLE_HTTP_SERVER_CONFIG_PACKAGE_MAX_LENGTH = 'package_max_length';
-    private const SWOOLE_HTTP_SERVER_CONFIG_WORKER_MAX_REQUEST = 'worker_max_request';
-    private const SWOOLE_HTTP_SERVER_CONFIG_WORKER_MAX_REQUEST_GRACE = 'worker_max_request_grace';
-    private const SWOOLE_HTTP_SERVER_CONFIG_ENABLE_COROUTINE = 'enable_coroutine';
-    private const SWOOLE_HTTP_SERVER_CONFIG_MAX_COROUTINE = 'max_coroutine';
-    private const SWOOLE_HTTP_SERVER_CONFIG_TASK_ENABLE_COROUTINE = 'task_enable_coroutine';
-    private const SWOOLE_HTTP_SERVER_CONFIG_TASK_USE_OBJECT = 'task_use_object';
-    private const SWOOLE_HTTP_SERVER_CONFIG_COROUTINE_HOOK_FLAGS = 'hook_flags';
-    private const SWOOLE_HTTP_SERVER_CONFIG_USER = 'user';
-    private const SWOOLE_HTTP_SERVER_CONFIG_GROUP = 'group';
+    private const string SWOOLE_HTTP_SERVER_CONFIG_DAEMONIZE = 'daemonize';
+    private const string SWOOLE_HTTP_SERVER_CONFIG_SERVE_STATIC = 'serve_static';
+    private const string SWOOLE_HTTP_SERVER_CONFIG_REACTOR_COUNT = 'reactor_count';
+    private const string SWOOLE_HTTP_SERVER_CONFIG_WORKER_COUNT = 'worker_count';
+    private const string SWOOLE_HTTP_SERVER_CONFIG_TASK_WORKER_COUNT = 'task_worker_count';
+    private const string SWOOLE_HTTP_SERVER_CONFIG_PUBLIC_DIR = 'public_dir';
+    private const string SWOOLE_HTTP_SERVER_CONFIG_HTTP_COMPRESSION = 'http_compression';
+    private const string SWOOLE_HTTP_SERVER_CONFIG_HTTP_COMPRESSION_LEVEL = 'http_compression_level';
+    private const string SWOOLE_HTTP_SERVER_CONFIG_UPLOAD_TMP_DIR = 'upload_tmp_dir';
+    private const string SWOOLE_HTTP_SERVER_CONFIG_LOG_FILE = 'log_file';
+    private const string SWOOLE_HTTP_SERVER_CONFIG_LOG_LEVEL = 'log_level';
+    private const string SWOOLE_HTTP_SERVER_CONFIG_PID_FILE = 'pid_file';
+    private const string SWOOLE_HTTP_SERVER_CONFIG_BUFFER_OUTPUT_SIZE = 'buffer_output_size';
+    private const string SWOOLE_HTTP_SERVER_CONFIG_PACKAGE_MAX_LENGTH = 'package_max_length';
+    private const string SWOOLE_HTTP_SERVER_CONFIG_WORKER_MAX_REQUEST = 'worker_max_request';
+    private const string SWOOLE_HTTP_SERVER_CONFIG_WORKER_MAX_REQUEST_GRACE = 'worker_max_request_grace';
+    private const string SWOOLE_HTTP_SERVER_CONFIG_ENABLE_COROUTINE = 'enable_coroutine';
+    private const string SWOOLE_HTTP_SERVER_CONFIG_MAX_COROUTINE = 'max_coroutine';
+    private const string SWOOLE_HTTP_SERVER_CONFIG_TASK_ENABLE_COROUTINE = 'task_enable_coroutine';
+    private const string SWOOLE_HTTP_SERVER_CONFIG_TASK_USE_OBJECT = 'task_use_object';
+    private const string SWOOLE_HTTP_SERVER_CONFIG_COROUTINE_HOOK_FLAGS = 'hook_flags';
+    private const string SWOOLE_HTTP_SERVER_CONFIG_USER = 'user';
+    private const string SWOOLE_HTTP_SERVER_CONFIG_GROUP = 'group';
 
     /**
      * @todo add more
      * @see https://github.com/swoole/swoole-docs/blob/master/modules/swoole-server/configuration.md
      * @see https://github.com/swoole/swoole-docs/blob/master/modules/swoole-http-server/configuration.md
      */
-    private const SWOOLE_HTTP_SERVER_CONFIGURATION = [
+    private const array SWOOLE_HTTP_SERVER_CONFIGURATION = [
         self::SWOOLE_HTTP_SERVER_CONFIG_BUFFER_OUTPUT_SIZE => 'buffer_output_size',
         self::SWOOLE_HTTP_SERVER_CONFIG_COROUTINE_HOOK_FLAGS => 'hook_flags',
         self::SWOOLE_HTTP_SERVER_CONFIG_DAEMONIZE => 'daemonize',
@@ -96,13 +96,13 @@ final class DefaultHttpServerConfiguration implements HttpServerConfiguration
         self::SWOOLE_HTTP_SERVER_CONFIG_GROUP => 'group',
     ];
 
-    private const SWOOLE_SERVE_STATIC = [
+    private const array SWOOLE_SERVE_STATIC = [
         'advanced' => false,
         'default' => true,
         'off' => false,
     ];
 
-    private const SWOOLE_LOG_LEVELS = [
+    private const array SWOOLE_LOG_LEVELS = [
         'debug' => SWOOLE_LOG_DEBUG,
         'trace' => SWOOLE_LOG_TRACE,
         'info' => SWOOLE_LOG_INFO,

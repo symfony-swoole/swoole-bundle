@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Container;
 
+use Override;
 use SwooleBundle\SwooleBundle\Common\Adapter\Swoole;
 use SwooleBundle\SwooleBundle\Component\Locking\Channel\ChannelMutexFactory;
 use SwooleBundle\SwooleBundle\Component\Locking\RecursiveOwner\RecursiveOwnerMutex;
@@ -18,6 +19,7 @@ abstract class BlockingContainer extends Container
 
     protected static string $buildContainerNs = '';
 
+    #[Override]
     public function get(string $id, int $invalidBehavior = self::EXCEPTION_ON_INVALID_REFERENCE): ?object
     {
         try {

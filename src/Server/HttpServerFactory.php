@@ -11,7 +11,7 @@ use SwooleBundle\SwooleBundle\Server\Config\Socket;
 
 final class HttpServerFactory
 {
-    private const SWOOLE_RUNNING_MODE = [
+    private const array SWOOLE_RUNNING_MODE = [
         'process' => SWOOLE_PROCESS,
         'reactor' => SWOOLE_BASE,
         //        'thread' => SWOOLE_THREAD,

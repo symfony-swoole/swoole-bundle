@@ -9,7 +9,7 @@ use Symfony\Contracts\EventDispatcher\Event;
 
 final class WorkerStartedEvent extends Event
 {
-    public const NAME = 'swoole_bundle.worker.started';
+    public const string NAME = 'swoole_bundle.worker.started';
 
     public function __construct(
         private readonly Server $server,

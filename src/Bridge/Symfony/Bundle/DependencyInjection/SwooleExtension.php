@@ -7,6 +7,7 @@ namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection;
 use Composer\InstalledVersions;
 use Exception;
 use Monolog\Formatter\LineFormatter;
+use Override;
 use ReflectionMethod;
 use RuntimeException;
 use SwooleBundle\SwooleBundle\Bridge\Log\AccessLogFormatter;
@@ -196,6 +197,7 @@ final class SwooleExtension extends Extension
         $this->assignSwooleConfiguration($swooleSettings, $runningMode, $maxConcurrency, $container);
     }
 
+    #[Override]
     public function getAlias(): string
     {
         return 'swoole';
@@ -204,6 +206,7 @@ final class SwooleExtension extends Extension
     /**
      * @param BundleConfig $config
      */
+    #[Override]
     public function getConfiguration(array $config, ContainerBuilder $container): Configuration
     {
         return Configuration::fromTreeBuilder();

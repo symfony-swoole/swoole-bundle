@@ -6,6 +6,7 @@ namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\Command;
 
 use Assert\Assertion;
 use Assert\AssertionFailedException;
+use Override;
 use SwooleBundle\SwooleBundle\Server\HttpServerConfiguration;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -15,6 +16,7 @@ use Symfony\Component\Console\Input\InputInterface;
  */
 final class ServerProfileCommand extends ServerExecutionCommand
 {
+    #[Override]
     protected function configure(): void
     {
         $this->setDescription('Handle specified amount of requests to Swoole HTTP server. Useful for profiling.')
@@ -27,6 +29,7 @@ final class ServerProfileCommand extends ServerExecutionCommand
      * @return RuntimeConfiguration
      * @throws AssertionFailedException
      */
+    #[Override]
     protected function prepareRuntimeConfiguration(
         HttpServerConfiguration $serverConfiguration,
         InputInterface $input,
@@ -44,6 +47,7 @@ final class ServerProfileCommand extends ServerExecutionCommand
      * @return array<array<int|string>>
      * @throws AssertionFailedException
      */
+    #[Override]
     protected function prepareConfigurationRowsToPrint(
         HttpServerConfiguration $serverConfiguration,
         array $runtimeConfiguration,

@@ -9,7 +9,7 @@ use Symfony\Contracts\EventDispatcher\Event;
 
 final class WorkerErrorEvent extends Event
 {
-    public const NAME = 'swoole_bundle.worker.error';
+    public const string NAME = 'swoole_bundle.worker.error';
 
     public function __construct(
         private readonly Server $server,

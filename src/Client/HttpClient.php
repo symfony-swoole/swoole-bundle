@@ -26,7 +26,7 @@ use SwooleBundle\SwooleBundle\Server\Config\Socket;
  */
 final class HttpClient
 {
-    private const SUPPORTED_HTTP_METHODS = [
+    private const array SUPPORTED_HTTP_METHODS = [
         Http::METHOD_GET,
         Http::METHOD_HEAD,
         Http::METHOD_POST,
@@ -36,13 +36,13 @@ final class HttpClient
         Http::METHOD_OPTIONS,
     ];
 
-    private const SUPPORTED_CONTENT_TYPES = [
+    private const array SUPPORTED_CONTENT_TYPES = [
         Http::CONTENT_TYPE_APPLICATION_JSON,
         Http::CONTENT_TYPE_TEXT_PLAIN,
         Http::CONTENT_TYPE_TEXT_HTML,
     ];
 
-    private const ACCEPTABLE_CONNECTING_EXIT_CODES = [
+    private const array ACCEPTABLE_CONNECTING_EXIT_CODES = [
         60 => true,
         61 => true,
         111 => true,

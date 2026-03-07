@@ -49,7 +49,6 @@ final class MiddlewareInjector
         try {
             $propertyName = 'on' . ucfirst($eventName);
             $property = new ReflectionProperty($observer, $propertyName);
-            $property->setAccessible(true);
 
             $toReturn = $property->getValue($observer);
             Assertion::isCallable($toReturn);

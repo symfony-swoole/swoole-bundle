@@ -15,7 +15,7 @@ use Symfony\Component\HttpFoundation\Request as SymfonyRequest;
  */
 final class TrustAllProxiesRequestHandler implements RequestHandler, Bootable
 {
-    public const HEADER_X_FORWARDED_ALL = SymfonyRequest::HEADER_X_FORWARDED_FOR
+    public const int HEADER_X_FORWARDED_ALL = SymfonyRequest::HEADER_X_FORWARDED_FOR
         | SymfonyRequest::HEADER_X_FORWARDED_HOST
         | SymfonyRequest::HEADER_X_FORWARDED_PORT
         | SymfonyRequest::HEADER_X_FORWARDED_PROTO;

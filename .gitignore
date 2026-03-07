@@ -7,6 +7,7 @@ clover.xml
 .php-cs-fixer.cache
 *.tmp
 mutagen.yml.lock
+tests/Fixtures/Symfony/app/config/reference.php
 tests/Fixtures/Symfony/app/data/*
 tests/Fixtures/Symfony/app/var/*
 !tests/Fixtures/Symfony/app/var/.gitkeep

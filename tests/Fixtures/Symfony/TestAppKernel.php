@@ -8,6 +8,7 @@ use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
 use Doctrine\Bundle\MigrationsBundle\DoctrineMigrationsBundle;
 use Exception;
 use Generator;
+use Override;
 use SwooleBundle\ResetterBundle\SwooleBundleResetterBundle;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\SwooleBundle;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Kernel\CoroutinesSupportingKernel;
@@ -32,10 +33,10 @@ use Symfony\Component\Routing\Loader\Configurator\RoutingConfigurator;
 
 final class TestAppKernel extends Kernel
 {
-    use MicroKernelTrait;
     use CoroutinesSupportingKernel;
+    use MicroKernelTrait;
 
-    private const CONFIG_EXTENSIONS = '.{php,xml,yaml,yml}';
+    private const string CONFIG_EXTENSIONS = '.{php,xml,yaml,yml}';
 
     private readonly ?string $overrideProdEnv;
 
@@ -82,11 +83,13 @@ final class TestAppKernel extends Kernel
         $this->cacheKernel = new TestCacheKernel($this);
     }
 
+    #[Override]
     public function getCacheDir(): string
     {
         return $this->getVarDir() . '/cache/' . $this->environment;
     }
 
+    #[Override]
     public function getLogDir(): string
     {
         return $this->getVarDir() . '/log';
@@ -114,11 +117,13 @@ final class TestAppKernel extends Kernel
         yield new WebProfilerBundle();
     }
 
+    #[Override]
     public function getProjectDir(): string
     {
         return __DIR__ . '/app';
     }
 
+    #[Override]
     public function handle(
         Request $request,
         int $type = HttpKernelInterface::MAIN_REQUEST,
@@ -141,6 +146,7 @@ final class TestAppKernel extends Kernel
     /**
      * This should always return bool, but we need to coerce it depending on the Symfony version in use.
      */
+    #[Override]
     public function isDebug(): bool
     {
         return (bool) $this->debug;
@@ -177,7 +183,23 @@ final class TestAppKernel extends Kernel
 
         $confDir = $this->getProjectDir() . '/config';
 
-        $loader->load($confDir . '/*' . self::CONFIG_EXTENSIONS, 'glob');
+        // Load all config files except reference.php
+        $configFiles = glob($confDir . '/*.php');
+
+        if ($configFiles === false) {
+            $configFiles = [];
+        }
+
+        foreach ($configFiles as $file) {
+            if (basename($file) === 'reference.php') {
+                unlink($file);
+
+                continue;
+            }
+
+            $loader->load($file);
+        }
+
         if (is_dir($confDir . '/' . $this->environment)) {
             $loader->load($confDir . '/' . $this->environment . '/*' . self::CONFIG_EXTENSIONS, 'glob');
         }

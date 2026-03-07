@@ -13,7 +13,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 final class SymfonyAccessLogDataMap implements AccessLogDataMap
 {
-    private const HOST_PORT_REGEX = '/^(?P<host>.*?)((?<!\]):(?P<port>\d+))?$/';
+    private const string HOST_PORT_REGEX = '/^(?P<host>.*?)((?<!\]):(?P<port>\d+))?$/';
 
     /**
      * Timestamp when created, indicating end of request processing.

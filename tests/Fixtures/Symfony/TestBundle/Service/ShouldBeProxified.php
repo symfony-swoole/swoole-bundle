@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Service;
 
+/**
+ * cannot be readonly
+ */
 final class ShouldBeProxified
 {
     public function __construct(

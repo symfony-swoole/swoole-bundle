@@ -14,6 +14,8 @@ if (!class_exists(Application::class)) {
     throw new RuntimeException('You need to add "symfony/framework-bundle" as a Composer dependency.');
 }
 
+$_SERVER['APP_RUNTIME_MODE'] = $_ENV['APP_RUNTIME_MODE'] = 'web=1&worker=1';
+
 $input = new ArgvInput();
 $env = $input->getParameterOption(['--env', '-e'], $_SERVER['APP_ENV'] ?? 'test');
 $overrideProdEnv = $input->getParameterOption(['--override-prod-env', '-o'], $_SERVER['OVERRIDE_PROD_ENV'] ?? null);

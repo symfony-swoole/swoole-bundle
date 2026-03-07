@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Proxy;
 
+use Override;
 use ProxyManager\Configuration;
 use ProxyManager\Version;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Proxy\Generation\ContextualAccessForwarderFactory;
@@ -29,10 +30,11 @@ final class Generator extends ContextualAccessForwarderFactory
      *
      * @template RealObjectType of object
      * @param class-string<RealObjectType> $className
-     * @param array<string, mixed>         $proxyOptions @codingStandardsIgnoreLine
+     * @param array<string, mixed> $proxyOptions @codingStandardsIgnoreLine
      * @return class-string<ContextualProxy<RealObjectType>&RealObjectType>
      * @SuppressWarnings(PHPMD.StaticAccess)
      */
+    #[Override]
     protected function generateProxy(string $className, array $proxyOptions = []): string
     {
         if (array_key_exists($className, $this->checkedClasses)) {

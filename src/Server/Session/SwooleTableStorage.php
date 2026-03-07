@@ -15,9 +15,9 @@ use Swoole\Table;
  */
 final class SwooleTableStorage implements Storage
 {
-    public const MAX_KEY_BYTES = 63;
-    private const TABLE_COLUMN_DATA = 'data';
-    private const TABLE_COLUMN_EXPIRES_AT = 'expires_at';
+    public const int MAX_KEY_BYTES = 63;
+    private const string TABLE_COLUMN_DATA = 'data';
+    private const string TABLE_COLUMN_EXPIRES_AT = 'expires_at';
 
     private $sharedMemory;
     private $maxSessionDataBytes;

@@ -35,7 +35,7 @@ final class SwooleServerStartStopCommandTest extends ServerTestCase
             $this->deferServerStop();
 
             $client = HttpClient::fromDomain('localhost', 9999, false);
-            $this->assertTrue($client->connect());
+            $this->assertTrue($client->connect(waitIfNoConnection: true));
             $this->assertHelloWorldRequestSucceeded($client);
         });
     }
@@ -59,7 +59,7 @@ final class SwooleServerStartStopCommandTest extends ServerTestCase
             $this->deferServerStop([], $envs);
 
             $client = HttpClient::fromDomain('localhost', 9999, false);
-            $this->assertTrue($client->connect());
+            $this->assertTrue($client->connect(waitIfNoConnection: true));
             $this->assertHelloWorldRequestSucceeded($client);
         });
     }
@@ -81,7 +81,7 @@ final class SwooleServerStartStopCommandTest extends ServerTestCase
         $this->runAsCoroutineAndWait(function (): void {
             go(function (): void {
                 $client = HttpClient::fromDomain('localhost', 9999, false);
-                $this->assertTrue($client->connect());
+                $this->assertTrue($client->connect(waitIfNoConnection: true));
 
                 try {
                     $response = $client->send('/dummy-sleep')['response'];

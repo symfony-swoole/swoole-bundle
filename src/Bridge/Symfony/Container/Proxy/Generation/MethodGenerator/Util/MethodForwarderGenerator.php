@@ -13,7 +13,7 @@ use ReflectionMethod;
  */
 final class MethodForwarderGenerator
 {
-    private const TEMPLATE = <<<'PHP'
+    private const string TEMPLATE = <<<'PHP'
                 $wrapped = $this->{{$servicePoolHolderName}}->get();
                 $returnValue = $wrapped->{{$forwardedMethodCall}};
 

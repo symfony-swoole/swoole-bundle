@@ -10,7 +10,6 @@ use ReflectionClass;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Proxy\ContextualProxy;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\ServicePool\BaseServicePool;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\ServicePool\ServicePoolContainer;
-use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Service\DefaultDummyService;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Service\DummyService;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Service\NonSharedExample;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Service\ShouldBeProxified;
@@ -59,7 +58,6 @@ final class SleepController
         $servicePool = $this->shouldBeProxified2->getServicePool();
         $rc = new ReflectionClass(BaseServicePool::class);
         $limitProperty = $rc->getProperty('instancesLimit');
-        $limitProperty->setAccessible(true);
         $limit = $limitProperty->getValue($servicePool);
         $alwaysResetWorks = $this->shouldBeProxified->wasDummyReset();
         $alwaysResetSafe = $this->shouldBeProxified->getSafeDummy();
@@ -67,9 +65,6 @@ final class SleepController
         $safeDummyIsProxy = $alwaysResetSafe instanceof ContextualProxy ? 'IS' : 'is not';
         $safeAlwaysResetWorks = $alwaysResetSafe->getWasReset();
 
-        $rc2 = new ReflectionClass(DefaultDummyService::class);
-        $tmpRepoProperty = $rc2->getProperty('tmpRepository');
-        $tmpRepoProperty->setAccessible(true);
         /** @phpstan-ignore-next-line */
         $realDummyService = $this->dummyService->getDecorated();
         $tmpRepo = $realDummyService->getTmpRepository();

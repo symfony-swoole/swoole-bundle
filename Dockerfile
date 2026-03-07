@@ -1,5 +1,5 @@
-ARG PHP_TAG="8.2-cli-alpine3.21"
-ARG COMPOSER_TAG="2.8.5"
+ARG PHP_TAG="8.3-cli-alpine3.21"
+ARG COMPOSER_TAG="2.9.5"
 
 FROM php:$PHP_TAG AS ext-builder
 RUN apk add --no-cache linux-headers
@@ -33,12 +33,12 @@ RUN apk add --no-cache libffi-dev unzip \
     && docker-php-ext-install ffi
 
 FROM ext-builder AS ext-xdebug
-ARG XDEBUG_TAG="3.2.0"
+ARG XDEBUG_TAG="3.5.0"
 RUN pecl install "xdebug-$XDEBUG_TAG" && \
     docker-php-ext-enable xdebug
 
 FROM ext-builder AS ext-swoole
-RUN apk add --no-cache git
+RUN apk add --no-cache git openssl-dev
 ARG SWOOLE_EXTENSION="openswoole"
 ARG SWOOLE_VERSION="25.2.0"
 RUN if $(echo "${SWOOLE_VERSION}" | grep -qE '^[4-9]\.[0-9]+\.[0-9]+$'); then SWOOLE_GIT_REF="v${SWOOLE_VERSION}"; else SWOOLE_GIT_REF="${SWOOLE_VERSION}"; fi && \
@@ -64,7 +64,7 @@ RUN addgroup -g 1000 -S runner && \
     chown app:runner /usr/src/app
 RUN apk add --no-cache libstdc++ icu lsof libffi vim
 # php -i | grep 'PHP API' | sed -e 's/PHP API => //'
-ARG PHP_API_VERSION="20210902"
+ARG PHP_API_VERSION="20230831"
 ARG SWOOLE_EXTENSION="openswoole"
 COPY --from=ext-swoole /usr/local/lib/php/extensions/no-debug-non-zts-${PHP_API_VERSION}/${SWOOLE_EXTENSION}.so /usr/local/lib/php/extensions/no-debug-non-zts-${PHP_API_VERSION}/${SWOOLE_EXTENSION}.so
 COPY --from=ext-swoole /usr/local/etc/php/conf.d/docker-php-ext-${SWOOLE_EXTENSION}.ini /usr/local/etc/php/conf.d/docker-php-ext-${SWOOLE_EXTENSION}.ini
@@ -90,8 +90,8 @@ FROM composer AS ci
 RUN apk add --no-cache git gpg gpg-agent gpgv
 
 FROM composer AS base-coverage-xdebug
-RUN apk add --no-cache bash
-ARG PHP_API_VERSION="20210902"
+RUN apk add --no-cache git bash
+ARG PHP_API_VERSION="20230831"
 COPY --from=ext-xdebug /usr/local/lib/php/extensions/no-debug-non-zts-${PHP_API_VERSION}/xdebug.so /usr/local/lib/php/extensions/no-debug-non-zts-${PHP_API_VERSION}/xdebug.so
 COPY --from=ext-xdebug /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
 USER app:runner
@@ -100,7 +100,8 @@ ENV COVERAGE="1" \
     XDEBUG_MODE="coverage"
 
 FROM composer AS base-coverage-pcov
-ARG PHP_API_VERSION="20210902"
+RUN apk add --no-cache git
+ARG PHP_API_VERSION="20230831"
 COPY --from=ext-pcov /usr/local/lib/php/extensions/no-debug-non-zts-${PHP_API_VERSION}/pcov.so /usr/local/lib/php/extensions/no-debug-non-zts-${PHP_API_VERSION}/pcov.so
 COPY --from=ext-pcov /usr/local/etc/php/conf.d/docker-php-ext-pcov.ini /usr/local/etc/php/conf.d/docker-php-ext-pcov.ini
 USER app:runner
@@ -108,7 +109,7 @@ ENV COVERAGE="1" \
     COMPOSER_ALLOW_SUPERUSER="1"
 
 FROM ci AS base-pcov-xdebug
-ARG PHP_API_VERSION="20210902"
+ARG PHP_API_VERSION="20230831"
 COPY --from=ext-pcov /usr/local/lib/php/extensions/no-debug-non-zts-${PHP_API_VERSION}/pcov.so /usr/local/lib/php/extensions/no-debug-non-zts-${PHP_API_VERSION}/pcov.so
 COPY --from=ext-pcov /usr/local/etc/php/conf.d/docker-php-ext-pcov.ini /usr/local/etc/php/conf.d/docker-php-ext-pcov.ini
 COPY --from=ext-xdebug /usr/local/lib/php/extensions/no-debug-non-zts-${PHP_API_VERSION}/xdebug.so /usr/local/lib/php/extensions/no-debug-non-zts-${PHP_API_VERSION}/xdebug.so
@@ -124,21 +125,21 @@ COPY --chown=app:runner --from=composer /usr/src/app ./
 ENTRYPOINT ["./tests/Fixtures/Symfony/app/console"]
 CMD ["swoole:server:run"]
 
-FROM base-coverage-xdebug AS CoverageXdebug
+FROM base-coverage-xdebug AS coverage-xdebug
 ENTRYPOINT ["composer"]
 CMD ["unit-code-coverage"]
 
-FROM base-coverage-pcov AS CoveragePcov
+FROM base-coverage-pcov AS coverage-pcov
 ENTRYPOINT ["composer"]
 CMD ["unit-code-coverage"]
 
-FROM base-pcov-xdebug AS MergeCodeCoverage
+FROM base-pcov-xdebug AS merge-code-coverage
 USER root:root
 RUN apk add --no-cache bash
 USER app:runner
 ENTRYPOINT ["composer"]
 CMD ["merge-code-coverage"]
 
-FROM base-coverage-xdebug AS CoverageXdebugWithRetry
+FROM base-coverage-xdebug AS coverage-xdebug-with-retry
 ENTRYPOINT ["/bin/bash"]
 CMD ["tests/run-feature-tests-code-coverage.sh"]

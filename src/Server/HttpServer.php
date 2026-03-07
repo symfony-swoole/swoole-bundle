@@ -23,7 +23,7 @@ use Throwable;
  */
 final class HttpServer
 {
-    public const GRACEFUL_SHUTDOWN_TIMEOUT_SECONDS = 10;
+    public const int GRACEFUL_SHUTDOWN_TIMEOUT_SECONDS = 10;
 
     /**
      * @var Server|null

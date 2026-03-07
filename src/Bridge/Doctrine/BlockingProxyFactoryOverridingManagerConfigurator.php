@@ -55,7 +55,6 @@ final class BlockingProxyFactoryOverridingManagerConfigurator
         if (self::$emProxyFactoryPropRefl === null) {
             $emReflClass = new ReflectionClass(EntityManager::class);
             self::$emProxyFactoryPropRefl = $emReflClass->getProperty('proxyFactory');
-            self::$emProxyFactoryPropRefl->setAccessible(true);
             self::$emProxyFactoryPropRefl->setReadOnly(false);
         }
 

@@ -16,7 +16,7 @@ use Symfony\Component\Process\Process;
  */
 final readonly class XdebugHandler
 {
-    private const SIGNALS_MAP = [
+    private const array SIGNALS_MAP = [
         2 => 'SIGINT',
         10 => 'SIGUSR1',
         12 => 'SIGUSR2',

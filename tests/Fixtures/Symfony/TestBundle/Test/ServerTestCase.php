@@ -7,6 +7,7 @@ namespace SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Test;
 use Assert\Assertion;
 use DateTimeImmutable;
 use Exception;
+use Override;
 use RuntimeException;
 use SwooleBundle\SwooleBundle\Client\HttpClient;
 use SwooleBundle\SwooleBundle\Common\Adapter\Swoole;
@@ -23,14 +24,15 @@ use Symfony\Component\Process\Process;
 
 abstract class ServerTestCase extends KernelTestCase
 {
-    final public const FIXTURE_RESOURCES_DIR = __DIR__ . '/../../../resources';
-    final public const SWOOLE_XDEBUG_CORO_WARNING_MESSAGE = 'go(): Using Xdebug in coroutines is extremely dangerous, '
-        . 'please notice that it may lead to coredump!';
-    private const COMMAND = './console';
-    private const WORKING_DIRECTORY = __DIR__ . '/../../app';
+    final public const string FIXTURE_RESOURCES_DIR = __DIR__ . '/../../../resources';
+    final public const string SWOOLE_XDEBUG_CORO_WARNING_MESSAGE =
+        'go(): Using Xdebug in coroutines is extremely dangerous, please notice that it may lead to coredump!';
+    private const string COMMAND = './console';
+    private const string WORKING_DIRECTORY = __DIR__ . '/../../app';
 
     protected ?Swoole $swoole = null;
 
+    #[Override]
     protected function tearDown(): void
     {
         parent::tearDown();
@@ -173,6 +175,13 @@ abstract class ServerTestCase extends KernelTestCase
             }
         }
 
+        $referenceFile = realpath(__DIR__ . '/../../app/config/reference.php');
+
+        if (is_string($referenceFile) && file_exists($referenceFile)) {
+            // the reference.php file is not compatible with phpunit process isolation
+            unlink($referenceFile);
+        }
+
         return new Process($command, (string) realpath(self::WORKING_DIRECTORY), $envs, $input, $timeout);
     }
 
@@ -199,6 +208,7 @@ abstract class ServerTestCase extends KernelTestCase
      * } $options
      */
     // phpcs:disable SlevomatCodingStandard.Variables.DisallowSuperGlobalVariable.DisallowedSuperGlobalVariable
+    #[Override]
     protected static function createKernel(array $options = []): KernelInterface
     {
         if (static::$class === null) {
@@ -233,6 +243,7 @@ abstract class ServerTestCase extends KernelTestCase
         return $kernel;
     }
 
+    #[Override]
     protected static function getKernelClass(): string
     {
         return TestAppKernel::class;
