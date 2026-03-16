@@ -30,7 +30,7 @@ final class Proxifier
     ];
 
     /**
-     * @var array<Reference>
+     * @var array<int, array<Reference>>
      */
     private array $proxifiedServicePoolRefs = [];
 
@@ -44,13 +44,13 @@ final class Proxifier
      */
     public function __construct(
         private readonly ContainerBuilder $container,
-        private readonly FinalClassesProcessor $finalProcessor,
+        private readonly ClassModificationProcessor $modificationProcessor,
         array $stabilityCheckers = [],
     ) {
         $this->stabilityCheckers = array_merge(self::DEFAULT_STABILITY_CHECKERS, $stabilityCheckers);
     }
 
-    public function proxifyService(string $serviceId, ?string $externalResetter = null): void
+    public function proxifyService(string $serviceId, ?string $externalResetter = null, int $resetPriority = 0): void
     {
         if (!$this->container->has($serviceId)) {
             throw new RuntimeException(sprintf('Service missing: %s', $serviceId));
@@ -67,7 +67,7 @@ final class Proxifier
         }
 
         if (!$tags->hasDecoratedStatefulServiceTag()) {
-            $this->doProxifyService($serviceId, $serviceDef, $externalResetter);
+            $this->doProxifyService($serviceId, $serviceDef, $externalResetter, $resetPriority);
 
             return;
         }
@@ -76,15 +76,21 @@ final class Proxifier
     }
 
     /**
-     * @return array<Reference>
+     * @return array<int, array<Reference>>
      */
     public function getProxifiedServicePoolRefs(): array
     {
+        krsort($this->proxifiedServicePoolRefs);
+
         return $this->proxifiedServicePoolRefs;
     }
 
-    private function doProxifyService(string $serviceId, Definition $serviceDef, ?string $externalResetter = null): void
-    {
+    private function doProxifyService(
+        string $serviceId,
+        Definition $serviceDef,
+        ?string $externalResetter = null,
+        int $resetPriority = 0,
+    ): void {
         if (!$this->container->has($serviceId)) {
             throw new RuntimeException(sprintf('Service missing: %s', $serviceId));
         }
@@ -106,13 +112,14 @@ final class Proxifier
             return;
         }
 
-        $this->proxifiedServicePoolRefs[] = new Reference($svcPoolServiceId);
+        $this->registerProxifiedServicePoolRef(new Reference($svcPoolServiceId), $resetPriority);
     }
 
     private function doProxifyDecoratedService(
         string $serviceId,
         Definition $serviceDef,
         ?string $externalResetter = null,
+        int $resetPriority = 0,
     ): void {
         if ($serviceDef->innerServiceId === null) {
             throw new UnexpectedValueException(sprintf('Inner service id missing for service %s', $serviceId));
@@ -124,7 +131,7 @@ final class Proxifier
             $decoratedServiceDef = $this->container->findDefinition($decoratedServiceId);
 
             if ($this->isProxyfiable($decoratedServiceId, $decoratedServiceDef)) {
-                $this->doProxifyService($decoratedServiceId, $decoratedServiceDef, $externalResetter);
+                $this->doProxifyService($decoratedServiceId, $decoratedServiceDef, $externalResetter, $resetPriority);
 
                 return;
             }
@@ -138,7 +145,7 @@ final class Proxifier
     {
         /** @var class-string $className */
         $className = $serviceDef->getClass();
-        $this->finalProcessor->process($className);
+        $this->modificationProcessor->processFinalClass($className);
         $serviceDef->setPublic(true);
         $serviceDef->setShared(false);
     }
@@ -200,13 +207,19 @@ final class Proxifier
             $svcPoolDef->setArgument(5, $resetterDefOrRef);
         }
 
-        if (!isset($this->stabilityCheckers[$serviceClass])) {
-            return $svcPoolDef;
+        $stabilityCheckerRef = null;
+
+        if (isset($this->stabilityCheckers[$serviceClass])) {
+            $checkerSvcId = $this->stabilityCheckers[$serviceClass];
+            $this->container->findDefinition($checkerSvcId);
+            $stabilityCheckerRef = new Reference($checkerSvcId);
         }
 
-        $checkerSvcId = $this->stabilityCheckers[$serviceClass];
-        $this->container->findDefinition($checkerSvcId);
-        $svcPoolDef->setArgument(6, new Reference($checkerSvcId));
+        $svcPoolDef->setArgument(6, $stabilityCheckerRef);
+
+        if ($serviceTag?->getInitializer() !== null) {
+            $svcPoolDef->setArgument(7, new Reference($serviceTag->getInitializer()));
+        }
 
         return $svcPoolDef;
     }
@@ -233,7 +246,9 @@ final class Proxifier
         $serviceTags = $serviceDef->getTags();
 
         foreach ($serviceTags as $tag => $attributes) {
-            $proxyDef->addTag($tag, $attributes[0]);
+            foreach ($attributes as $attributeGroup) {
+                $proxyDef->addTag($tag, $attributeGroup);
+            }
         }
 
         return $proxyDef;
@@ -266,5 +281,14 @@ final class Proxifier
         $factorySvc = $factory[0];
 
         return !$factorySvc instanceof Reference || (string) $factorySvc !== Instantiator::class;
+    }
+
+    private function registerProxifiedServicePoolRef(Reference $ref, int $resetPriority): void
+    {
+        if (!isset($this->proxifiedServicePoolRefs[$resetPriority])) {
+            $this->proxifiedServicePoolRefs[$resetPriority] = [];
+        }
+
+        $this->proxifiedServicePoolRefs[$resetPriority][] = $ref;
     }
 }

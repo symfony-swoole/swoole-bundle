@@ -11,12 +11,7 @@ use SwooleBundle\SwooleBundle\Server\HttpServer;
 use SwooleBundle\SwooleBundle\Server\HttpServerConfiguration;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
-use Symfony\Component\Console\Output\ConsoleOutput;
-use Symfony\Component\Console\Output\StreamOutput;
-use Symfony\Component\Console\Style\OutputStyle;
 use Symfony\Component\Console\Style\SymfonyStyle;
-
-use function SwooleBundle\SwooleBundle\get_object_property;
 
 final class ServerStartCommand extends ServerExecutionCommand
 {
@@ -64,38 +59,5 @@ final class ServerStartCommand extends ServerExecutionCommand
         }
 
         $server->start();
-
-        $this->closeSymfonyStyle($io);
-    }
-
-    private function closeSymfonyStyle(SymfonyStyle $io): void
-    {
-        $output = get_object_property($io, 'output', OutputStyle::class);
-
-        if ($output instanceof ConsoleOutput) {
-            $this->closeConsoleOutput($output);
-        } elseif ($output instanceof StreamOutput) {
-            $this->closeStreamOutput($output);
-        }
-    }
-
-    /**
-     * Prevents usage of php://stdout or php://stderr while running in background.
-     */
-    private function closeConsoleOutput(ConsoleOutput $output): void
-    {
-        fclose($output->getStream());
-
-        /** @var StreamOutput $streamOutput */
-        $streamOutput = $output->getErrorOutput();
-
-        $this->closeStreamOutput($streamOutput);
-    }
-
-    private function closeStreamOutput(StreamOutput $output): void
-    {
-        // @phpstan-ignore-next-line - proper constant from OutputInterface does not work properly
-        $output->setVerbosity(PHP_INT_MIN);
-        fclose($output->getStream());
     }
 }

@@ -7,7 +7,7 @@ use SwooleBundle\SwooleBundle\Bridge\Upscale\Blackfire\Profiling\ProfilerActivat
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Blackfire\CollectionProfiler;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Controller\CoroutinesTaskController;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\DependencyInjection\CompilerPass\{
-    ResetCountCompileProcessor,
+    CounterCompileProcessor,
     SleepingCounterCompileProcessor,
 };
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\MessageHandler\RunDummyHandler;
@@ -60,7 +60,7 @@ return static function (ContainerConfigurator $containerConfigurator): void {
                         'class' => SleepingCounterCompileProcessor::class,
                         'priority' => 10,
                     ],
-                    ResetCountCompileProcessor::class,
+                    CounterCompileProcessor::class,
                 ],
             ],
         ],

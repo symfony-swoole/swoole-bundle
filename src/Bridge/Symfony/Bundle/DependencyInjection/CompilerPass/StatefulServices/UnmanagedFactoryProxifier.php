@@ -18,7 +18,7 @@ final readonly class UnmanagedFactoryProxifier
 
     public function __construct(
         private ContainerBuilder $container,
-        private FinalClassesProcessor $finalProcessor,
+        private ClassModificationProcessor $modificationProcessor,
     ) {}
 
     /**
@@ -48,7 +48,7 @@ final readonly class UnmanagedFactoryProxifier
 
         /** @var class-string $className */
         $className = $serviceDef->getClass();
-        $this->finalProcessor->process($className);
+        $this->modificationProcessor->processFinalClass($className);
 
         return $serviceDef;
     }
@@ -67,13 +67,17 @@ final readonly class UnmanagedFactoryProxifier
         $factoryConfigs = $ufTags->getFactoryMethodConfigs($this->container);
 
         $factoryConfigs = array_map(static function (array $factoryConfig): array {
-            if (!isset($factoryConfig['resetter'])) {
-                return $factoryConfig;
+            if (isset($factoryConfig['resetter'])) {
+                $customResetter = $factoryConfig['resetter'];
+                $resetterRef = new Reference($customResetter);
+                $factoryConfig['resetter'] = $resetterRef;
             }
 
-            $customResetter = $factoryConfig['resetter'];
-            $resetterRef = new Reference($customResetter);
-            $factoryConfig['resetter'] = $resetterRef;
+            if (isset($factoryConfig['initializer'])) {
+                $customInitializer = $factoryConfig['initializer'];
+                $initializerRef = new Reference($customInitializer);
+                $factoryConfig['initializer'] = $initializerRef;
+            }
 
             return $factoryConfig;
         }, $factoryConfigs);
@@ -81,7 +85,7 @@ final readonly class UnmanagedFactoryProxifier
         $proxyDef->setArgument(1, $factoryConfigs);
 
         foreach ($factoryConfigs as $factoryConfig) {
-            $this->finalProcessor->process($factoryConfig['returnType']);
+            $this->modificationProcessor->processFinalClass($factoryConfig['returnType']);
         }
 
         $instanceLimit = $this->container->getParameter(ContainerConstants::PARAM_COROUTINES_MAX_SVC_INSTANCES);

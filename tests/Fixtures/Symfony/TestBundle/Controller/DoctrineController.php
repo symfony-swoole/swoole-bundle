@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Controller;
 
+use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Initializer\CountingInitializer;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Resetter\CountingResetter;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Service\AdvancedDoctrineUsage;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Service\DummyService;
@@ -16,12 +17,14 @@ use Symfony\Component\Routing\Attribute\Route;
 final readonly class DoctrineController
 {
     /**
+     * @param array<string, CountingInitializer> $initializers
      * @param array<string, CountingResetter> $resetters
      */
     public function __construct(
         private DummyService $dummyService,
         private AdvancedDoctrineUsage $advancedUsage,
         private ResetCountingRegistry $registry,
+        private array $initializers = [],
         private array $resetters = [],
         private ?DebugDataHolder $dataHolder = null,
     ) {}
@@ -58,10 +61,18 @@ final readonly class DoctrineController
         return new JsonResponse($this->dataHolder->getData()['default']);
     }
 
-    #[Route(path: '/doctrine-resets', methods: ['GET'])]
+    #[Route(path: '/doctrine-lifecycle', methods: ['GET'])]
     public function pings(): JsonResponse
     {
-        $data = array_map(static fn(CountingResetter $resetter): int => $resetter->getCounter(), $this->resetters);
+        $data = [];
+        $data['initializers'] = array_map(
+            static fn(CountingInitializer $initializer): int => $initializer->getCounter(),
+            $this->initializers,
+        );
+        $data['resetters'] = array_map(
+            static fn(CountingResetter $resetter): int => $resetter->getCounter(),
+            $this->resetters,
+        );
 
         return new JsonResponse($data);
     }

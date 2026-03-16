@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices;
 
 use RuntimeException;
-use SwooleBundle\SwooleBundle\Reflection\FinalClassModifier;
+use SwooleBundle\SwooleBundle\Reflection\ClassModifier;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 
-final class FinalClassesProcessor
+final class ClassModificationProcessor
 {
     private string $cacheDir;
 
@@ -25,15 +25,15 @@ final class FinalClassesProcessor
     /**
      * @param class-string $className
      */
-    public function process(string $className): void
+    public function processFinalClass(string $className): void
     {
         if (isset($this->processedClasses[$className])) {
             return;
         }
 
         $this->processedClasses[$className] = true;
-        FinalClassModifier::removeFinalFlagsFromClass($className);
-        FinalClassModifier::dumpCache($this->cacheDir);
+        ClassModifier::removeFinalFlagsFromClass($className);
+        ClassModifier::dumpCache($this->cacheDir);
     }
 
     private function setCacheDir(ContainerBuilder $container): void

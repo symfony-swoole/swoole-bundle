@@ -9,6 +9,7 @@ use ProxyManager\Proxy\AccessInterceptorInterface;
 use ProxyManager\Proxy\AccessInterceptorValueHolderInterface;
 use ProxyManager\Proxy\ValueHolderInterface;
 use RuntimeException;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Initializer;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Resetter;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\ServicePool\ServicePoolContainer;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\ServicePool\UnmanagedFactoryServicePool;
@@ -33,7 +34,8 @@ final readonly class UnmanagedFactoryInstantiator
      *     factoryMethod: string,
      *     returnType: class-string,
      *     limit?: int,
-     *     resetter?: Resetter
+     *     resetter?: Resetter,
+     *     initializer?: Initializer
      * }> $factoryConfigs
      * @return AccessInterceptorInterface<RealObjectType>&AccessInterceptorValueHolderInterface<RealObjectType>&RealObjectType&ValueHolderInterface<RealObjectType>
      */
@@ -101,12 +103,14 @@ final readonly class UnmanagedFactoryInstantiator
                 $limitMutex = $this->limitLocking->newMutex();
                 $instancesLimit = $factoryConfig['limit'] ?? $globalInstancesLimit;
                 $resetter = $factoryConfig['resetter'] ?? null;
+                $initializer = $factoryConfig['initializer'] ?? null;
                 $servicePool = new UnmanagedFactoryServicePool(
                     $factoryInstantiator,
                     $swoole,
                     $limitMutex,
                     $instancesLimit,
-                    $resetter
+                    $resetter,
+                    $initializer,
                 );
                 $servicePoolContainer->addPool($servicePool);
 

@@ -23,8 +23,7 @@ use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation\RequestFactory;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation\ResponseProcessor;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation\TrustAllProxiesRequestHandler;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpKernel\ContextReleasingHttpKernelRequestHandler;
-use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpKernel\CoroutineKernelPool;
-use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpKernel\KernelPool;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpKernel\HttpKernelRequestHandler;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Messenger\ExceptionLoggingTransportHandler;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Messenger\ServiceResettingTransportHandler;
 use SwooleBundle\SwooleBundle\Bridge\Tideways\Apm\Apm;
@@ -376,14 +375,19 @@ final class SwooleExtension extends Extension
 
         if ((bool) $container->getParameter(ContainerConstants::PARAM_COROUTINES_ENABLED)) {
             $settings['enable_coroutine'] = true;
+
+            $kernelProxy = $container->findDefinition('kernel_proxy');
+            $kernelProxy->setPublic(true);
+
+            $requestHandler = $container->findDefinition(HttpKernelRequestHandler::class);
+            $requestHandler->setArgument('$kernel', new Reference('kernel_proxy'));
+
             $coroutineKernelHandler = $container->findDefinition(ContextReleasingHttpKernelRequestHandler::class);
             $coroutineKernelHandler->setArgument(
                 '$decorated',
                 new Reference(ContextReleasingHttpKernelRequestHandler::class . '.inner')
             );
             $coroutineKernelHandler->setDecoratedService(RequestHandler::class, null, -1000);
-
-            $container->setAlias(KernelPool::class, CoroutineKernelPool::class);
         }
 
         if ($hmr['enabled'] === 'auto') {
