@@ -6,7 +6,7 @@ namespace SwooleBundle\SwooleBundle\Bridge\Doctrine;
 
 use Assert\Assertion;
 use SwooleBundle\ResetterBundle\DBAL\Connection\DBALPlatformAliveKeeper;
-use SwooleBundle\SwooleBundle\Bridge\Doctrine\DBAL\ConnectionKeepAliveResetter;
+use SwooleBundle\SwooleBundle\Bridge\Doctrine\DBAL\ConnectionKeepAliveInitializer;
 use SwooleBundle\SwooleBundle\Bridge\Doctrine\ORM\EntityManagerResetter;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices\CompileProcessor;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices\Proxifier;
@@ -116,7 +116,7 @@ final class DoctrineProcessor implements CompileProcessor
             }
 
             if (isset($aliveKeepers[$connectionName])) {
-                $tagParams['resetter'] = $this->tryToCreateKeepAliveResetter(
+                $tagParams['initializer'] = $this->tryToCreateKeepAliveInitializer(
                     $container,
                     $connectionName,
                     $aliveKeepers[$connectionName]
@@ -216,14 +216,17 @@ final class DoctrineProcessor implements CompileProcessor
         return (int) $this->config['limits'][$connectionName];
     }
 
-    private function tryToCreateKeepAliveResetter(
+    private function tryToCreateKeepAliveInitializer(
         ContainerBuilder $container,
         string $connectionName,
         Reference $aliveKeeperRef,
     ): string {
-        $resetterSvcId = sprintf('swoole_bundle.coroutines_support.doctrine.connection_resetter.%s', $connectionName);
+        $resetterSvcId = sprintf(
+            'swoole_bundle.coroutines_support.doctrine.connection_initializer.%s',
+            $connectionName,
+        );
         $resetterDef = new Definition();
-        $resetterDef->setClass(ConnectionKeepAliveResetter::class);
+        $resetterDef->setClass(ConnectionKeepAliveInitializer::class);
         $resetterDef->setArgument(0, $aliveKeeperRef);
         $resetterDef->setArgument(1, $connectionName);
         $container->setDefinition($resetterSvcId, $resetterDef);

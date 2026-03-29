@@ -11,7 +11,8 @@ final class UnmanagedFactoryTag
      *     factoryMethod: string,
      *     returnType?: class-string|string,
      *     limit?: int,
-     *     resetter?: string
+     *     resetter?: string,
+     *     initializer?: string
      * } $tag
      */
     public function __construct(private array $tag) {}
@@ -37,6 +38,11 @@ final class UnmanagedFactoryTag
     public function getResetter(): ?string
     {
         return $this->tag['resetter'] ?? null;
+    }
+
+    public function getInitializer(): ?string
+    {
+        return $this->tag['initializer'] ?? null;
     }
 
     /**

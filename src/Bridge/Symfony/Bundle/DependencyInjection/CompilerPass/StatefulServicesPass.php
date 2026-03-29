@@ -9,8 +9,8 @@ use Closure;
 use SwooleBundle\SwooleBundle\Bridge\Doctrine\DoctrineProcessor;
 use SwooleBundle\SwooleBundle\Bridge\Monolog\MonologProcessor;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices\{
+    ClassModificationProcessor,
     CompileProcessor,
-    FinalClassesProcessor,
     Proxifier,
     Tags,
     UnmanagedFactoryProxifier,
@@ -20,6 +20,8 @@ use SwooleBundle\SwooleBundle\Bridge\Symfony\Cache\CacheAdapterProcessor;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\BlockingContainer;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\ServicePool\ServicePoolContainer;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\StabilityChecker;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Router\RouterProcessor;
+use Symfony\Component\Config\Resource\FileResource;
 use Symfony\Component\DependencyInjection\Argument\ServiceLocatorArgument;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -32,15 +34,27 @@ final class StatefulServicesPass implements CompilerPassInterface
     ];
 
     private const array MANDATORRY_SERVICES_TO_PROXIFY = [
+        'kernel_proxy',
         'annotations.reader',
         'logger',
         'profiler_listener',
-        'debug.event_dispatcher.inner',
+        'debug.event_dispatcher',
         'debug.stopwatch',
         'request_stack',
+        'router.request_context',
+        'router',
+        'router.default',
+    ];
+
+    private const array SERVICE_RESETTING_PRIORITIES = [
+        'profiler' => 1000,
     ];
 
     private const array COMPILE_PROCESSORS = [
+        RouterProcessor::class => [
+            'class' => RouterProcessor::class,
+            'priority' => 0,
+        ],
         CacheAdapterProcessor::class => [
             'class' => CacheAdapterProcessor::class,
             'priority' => 0,
@@ -65,12 +79,13 @@ final class StatefulServicesPass implements CompilerPassInterface
             return;
         }
 
-        $finalProcessor = new FinalClassesProcessor($container);
-        $proxifier = $this->createDefaultProxifier($container, $finalProcessor);
+        $this->detectKernelClass($container);
+        $modificationProcessor = new ClassModificationProcessor($container);
+        $proxifier = $this->createDefaultProxifier($container, $modificationProcessor);
         $this->runCompileProcessors($container, $proxifier);
         $resetters = $this->getServiceResetters($container);
         $this->proxifyKnownStatefulServices($container, $proxifier, $resetters);
-        $this->proxifyUnmanagedFactories($container, $finalProcessor, $resetters);
+        $this->proxifyUnmanagedFactories($container, $modificationProcessor, $resetters);
         $this->reduceServiceResetters($container);
         $this->configureServicePoolContainer($container, $proxifier);
     }
@@ -154,7 +169,7 @@ final class StatefulServicesPass implements CompilerPassInterface
             array_keys($resettableStatefulServices),
             array_keys($taggedStatefulServices),
             $configuredStatefulServices,
-            self::MANDATORRY_SERVICES_TO_PROXIFY
+            self::MANDATORRY_SERVICES_TO_PROXIFY,
         );
         $servicesToProxify = array_unique($servicesToProxify);
 
@@ -185,7 +200,8 @@ final class StatefulServicesPass implements CompilerPassInterface
                 }
             }
 
-            $proxifier->proxifyService($serviceId, $resetter);
+            $resetPriority = self::SERVICE_RESETTING_PRIORITIES[$serviceId] ?? 0;
+            $proxifier->proxifyService($serviceId, $resetter, $resetPriority);
         }
     }
 
@@ -194,10 +210,10 @@ final class StatefulServicesPass implements CompilerPassInterface
      */
     private function proxifyUnmanagedFactories(
         ContainerBuilder $container,
-        FinalClassesProcessor $finalProcessor,
+        ClassModificationProcessor $modificationProcessor,
         array $resetters,
     ): void {
-        $factoryProxifier = new UnmanagedFactoryProxifier($container, $finalProcessor);
+        $factoryProxifier = new UnmanagedFactoryProxifier($container, $modificationProcessor);
         /** @var array<string, array<string, mixed>|null> $factoriesToProxify */
         $factoriesToProxify = $container->findTaggedServiceIds(ContainerConstants::TAG_UNMANAGED_FACTORY);
         $factoriesToProxify = array_unique(array_keys($factoriesToProxify));
@@ -217,7 +233,7 @@ final class StatefulServicesPass implements CompilerPassInterface
 
     private function createDefaultProxifier(
         ContainerBuilder $container,
-        FinalClassesProcessor $finalProcessor,
+        ClassModificationProcessor $modificationProcessor,
     ): Proxifier {
         $stabilityCheckerDefs = $container->findTaggedServiceIds(ContainerConstants::TAG_STABILITY_CHECKER);
         /** @var array<class-string, class-string<StabilityChecker>|string> $stabilityCheckers */
@@ -232,7 +248,7 @@ final class StatefulServicesPass implements CompilerPassInterface
             $stabilityCheckers[$supportedClass] = $svcId;
         }
 
-        return new Proxifier($container, $finalProcessor, $stabilityCheckers);
+        return new Proxifier($container, $modificationProcessor, $stabilityCheckers);
     }
 
     /**
@@ -280,5 +296,41 @@ final class StatefulServicesPass implements CompilerPassInterface
         $poolRefs = $proxifier->getProxifiedServicePoolRefs();
         $poolContainerDef = $container->findDefinition(ServicePoolContainer::class);
         $poolContainerDef->setArgument(0, $poolRefs);
+    }
+
+    private function detectKernelClass(ContainerBuilder $container): void
+    {
+        $kernelClass = null;
+
+        foreach ($container->getResources() as $resource) {
+            if (!$resource instanceof FileResource) {
+                continue;
+            }
+
+            $content = file_get_contents($resource->getResource());
+            Assertion::string($content);
+
+            // Extract namespace
+            if (!preg_match('/namespace\s+([A-Za-z0-9_\\\\]+);/', $content, $namespaceMatches)) {
+                continue;
+            }
+
+            $namespace = $namespaceMatches[1];
+
+            // Extract class name
+            if (preg_match('/class\s+([A-Za-z0-9_]+)\s+extends\s+Kernel/', $content, $classMatches)) {
+                $className = $classMatches[1];
+                $kernelClass = $namespace . '\\' . $className;
+
+                break;
+            }
+        }
+
+        if (!$kernelClass) {
+            throw new UnexpectedValueException('Cannot detect kernel class.');
+        }
+
+        $kernelProxy = $container->findDefinition('kernel_proxy');
+        $kernelProxy->setClass($kernelClass);
     }
 }

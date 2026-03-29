@@ -7,6 +7,7 @@ namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Proxy\Generation\Me
 use Laminas\Code\Generator\PropertyGenerator;
 use ProxyManager\Generator\Util\ProxiedMethodReturnExpression;
 use ReflectionMethod;
+use ReflectionNamedType;
 
 /**
  * Utility to service pool method interceptor.
@@ -29,12 +30,39 @@ final class MethodForwarderGenerator
         ?ReflectionMethod $originalMethod,
     ): string {
         $servicePoolHolderName = $servicePoolHolder->getName();
+
+        // Check if method returns static or self
+        $returnExpression = self::generateReturnExpression($originalMethod);
+
         $replacements = [
             '{{$forwardedMethodCall}}' => $forwardedMethodCall,
-            '{{$returnExpression}}' => ProxiedMethodReturnExpression::generate('$returnValue', $originalMethod),
+            '{{$returnExpression}}' => $returnExpression,
             '{{$servicePoolHolderName}}' => $servicePoolHolderName,
         ];
 
         return str_replace(array_keys($replacements), $replacements, self::TEMPLATE);
+    }
+
+    private static function generateReturnExpression(?ReflectionMethod $originalMethod): string
+    {
+        if ($originalMethod === null) {
+            return ProxiedMethodReturnExpression::generate('$returnValue', null);
+        }
+
+        $returnType = $originalMethod->getReturnType();
+
+        // Check if return type is 'static' or 'self'
+        if ($returnType instanceof ReflectionNamedType) {
+            $typeName = $returnType->getName();
+
+            if ($typeName === 'static') {
+                // Return $this (the proxy) instead of $returnValue (the wrapped object)
+                // This ensures the proxy is returned when the method returns static/self
+                return 'return $this;';
+            }
+        }
+
+        // Default behavior for other return types
+        return ProxiedMethodReturnExpression::generate('$returnValue', $originalMethod);
     }
 }

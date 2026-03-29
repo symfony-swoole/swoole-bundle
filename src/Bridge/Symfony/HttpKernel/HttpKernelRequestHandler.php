@@ -12,6 +12,7 @@ use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation\ResponseProcessor;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation\ResponseProcessorInjector;
 use SwooleBundle\SwooleBundle\Server\RequestHandler\RequestHandler;
 use SwooleBundle\SwooleBundle\Server\Runtime\Bootable;
+use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\HttpKernel\TerminableInterface;
 
 /**
@@ -20,7 +21,7 @@ use Symfony\Component\HttpKernel\TerminableInterface;
 final readonly class HttpKernelRequestHandler implements RequestHandler, Bootable
 {
     public function __construct(
-        private KernelPool $kernelPool,
+        private KernelInterface $kernel,
         private RequestFactory $requestFactory,
         private ResponseProcessorInjector $processorInjector,
         private ResponseProcessor $responseProcessor,
@@ -31,7 +32,7 @@ final readonly class HttpKernelRequestHandler implements RequestHandler, Bootabl
      */
     public function boot(array $runtimeConfiguration = []): void
     {
-        $this->kernelPool->boot();
+        $this->kernel->boot();
     }
 
     /**
@@ -41,14 +42,13 @@ final readonly class HttpKernelRequestHandler implements RequestHandler, Bootabl
     {
         $httpFoundationRequest = $this->requestFactory->make($request);
         $this->processorInjector->injectProcessor($httpFoundationRequest, $response);
-        $kernel = $this->kernelPool->get();
-        $httpFoundationResponse = $kernel->handle($httpFoundationRequest);
+        $httpFoundationResponse = $this->kernel->handle($httpFoundationRequest);
         $this->responseProcessor->process($httpFoundationResponse, $response);
 
-        if ($kernel instanceof TerminableInterface) {
-            $kernel->terminate($httpFoundationRequest, $httpFoundationResponse);
+        if (!$this->kernel instanceof TerminableInterface) {
+            return;
         }
 
-        $this->kernelPool->return($kernel);
+        $this->kernel->terminate($httpFoundationRequest, $httpFoundationResponse);
     }
 }

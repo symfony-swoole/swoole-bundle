@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Bridge\Monolog;
 
+use Assert\Assertion;
 use InvalidArgumentException;
 use LogicException;
 use Monolog\Handler\AbstractProcessingHandler;
@@ -86,6 +87,7 @@ final class StreamHandler extends AbstractProcessingHandler
     {
         if ($this->url !== null && is_resource($this->stream)) {
             fclose($this->stream);
+            error_log(sprintf('[%d] Closing stream for %s', Co::getCid(), $this->url));
         }
         $this->stream = null;
         $this->dirCreated = null;
@@ -190,7 +192,15 @@ final class StreamHandler extends AbstractProcessingHandler
      */
     protected function streamWrite($stream, LogRecord $record): void
     {
-        fwrite($stream, (string) $record->formatted);
+        if (!is_resource($stream)) {
+            error_log('[ERROR] Stream is not a valid resource!');
+
+            return;
+        }
+
+        Assertion::string($record->formatted);
+
+        @fwrite($stream, (string) $record->formatted);
     }
 
     private function getDirFromStream(string $stream): ?string

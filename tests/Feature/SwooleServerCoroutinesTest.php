@@ -232,17 +232,24 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
             $client = HttpClient::fromDomain('localhost', 9999, false);
             $this->assertTrue($client->connect(waitIfNoConnection: true));
             $client->send('/doctrine'); // trigger em reset
-            $response = $client->send('/doctrine-resets')['response']; // request sleeps for 2 seconds
+            $response = $client->send('/doctrine-lifecycle')['response']; // request sleeps for 2 seconds
             $this->assertSame(200, $response['statusCode']);
             $this->assertStringContainsString('application/json', $response['headers']['content-type']);
 
-            $resets = $response['body'];
-            self::assertCount(2, $resets);
+            $lifecycleParts = $response['body'];
+            self::assertCount(2, $lifecycleParts);
+            self::assertArrayHasKey('initializers', $lifecycleParts);
+            self::assertArrayHasKey(
+                'swoole_bundle.coroutines_support.doctrine.connection_initializer.default',
+                $lifecycleParts['initializers'],
+            );
+            self::assertArrayHasKey('resetters', $lifecycleParts);
+            self::assertArrayHasKey('inmemory_repository_resetter', $lifecycleParts['resetters']);
+            $connectionInitializer =
+                $lifecycleParts['initializers']['swoole_bundle.coroutines_support.doctrine.connection_initializer.default']; // phpcs:ignore
 
-            foreach ($resets as $reset) {
-                // it cannot be determined how many connections are created
-                self::assertGreaterThan(0, $reset);
-            }
+            self::assertGreaterThan(0, $connectionInitializer);
+            self::assertGreaterThan(0, $lifecycleParts['resetters']['inmemory_repository_resetter']);
         });
     }
 

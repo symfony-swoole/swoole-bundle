@@ -8,6 +8,8 @@ return static function (ContainerConfigurator $containerConfigurator): void {
     $containerConfigurator->extension('framework', [
         'secret' => 'ThisIsVeryNotSecret!',
         'default_locale' => 'en',
+        'http_method_override' => false,
+        'handle_all_throwables' => true,
         'php_errors' => [
             'log' => true,
         ],

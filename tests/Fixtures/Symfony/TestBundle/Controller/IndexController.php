@@ -10,7 +10,7 @@ use Symfony\Component\Routing\Attribute\Route;
 
 final class IndexController
 {
-    #[Route(path: '/', methods: ['GET'])]
+    #[Route(path: '/', methods: ['GET', 'HEAD'])]
     public function index(): JsonResponse
     {
         return new JsonResponse(['hello' => 'world!'], 200);

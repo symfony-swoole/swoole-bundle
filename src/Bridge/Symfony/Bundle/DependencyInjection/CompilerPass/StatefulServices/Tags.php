@@ -27,9 +27,9 @@ final class Tags implements IteratorAggregate
 
     public function hasStatefulServiceTag(): bool
     {
-        $ufTags = $this->findByName(ContainerConstants::TAG_STATEFUL_SERVICE);
+        $ssTags = $this->findByName(ContainerConstants::TAG_STATEFUL_SERVICE);
 
-        return !empty($ufTags);
+        return !empty($ssTags);
     }
 
     public function findStatefulServiceTag(): ?StatefulServiceTag

@@ -57,7 +57,7 @@ final class TestAppKernel extends Kernel
             $this->coverageEnabled = false;
         }
 
-        if ($environment === 'profiler') {
+        if ($environment === 'profiler' || $environment === 'coroutines_profiler') {
             $this->profilerEnabled = true;
         }
 

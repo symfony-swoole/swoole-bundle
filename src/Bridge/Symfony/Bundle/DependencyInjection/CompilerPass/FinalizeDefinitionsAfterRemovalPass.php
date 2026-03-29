@@ -60,7 +60,10 @@ final class FinalizeDefinitionsAfterRemovalPass implements CompilerPassInterface
         $newReferences = [];
 
         foreach ($resetterValues as $key => $reference) {
-            if (!$container->hasDefinition($key)) {
+            if (
+                !$container->hasDefinition($key)
+                && !$container->hasDefinition(sprintf('.container.private.%s', $key))
+            ) {
                 continue;
             }
 

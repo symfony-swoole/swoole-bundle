@@ -149,7 +149,7 @@ abstract class ServerTestCase extends KernelTestCase
     }
 
     /**
-     * @param array<string, string> $args
+     * @param array<string> $args
      * @param array<string, string> $envs
      */
     public function createConsoleProcess(

@@ -8,7 +8,7 @@ use SwooleBundle\SwooleBundle\Bridge\CommonSwoole\SystemSwooleFactory;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\ContainerConstants;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\BlockingContainer;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Modifier\Modifier;
-use SwooleBundle\SwooleBundle\Reflection\FinalClassModifier;
+use SwooleBundle\SwooleBundle\Reflection\ClassModifier;
 
 /**
  * @phpstan-ignore trait.unused
@@ -40,7 +40,7 @@ trait CoroutinesSupportingKernel
      */
     protected function initializeContainer(): void
     {
-        FinalClassModifier::initialize($this->getCacheDir());
+        ClassModifier::initialize($this->getCacheDir());
         $cacheDir = $this->getCacheDir();
         $swooleFactory = SystemSwooleFactory::newFactoryInstance();
         BlockingContainer::initializeMutex($swooleFactory->newInstance());
@@ -52,6 +52,8 @@ trait CoroutinesSupportingKernel
         }
 
         Modifier::modifyContainer($this->container, $cacheDir, $this->isDebug());
+        $this->container->set('kernel_original', $this);
+        $this->container->set('kernel', $this->container->get('kernel_proxy'));
     }
 
     private function areCoroutinesEnabled(): bool

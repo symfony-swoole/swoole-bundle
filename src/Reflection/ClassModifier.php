@@ -10,8 +10,10 @@ use ZEngine\Core;
 use ZEngine\Reflection\ReflectionClass;
 use ZEngine\Reflection\ReflectionMethod;
 
-final class FinalClassModifier
+final class ClassModifier
 {
+    private const string CACHE_KEY_FINAL_CLASSES = 'final_class_list';
+
     private static FilesystemAdapter $cache;
 
     private static string $cacheDir = '';
@@ -25,7 +27,7 @@ final class FinalClassModifier
     {
         Core::init();
         self::initializeCache($cacheDir);
-        self::modifyStoredClasses();
+        self::modifyStoredFinalClasses();
     }
 
     /**
@@ -57,12 +59,12 @@ final class FinalClassModifier
     public static function dumpCache(?string $cacheDir = null): void
     {
         $cache = self::getCache($cacheDir);
-        $item = $cache->getItem('class_list');
+        $item = $cache->getItem(self::CACHE_KEY_FINAL_CLASSES);
         $item->set(self::$originalFinalClasses);
         $cache->save($item);
     }
 
-    private static function modifyStoredClasses(): void
+    private static function modifyStoredFinalClasses(): void
     {
         $finalClasses = self::getCachedFinalClasses();
 
@@ -80,7 +82,7 @@ final class FinalClassModifier
      */
     private static function getCachedFinalClasses(): ?array
     {
-        $item = self::$cache->getItem('class_list');
+        $item = self::$cache->getItem(self::CACHE_KEY_FINAL_CLASSES);
 
         if (!$item->isHit()) {
             return null;
@@ -107,7 +109,7 @@ final class FinalClassModifier
             '',
             0,
             $cacheDir . DIRECTORY_SEPARATOR . ContainerConstants::PARAM_CACHE_FOLDER
-                . DIRECTORY_SEPARATOR . 'final_classes'
+                . DIRECTORY_SEPARATOR . 'modification'
         );
     }
 

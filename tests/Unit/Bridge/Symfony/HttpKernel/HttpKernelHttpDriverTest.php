@@ -14,7 +14,6 @@ use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation\RequestFactory;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation\ResponseProcessor;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation\ResponseProcessorInjector;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpKernel\HttpKernelRequestHandler;
-use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpKernel\KernelPool;
 use Symfony\Component\HttpFoundation\Request as HttpFoundationRequest;
 use Symfony\Component\HttpFoundation\Response as HttpFoundationResponse;
 use Symfony\Component\HttpKernel\KernelInterface;
@@ -45,11 +44,6 @@ final class HttpKernelHttpDriverTest extends TestCase
     private $responseProcessorInjectorProphecy;
 
     /**
-     * @var KernelPool|ObjectProphecy
-     */
-    private $kernelPoolProphecy;
-
-    /**
      * @var KernelInterface|ObjectProphecy|TerminableInterface
      */
     private $kernelProphecy;
@@ -57,13 +51,12 @@ final class HttpKernelHttpDriverTest extends TestCase
     protected function setUp(): void
     {
         $this->kernelProphecy = $this->prophesize(KernelInterface::class);
-        $this->kernelPoolProphecy = $this->prophesize(KernelPool::class);
         $this->requestFactoryProphecy = $this->prophesize(RequestFactory::class);
         $this->responseProcessorInjectorProphecy = $this->prophesize(ResponseProcessorInjector::class);
         $this->responseProcessor = $this->prophesize(ResponseProcessor::class);
 
-        /** @var KernelPool $kernelPoolMock */
-        $kernelPoolMock = $this->kernelPoolProphecy->reveal();
+        /** @var KernelInterface $kernelMock */
+        $kernelMock = $this->kernelProphecy->reveal();
         /** @var RequestFactory $requestFactoryMock */
         $requestFactoryMock = $this->requestFactoryProphecy->reveal();
         /** @var ResponseProcessorInjector $responseProcessorInjectorMock */
@@ -72,7 +65,7 @@ final class HttpKernelHttpDriverTest extends TestCase
         $responseProcessorMock = $this->responseProcessor->reveal();
 
         $this->httpDriver = new HttpKernelRequestHandler(
-            $kernelPoolMock,
+            $kernelMock,
             $requestFactoryMock,
             $responseProcessorInjectorMock,
             $responseProcessorMock
@@ -81,7 +74,7 @@ final class HttpKernelHttpDriverTest extends TestCase
 
     public function testBoot(): void
     {
-        $this->kernelPoolProphecy->boot()->shouldBeCalled();
+        $this->kernelProphecy->boot()->shouldBeCalled();
 
         $this->httpDriver->boot();
     }
@@ -98,8 +91,6 @@ final class HttpKernelHttpDriverTest extends TestCase
         $httpFoundationRequest = new HttpFoundationRequest();
 
         $this->requestFactoryProphecy->make($swooleRequest)->willReturn($httpFoundationRequest)->shouldBeCalled();
-        $this->kernelPoolProphecy->get()->willReturn($this->kernelProphecy)->shouldBeCalled();
-        $this->kernelPoolProphecy->return($this->kernelProphecy)->shouldBeCalled();
         $this->kernelProphecy->handle($httpFoundationRequest)->willReturn($httpFoundationResponse)->shouldBeCalled();
         $this->responseProcessorInjectorProphecy->injectProcessor($httpFoundationRequest, $swooleResponse)
             ->shouldBeCalled();
@@ -122,8 +113,6 @@ final class HttpKernelHttpDriverTest extends TestCase
         $httpFoundationRequest = new HttpFoundationRequest();
 
         $this->requestFactoryProphecy->make($swooleRequest)->willReturn($httpFoundationRequest)->shouldBeCalled();
-        $this->kernelPoolProphecy->get()->willReturn($this->kernelProphecy)->shouldBeCalled();
-        $this->kernelPoolProphecy->return($this->kernelProphecy)->shouldBeCalled();
         $this->kernelProphecy->handle($httpFoundationRequest)->willReturn($httpFoundationResponse)->shouldBeCalled();
         $this->responseProcessorInjectorProphecy->injectProcessor($httpFoundationRequest, $swooleResponse)
             ->shouldBeCalled();
@@ -137,8 +126,8 @@ final class HttpKernelHttpDriverTest extends TestCase
     {
         $this->kernelProphecy = $this->prophesize(KernelInterface::class)->willImplement(TerminableInterface::class);
 
-        /** @var KernelPool $kernelPoolMock */
-        $kernelPoolMock = $this->kernelPoolProphecy->reveal();
+        /** @var KernelInterface $kernelMock */
+        $kernelMock = $this->kernelProphecy->reveal();
         /** @var RequestFactory $requestFactoryMock */
         $requestFactoryMock = $this->requestFactoryProphecy->reveal();
         /** @var ResponseProcessorInjector $responseProcessorInjectorMock */
@@ -147,7 +136,7 @@ final class HttpKernelHttpDriverTest extends TestCase
         $responseProcessorMock = $this->responseProcessor->reveal();
 
         $this->httpDriver = new HttpKernelRequestHandler(
-            $kernelPoolMock,
+            $kernelMock,
             $requestFactoryMock,
             $responseProcessorInjectorMock,
             $responseProcessorMock

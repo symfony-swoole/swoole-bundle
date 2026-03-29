@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Container\ServicePool;
 
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Initializer;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Resetter;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\StabilityChecker;
 use SwooleBundle\SwooleBundle\Common\Adapter\Swoole;
@@ -33,6 +34,7 @@ abstract class BaseServicePool implements ServicePool
         private readonly int $instancesLimit = 50,
         private readonly ?Resetter $resetter = null,
         private readonly ?StabilityChecker $stabilityChecker = null,
+        private readonly ?Initializer $initializer = null,
     ) {}
 
     /**
@@ -53,17 +55,7 @@ abstract class BaseServicePool implements ServicePool
 
         $this->assignedCount++;
 
-        if (!empty($this->freePool)) {
-            $assigned = array_shift($this->freePool);
-
-            if ($this->resetter !== null) {
-                $this->resetter->reset($assigned);
-            }
-
-            return $this->assignedPool[$cId] = $assigned;
-        }
-
-        return $this->assignedPool[$cId] = $this->newServiceInstance();
+        return $this->assignedPool[$cId] = $this->getServiceToAssign();
     }
 
     public function releaseFromCoroutine(int $cId): void
@@ -82,6 +74,8 @@ abstract class BaseServicePool implements ServicePool
             return;
         }
 
+        $this->resetter?->reset($service);
+
         $this->freePool[] = $service;
         $this->unlockPool();
     }
@@ -90,6 +84,22 @@ abstract class BaseServicePool implements ServicePool
      * @return T
      */
     abstract protected function newServiceInstance(): object;
+
+    /**
+     * @return T
+     */
+    private function getServiceToAssign(): object
+    {
+        if (!empty($this->freePool)) {
+            $assigned = array_shift($this->freePool);
+        } else {
+            $assigned = $this->newServiceInstance();
+        }
+
+        $this->initializer?->initialize($assigned);
+
+        return $assigned;
+    }
 
     private function getCoroutineId(): int
     {

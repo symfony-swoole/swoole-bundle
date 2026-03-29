@@ -37,10 +37,8 @@ use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation\Session\SwooleSessio
 use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation\SetRequestRuntimeConfiguration;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation\StreamedResponseProcessor;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpKernel\ContextReleasingHttpKernelRequestHandler;
-use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpKernel\CoroutineKernelPool;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpKernel\HttpKernelRequestHandler;
-use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpKernel\KernelPool;
-use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpKernel\SimpleKernelPool;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpKernel\KernelCloner;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Messenger\ExceptionLoggingTransportHandler;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Messenger\ServiceResettingTransportHandler;
 use SwooleBundle\SwooleBundle\Common\Adapter\Swoole;
@@ -105,6 +103,8 @@ use SwooleBundle\SwooleBundle\Server\WorkerHandler\WorkerStartHandler;
 use SwooleBundle\SwooleBundle\Server\WorkerHandler\WorkerStopHandler;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\HttpKernel\Kernel;
+use Symfony\Component\HttpKernel\KernelInterface;
 
 use function Symfony\Component\DependencyInjection\Loader\Configurator\service;
 use function Symfony\Component\DependencyInjection\Loader\Configurator\tagged_iterator;
@@ -168,8 +168,6 @@ return static function (ContainerConfigurator $containerConfigurator): void {
     $services->set(DefaultResponseProcessorInjector::class)
         ->arg('$responseProcessor', service('response_processor.headers_and_cookies.streamed'));
 
-    $services->alias(KernelPool::class, SimpleKernelPool::class);
-
     $services->alias(RequestFactory::class, DefaultRequestFactory::class);
 
     $services->set(DefaultRequestFactory::class);
@@ -198,11 +196,8 @@ return static function (ContainerConfigurator $containerConfigurator): void {
 
     $services->alias(RequestHandler::class, ExceptionRequestHandler::class);
 
-    $services->set(SimpleKernelPool::class)
-        ->arg('$kernel', service('kernel'));
-
     $services->set(HttpKernelRequestHandler::class)
-        ->arg('$kernelPool', service(KernelPool::class))
+        ->arg('$kernel', service('kernel'))
         ->arg('$requestFactory', service(RequestFactory::class))
         ->arg('$processorInjector', service(ResponseProcessorInjector::class))
         ->arg('$responseProcessor', service(ResponseProcessor::class))
@@ -426,6 +421,9 @@ return static function (ContainerConfigurator $containerConfigurator): void {
         ])
         ->call('setProxiesTargetDir', [
             '%swoole_bundle.service_proxy_cache_dir%',
+        ])
+        ->call('setProxiesNamespace', [
+            'SwooleBundleProxy',
         ]);
 
     $services->set('swoole_bundle.repository_proxy_file_writer_generator', FileWriterGeneratorStrategy::class)
@@ -449,8 +447,14 @@ return static function (ContainerConfigurator $containerConfigurator): void {
     $services->set(EntityManagerStabilityChecker::class)
         ->tag('swoole_bundle.stability_checker');
 
-    $services->set(CoroutineKernelPool::class)
-        ->arg('$kernel', service('kernel'));
+    $services->set(KernelCloner::class)
+        ->arg('$kernel', service('kernel_original'));
+
+    $services->set('kernel_original', KernelInterface::class)
+        ->public();
+
+    $services->set('kernel_proxy', Kernel::class)
+        ->factory([service(KernelCloner::class), 'clone']);
 
     $services->set(NonSharedSvcPoolConfigurator::class)
         ->arg('$container', service(ServicePoolContainer::class));
