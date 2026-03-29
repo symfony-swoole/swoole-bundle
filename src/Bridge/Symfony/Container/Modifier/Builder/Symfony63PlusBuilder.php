@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Modifier\Builder;
 
+use Assert\Assertion;
 use ReflectionMethod as CoreReflectionMethod;
 use RuntimeException;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\ContainerConstants;
@@ -42,8 +43,6 @@ final class Symfony63PlusBuilder implements Builder
         if (file_exists($overriddenFile)) {
             return;
         }
-
-        $containerSource = file_get_contents($containerFile);
 
         $containerSource = file_get_contents($containerFile);
 
@@ -266,6 +265,9 @@ final class Symfony63PlusBuilder implements Builder
         $sharedCheck = PHP_EOL;
 
         if (!empty($internals)) {
+            Assertion::keyExists($internals, 'key');
+            Assertion::keyExists($internals, 'type');
+
             $arrayKey = "['{$internals['key']}']" . (isset($internals['key2']) ? "['{$internals['key2']}']" : '');
             $sharedCheck = <<<EOF
                                         if (isset(\$this->{$internals['type']}{$arrayKey})) {
@@ -312,6 +314,9 @@ final class Symfony63PlusBuilder implements Builder
         $sharedCheck = PHP_EOL;
 
         if (!empty($internals)) {
+            Assertion::keyExists($internals, 'key');
+            Assertion::keyExists($internals, 'type');
+
             $arrayKey = "['{$internals['key']}']" . (isset($internals['key2']) ? "['{$internals['key2']}']" : '');
             $sharedCheck = <<<EOF
 
@@ -379,6 +384,9 @@ final class Symfony63PlusBuilder implements Builder
         $sharedCheck = '';
 
         if (!empty($internals)) {
+            Assertion::keyExists($internals, 'key');
+            Assertion::keyExists($internals, 'type');
+
             $arrayKey = "['{$internals['key']}']" . (isset($internals['key2']) ? "['{$internals['key2']}']" : '');
             $sharedCheck = <<<EOF
                 if (isset(\$container->{$internals['type']}{$arrayKey})) {
