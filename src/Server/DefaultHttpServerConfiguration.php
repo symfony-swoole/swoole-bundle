@@ -438,7 +438,7 @@ final class DefaultHttpServerConfiguration implements HttpServerConfiguration
 
     private function changeRunningMode(string $runningMode): void
     {
-        Assertion::inArray($runningMode, ['process', 'reactor', 'thread']);
+        Assertion::true($this->swoole->supportsRunningMode($runningMode));
 
         $this->runningMode = $runningMode;
     }

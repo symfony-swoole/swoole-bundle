@@ -15,6 +15,7 @@ use SwooleBundle\SwooleBundle\Server\Configurator\CallableChainConfigurator;
 use SwooleBundle\SwooleBundle\Server\Configurator\CallableChainConfiguratorFactory;
 use SwooleBundle\SwooleBundle\Server\HttpServer;
 use SwooleBundle\SwooleBundle\Server\HttpServerConfiguration;
+use SwooleBundle\SwooleBundle\Server\HttpServerFactory;
 use SwooleBundle\SwooleBundle\Server\Runtime\Bootable;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 
@@ -64,6 +65,7 @@ return static function (ContainerConfigurator $containerConfigurator): void {
         ]);
 
     $services->set(ServerStartCommand::class)
+        ->arg('$httpServerFactory', service(HttpServerFactory::class))
         ->arg('$server', service(HttpServer::class))
         ->arg('$serverConfiguration', service(HttpServerConfiguration::class))
         ->arg('$serverConfigurator', service('swoole_bundle.server.http_server.configurator.for_server_start_command'))
@@ -88,6 +90,7 @@ return static function (ContainerConfigurator $containerConfigurator): void {
         ]);
 
     $services->set(ServerRunCommand::class)
+        ->arg('$httpServerFactory', service(HttpServerFactory::class))
         ->arg('$server', service(HttpServer::class))
         ->arg('$serverConfiguration', service(HttpServerConfiguration::class))
         ->arg('$serverConfigurator', service('swoole_bundle.server.http_server.configurator.for_server_run_command'))
@@ -112,6 +115,7 @@ return static function (ContainerConfigurator $containerConfigurator): void {
         ]);
 
     $services->set(ServerProfileCommand::class)
+        ->arg('$httpServerFactory', service(HttpServerFactory::class))
         ->arg('$server', service(HttpServer::class))
         ->arg('$serverConfiguration', service(HttpServerConfiguration::class))
         ->arg(

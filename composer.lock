@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "40c8ec3a8c30b85b05ec8ba89a1b64e3",
+    "content-hash": "cb03ce1326bcf952d5ee8c584e1e7310",
     "packages": [
         {
             "name": "beberlei/assert",
@@ -6009,21 +6009,21 @@
         },
         {
             "name": "openswoole/ide-helper",
-            "version": "22.1.5",
+            "version": "26.2.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/openswoole/ide-helper.git",
-                "reference": "8c4de5fda9fec1b00c549a9f688163733199e712"
+                "reference": "f5cb2ba6d3108b1e158fbff1e1b44e5782f0f4ff"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/openswoole/ide-helper/zipball/8c4de5fda9fec1b00c549a9f688163733199e712",
-                "reference": "8c4de5fda9fec1b00c549a9f688163733199e712",
+                "url": "https://api.github.com/repos/openswoole/ide-helper/zipball/f5cb2ba6d3108b1e158fbff1e1b44e5782f0f4ff",
+                "reference": "f5cb2ba6d3108b1e158fbff1e1b44e5782f0f4ff",
                 "shasum": ""
             },
             "require": {
-                "ext-openswoole": ">=22.0",
-                "php": ">=7.4"
+                "ext-openswoole": ">=26.2.0",
+                "php": ">=8.3"
             },
             "require-dev": {
                 "friendsofphp/php-cs-fixer": "^3.6"
@@ -6042,9 +6042,9 @@
             "description": "IDE helper for OpenSwoole.",
             "support": {
                 "issues": "https://github.com/openswoole/ide-helper/issues",
-                "source": "https://github.com/openswoole/ide-helper/tree/22.1.5"
+                "source": "https://github.com/openswoole/ide-helper/tree/26.2.0"
             },
-            "time": "2023-12-10T18:56:30+00:00"
+            "time": "2026-02-28T15:02:47+00:00"
         },
         {
             "name": "phar-io/manifest",

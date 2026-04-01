@@ -74,6 +74,7 @@ use SwooleBundle\SwooleBundle\Server\Configurator\WithWorkerStopHandler;
 use SwooleBundle\SwooleBundle\Server\DefaultHttpServerConfiguration;
 use SwooleBundle\SwooleBundle\Server\HttpServer;
 use SwooleBundle\SwooleBundle\Server\HttpServerConfiguration;
+use SwooleBundle\SwooleBundle\Server\HttpServerFactory;
 use SwooleBundle\SwooleBundle\Server\LifecycleHandler\NoOpServerManagerStartHandler;
 use SwooleBundle\SwooleBundle\Server\LifecycleHandler\NoOpServerManagerStopHandler;
 use SwooleBundle\SwooleBundle\Server\LifecycleHandler\NoOpServerShutdownHandler;
@@ -487,4 +488,7 @@ return static function (ContainerConfigurator $containerConfigurator): void {
             service(SystemSwooleFactory::class),
             'newInstance',
         ]);
+
+    $services->set(HttpServerFactory::class)
+        ->arg('$swoole', service(Swoole::class));
 };

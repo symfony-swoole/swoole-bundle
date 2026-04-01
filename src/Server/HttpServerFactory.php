@@ -7,24 +7,27 @@ namespace SwooleBundle\SwooleBundle\Server;
 use Assert\Assertion;
 use Swoole\Http\Server;
 use Swoole\Server\Port;
+use SwooleBundle\SwooleBundle\Common\Adapter\Swoole;
 use SwooleBundle\SwooleBundle\Server\Config\Socket;
 
-final class HttpServerFactory
+final readonly class HttpServerFactory
 {
-    private const array SWOOLE_RUNNING_MODE = [
-        'process' => SWOOLE_PROCESS,
-        'reactor' => SWOOLE_BASE,
-        //        'thread' => SWOOLE_THREAD,
-    ];
+    public function __construct(
+        private Swoole $swoole,
+    ) {}
 
     /**
      * @see https://github.com/swoole/swoole-docs/blob/master/modules/swoole-server/methods/construct.md#parameter
      * @see https://github.com/swoole/swoole-docs/blob/master/modules/swoole-server/methods/addListener.md#prototype
      */
-    public static function make(Socket $main, string $runningMode = 'process', Socket ...$additional): Server
+    public function make(Socket $main, string $runningMode = 'process', Socket ...$additional): Server
     {
-        Assertion::inArray($runningMode, array_keys(self::SWOOLE_RUNNING_MODE));
-        $mainServer = new Server($main->host(), $main->port(), self::SWOOLE_RUNNING_MODE[$runningMode], $main->type());
+        $mainServer = new Server(
+            $main->host(),
+            $main->port(),
+            $this->swoole->getRunningModeFor($runningMode),
+            $main->type(),
+        );
 
         $usedPorts = [$main->port() => true];
         foreach ($additional as $socket) {

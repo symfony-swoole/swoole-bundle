@@ -578,7 +578,7 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
      */
     public static function coroutineTestDataProviderForTaskWorkers(): array
     {
-        return [
+        $configs = [
             // debug on
             [
                 [
@@ -622,6 +622,22 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
                 ],
             ],
         ];
+
+        if (extension_loaded('openswoole')) {
+            // prod env with inline container factories and debug off, with iouring on openswoole
+            $configs[] = [
+                [
+                    'APP_ENV' => 'prod',
+                    'APP_DEBUG' => '0',
+                    'OVERRIDE_PROD_ENV' => 'coroutines_iouring',
+                    'WORKER_COUNT' => '1',
+                    'TASK_WORKER_COUNT' => '1',
+                    'REACTOR_COUNT' => '1',
+                ],
+            ];
+        }
+
+        return $configs;
     }
 
     /**

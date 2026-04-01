@@ -1,0 +1,14 @@
+diff --git a/include/openswoole_io_uring.h b/include/openswoole_io_uring.h
+index 830c620..77e0708 100644
+--- a/include/openswoole_io_uring.h
++++ b/include/openswoole_io_uring.h
+@@ -19,7 +19,9 @@
+ #ifdef HAVE_IO_URING
+ #include <liburing.h>
+ #include <sys/stat.h>
++#if defined(__linux__) && defined(__GLIBC__)
+ #include <linux/stat.h>
++#endif
+ 
+ namespace openswoole {
+ 

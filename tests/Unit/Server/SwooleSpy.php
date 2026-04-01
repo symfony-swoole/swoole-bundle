@@ -62,4 +62,24 @@ final class SwooleSpy implements Swoole
     {
         return -1;
     }
+
+    /**
+     * @return array<string, int>
+     */
+    public function getRunningModes(): array
+    {
+        // not needed for tests
+        return [];
+    }
+
+    public function getRunningModeFor(string $modeName): int
+    {
+        // not needed for tests
+        return -1;
+    }
+
+    public function supportsRunningMode(string $modeName): bool
+    {
+        return false;
+    }
 }

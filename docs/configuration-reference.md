@@ -11,7 +11,8 @@ swoole:
   http_server:
     port: 9501
     host: 0.0.0.0
-    running_mode: process
+    # one of: process (default), base, iouring (available for openswoole 26.2+ only)
+    running_mode: process 
     socket_type: tcp
     ssl_enabled: false
     trusted_hosts: localhost,127.0.0.1

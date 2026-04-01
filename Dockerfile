@@ -38,15 +38,18 @@ RUN pecl install "xdebug-$XDEBUG_TAG" && \
     docker-php-ext-enable xdebug
 
 FROM ext-builder AS ext-swoole
-RUN apk add --no-cache git openssl-dev
+RUN apk add --no-cache git openssl-dev liburing liburing-dev
 ARG SWOOLE_EXTENSION="openswoole"
 ARG SWOOLE_VERSION="26.2.0"
+COPY patch/ /tmp/patches/
 RUN if $(echo "${SWOOLE_VERSION}" | grep -qE '^[4-9]\.[0-9]+\.[0-9]+$'); then SWOOLE_GIT_REF="v${SWOOLE_VERSION}"; else SWOOLE_GIT_REF="${SWOOLE_VERSION}"; fi && \
     if [ "$SWOOLE_EXTENSION" == "openswoole" ]; then SWOOLE_GIT_REPOSITORY="openswoole/ext-openswoole"; else SWOOLE_GIT_REPOSITORY="swoole/swoole-src"; fi && \
+    if [ "$SWOOLE_EXTENSION" == "openswoole" ]; then SWOOLE_ENABLE_IO_URING="--enable-io-uring"; else SWOOLE_ENABLE_IO_URING="--enable-iouring --enable-uring-socket"; fi && \
     git clone "https://github.com/${SWOOLE_GIT_REPOSITORY}.git" --branch "${SWOOLE_GIT_REF}" --depth 1 src && \
     cd src && \
+    if [ "$SWOOLE_EXTENSION" == "openswoole" ]; then git apply /tmp/patches/openswoole-musl-iouring-fix.patch; fi && \
     phpize && \
-    ./configure && \
+    ./configure ${SWOOLE_ENABLE_IO_URING} && \
     make && \
     make install && \
     docker-php-ext-enable "${SWOOLE_EXTENSION}"
@@ -62,7 +65,7 @@ WORKDIR /usr/src/app
 RUN addgroup -g 1000 -S runner && \
     adduser -u 1000 -S app -G runner && \
     chown app:runner /usr/src/app
-RUN apk add --no-cache libstdc++ icu lsof libffi vim
+RUN apk add --no-cache vim libstdc++ icu lsof libffi liburing
 # php -i | grep 'PHP API' | sed -e 's/PHP API => //'
 ARG PHP_API_VERSION="20230831"
 ARG SWOOLE_EXTENSION="openswoole"

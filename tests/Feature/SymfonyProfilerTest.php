@@ -43,7 +43,7 @@ final class SymfonyProfilerTest extends ServerTestCase
 
             // Since Symfony 7.4 it looks like the profile is being written later then the response is sent
             // Although this only goes for 7.4.0, so the sleep call may be removed later
-            usleep(100000); // 100 ms
+            usleep(200000); // 200 ms
             $profilerResponse = $client->send('/_wdt/' . $debugToken)['response'];
 
             $this->assertSame(200, $profilerResponse['statusCode']);
