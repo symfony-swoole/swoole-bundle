@@ -210,7 +210,8 @@ jobs:
       SERVICES: ci
 
   grumphp-ci:
-    working_directory: /usr/src/app
+    machine:
+      image: ubuntu-2404:current
     parameters:
       php-version:
         type: string
@@ -221,13 +222,10 @@ jobs:
       composer-build:
         type: string
     steps:
-      - checkout:
-          path: /usr/src/app
+      - checkout
       - run:
           name: Export required dynamic env variables for Composer
           command: |-
-            echo "export COMPOSER_AUTH='${COMPOSER_AUTH}'" >> $BASH_ENV
-
             if [ "std" = "$BUILD_TYPE" ]; then
               echo "export COMPOSER_ARGS=install" >> $BASH_ENV
               echo "export GRUMPHP_COMMAND=grumphp_complete" >> $BASH_ENV
@@ -239,154 +237,214 @@ jobs:
               echo "export GRUMPHP_COMMAND=grumphp_tests" >> $BASH_ENV
             fi;
       - run:
-          name: Run Composer
+          name: Start MySQL container
           command: |
-            source "$BASH_ENV"
-            composer config extra.symfony.require ${SYMFONY_VERSION}
-            composer ${COMPOSER_ARGS} --no-progress --no-interaction --ansi
+            docker network create grumphp-network
+            docker run -d \
+              --name mysql \
+              --network grumphp-network \
+              -e MYSQL_ROOT_PASSWORD=root \
+              -e MYSQL_DATABASE=db \
+              -e MYSQL_USER=user \
+              -e MYSQL_PASSWORD=pass \
+              cimg/mysql:8.0
       - run:
-          # Our primary container isn't MYSQL so run a sleep command until it's ready.
-          name: Waiting for MySQL to be ready
+          name: Wait for MySQL to be ready
           command: |
-            for i in `seq 1 30`;
-            do
-              nc -z $DATABASE_HOST 3306 && echo Success && exit 0
+            for i in $(seq 1 30); do
+              if docker exec mysql mysql -uroot -proot -e "SELECT 1" > /dev/null 2>&1; then
+                echo "MySQL is ready"
+                exit 0
+              fi
               echo -n .
               sleep 1
             done
-            echo Failed waiting for MySQL && exit 1
+            echo "Failed waiting for MySQL"
+            exit 1
       - run:
-          name: Run GrumPHP
+          name: Fix workspace permissions for UID 1000
+          command: sudo chown -R 1000:1000 /home/circleci/project
+      - run:
+          name: Run Composer and GrumPHP in CI container
           command: |
             source "$BASH_ENV"
-            composer run ${GRUMPHP_COMMAND}
-    docker:
-      - image: docker.io/symfonywithswoole/swoole-bundle-ci:<< parameters.php-version >>-<< parameters.swoole >>-$CIRCLE_SHA1
-        auth:
-          username: $DOCKER_HUB_USERNAME
-          password: $DOCKER_HUB_TOKEN
-        user: app
-        environment:
-          DATABASE_HOST: '127.0.0.1'
-          SYMFONY_VERSION: << parameters.symfony-version >>
-          BUILD_TYPE: << parameters.composer-build >>
-          COMPOSER_AUTH: ${{ secrets.COMPOSER_AUTH }}
-      - image: cimg/mysql:8.0
-        auth:
-          username: $DOCKER_HUB_USERNAME
-          password: $DOCKER_HUB_TOKEN
-        environment:
-          MYSQL_ROOT_PASSWORD: root
-          MYSQL_DATABASE: db
-          MYSQL_USER: user
-          MYSQL_PASSWORD: pass
+            docker run --rm \
+              --privileged \
+              --security-opt seccomp=unconfined \
+              --network grumphp-network \
+              -v /home/circleci/project:/usr/src/app \
+              -w /usr/src/app \
+              -e DATABASE_HOST=mysql \
+              -e SYMFONY_VERSION=${SYMFONY_VERSION} \
+              -e BUILD_TYPE=${BUILD_TYPE} \
+              -e COMPOSER_AUTH="${COMPOSER_AUTH}" \
+              -e COMPOSER_ARGS="${COMPOSER_ARGS}" \
+              -e GRUMPHP_COMMAND="${GRUMPHP_COMMAND}" \
+              --user app \
+              docker.io/symfonywithswoole/swoole-bundle-ci:<< parameters.php-version >>-<< parameters.swoole >>-$CIRCLE_SHA1 \
+              sh -c "
+                composer config extra.symfony.require ${SYMFONY_VERSION} && \
+                composer ${COMPOSER_ARGS} --no-progress --no-interaction --ansi && \
+                composer run ${GRUMPHP_COMMAND}
+              "
+      - run:
+          name: Cleanup
+          when: always
+          command: |
+            docker stop mysql || true
+            docker rm mysql || true
+            docker network rm grumphp-network || true
+    environment:
+      SYMFONY_VERSION: << parameters.symfony-version >>
+      BUILD_TYPE: << parameters.composer-build >>
 
   code-coverage-pcov-php-lowest:
-    working_directory: /usr/src/app
+    machine:
+      image: ubuntu-2404:current
     parameters:
       php-version:
         type: string
       swoole:
         type: string
     steps:
-      - checkout:
-          path: /usr/src/app
+      - checkout
       - run:
-          name: Run Composer
+          name: Start MySQL container
           command: |
-            composer install --no-progress --no-interaction --ansi
+            docker network create coverage-network
+            docker run -d \
+              --name mysql \
+              --network coverage-network \
+              -e MYSQL_ROOT_PASSWORD=root \
+              -e MYSQL_DATABASE=db \
+              -e MYSQL_USER=user \
+              -e MYSQL_PASSWORD=pass \
+              cimg/mysql:8.0
       - run:
-          # Our primary container isn't MYSQL so run a sleep command until it's ready.
-          name: Waiting for MySQL to be ready
+          name: Wait for MySQL to be ready
           command: |
-            for i in `seq 1 30`;
-            do
-              nc -z $DATABASE_HOST 3306 && echo Success && exit 0
+            for i in $(seq 1 30); do
+              if docker exec mysql mysql -uroot -proot -e "SELECT 1" > /dev/null 2>&1; then
+                echo "MySQL is ready"
+                exit 0
+              fi
               echo -n .
               sleep 1
             done
-            echo Failed waiting for MySQL && exit 1
+            echo "Failed waiting for MySQL"
+            exit 1
       - run:
-          name: Run unit tests with coverage (pcov)
-          command: composer run unit-code-coverage
+          name: Fix workspace permissions for UID 1000
+          command: sudo chown -R 1000:1000 /home/circleci/project
       - run:
-          name: Run feature tests with coverage (pcov)
-          command: composer run feature-code-coverage
+          name: Run Composer and tests in coverage container
+          command: |
+            docker run --rm \
+              --privileged \
+              --security-opt seccomp=unconfined \
+              --network coverage-network \
+              -v /home/circleci/project:/usr/src/app \
+              -w /usr/src/app \
+              -e DATABASE_HOST=mysql \
+              -e SWOOLE=<< parameters.swoole >> \
+              -e COMPOSER_AUTH="${COMPOSER_AUTH}" \
+              --user app \
+              --entrypoint sh \
+              docker.io/symfonywithswoole/swoole-bundle-coverage-pcov:<< parameters.php-version >>-<< parameters.swoole >>-$CIRCLE_SHA1 \
+              -c "
+                composer install --no-progress --no-interaction --ansi && \
+                composer run unit-code-coverage && composer run feature-code-coverage
+              "
+      - run:
+          name: Copy coverage files from container
+          command: |
+            # Coverage files are already in the mounted volume
+            ls -la cov/
       - persist_to_workspace:
-          root: /usr/src/app
+          root: .
           paths:
             - ./cov/*
-    docker:
-      - image: docker.io/symfonywithswoole/swoole-bundle-coverage-pcov:<< parameters.php-version >>-<< parameters.swoole >>-$CIRCLE_SHA1
-        auth:
-          username: $DOCKER_HUB_USERNAME
-          password: $DOCKER_HUB_TOKEN
-        user: app
-        environment:
-          DATABASE_HOST: '127.0.0.1'
-          SWOOLE: << parameters.swoole >>
-          COMPOSER_AUTH: ${{ secrets.COMPOSER_AUTH }}
-      - image: cimg/mysql:8.0
-        auth:
-          username: $DOCKER_HUB_USERNAME
-          password: $DOCKER_HUB_TOKEN
-        environment:
-          MYSQL_ROOT_PASSWORD: root
-          MYSQL_DATABASE: db
-          MYSQL_USER: user
-          MYSQL_PASSWORD: pass
+      - run:
+          name: Cleanup
+          when: always
+          command: |
+            docker stop mysql || true
+            docker rm mysql || true
+            docker network rm coverage-network || true
 
   code-coverage-xdebug-php-lowest:
-    working_directory: /usr/src/app
+    machine:
+      image: ubuntu-2404:current
     parameters:
       php-version:
         type: string
       swoole:
         type: string
     steps:
-      - checkout:
-          path: /usr/src/app
+      - checkout
       - run:
-          name: Run Composer
+          name: Start MySQL container
           command: |
-            composer install --no-progress --no-interaction --ansi
+            docker network create coverage-xdebug-network
+            docker run -d \
+              --name mysql \
+              --network coverage-xdebug-network \
+              -e MYSQL_ROOT_PASSWORD=root \
+              -e MYSQL_DATABASE=db \
+              -e MYSQL_USER=user \
+              -e MYSQL_PASSWORD=pass \
+              cimg/mysql:8.0
       - run:
-          # Our primary container isn't MYSQL so run a sleep command until it's ready.
-          name: Waiting for MySQL to be ready
+          name: Wait for MySQL to be ready
           command: |
-            for i in `seq 1 30`;
-            do
-              nc -z $DATABASE_HOST 3306 && echo Success && exit 0
+            for i in $(seq 1 30); do
+              if docker exec mysql mysql -uroot -proot -e "SELECT 1" > /dev/null 2>&1; then
+                echo "MySQL is ready"
+                exit 0
+              fi
               echo -n .
               sleep 1
             done
-            echo Failed waiting for MySQL && exit 1
+            echo "Failed waiting for MySQL"
+            exit 1
       - run:
-          name: Run feature tests with coverage (xdebug) and retry
-          command: /usr/src/app/tests/run-feature-tests-code-coverage.sh
+          name: Fix workspace permissions for UID 1000
+          command: sudo chown -R 1000:1000 /home/circleci/project
+      - run:
+          name: Run Composer and tests in coverage container
+          command: |
+            docker run --rm \
+              --privileged \
+              --security-opt seccomp=unconfined \
+              --network coverage-xdebug-network \
+              -v /home/circleci/project:/usr/src/app \
+              -w /usr/src/app \
+              -e DATABASE_HOST=mysql \
+              -e SWOOLE=<< parameters.swoole >> \
+              -e COMPOSER_AUTH="${COMPOSER_AUTH}" \
+              --user app \
+              --entrypoint sh \
+              docker.io/symfonywithswoole/swoole-bundle-coverage-xdebug:<< parameters.php-version >>-<< parameters.swoole >>-$CIRCLE_SHA1 \
+              -c "
+                composer install --no-progress --no-interaction --ansi && \
+                /usr/src/app/tests/run-feature-tests-code-coverage.sh
+              "
+      - run:
+          name: Copy coverage files from container
+          command: |
+            # Coverage files are already in the mounted volume
+            ls -la cov/
       - persist_to_workspace:
-          root: /usr/src/app
+          root: .
           paths:
             - ./cov/*
-    docker:
-      - image: docker.io/symfonywithswoole/swoole-bundle-coverage-xdebug:<< parameters.php-version >>-<< parameters.swoole >>-$CIRCLE_SHA1
-        auth:
-          username: $DOCKER_HUB_USERNAME
-          password: $DOCKER_HUB_TOKEN
-        user: app
-        environment:
-          DATABASE_HOST: '127.0.0.1'
-          SWOOLE: << parameters.swoole >>
-          COMPOSER_AUTH: ${{ secrets.COMPOSER_AUTH }}
-      - image: cimg/mysql:8.0
-        auth:
-          username: $DOCKER_HUB_USERNAME
-          password: $DOCKER_HUB_TOKEN
-        environment:
-          MYSQL_ROOT_PASSWORD: root
-          MYSQL_DATABASE: db
-          MYSQL_USER: user
-          MYSQL_PASSWORD: pass
+      - run:
+          name: Cleanup
+          when: always
+          command: |
+            docker stop mysql || true
+            docker rm mysql || true
+            docker network rm coverage-xdebug-network || true
 
   process-coverage-results:
     working_directory: /usr/src/app

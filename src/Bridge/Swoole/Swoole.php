@@ -35,4 +35,16 @@ final class Swoole extends CommonSwoole
     {
         return Coroutine::getCid();
     }
+
+    /**
+     * @return array<string, int>
+     */
+    public function getRunningModes(): array
+    {
+        return [
+            'process' => SWOOLE_PROCESS,
+            'reactor' => SWOOLE_BASE,
+            // 'thread' => SWOOLE_THREAD,
+        ];
+    }
 }

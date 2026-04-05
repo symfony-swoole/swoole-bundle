@@ -27,10 +27,7 @@ return static function (ContainerConfigurator $containerConfigurator): void {
 
     $containerConfigurator->extension('swoole', [
         'http_server' => [
-            'static' => [
-                'strategy' => 'advanced',
-                'public_dir' => '%kernel.project_dir%/public',
-            ],
+            'running_mode' => 'iouring',
             'exception_handler' => [
                 'type' => 'symfony',
             ],

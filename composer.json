@@ -63,7 +63,7 @@
         "friendsofphp/php-cs-fixer": "^3.94",
         "jangregor/phpstan-prophecy": "^2.3",
         "openswoole/core": "^22.2",
-        "openswoole/ide-helper": "^22.1.5",
+        "openswoole/ide-helper": "^26.2",
         "phpro/grumphp": "^2.19",
         "phpspec/prophecy": "^1.17",
         "phpspec/prophecy-phpunit": "^2.0",

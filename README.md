@@ -5,7 +5,7 @@
 [![Open Source Love](https://badges.frapsoft.com/os/v1/open-source.svg?v=103)](https://github.com/ellerbrock/open-source-badges/)
 [![MIT Licence](https://badges.frapsoft.com/os/mit/mit.svg?v=103)](https://opensource.org/licenses/mit-license.php)
 
-Symfony integration with [Open Swoole](https://openswoole.com/) to speed up your applications.
+Symfony integration with [Open Swoole](https://openswoole.com/) and [Swoole](https://wiki.swoole.com/en/#/) to speed up your applications.
 
 | Sponsored by:                         |                                                                                                 |
 |---------------------------------------|-------------------------------------------------------------------------------------------------|

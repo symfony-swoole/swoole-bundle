@@ -6,6 +6,7 @@ namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection;
 
 use InvalidArgumentException;
 use RuntimeException;
+use SwooleBundle\SwooleBundle\Bridge\CommonSwoole\SystemSwooleFactory;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
@@ -57,7 +58,9 @@ final readonly class Configuration implements ConfigurationInterface
                         ->enumNode('running_mode')
                             ->cannotBeEmpty()
                             ->defaultValue('process')
-                            ->values(['process', 'reactor', 'thread'])
+                            ->values(
+                                array_keys(SystemSwooleFactory::newFactoryInstance()->newInstance()->getRunningModes()),
+                            )
                         ->end()
                         ->enumNode('socket_type')
                             ->cannotBeEmpty()

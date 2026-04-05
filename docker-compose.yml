@@ -40,6 +40,8 @@ services:
         <<: *DEFAULT_BUILD_ARGS
     environment:
       DATABASE_HOST: 'db'
+    security_opt:
+      - seccomp=unconfined
     ports:
       - 9501:9501
 
@@ -62,6 +64,8 @@ services:
         <<: *DEFAULT_BUILD_ARGS
     environment:
       DATABASE_HOST: 'db'
+    security_opt:
+      - seccomp=unconfined
 
   coverage-xdebug:
     image: "${REGISTRY:-docker.io}/${NAMESPACE:-symfonywithswoole}/${IMAGE:-swoole-bundle}-coverage-xdebug:${TAG:-local}"
@@ -72,6 +76,8 @@ services:
         <<: *DEFAULT_BUILD_ARGS
     environment:
       DATABASE_HOST: 'db'
+    security_opt:
+      - seccomp=unconfined
 
   coverage-pcov:
     image: "${REGISTRY:-docker.io}/${NAMESPACE:-symfonywithswoole}/${IMAGE:-swoole-bundle}-coverage-pcov:${TAG:-local}"
@@ -82,6 +88,8 @@ services:
         <<: *DEFAULT_BUILD_ARGS
     environment:
       DATABASE_HOST: 'db'
+    security_opt:
+      - seccomp=unconfined
 
   coverage-xdebug-feature-with-retry:
     image: "${REGISTRY:-docker.io}/${NAMESPACE:-symfonywithswoole}/${IMAGE:-swoole-bundle}-coverage-xdebug:${TAG:-local}"
@@ -96,6 +104,8 @@ services:
         <<: *DEFAULT_BUILD_ARGS
     environment:
       DATABASE_HOST: 'db'
+    security_opt:
+      - seccomp=unconfined
 
   merge-code-coverage:
     image: "${REGISTRY:-docker.io}/${NAMESPACE:-symfonywithswoole}/${IMAGE:-swoole-bundle}-merge-code-coverage:${MERGE_COVERAGE_TAG:-local}"

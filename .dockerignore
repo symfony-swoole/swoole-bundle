@@ -12,3 +12,4 @@ tests/**/.phpunit.result.cache
 !phpunit.xml
 !.php-cs-fixer.dist.php
 !/hack
+!/patch

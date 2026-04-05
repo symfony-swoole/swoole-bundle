@@ -41,6 +41,7 @@ abstract class ServerExecutionCommand extends Command
     private bool $testing = false;
 
     public function __construct(
+        private readonly HttpServerFactory $httpServerFactory,
         private readonly HttpServer $server,
         private readonly HttpServerConfiguration $serverConfiguration,
         private readonly Configurator $serverConfigurator,
@@ -381,7 +382,7 @@ abstract class ServerExecutionCommand extends Command
         $sockets = $this->serverConfiguration->getSockets();
         $serverSocket = $sockets->getServerSocket();
 
-        return HttpServerFactory::make(
+        return $this->httpServerFactory->make(
             $serverSocket,
             $this->serverConfiguration->getRunningMode(),
             ...($sockets->hasApiSocket() ? [$sockets->getApiSocket()] : [])

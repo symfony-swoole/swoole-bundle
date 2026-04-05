@@ -17,4 +17,13 @@ interface Swoole
     public function disableCoroutines(): void;
 
     public function getCoroutineId(): int;
+
+    /**
+     * @return array<string, int>
+     */
+    public function getRunningModes(): array;
+
+    public function getRunningModeFor(string $modeName): int;
+
+    public function supportsRunningMode(string $modeName): bool;
 }

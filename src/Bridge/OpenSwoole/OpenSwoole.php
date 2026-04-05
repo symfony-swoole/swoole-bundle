@@ -36,4 +36,21 @@ final class OpenSwoole extends CommonSwoole
     {
         return Coroutine::getCid();
     }
+
+    /**
+     * @return array<string, int>
+     */
+    public function getRunningModes(): array
+    {
+        $modes = [
+            'process' => SWOOLE_PROCESS,
+            'reactor' => SWOOLE_BASE,
+        ];
+
+        if (defined('OPENSWOOLE_IO_URING')) {
+            $modes['iouring'] = OPENSWOOLE_IO_URING;
+        }
+
+        return $modes;
+    }
 }

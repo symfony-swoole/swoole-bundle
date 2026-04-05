@@ -9,7 +9,7 @@ use Symfony\Component\Routing\Attribute\Route;
 
 final class ReplacedContentTestController
 {
-    private const BASH_REPLACE_PATTERN = '%REPLACE%';
+    private const string BASH_REPLACE_PATTERN = '%REPLACE%';
 
     #[Route(path: '/test/replaced/content', methods: ['GET'])]
     public function index(): Response
