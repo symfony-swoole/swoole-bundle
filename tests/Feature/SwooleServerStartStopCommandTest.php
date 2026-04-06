@@ -13,7 +13,6 @@ final class SwooleServerStartStopCommandTest extends ServerTestCase
 {
     protected function setUp(): void
     {
-        $this->markTestSkippedIfXdebugEnabled();
         $this->deleteVarDirectory();
     }
 
@@ -81,7 +80,7 @@ final class SwooleServerStartStopCommandTest extends ServerTestCase
         $this->runAsCoroutineAndWait(function (): void {
             go(function (): void {
                 $client = HttpClient::fromDomain('localhost', 9999, false);
-                $this->assertTrue($client->connect(waitIfNoConnection: true));
+                $this->assertTrue($client->connect(5, waitIfNoConnection: true));
 
                 try {
                     $response = $client->send('/dummy-sleep')['response'];

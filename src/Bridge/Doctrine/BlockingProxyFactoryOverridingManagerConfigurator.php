@@ -9,10 +9,10 @@ use Composer\InstalledVersions;
 use Doctrine\Bundle\DoctrineBundle\ManagerConfigurator;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
+use ReflectionClass;
+use ReflectionProperty;
 use SwooleBundle\SwooleBundle\Component\Locking\FirstTimeOnly\FirstTimeOnlyMutexFactory;
 use UnexpectedValueException;
-use ZEngine\Reflection\ReflectionClass;
-use ZEngine\Reflection\ReflectionProperty;
 
 final class BlockingProxyFactoryOverridingManagerConfigurator
 {
@@ -55,7 +55,6 @@ final class BlockingProxyFactoryOverridingManagerConfigurator
         if (self::$emProxyFactoryPropRefl === null) {
             $emReflClass = new ReflectionClass(EntityManager::class);
             self::$emProxyFactoryPropRefl = $emReflClass->getProperty('proxyFactory');
-            self::$emProxyFactoryPropRefl->setReadOnly(false);
         }
 
         return self::$emProxyFactoryPropRefl;

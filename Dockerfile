@@ -97,6 +97,12 @@ RUN apk add --no-cache git bash
 ARG PHP_API_VERSION="20230831"
 COPY --from=ext-xdebug /usr/local/lib/php/extensions/no-debug-non-zts-${PHP_API_VERSION}/xdebug.so /usr/local/lib/php/extensions/no-debug-non-zts-${PHP_API_VERSION}/xdebug.so
 COPY --from=ext-xdebug /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
+RUN if [ -f /usr/local/etc/php/conf.d/docker-php-ext-swoole.ini ]; then \
+        echo "swoole.enable_fiber_mock=On" >> /usr/local/etc/php/conf.d/docker-php-ext-swoole.ini; \
+    fi
+RUN if [ -f /usr/local/etc/php/conf.d/docker-php-ext-openswoole.ini ]; then \
+        echo "openswoole.use_fiber_context=On" >> /usr/local/etc/php/conf.d/docker-php-ext-openswoole.ini; \
+    fi
 USER app:runner
 ENV COVERAGE="1" \
     COMPOSER_ALLOW_SUPERUSER="1" \
@@ -107,6 +113,12 @@ RUN apk add --no-cache git
 ARG PHP_API_VERSION="20230831"
 COPY --from=ext-pcov /usr/local/lib/php/extensions/no-debug-non-zts-${PHP_API_VERSION}/pcov.so /usr/local/lib/php/extensions/no-debug-non-zts-${PHP_API_VERSION}/pcov.so
 COPY --from=ext-pcov /usr/local/etc/php/conf.d/docker-php-ext-pcov.ini /usr/local/etc/php/conf.d/docker-php-ext-pcov.ini
+RUN if [ -f /usr/local/etc/php/conf.d/docker-php-ext-swoole.ini ]; then \
+        echo "swoole.enable_fiber_mock=On" >> /usr/local/etc/php/conf.d/docker-php-ext-swoole.ini; \
+    fi
+RUN if [ -f /usr/local/etc/php/conf.d/docker-php-ext-openswoole.ini ]; then \
+        echo "openswoole.use_fiber_context=On" >> /usr/local/etc/php/conf.d/docker-php-ext-openswoole.ini; \
+    fi
 USER app:runner
 ENV COVERAGE="1" \
     COMPOSER_ALLOW_SUPERUSER="1"

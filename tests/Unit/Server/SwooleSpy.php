@@ -64,6 +64,14 @@ final class SwooleSpy implements Swoole
     }
 
     /**
+     * @return array<string, mixed>
+     */
+    public function getCoroutineOptions(): array
+    {
+        return [];
+    }
+
+    /**
      * @return array<string, int>
      */
     public function getRunningModes(): array
@@ -81,5 +89,10 @@ final class SwooleSpy implements Swoole
     public function supportsRunningMode(string $modeName): bool
     {
         return false;
+    }
+
+    public function enableFiberContext(): void
+    {
+        // not needed for tests
     }
 }

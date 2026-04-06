@@ -6,11 +6,15 @@ namespace SwooleBundle\SwooleBundle\Server\Configurator;
 
 use Co;
 use Swoole\Http\Server;
+use SwooleBundle\SwooleBundle\Common\Adapter\Swoole;
 use SwooleBundle\SwooleBundle\Server\HttpServerConfiguration;
 
 final readonly class WithHttpServerConfiguration implements Configurator
 {
-    public function __construct(private HttpServerConfiguration $configuration) {}
+    public function __construct(
+        private HttpServerConfiguration $configuration,
+        private Swoole $swoole,
+    ) {}
 
     public function configure(Server $server): void
     {
@@ -19,6 +23,10 @@ final readonly class WithHttpServerConfiguration implements Configurator
         $defaultSocket = $this->configuration->getServerSocket();
         if ($defaultSocket->port() === 0) {
             $this->configuration->changeServerSocket($defaultSocket->withPort($server->port));
+        }
+
+        if ($this->configuration->isFiberContextEnabled()) {
+            $this->swoole->enableFiberContext();
         }
 
         $maxConcurrency = $this->configuration->getMaxConcurrency();

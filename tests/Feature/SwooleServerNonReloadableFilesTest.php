@@ -11,7 +11,6 @@ final class SwooleServerNonReloadableFilesTest extends ServerTestCase
 {
     protected function setUp(): void
     {
-        $this->markTestSkippedIfXdebugEnabled();
         $this->deleteVarDirectory();
     }
 

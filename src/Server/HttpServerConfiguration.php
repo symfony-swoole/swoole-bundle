@@ -34,6 +34,8 @@ use SwooleBundle\SwooleBundle\Server\Config\Sockets;
  *   group?: string,
  *   http_compression: bool,
  *   http_compression_level: int,
+ *   use_fiber_context?: bool,
+ *   enable_fiber_mock?: bool,
  * }
  */
 interface HttpServerConfiguration
@@ -153,4 +155,6 @@ interface HttpServerConfiguration
     public function daemonize(?string $pidFile = null): void;
 
     public function getTaskWorkerCount(): int;
+
+    public function isFiberContextEnabled(): bool;
 }
