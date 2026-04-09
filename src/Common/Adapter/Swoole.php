@@ -19,6 +19,11 @@ interface Swoole
     public function getCoroutineId(): int;
 
     /**
+     * @return array<string, mixed>
+     */
+    public function getCoroutineOptions(): array;
+
+    /**
      * @return array<string, int>
      */
     public function getRunningModes(): array;
@@ -26,4 +31,6 @@ interface Swoole
     public function getRunningModeFor(string $modeName): int;
 
     public function supportsRunningMode(string $modeName): bool;
+
+    public function enableFiberContext(): void;
 }

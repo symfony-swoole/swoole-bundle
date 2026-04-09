@@ -37,8 +37,6 @@ final class TidewaysProfilerRegisteredTest extends ServerTestCase
 
     public function testProfilerStartStop(): void
     {
-        $this->markTestSkippedIfXdebugEnabled();
-
         if (class_exists(Profiler::class)) {
             $rc = new ReflectionClass(Profiler::class);
 

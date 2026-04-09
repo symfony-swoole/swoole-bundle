@@ -18,8 +18,6 @@ final class SwooleServerCustomPidFileTest extends ServerTestCase
 
     public function testStartServerOnCustomPidFileLocation(): void
     {
-        $this->markTestSkippedIfXdebugEnabled();
-
         $pidFile = $this->generateNotExistingCustomPidFile();
 
         $serverStart = $this->createConsoleProcess([

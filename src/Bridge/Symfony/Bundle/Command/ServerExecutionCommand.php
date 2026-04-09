@@ -11,7 +11,6 @@ use InvalidArgumentException;
 use Override;
 use Swoole\Http\Server;
 use SwooleBundle\SwooleBundle\Common\System\System;
-use SwooleBundle\SwooleBundle\Common\XdebugHandler\XdebugHandler;
 use SwooleBundle\SwooleBundle\Server\Config\Socket;
 use SwooleBundle\SwooleBundle\Server\Configurator\Configurator;
 use SwooleBundle\SwooleBundle\Server\HttpServer;
@@ -139,8 +138,6 @@ abstract class ServerExecutionCommand extends Command
     final protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
-
-        $this->ensureXdebugDisabled($io);
         $this->prepareServerConfiguration($this->serverConfiguration, $input);
 
         if ($this->server->isRunning()) {
@@ -281,6 +278,7 @@ abstract class ServerExecutionCommand extends Command
             ['user:group', $serverConfiguration->getUser() . ':' . $serverConfiguration->getGroup()],
             ['running_mode', $serverConfiguration->getRunningMode()],
             ['coroutines', $serverConfiguration->getCoroutinesEnabled() ? 'enabled' : 'disabled'],
+            ['fiber_context', $serverConfiguration->isFiberContextEnabled() ? 'enabled' : 'disabled'],
             ['worker_count', (string) $serverConfiguration->getWorkerCount()],
             ['task_worker_count', (string) $serverConfiguration->getTaskWorkerCount()],
             ['reactor_count', (string) $serverConfiguration->getReactorCount()],
@@ -333,48 +331,6 @@ abstract class ServerExecutionCommand extends Command
     {
         return $this->serverConfiguration->hasPublicDir() ? $this->serverConfiguration->getPublicDir() :
             $this->getProjectDirectory() . '/public';
-    }
-
-    private function ensureXdebugDisabled(SymfonyStyle $io): void
-    {
-        $xdebugHandler = new XdebugHandler();
-        if (!$xdebugHandler->shouldRestart()) {
-            return;
-        }
-
-        if ($xdebugHandler->canBeRestarted()) {
-            $restartedProcess = $xdebugHandler->prepareRestartedProcess();
-            $xdebugHandler->forwardSignals($restartedProcess);
-
-            $io->note('Restarting command without Xdebug..');
-            $io->comment(sprintf(
-                "%s\n%s",
-                'Swoole is incompatible with Xdebug. '
-                . ' Check https://github.com/swoole/swoole-src/issues/1681 for more information.',
-                sprintf('Set environment variable "%s=1" to use it anyway.', $xdebugHandler->allowXdebugEnvName())
-            ));
-
-            if ($this->testing) {
-                return;
-            }
-
-            $restartedProcess->start();
-
-            foreach ($restartedProcess as $processOutput) {
-                echo $processOutput;
-            }
-
-            exit($restartedProcess->getExitCode());
-        }
-
-        $io->warning(
-            sprintf(
-                "Xdebug is enabled! Command could not be restarted automatically due to lack of \"pcntl\" "
-                . "extension.\nPlease either disable Xdebug or set environment variable \"%s=1\" "
-                . "to disable this message.",
-                $xdebugHandler->allowXdebugEnvName()
-            )
-        );
     }
 
     private function makeSwooleHttpServer(): Server

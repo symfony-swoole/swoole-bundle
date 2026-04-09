@@ -69,6 +69,7 @@ use ZEngine\Core;
  * @phpstan-type SwooleSettings = array{
  *   hook_flags?: int,
  *   max_coroutine?: int,
+ *   fiber_context?: 'auto'|'off'|'on'
  * }
  * @phpstan-type HttpServerRuntimeConfig = array{
  *   serve_static: 'auto'|'off'|'advanced'|'default',
@@ -91,6 +92,9 @@ use ZEngine\Core;
  *   },
  * }
  * @phpstan-type PlatformConfig = array{
+ *   fiber_context: array{
+ *     enabled: 'auto'|'off'|'on',
+ *   },
  *   coroutines: array{
  *     enabled: bool,
  *     max_concurrency?: int|null,
@@ -153,8 +157,8 @@ use ZEngine\Core;
  * }
  * @phpstan-type BundleConfig = array{
  *   http_server: HttpServerConfig,
- *   task_worker?: TaskWorkerConfig|null,
- *   platform?: PlatformConfig|null,
+ *   task_worker?: TaskWorkerConfig,
+ *   platform?: PlatformConfig,
  * }
  */
 final class SwooleExtension extends Extension
@@ -186,14 +190,20 @@ final class SwooleExtension extends Extension
             $maxConcurrency = $config['platform']['coroutines']['max_concurrency'];
         }
 
-        $swooleSettings = isset($config['platform'])
+        $fiberContext = 'auto';
+
+        if (isset($config['platform']['fiber_context']['enabled'])) {
+            $fiberContext = $config['platform']['fiber_context']['enabled'];
+        }
+
+        $swooleSettings = isset($config['platform']) // @phpstan-ignore-line
             ? $this->configurePlatform($config['platform'], $maxConcurrency, $container)
             : [];
         $swooleSettings += $this->configureHttpServer($config['http_server'], $container);
         $swooleSettings += isset($config['task_worker'])
             ? $this->configureTaskWorker($config['task_worker'], $container)
             : [];
-        $this->assignSwooleConfiguration($swooleSettings, $runningMode, $maxConcurrency, $container);
+        $this->assignSwooleConfiguration($swooleSettings, $runningMode, $maxConcurrency, $fiberContext, $container);
     }
 
     #[Override]
@@ -692,6 +702,7 @@ final class SwooleExtension extends Extension
         array $swooleSettings,
         string $runningMode,
         ?int $maxConcurrency,
+        string $fiberContext,
         ContainerBuilder $container,
     ): void {
         $container->getDefinition(HttpServerConfiguration::class)
@@ -699,7 +710,8 @@ final class SwooleExtension extends Extension
             ->addArgument(new Reference(Sockets::class))
             ->addArgument($runningMode)
             ->addArgument($swooleSettings)
-            ->addArgument($maxConcurrency);
+            ->addArgument($maxConcurrency)
+            ->addArgument($fiberContext);
     }
 
     private function isProd(ContainerBuilder $container): bool

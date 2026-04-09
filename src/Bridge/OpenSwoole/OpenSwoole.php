@@ -38,6 +38,14 @@ final class OpenSwoole extends CommonSwoole
     }
 
     /**
+     * @return array<string, mixed>
+     */
+    public function getCoroutineOptions(): array
+    {
+        return Coroutine::getOptions();
+    }
+
+    /**
      * @return array<string, int>
      */
     public function getRunningModes(): array
@@ -52,5 +60,10 @@ final class OpenSwoole extends CommonSwoole
         }
 
         return $modes;
+    }
+
+    public function enableFiberContext(): void
+    {
+        Coroutine::set(['use_fiber_context' => true]);
     }
 }

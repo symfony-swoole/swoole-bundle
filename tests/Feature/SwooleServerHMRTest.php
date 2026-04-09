@@ -19,7 +19,6 @@ final class SwooleServerHMRTest extends ServerTestCase
 
     protected function setUp(): void
     {
-        $this->markTestSkippedIfXdebugEnabled();
         $this->markTestSkippedIfInotifyDisabled();
         $this->deleteVarDirectory();
     }

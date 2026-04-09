@@ -12,7 +12,6 @@ final class SymfonyProfilerTest extends ServerTestCase
 {
     protected function setUp(): void
     {
-        $this->markTestSkippedIfXdebugEnabled();
         $this->deleteVarDirectory();
     }
 

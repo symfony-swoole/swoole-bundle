@@ -11,7 +11,6 @@ final class SwooleServerConfigurationTest extends ServerTestCase
 {
     protected function setUp(): void
     {
-        $this->markTestSkippedIfXdebugEnabled();
         $this->deleteVarDirectory();
     }
 
@@ -41,14 +40,16 @@ final class SwooleServerConfigurationTest extends ServerTestCase
             $this->assertTrue($client->connect(waitIfNoConnection: true));
             /** @var array{
              *    body: array{
-             *     upload_tmp_dir: string
+             *      server: array{
+             *        upload_tmp_dir: string
+             *      }
              *    }
              *  } $response
              */
             $response = $client->send('/settings')['response'];
             $this->assertEquals(
                 '/usr/src/app/tests/Fixtures/Symfony/app/public/uploads',
-                $response['body']['upload_tmp_dir'],
+                $response['body']['server']['upload_tmp_dir'],
             );
         });
     }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Bridge\Swoole;
 
+use RuntimeException;
 use Swoole\Coroutine;
 use Swoole\Runtime;
 use SwooleBundle\SwooleBundle\Common\Adapter\CommonSwoole;
@@ -37,6 +38,14 @@ final class Swoole extends CommonSwoole
     }
 
     /**
+     * @return array<string, mixed>
+     */
+    public function getCoroutineOptions(): array
+    {
+        return Coroutine::getOptions();
+    }
+
+    /**
      * @return array<string, int>
      */
     public function getRunningModes(): array
@@ -46,5 +55,13 @@ final class Swoole extends CommonSwoole
             'reactor' => SWOOLE_BASE,
             // 'thread' => SWOOLE_THREAD,
         ];
+    }
+
+    public function enableFiberContext(): void
+    {
+        throw new RuntimeException(
+            'Enabling fiber context is not supported for Swoole in runtime mode. '
+            . 'Use swoole.enable_fiber_mock=On in swoole ini to enable the fiber context.',
+        );
     }
 }

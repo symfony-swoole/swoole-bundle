@@ -35,6 +35,7 @@ use SwooleBundle\SwooleBundle\Server\Config\Sockets;
  *   log_level?: string,
  *   user?: string,
  *   group?: string,
+ *   fiber_context?: 'auto'|'off'|'on',
  * }
  * @phpstan-import-type SwooleSettingsShape from HttpServerConfiguration
  * @todo Create interface and split this class
@@ -134,6 +135,7 @@ final class DefaultHttpServerConfiguration implements HttpServerConfiguration
      *                        - hook_flags: coroutine hook flags
      *                        - user: operating system user of the worker and task worker child processes
      *                        - group: group of the worker and task worker child processes
+     *                        - fiber_context: enable fiber context
      * @throws AssertionFailedException
      */
     public function __construct(
@@ -142,7 +144,9 @@ final class DefaultHttpServerConfiguration implements HttpServerConfiguration
         private string $runningMode = 'process',
         array $settings = [],
         private readonly ?int $maxConcurrency = null,
+        private readonly string $fiberContext = 'auto',
     ) {
+        Assertion::inArray($fiberContext, ['auto', 'off', 'on']);
         $this->changeRunningMode($runningMode);
         $this->initializeSettings($settings);
     }
@@ -338,7 +342,7 @@ final class DefaultHttpServerConfiguration implements HttpServerConfiguration
     }
 
     /**
-     * @return SwooleSettingsShape
+     * @return SwooleSettingsInputShape
      */
     public function getSettings(): array
     {
@@ -434,6 +438,24 @@ final class DefaultHttpServerConfiguration implements HttpServerConfiguration
     public function getTaskWorkerCount(): int
     {
         return $this->settings[self::SWOOLE_HTTP_SERVER_CONFIG_TASK_WORKER_COUNT] ?? 0;
+    }
+
+    public function isFiberContextEnabled(): bool
+    {
+        if (
+            $this->fiberContext === 'auto' &&
+            extension_loaded('openswoole') &&
+            (
+                extension_loaded('xdebug') ||
+                extension_loaded('pcov') ||
+                extension_loaded('blackfire') ||
+                extension_loaded('tideways')
+            )
+        ) {
+            return true;
+        }
+
+        return $this->fiberContext === 'on';
     }
 
     private function changeRunningMode(string $runningMode): void

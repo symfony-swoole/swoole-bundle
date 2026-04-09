@@ -25,8 +25,6 @@ use Symfony\Component\Process\Process;
 abstract class ServerTestCase extends KernelTestCase
 {
     final public const string FIXTURE_RESOURCES_DIR = __DIR__ . '/../../../resources';
-    final public const string SWOOLE_XDEBUG_CORO_WARNING_MESSAGE =
-        'go(): Using Xdebug in coroutines is extremely dangerous, please notice that it may lead to coredump!';
     private const string COMMAND = './console';
     private const string WORKING_DIRECTORY = __DIR__ . '/../../app';
 
@@ -67,9 +65,7 @@ abstract class ServerTestCase extends KernelTestCase
         try {
             $coroutinePool->run();
         } catch (RuntimeException $runtimeException) {
-            if ($runtimeException->getMessage() !== self::SWOOLE_XDEBUG_CORO_WARNING_MESSAGE) {
-                throw $runtimeException;
-            }
+            throw $runtimeException;
         }
     }
 
@@ -159,22 +155,6 @@ abstract class ServerTestCase extends KernelTestCase
         ?float $timeout = 60.0,
     ): Process {
         $command = array_merge([self::COMMAND], $args);
-
-        if (!array_key_exists('SWOOLE_TEST_XDEBUG_RESTART', $envs)) {
-            if (self::coverageEnabled()) {
-                $envs['COVERAGE'] = '1';
-                $envs['APP_ENV'] = self::resolveEnvironment($envs['APP_ENV'] ?? null);
-
-                if (!array_key_exists('APP_DEBUG', $envs) && $envs['APP_ENV'] === 'prod_cov') {
-                    $envs['APP_DEBUG'] = '0';
-                }
-            }
-
-            if (!array_key_exists('SWOOLE_ALLOW_XDEBUG', $envs)) {
-                $envs['SWOOLE_ALLOW_XDEBUG'] = '1';
-            }
-        }
-
         $referenceFile = realpath(__DIR__ . '/../../app/config/reference.php');
 
         if (is_string($referenceFile) && file_exists($referenceFile)) {
@@ -256,18 +236,6 @@ abstract class ServerTestCase extends KernelTestCase
         }
 
         return $this->swoole;
-    }
-
-    protected function markTestSkippedIfXdebugEnabled(): void
-    {
-        if (!extension_loaded('xdebug')) {
-            return;
-        }
-
-        self::markTestSkipped(
-            'Test is incompatible with Xdebug extension. Please disable it and try again. '
-            . 'To generate code coverage use "pcov" extension.'
-        );
     }
 
     protected function markTestSkippedIfInotifyDisabled(): void

@@ -152,6 +152,8 @@ swoole:
     settings:
       worker_count: 2 # one of: positive number, "auto", or null to disable creation of task worker processes (default: null)
   platform:
+    fiber_context: 
+      enabled: auto # can be one of: auto, true, false (default: auto, runtime change only works for openswoole, for swoole use ini setting to enable)
     coroutines:
       enabled: false
       # default false. when enabled, swoole coroutine hooks for IO apis get activated

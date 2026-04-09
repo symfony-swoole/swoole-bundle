@@ -11,7 +11,6 @@ final class SwooleServerCompressionTest extends ServerTestCase
 {
     protected function setUp(): void
     {
-        $this->markTestSkippedIfXdebugEnabled();
         $this->deleteVarDirectory();
     }
 
@@ -41,16 +40,18 @@ final class SwooleServerCompressionTest extends ServerTestCase
             $this->assertTrue($client->connect(waitIfNoConnection: true));
             /** @var array{
              *    body: array{
-             *     http_compression: bool,
-             *     http_compression_level: int
+             *      server: array{
+             *        http_compression: bool,
+             *        http_compression_level: int
+             *      }
              *    }
              *  } $response
              */
             $response = $client->send('/settings')['response'];
-            $this->assertTrue($response['body']['http_compression']);
+            $this->assertTrue($response['body']['server']['http_compression']);
             $this->assertEquals(
                 4,
-                $response['body']['http_compression_level'],
+                $response['body']['server']['http_compression_level'],
             );
         });
     }
@@ -77,17 +78,19 @@ final class SwooleServerCompressionTest extends ServerTestCase
             $client = HttpClient::fromDomain('localhost', 9999, false);
             $this->assertTrue($client->connect(waitIfNoConnection: true));
             /** @var array{
-             *    body: array{
-             *     http_compression: bool,
-             *     http_compression_level: int
-             *    }
-             *  } $response
+             *   body: array{
+             *     server: array{
+             *       http_compression: bool,
+             *       http_compression_level: int
+             *     }
+             *   }
+             * } $response
              */
             $response = $client->send('/settings')['response'];
-            $this->assertFalse($response['body']['http_compression']);
+            $this->assertFalse($response['body']['server']['http_compression']);
             $this->assertEquals(
                 4,
-                $response['body']['http_compression_level'],
+                $response['body']['server']['http_compression_level'],
             );
         });
     }

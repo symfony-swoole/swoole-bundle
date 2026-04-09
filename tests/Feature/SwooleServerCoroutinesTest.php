@@ -18,7 +18,6 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
 {
     protected function setUp(): void
     {
-        $this->markTestSkippedIfXdebugEnabled();
         $this->deleteVarDirectory();
     }
 
@@ -527,6 +526,66 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
         self::assertSame(3, $count);
     }
 
+    #[DataProvider('coroutineTestDataProviderForFiberContext')]
+    public function testFiberContextEnabled(string $env, bool $enabled): void
+    {
+        if (!extension_loaded('openswoole')) {
+            $this->markTestSkipped('This test only supports OpenSwoole.');
+        }
+
+        $clearCache = $this->createConsoleProcess(['cache:clear'], ['APP_ENV' => $env]);
+        $clearCache->setTimeout(5);
+        $clearCache->disableOutput();
+        $clearCache->run();
+
+        $serverStart = $this->createConsoleProcess(
+            [
+                'swoole:server:start',
+                '--host=localhost',
+                '--port=9999',
+            ],
+            [
+                'APP_ENV' => $env,
+            ]
+        );
+
+        $serverStart->setTimeout(3);
+        $serverStart->disableOutput();
+        $serverStart->run();
+
+        $this->assertProcessSucceeded($serverStart);
+
+        $this->runAsCoroutineAndWait(function () use ($enabled): void {
+            $this->deferServerStop();
+
+            $client = HttpClient::fromDomain('localhost', 9999, false);
+            $this->assertTrue($client->connect(waitIfNoConnection: true));
+
+            $fiberKey = extension_loaded('openswoole') ? 'use_fiber_context' : 'enable_fiber_mock';
+
+            /** @var array{
+             *    body: array{
+             *      options: array{
+             *        enable_fiber_mock?: bool,
+             *        use_fiber_context?: bool,
+             *      }
+             *    }
+             *  } $response
+             */
+            $response = $client->send('/settings')['response'];
+
+            if ($enabled) {
+                $this->assertArrayHasKey($fiberKey, $response['body']['options']);
+                $this->assertEquals(
+                    $enabled,
+                    $response['body']['options'][$fiberKey],
+                );
+            } else {
+                $this->assertArrayNotHasKey($fiberKey, $response['body']['options']);
+            }
+        });
+    }
+
     /**
      * @return array<array<array{
      *   APP_ENV: string,
@@ -638,6 +697,17 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
         }
 
         return $configs;
+    }
+
+    /**
+     * @return array<array{string, bool}>
+     */
+    public static function coroutineTestDataProviderForFiberContext(): array
+    {
+        return [
+            ['coroutines', extension_loaded('xdebug') || extension_loaded('pcov')],
+            ['coroutines_fiber', true],
+        ];
     }
 
     /**

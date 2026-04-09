@@ -309,6 +309,7 @@ return static function (ContainerConfigurator $containerConfigurator): void {
 
     $services->set(WithHttpServerConfiguration::class)
         ->arg('$configuration', service(HttpServerConfiguration::class))
+        ->arg('$swoole', service(Swoole::class))
         ->tag('swoole_bundle.server_configurator');
 
     $services->set(WithServerShutdownHandler::class)

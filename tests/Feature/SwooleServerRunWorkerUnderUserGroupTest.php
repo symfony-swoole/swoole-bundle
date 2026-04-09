@@ -9,11 +9,6 @@ use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Test\ServerTestC
 
 final class SwooleServerRunWorkerUnderUserGroupTest extends ServerTestCase
 {
-    protected function setUp(): void
-    {
-        $this->markTestSkippedIfXdebugEnabled();
-    }
-
     public function testRunWorkerUnderCertainUserAndGroup(): void
     {
         $env = 'user_group';
