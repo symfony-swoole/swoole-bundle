@@ -36,7 +36,7 @@ final class WithProfilerTest extends TestCase
 
     public function testProfiler(): void
     {
-        $swooleServer = $this->createMock(Server::class);
+        $swooleServer = $this->createStub(Server::class);
 
         $this->configurationProphecy
             ->activate($swooleServer)

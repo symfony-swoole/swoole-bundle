@@ -4,15 +4,19 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Tests\Feature;
 
-use co;
+use Co;
+use Override;
 use SwooleBundle\SwooleBundle\Client\Exception\ClientConnectionErrorException;
 use SwooleBundle\SwooleBundle\Client\HttpClient;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Test\ServerTestCase;
 
 final class SwooleServerStartStopCommandTest extends ServerTestCase
 {
+    #[Override]
     protected function setUp(): void
     {
+        parent::setUp();
+
         $this->deleteVarDirectory();
     }
 
@@ -93,7 +97,7 @@ final class SwooleServerStartStopCommandTest extends ServerTestCase
             });
             go(function (): void {
                 // wait for $client to do request
-                co::sleep(1);
+                Co::sleep(1);
                 $this->serverStop(['--no-delay']);
             });
         });

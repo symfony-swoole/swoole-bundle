@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace SwooleBundle\SwooleBundle\Tests\Unit\Bridge\Log;
 
 use DateTimeImmutable;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 use SwooleBundle\SwooleBundle\Bridge\Log\StrftimeToICUFormatMap;
@@ -39,9 +40,7 @@ final class StrftimeToICUFormatMapTest extends TestCase
         ];
     }
 
-    /**
-     * @dataProvider unsupportedFormats
-     */
+    #[DataProvider('unsupportedFormats')]
     public function testRaisesExceptionForUnsupportedFormats(string $format): void
     {
         $this->expectException(RuntimeException::class);

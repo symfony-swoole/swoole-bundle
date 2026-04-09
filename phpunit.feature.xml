@@ -2,7 +2,7 @@
 <!-- https://phpunit.readthedocs.io/en/7.3/configuration.html -->
 <phpunit
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/10.5/phpunit.xsd"
+    xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/12.5/phpunit.xsd"
     colors="true"
     bootstrap="vendor/autoload.php"
     processIsolation="true"

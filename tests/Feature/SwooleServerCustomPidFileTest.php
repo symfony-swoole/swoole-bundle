@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Tests\Feature;
 
+use Override;
 use SwooleBundle\SwooleBundle\Client\HttpClient;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Test\ServerTestCase;
 
 final class SwooleServerCustomPidFileTest extends ServerTestCase
 {
+    #[Override]
     protected function setUp(): void
     {
         parent::setUp();

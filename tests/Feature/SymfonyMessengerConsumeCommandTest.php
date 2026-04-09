@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Tests\Feature;
 
+use Override;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Messenger\Exception\ReceiverNotAvailableException;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Test\ServerTestCase;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
@@ -11,8 +12,11 @@ use Symfony\Component\Console\Tester\CommandTester;
 
 final class SymfonyMessengerConsumeCommandTest extends ServerTestCase
 {
+    #[Override]
     protected function setUp(): void
     {
+        parent::setUp();
+
         $this->deleteVarDirectory();
     }
 

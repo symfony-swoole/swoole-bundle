@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\CoverageBundle\Coverage;
 
+use Assert\Assertion;
 use DateTimeImmutable;
 use SebastianBergmann\CodeCoverage\CodeCoverage;
 use SebastianBergmann\CodeCoverage\Report\PHP;
+use SebastianBergmann\FileIterator\Facade;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Contracts\Service\ResetInterface;
 
@@ -102,7 +104,13 @@ final class CodeCoverageManager implements ResetInterface
             ? $parameterBag->get('coverage.dir')
             : sprintf('%s/%s', dirname(__DIR__, 5), 'src');
 
-        $codeCoverage->filter()->includeDirectory($coverageDir);
+        Assertion::string($coverageDir);
+        Assertion::notEmpty($coverageDir);
+        Assertion::directory($coverageDir);
+
+        foreach ((new Facade())->getFilesAsArray($coverageDir, '.php') as $file) {
+            $codeCoverage->filter()->includeFile($file);
+        }
     }
 
     private function generateTestName(): string

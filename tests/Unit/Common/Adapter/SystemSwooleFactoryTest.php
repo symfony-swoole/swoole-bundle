@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace SwooleBundle\SwooleBundle\Tests\Unit\Common\Adapter;
 
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 use SwooleBundle\SwooleBundle\Bridge\CommonSwoole\SystemSwooleFactory;
@@ -22,13 +23,16 @@ final class SystemSwooleFactoryTest extends TestCase
             self::markTestSkipped(sprintf('Extension %s is not loaded.', $extension));
         }
 
-        $swooleFactory = $this->createMock(SwooleFactory::class);
-        $openSwooleFactory = $this->createMock(SwooleFactory::class);
+        $swooleFactory = $extension === Extension::SWOOLE ? $this->createMock(SwooleFactory::class) :
+            $this->createStub(SwooleFactory::class);
+        $openSwooleFactory = $extension === Extension::OPENSWOOLE ? $this->createMock(SwooleFactory::class) :
+            $this->createStub(SwooleFactory::class);
 
+        /** @var MockObject $expectingFactory */
         $expectingFactory = $extension === Extension::SWOOLE ? $swooleFactory : $openSwooleFactory;
         $expectingFactory->expects($this->once())
             ->method('newInstance')
-            ->willReturn($this->createMock(Swoole::class));
+            ->willReturn($this->createStub(Swoole::class));
 
         $factory = new SystemSwooleFactory(
             System::create(),
