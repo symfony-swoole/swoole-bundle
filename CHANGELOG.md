@@ -1,3 +1,21 @@
+# [0.26.0](https://github.com/symfony-swoole/swoole-bundle/compare/v0.25.1...v0.26.0) (2026-04-10)
+
+[Full changelog](https://github.com/symfony-swoole/swoole-bundle/compare/v0.25.1...v0.26.0)
+
+### Bug Fixes
+
+* **proxifier:** add interface_exists in StatafulServicePass ([#223](https://github.com/symfony-swoole/swoole-bundle/issues/223)) ([fe6f2fd](https://github.com/symfony-swoole/swoole-bundle/commit/fe6f2fdabc4e7585b0173c1732a4fe5df435b312))
+
+
+### Features
+
+* **fiber_context:** enabled fiber context activation for swoole and openswoole, removed xdebug support hacks ([#227](https://github.com/symfony-swoole/swoole-bundle/issues/227)) ([43a853b](https://github.com/symfony-swoole/swoole-bundle/commit/43a853b65c89d625bcc1b87a56e36de87865b670))
+* **iouring:** iouring support for swoole and openswoole ([#226](https://github.com/symfony-swoole/swoole-bundle/issues/226)) ([cde9007](https://github.com/symfony-swoole/swoole-bundle/commit/cde90072fda46b53fded940cd91927e381dce448))
+* **php8.5:** upgrade to openswoole 26.2.0 ([#222](https://github.com/symfony-swoole/swoole-bundle/issues/222)) ([e5d95d6](https://github.com/symfony-swoole/swoole-bundle/commit/e5d95d69d5744b3846ea98e659253db5ece11a0b))
+* **php8.5:** upgrade to php 8.5, symfony support for v7.4, removed support for 7.2 and 7.3, static analysis tools upgrade ([#220](https://github.com/symfony-swoole/swoole-bundle/issues/220)) ([65e316e](https://github.com/symfony-swoole/swoole-bundle/commit/65e316ea8e6fd409ece4eaf486e66e6eca10076e))
+* **profiler:** full profiler support + service lifecycle refactor ([#224](https://github.com/symfony-swoole/swoole-bundle/issues/224)) ([c35a224](https://github.com/symfony-swoole/swoole-bundle/commit/c35a2241094a3090cc8e0d9f9e08f29d5da91a58))
+* **swoole:** final upgrade to swoole 6.2 ([#225](https://github.com/symfony-swoole/swoole-bundle/issues/225)) ([7e30438](https://github.com/symfony-swoole/swoole-bundle/commit/7e3043836aab15b46e1091a07dc1e389bcaa6faa))
+
 ## [0.25.1](https://github.com/symfony-swoole/swoole-bundle/compare/v0.25.0...v0.25.1) (2025-11-30)
 
 [Full changelog](https://github.com/symfony-swoole/swoole-bundle/compare/v0.25.0...v0.25.1)
