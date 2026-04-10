@@ -20,8 +20,8 @@ final class TaskController
     #[Route(path: '/message/dispatch', methods: ['GET', 'POST'])]
     public function dispatchMessage(MessageBusInterface $bus, Request $request): Response
     {
-        $fileName = $request->get('fileName', 'test-default-file.txt');
-        $content = $request->get('content', (new DateTimeImmutable())->format(DATE_ATOM));
+        $fileName = $request->request->get('fileName', 'test-default-file.txt');
+        $content = $request->request->get('content', (new DateTimeImmutable())->format(DATE_ATOM));
         $message = new CreateFileMessage($fileName, $content);
         $bus->dispatch($message);
 

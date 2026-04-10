@@ -83,8 +83,9 @@ final class SwooleServerStartStopCommandTest extends ServerTestCase
 
         $this->runAsCoroutineAndWait(function (): void {
             go(function (): void {
+                sleep(1); // weird behaviour with swoole, connections need some "boot" time
                 $client = HttpClient::fromDomain('localhost', 9999, false);
-                $this->assertTrue($client->connect(5, waitIfNoConnection: true));
+                $this->assertTrue($client->connect(waitIfNoConnection: true));
 
                 try {
                     $response = $client->send('/dummy-sleep')['response'];

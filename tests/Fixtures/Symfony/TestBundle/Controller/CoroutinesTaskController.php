@@ -20,9 +20,9 @@ final class CoroutinesTaskController
     #[Route(path: '/coroutines/message/sleep-and-append', methods: ['GET', 'POST'])]
     public function dispatchSleepAndAppendMessage(MessageBusInterface $bus, Request $request): Response
     {
-        $fileName = $request->get('fileName', 'test-default-file.txt');
-        $sleep = (int) $request->get('sleep', 500);
-        $append = $request->get('append', '__DEFAULT__');
+        $fileName = $request->query->get('fileName', 'test-default-file.txt');
+        $sleep = (int) $request->query->get('sleep', 500);
+        $append = $request->query->get('append', '__DEFAULT__');
         $message = new SleepAndAppend($fileName, $sleep, $append);
         $bus->dispatch($message);
 

@@ -18,7 +18,7 @@ final readonly class CloudFrontRequestFactory implements RequestFactory
     {
         $httpFoundationRequest = $this->decorated->make($request);
         if ($httpFoundationRequest->headers->has('cloudfront_forwarded_proto')) {
-            /** @var array<string>|string $cloudFrontForwardedProto */
+            /** @var string $cloudFrontForwardedProto */
             $cloudFrontForwardedProto = $httpFoundationRequest->headers->get('cloudfront_forwarded_proto');
             $httpFoundationRequest->headers->set('x_forwarded_proto', $cloudFrontForwardedProto);
         }

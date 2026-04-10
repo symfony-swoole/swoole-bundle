@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Composer\InstalledVersions;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 
 return static function (ContainerConfigurator $containerConfigurator): void {
@@ -9,7 +10,7 @@ return static function (ContainerConfigurator $containerConfigurator): void {
 
     $parameters->set('env(DATABASE_HOST)', 'db');
 
-    $containerConfigurator->extension('doctrine', [
+    $doctrineConfig = [
         'dbal' => [
             'default_connection' => 'default',
             'connections' => [
@@ -26,7 +27,6 @@ return static function (ContainerConfigurator $containerConfigurator): void {
         ],
         'orm' => [
             'default_entity_manager' => 'default',
-            'auto_generate_proxy_classes' => '%kernel.debug%',
             'entity_managers' => [
                 'default' => [
                     'connection' => 'default',
@@ -44,5 +44,13 @@ return static function (ContainerConfigurator $containerConfigurator): void {
                 ],
             ],
         ],
-    ]);
+    ];
+
+    $doctrineBundleVersion = InstalledVersions::getVersion('doctrine/doctrine-bundle');
+
+    if (version_compare($doctrineBundleVersion, '3.0.0', '<')) {
+        $doctrineConfig['orm']['auto_generate_proxy_classes'] = '%kernel.debug%';
+    }
+
+    $containerConfigurator->extension('doctrine', $doctrineConfig);
 };
