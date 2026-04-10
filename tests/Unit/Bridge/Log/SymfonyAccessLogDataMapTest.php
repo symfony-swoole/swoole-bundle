@@ -7,7 +7,7 @@ namespace SwooleBundle\SwooleBundle\Tests\Unit\Bridge\Log;
 use DateTimeImmutable;
 use DateTimeZone;
 use PHPUnit\Framework\Attributes\DataProvider;
-use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
 use SwooleBundle\SwooleBundle\Bridge\Log\SymfonyAccessLogDataMap;
 use Symfony\Component\HttpFoundation\HeaderBag;
@@ -18,7 +18,7 @@ use Symfony\Component\HttpFoundation\ServerBag;
 final class SymfonyAccessLogDataMapTest extends TestCase
 {
     /**
-     * @var HttpFoundationRequest|MockObject
+     * @var HttpFoundationRequest|Stub
      */
     private $request;
 
@@ -26,7 +26,7 @@ final class SymfonyAccessLogDataMapTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->request = $this->createMock(HttpFoundationRequest::class);
+        $this->request = $this->createStub(HttpFoundationRequest::class);
         $this->response = new HttpFoundationResponse('My response', 200);
     }
 

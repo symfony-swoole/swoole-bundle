@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Tests\Feature;
 
+use Override;
 use ReflectionClass;
 use SwooleBundle\SwooleBundle\Bridge\Tideways\Apm\Apm;
 use SwooleBundle\SwooleBundle\Bridge\Tideways\Apm\WithApm;
@@ -13,6 +14,7 @@ use Tideways\Profiler;
 
 final class TidewaysProfilerRegisteredTest extends ServerTestCase
 {
+    #[Override]
     protected function setUp(): void
     {
         parent::setUp();

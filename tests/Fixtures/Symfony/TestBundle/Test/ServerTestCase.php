@@ -21,6 +21,7 @@ use Symfony\Component\HttpKernel\Kernel;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Process\Exception\ProcessFailedException;
 use Symfony\Component\Process\Process;
+use Throwable;
 
 abstract class ServerTestCase extends KernelTestCase
 {
@@ -30,10 +31,25 @@ abstract class ServerTestCase extends KernelTestCase
 
     protected ?Swoole $swoole = null;
 
+    /**
+     * @var callable(Throwable): void|null
+     */
+    private $previousHandler;
+
+    #[Override]
+    protected function setUp(): void
+    {
+        // Capture the existing handler while setting your mock/test handler
+        $this->previousHandler = set_exception_handler(static function ($e): void {});
+    }
+
     #[Override]
     protected function tearDown(): void
     {
         parent::tearDown();
+
+        // Restore the original handler
+        set_exception_handler($this->previousHandler);
 
         // Make sure everything is stopped
         $this->killAllProcessesListeningOnPort(9999);

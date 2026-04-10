@@ -6,6 +6,7 @@ namespace SwooleBundle\SwooleBundle\Tests\Feature;
 
 use Co;
 use Doctrine\ORM\EntityManager;
+use Override;
 use PHPUnit\Framework\Attributes\DataProvider;
 use SwooleBundle\SwooleBundle\Client\HttpClient;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestAppKernel;
@@ -16,8 +17,11 @@ use Symfony\Bundle\FrameworkBundle\Console\Application;
 
 final class SwooleServerCoroutinesTest extends ServerTestCase
 {
+    #[Override]
     protected function setUp(): void
     {
+        parent::setUp();
+
         $this->deleteVarDirectory();
     }
 

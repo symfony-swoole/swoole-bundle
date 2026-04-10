@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Tests\Feature;
 
+use Override;
 use Swoole\Coroutine;
 use SwooleBundle\SwooleBundle\Client\Http;
 use SwooleBundle\SwooleBundle\Client\HttpClient;
@@ -18,8 +19,11 @@ final class SwooleServerReloadViaHttpApiTest extends ServerTestCase
     private const string CONTROLLER_TEMPLATE_DEST = __DIR__
         . '/../Fixtures/Symfony/TestBundle/Controller/ReplacedContentTestController.php';
 
+    #[Override]
     protected function setUp(): void
     {
+        parent::setUp();
+
         $this->deleteVarDirectory();
     }
 
