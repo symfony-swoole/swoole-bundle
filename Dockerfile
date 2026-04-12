@@ -141,6 +141,9 @@ ENTRYPOINT ["./tests/Fixtures/Symfony/app/console"]
 CMD ["swoole:server:run"]
 
 FROM base-coverage-xdebug AS coverage-xdebug
+USER root:root
+RUN echo "memory_limit=256M" > /usr/local/etc/php/php.ini
+USER app:runner
 ENTRYPOINT ["composer"]
 CMD ["unit-code-coverage"]
 

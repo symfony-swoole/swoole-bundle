@@ -12,6 +12,7 @@ final class OverrideDoctrineCompilerPass implements CompilerPassInterface
 {
     public function process(ContainerBuilder $container): void
     {
-        $container->setParameter('doctrine.class', ResetCountingRegistry::class);
+        $doctrineRegistryDef = $container->findDefinition('doctrine');
+        $doctrineRegistryDef->setClass(ResetCountingRegistry::class);
     }
 }
