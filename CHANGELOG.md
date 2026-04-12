@@ -1,3 +1,11 @@
+# [0.27.0](https://github.com/symfony-swoole/swoole-bundle/compare/v0.26.0...v0.27.0) (2026-04-12)
+
+[Full changelog](https://github.com/symfony-swoole/swoole-bundle/compare/v0.26.0...v0.27.0)
+
+### Features
+
+* **composer:** added suppport for symfony 8.0, removed support for symfony 6.4 ([#231](https://github.com/symfony-swoole/swoole-bundle/issues/231)) ([5e701f9](https://github.com/symfony-swoole/swoole-bundle/commit/5e701f9c07d2e495b96f224127bc9513780b5a9d))
+
 # [0.26.0](https://github.com/symfony-swoole/swoole-bundle/compare/v0.25.1...v0.26.0) (2026-04-10)
 
 [Full changelog](https://github.com/symfony-swoole/swoole-bundle/compare/v0.25.1...v0.26.0)
