@@ -20,14 +20,4 @@ enum ContentType: string
     {
         return $this === self::GRPC_JSON;
     }
-
-    /**
-     * Get all valid content type strings.
-     *
-     * @return array<string>
-     */
-    public static function validTypes(): array
-    {
-        return array_column(self::cases(), 'value');
-    }
 }

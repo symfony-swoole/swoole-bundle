@@ -42,8 +42,7 @@ final readonly class Context
             );
         }
 
-        $validContentTypes = ContentType::validTypes();
-        if (!in_array($this->request->header['content-type'], $validContentTypes, true)) {
+        if (ContentType::tryFrom($this->request->header['content-type']) === null) {
             throw InvokeException::create(
                 "Content-type not supported: {$this->request->header['content-type']}",
                 Status::INTERNAL

@@ -27,7 +27,8 @@ final class GrpcMessageViewSubscriber implements EventSubscriberInterface
         }
 
         $contentType = $event->getRequest()->headers->get('content-type') ?? ContentType::GRPC->value;
-        $event->setResponse(new GrpcResponse($result, $this->serializer, $contentType));
+        $serializedMessage = $this->serializer->serialize($result, $contentType);
+        $event->setResponse(new GrpcResponse($serializedMessage));
     }
 
     /**

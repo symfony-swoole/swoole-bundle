@@ -7,7 +7,6 @@ namespace SwooleBundle\SwooleBundle\Server\Grpc\Serialization;
 use Exception;
 use Google\Protobuf\Internal\Message;
 use SwooleBundle\SwooleBundle\Server\Grpc\Enum\ContentType;
-use ValueError;
 
 /**
  * Protobuf serializer/deserializer for gRPC Message.
@@ -51,11 +50,6 @@ final class ProtobufSerializerDeserializer implements PayloadSerializer, Payload
      */
     private function getContentType(string $contentType): ContentType
     {
-        try {
-            return ContentType::from($contentType);
-        } catch (ValueError) {
-            // Default to protobuf if content type is invalid
-            return ContentType::GRPC;
-        }
+        return ContentType::tryFrom($contentType) ?? ContentType::GRPC;
     }
 }
