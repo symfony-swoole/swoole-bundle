@@ -13,6 +13,7 @@ parameters:
         # Open/Swoole problems when only one extension installed
         - tests/Unit/Common/System/SystemTest.php
         - tests/Unit/Common/System/VersionTest.php
+        - tests/Fixtures/Symfony/app/config/reference.php (?)
     ignoreErrors:
         # Put false positives here
         # Symfony configuration files

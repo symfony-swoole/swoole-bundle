@@ -12,7 +12,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
  *   trustedProxies?: array<string>,
  *   trustAllProxies?: bool,
  *   requestLimit?: int,
- *   trustedHeaderSet?: int,
+ *   trustedHeaderSet?: int<0, 63>,
  *   symfonyStyle?: SymfonyStyle,
  *   nonReloadableFiles?: array<string>,
  * }

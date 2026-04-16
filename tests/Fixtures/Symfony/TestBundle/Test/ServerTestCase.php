@@ -48,12 +48,12 @@ abstract class ServerTestCase extends KernelTestCase
     {
         parent::tearDown();
 
-        // Restore the original handler
-        set_exception_handler($this->previousHandler);
-
         // Make sure everything is stopped
         $this->killAllProcessesListeningOnPort(9999);
         sleep(self::coverageEnabled() ? 3 : 1);
+
+        // Restore the original handler
+        set_exception_handler($this->previousHandler);
     }
 
     public static function resolveEnvironment(?string $env = null): string
@@ -144,7 +144,7 @@ abstract class ServerTestCase extends KernelTestCase
     }
 
     /**
-     * @param array<string, string> $args
+     * @param array<string> $args
      * @param array<string, string> $envs
      */
     public function serverStop(array $args = [], array $envs = []): void

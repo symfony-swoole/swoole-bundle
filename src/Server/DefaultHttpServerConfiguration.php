@@ -39,6 +39,32 @@ use SwooleBundle\SwooleBundle\Server\Config\Sockets;
  *   open_http2_protocol?: bool,
  *   open_tcp_nodelay?: bool,
  * }
+ * @phpstan-type SwooleSettingsOutputShape = array{
+ *    daemonize?: bool,
+ *    pid_file: string,
+ *    hook_flags?: int,
+ *    max_coroutine?: int,
+ *    reactor_count: int,
+ *    worker_count: int,
+ *    task_worker_count?: int,
+ *    serve_static: string,
+ *    public_dir: string,
+ *    http_compression?: bool,
+ *    http_compression_level: int,
+ *    upload_tmp_dir: string,
+ *    buffer_output_size?: string,
+ *    package_max_length?: string,
+ *    worker_max_request: int,
+ *    worker_max_request_grace?: int,
+ *    enable_coroutine?: bool,
+ *    task_enable_coroutine?: bool,
+ *    task_use_object?: bool,
+ *    log_file?: string,
+ *    log_level: string,
+ *    user?: string,
+ *    group?: string,
+ *    fiber_context?: 'auto'|'off'|'on',
+ *  }
  * @phpstan-import-type SwooleSettingsShape from HttpServerConfiguration
  * @todo Create interface and split this class
  * @final
@@ -118,10 +144,9 @@ final class DefaultHttpServerConfiguration implements HttpServerConfiguration
     ];
 
     /**
-     * @var SwooleSettingsShape
-     * @phpstan-ignore-next-line
+     * @var SwooleSettingsOutputShape
      */
-    private array $settings = [];
+    private array $settings;
 
     /**
      * @param SwooleSettingsInputShape $settings settings available:

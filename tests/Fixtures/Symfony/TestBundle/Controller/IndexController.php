@@ -19,7 +19,7 @@ final class IndexController
     #[Route(path: '/dummy-sleep', methods: ['GET'])]
     public function sleep(): JsonResponse
     {
-        co::sleep(2);
+        co::sleep(5);
 
         return new JsonResponse(['hello' => 'world!'], 200);
     }
