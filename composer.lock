@@ -6698,11 +6698,11 @@
         },
         {
             "name": "phpstan/phpstan",
-            "version": "2.1.48",
+            "version": "2.1.51",
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/231397213efb7c0a066ee024b5c3c87f2d3adfa0",
-                "reference": "231397213efb7c0a066ee024b5c3c87f2d3adfa0",
+                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/dc3b523c45e714c70de2ac5113b958223b55dc59",
+                "reference": "dc3b523c45e714c70de2ac5113b958223b55dc59",
                 "shasum": ""
             },
             "require": {
@@ -6747,7 +6747,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-04-15T20:24:19+00:00"
+            "time": "2026-04-21T18:22:01+00:00"
         },
         {
             "name": "phpstan/phpstan-beberlei-assert",
@@ -6800,16 +6800,16 @@
         },
         {
             "name": "phpstan/phpstan-doctrine",
-            "version": "2.0.20",
+            "version": "2.0.21",
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpstan/phpstan-doctrine.git",
-                "reference": "72f4f7a02d6c98d9101e8616e0488bc0a785196d"
+                "reference": "81dac0ee4363c2359128aec844df31efb215dddc"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpstan/phpstan-doctrine/zipball/72f4f7a02d6c98d9101e8616e0488bc0a785196d",
-                "reference": "72f4f7a02d6c98d9101e8616e0488bc0a785196d",
+                "url": "https://api.github.com/repos/phpstan/phpstan-doctrine/zipball/81dac0ee4363c2359128aec844df31efb215dddc",
+                "reference": "81dac0ee4363c2359128aec844df31efb215dddc",
                 "shasum": ""
             },
             "require": {
@@ -6870,9 +6870,9 @@
             ],
             "support": {
                 "issues": "https://github.com/phpstan/phpstan-doctrine/issues",
-                "source": "https://github.com/phpstan/phpstan-doctrine/tree/2.0.20"
+                "source": "https://github.com/phpstan/phpstan-doctrine/tree/2.0.21"
             },
-            "time": "2026-03-13T13:44:51+00:00"
+            "time": "2026-04-17T13:00:39+00:00"
         },
         {
             "name": "phpstan/phpstan-phpunit",
