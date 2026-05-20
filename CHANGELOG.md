@@ -1,3 +1,11 @@
+## [0.27.1](https://github.com/symfony-swoole/swoole-bundle/compare/v0.27.0...v0.27.1) (2026-05-20)
+
+[Full changelog](https://github.com/symfony-swoole/swoole-bundle/compare/v0.27.0...v0.27.1)
+
+### Miscellaneous
+
+* Minor fixes
+
 # [0.27.0](https://github.com/symfony-swoole/swoole-bundle/compare/v0.26.0...v0.27.0) (2026-04-12)
 
 [Full changelog](https://github.com/symfony-swoole/swoole-bundle/compare/v0.26.0...v0.27.0)
