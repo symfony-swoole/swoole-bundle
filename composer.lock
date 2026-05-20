@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "b6ed959c5348d56c57c7a0d98b6330ae",
+    "content-hash": "560cc7260814931f16444b025f50280a",
     "packages": [
         {
             "name": "beberlei/assert",
@@ -2422,68 +2422,6 @@
                 "source": "https://github.com/upscalesoftware/ext-swoole/tree/v6.2.0"
             },
             "time": "2026-03-01T00:28:17+00:00"
-        },
-        {
-            "name": "upscale/swoole-reflection",
-            "version": "dev-reflection-fix",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/Rastusik/swoole-reflection.git",
-                "reference": "5e318ae5d92f4c7b7eae8f2525446551db9495d5"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/Rastusik/swoole-reflection/zipball/5e318ae5d92f4c7b7eae8f2525446551db9495d5",
-                "reference": "5e318ae5d92f4c7b7eae8f2525446551db9495d5",
-                "shasum": ""
-            },
-            "require": {
-                "php": ">=8.0",
-                "upscale/ext-openswoole": "^4.8||^22.0||^25.0",
-                "upscale/ext-swoole": "^5.0||^6.0"
-            },
-            "require-dev": {
-                "ext-curl": "*",
-                "phpunit/phpunit": "^9.5",
-                "upscale/swoole-launchpad": "^2.0"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "Upscale\\Swoole\\Reflection\\": "src/"
-                }
-            },
-            "autoload-dev": {
-                "psr-4": {
-                    "Upscale\\Swoole\\Reflection\\Tests\\": "tests/",
-                    "Upscale\\Swoole\\Launchpad\\Tests\\": "vendor/upscale/swoole-launchpad/tests/"
-                }
-            },
-            "license": [
-                "Apache-2.0"
-            ],
-            "authors": [
-                {
-                    "name": "Upscale Software Team",
-                    "email": "info@upscalesoftware.com"
-                }
-            ],
-            "description": "Reflection API for Swoole web-server",
-            "homepage": "https://github.com/upscalesoftware/swoole-reflection",
-            "keywords": [
-                "Swoole",
-                "body",
-                "event",
-                "headers",
-                "middleware",
-                "observer",
-                "reflection",
-                "subscription"
-            ],
-            "support": {
-                "source": "https://github.com/Rastusik/swoole-reflection/tree/reflection-fix"
-            },
-            "time": "2026-02-25T21:41:07+00:00"
         }
     ],
     "packages-dev": [
@@ -12087,6 +12025,68 @@
             "time": "2025-02-18T01:50:29+00:00"
         },
         {
+            "name": "upscale/swoole-reflection",
+            "version": "dev-reflection-fix",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/Rastusik/swoole-reflection.git",
+                "reference": "5e318ae5d92f4c7b7eae8f2525446551db9495d5"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/Rastusik/swoole-reflection/zipball/5e318ae5d92f4c7b7eae8f2525446551db9495d5",
+                "reference": "5e318ae5d92f4c7b7eae8f2525446551db9495d5",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=8.0",
+                "upscale/ext-openswoole": "^4.8||^22.0||^25.0",
+                "upscale/ext-swoole": "^5.0||^6.0"
+            },
+            "require-dev": {
+                "ext-curl": "*",
+                "phpunit/phpunit": "^9.5",
+                "upscale/swoole-launchpad": "^2.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Upscale\\Swoole\\Reflection\\": "src/"
+                }
+            },
+            "autoload-dev": {
+                "psr-4": {
+                    "Upscale\\Swoole\\Reflection\\Tests\\": "tests/",
+                    "Upscale\\Swoole\\Launchpad\\Tests\\": "vendor/upscale/swoole-launchpad/tests/"
+                }
+            },
+            "license": [
+                "Apache-2.0"
+            ],
+            "authors": [
+                {
+                    "name": "Upscale Software Team",
+                    "email": "info@upscalesoftware.com"
+                }
+            ],
+            "description": "Reflection API for Swoole web-server",
+            "homepage": "https://github.com/upscalesoftware/swoole-reflection",
+            "keywords": [
+                "Swoole",
+                "body",
+                "event",
+                "headers",
+                "middleware",
+                "observer",
+                "reflection",
+                "subscription"
+            ],
+            "support": {
+                "source": "https://github.com/Rastusik/swoole-reflection/tree/reflection-fix"
+            },
+            "time": "2026-02-25T21:41:07+00:00"
+        },
+        {
             "name": "webmozart/assert",
             "version": "2.3.0",
             "source": {
@@ -12175,5 +12175,5 @@
         "ext-openswoole": "v26.2.0",
         "ext-swoole": "6.2.0"
     },
-    "plugin-api-version": "2.9.0"
+    "plugin-api-version": "2.6.0"
 }

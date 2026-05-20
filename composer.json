@@ -47,8 +47,8 @@
         "symfony/process": "^7.4|^8.0",
         "friendsofphp/proxy-manager-lts": "^1.0.19",
         "upscale/ext-openswoole": "^26.2.0",
-        "upscale/ext-swoole": "6.2.0",
-        "upscale/swoole-reflection": "dev-reflection-fix as 3.3.0"
+        "upscale/ext-swoole": "6.2.0"
+
     },
     "require-dev": {
         "ext-ffi": "^8.3",
@@ -99,7 +99,8 @@
         "symfony/yaml": "^7.4|^8.0",
         "tideways/ext-tideways-stubs": "^5.5",
         "twig/twig": "^3.24",
-        "upscale/swoole-blackfire": "^4.3"
+        "upscale/swoole-blackfire": "^4.3",
+        "upscale/swoole-reflection": "dev-reflection-fix as 3.3.0"
     },
     "suggest": {
         "ext-inotify": "To enable HMR",
