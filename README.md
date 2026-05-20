@@ -1,7 +1,7 @@
 # Swoole Bundle
 
-[![Maintainability](https://api.codeclimate.com/v1/badges/1d73a214622bba769171/maintainability)](https://codeclimate.com/github/symfony-swoole/swoole-bundle/maintainability)
-[![Test Coverage](https://api.codeclimate.com/v1/badges/1d73a214622bba769171/test_coverage)](https://codeclimate.com/github/symfony-swoole/swoole-bundle/test_coverage)
+[![Maintainability](https://qlty.sh/gh/symfony-swoole/projects/swoole-bundle/maintainability.svg)](https://qlty.sh/gh/symfony-swoole/projects/swoole-bundle)
+[![Code Coverage](https://qlty.sh/gh/symfony-swoole/projects/swoole-bundle/coverage.svg)](https://qlty.sh/gh/symfony-swoole/projects/swoole-bundle)
 [![Open Source Love](https://badges.frapsoft.com/os/v1/open-source.svg?v=103)](https://github.com/ellerbrock/open-source-badges/)
 [![MIT Licence](https://badges.frapsoft.com/os/mit/mit.svg?v=103)](https://opensource.org/licenses/mit-license.php)
 
@@ -17,7 +17,6 @@ Symfony integration with [Open Swoole](https://openswoole.com/) and [Swoole](htt
 | CI Job | Branch [`master`](https://github.com/symfony-swoole/swoole-bundle/tree/master)                                                                                  | Branch [`develop`](https://github.com/symfony-swoole/swoole-bundle/tree/develop)                                                                             |
 |--------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | Circle | [![CircleCI](https://circleci.com/gh/symfony-swoole/swoole-bundle/tree/master.svg?style=svg)](https://circleci.com/gh/symfony-swoole/swoole-bundle/tree/master) | [![CircleCI](https://circleci.com/gh/symfony-swoole/swoole-bundle/tree/develop.svg?style=svg)](https://circleci.com/gh/symfony-swoole/swoole-bundle/tree/develop) |
-| Qlty   | [![Code Coverage](https://qlty.sh/gh/symfony-swoole/projects/swoole-bundle/coverage.svg)](https://qlty.sh/gh/symfony-swoole/projects/swoole-bundle)                   | [![Maintainability](https://qlty.sh/gh/symfony-swoole/projects/swoole-bundle/maintainability.svg)](https://qlty.sh/gh/symfony-swoole/projects/swoole-bundle)               |
 
 ## Table of Contents
 
