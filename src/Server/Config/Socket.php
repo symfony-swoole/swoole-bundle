@@ -105,7 +105,6 @@ final class Socket
     {
         $self = clone $this;
         $self->setPort($port);
-        $self->port = $port;
 
         return $self;
     }

@@ -94,7 +94,7 @@ final class HttpClient
 
     /**
      * @param int $timeout seconds
-     * @param int $step microseconds
+     * @param int $step seconds
      * @return bool Success
      */
     public function connect(int $timeout = 3, int $step = 1, bool $waitIfNoConnection = false): bool

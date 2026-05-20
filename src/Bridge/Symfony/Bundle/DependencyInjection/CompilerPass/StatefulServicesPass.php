@@ -33,7 +33,7 @@ final class StatefulServicesPass implements CompilerPassInterface
         BlockingContainer::class => true,
     ];
 
-    private const array MANDATORRY_SERVICES_TO_PROXIFY = [
+    private const array MANDATORY_SERVICES_TO_PROXIFY = [
         'kernel_proxy',
         'annotations.reader',
         'logger',
@@ -169,7 +169,7 @@ final class StatefulServicesPass implements CompilerPassInterface
             array_keys($resettableStatefulServices),
             array_keys($taggedStatefulServices),
             $configuredStatefulServices,
-            self::MANDATORRY_SERVICES_TO_PROXIFY,
+            self::MANDATORY_SERVICES_TO_PROXIFY,
         );
         $servicesToProxify = array_unique($servicesToProxify);
 

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation;
 
 use Psr\Log\LoggerInterface;
