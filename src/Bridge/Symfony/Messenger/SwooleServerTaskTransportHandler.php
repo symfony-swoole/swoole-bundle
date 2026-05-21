@@ -9,6 +9,9 @@ use Swoole\Server;
 use SwooleBundle\SwooleBundle\Server\TaskHandler\TaskHandler;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\MessageBusInterface;
+use Symfony\Component\Messenger\Stamp\ConsumedByWorkerStamp;
+use Symfony\Component\Messenger\Stamp\ReceivedStamp;
+use Symfony\Component\Messenger\Stamp\SentStamp;
 
 final readonly class SwooleServerTaskTransportHandler implements TaskHandler
 {
@@ -22,7 +25,11 @@ final readonly class SwooleServerTaskTransportHandler implements TaskHandler
         Assertion::isInstanceOf($task->data, Envelope::class);
         /** @var Envelope $data */
         $data = $task->data;
-        $this->bus->dispatch($data);
+
+        $sentStamp = $data->last(SentStamp::class);
+        $alias = null === $sentStamp ? 'swoole-task' : ($sentStamp->getSenderAlias() ?: $sentStamp->getSenderClass());
+
+        $this->bus->dispatch($data->with(new ReceivedStamp($alias), new ConsumedByWorkerStamp()));
 
         if (!($this->decorated instanceof TaskHandler)) {
             return;
