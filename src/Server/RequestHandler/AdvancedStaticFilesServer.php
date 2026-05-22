@@ -136,7 +136,7 @@ final class AdvancedStaticFilesServer implements RequestHandler, Bootable
     {
         if ($request->server['request_method'] === 'GET') {
             $path = $this->publicDir . $request->server['request_uri'];
-            if (isset($this->cachedMimeTypes[$path]) || $this->checkPath($path)) {
+            if ($this->isPublicDirPath($path) && (isset($this->cachedMimeTypes[$path]) || $this->checkPath($path))) {
                 $response->header('Content-Type', $this->cachedMimeTypes[$path]);
                 $response->sendfile($path);
 
@@ -145,6 +145,13 @@ final class AdvancedStaticFilesServer implements RequestHandler, Bootable
         }
 
         $this->decorated->handle($request, $response);
+    }
+
+    private function isPublicDirPath(string $path): bool
+    {
+        $real = realpath($path);
+
+        return $real !== false && str_starts_with($real, $this->publicDir . DIRECTORY_SEPARATOR);
     }
 
     private function checkPath(string $path): bool
