@@ -45,18 +45,7 @@ final class SymfonyAccessLogDataMap implements AccessLogDataMap
      */
     public function getClientIp(): string
     {
-        $headers = ['x-real-ip', 'client-ip', 'x-forwarded-for'];
-
-        foreach ($headers as $header) {
-            if ($this->request->headers->has($header)) {
-                $ip = (string) $this->request->headers->get($header);
-                Assertion::ip($ip);
-
-                return $ip;
-            }
-        }
-
-        return $this->getServerParamIp('REMOTE_ADDR');
+        return $this->request->getClientIp() ?? '-';
     }
 
     /**
@@ -228,7 +217,9 @@ final class SymfonyAccessLogDataMap implements AccessLogDataMap
      */
     public function getServerName(): string
     {
-        return gethostname() ?: '-';
+        static $hostname = null;
+
+        return $hostname ??= (gethostname() ?: '-');
     }
 
     /**

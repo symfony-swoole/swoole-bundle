@@ -16,9 +16,6 @@ final readonly class ExceptionLoggingTransportHandler implements TaskHandler
         private LoggerInterface $logger,
     ) {}
 
-    /**
-     * @throws Throwable
-     */
     public function handle(Server $server, Server\Task $task): void
     {
         try {

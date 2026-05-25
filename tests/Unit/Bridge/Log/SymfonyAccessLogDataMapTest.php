@@ -7,7 +7,6 @@ namespace SwooleBundle\SwooleBundle\Tests\Unit\Bridge\Log;
 use DateTimeImmutable;
 use DateTimeZone;
 use PHPUnit\Framework\Attributes\DataProvider;
-use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
 use SwooleBundle\SwooleBundle\Bridge\Log\SymfonyAccessLogDataMap;
 use Symfony\Component\HttpFoundation\HeaderBag;
@@ -18,7 +17,7 @@ use Symfony\Component\HttpFoundation\ServerBag;
 final class SymfonyAccessLogDataMapTest extends TestCase
 {
     /**
-     * @var HttpFoundationRequest|Stub
+     * @var HttpFoundationRequest
      */
     private $request;
 
@@ -26,50 +25,54 @@ final class SymfonyAccessLogDataMapTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->request = $this->createStub(HttpFoundationRequest::class);
+        $this->request = new HttpFoundationRequest();
         $this->response = new HttpFoundationResponse('My response', 200);
     }
 
+    protected function tearDown(): void
+    {
+        HttpFoundationRequest::setTrustedProxies([], 0);
+    }
+
     /**
-     * @return iterable<array{array<string, string>, array<string, string>, string}>
+     * @return iterable<array{array<string, string>, array<string, string>, string, array<string>}>
      */
     public static function provideServer(): iterable
     {
-        yield 'no address' => [[], [], '-'];
-        yield 'x-real-ip' => [
-            [
-                'x-real-ip' => '1.1.1.1',
-                'client-ip' => '2.2.2.2',
-                'x-forwarded-for' => '3.3.3.3',
-            ],
-            [
-                'REMOTE_ADDR' => '4.4.4.4',
-            ],
+        yield 'no address' => [[], [], '-', []];
+        yield 'x-forwarded-for' => [
+            ['x-forwarded-for' => '3.3.3.3'],
+            ['REMOTE_ADDR' => '4.4.4.4'],
+            '3.3.3.3',
+            ['4.4.4.4'],
+        ];
+
+        yield 'x-forwarded-for-multi' => [
+            ['x-forwarded-for' => '1.1.1.1, 2.2.2.2'],
+            ['REMOTE_ADDR' => '4.4.4.4'],
             '1.1.1.1',
+            ['4.4.4.4', '2.2.2.2'],
         ];
 
-        yield 'client-ip' => [
-            [
-                'client-ip' => '2.2.2.2',
-                'x-forwarded-for' => '3.3.3.3',
-            ],
-            [
-                'REMOTE_ADDR' => '4.4.4.4',
-            ],
-            '2.2.2.2',
-        ];
-
-        yield 'x-forwarded-for' => [['x-forwarded-for' => '3.3.3.3'], ['REMOTE_ADDR' => '4.4.4.4'], '3.3.3.3'];
-        yield 'remote-addr' => [[], ['REMOTE_ADDR' => '4.4.4.4'], '4.4.4.4'];
+        yield 'remote-addr' => [[], ['REMOTE_ADDR' => '4.4.4.4'], '4.4.4.4', []];
     }
 
     /**
      * @param array<string, string> $headers
      * @param array<string, string> $server
+     * @param array<string> $trustedProxies
      */
     #[DataProvider('provideServer')]
-    public function testClientIpIsProperlyResolved(array $headers, array $server, string $expectedIp): void
-    {
+    public function testClientIpIsProperlyResolved(
+        array $headers,
+        array $server,
+        string $expectedIp,
+        array $trustedProxies,
+    ): void {
+        if ($trustedProxies !== []) {
+            HttpFoundationRequest::setTrustedProxies($trustedProxies, HttpFoundationRequest::HEADER_X_FORWARDED_FOR);
+        }
+
         $this->request->server = new ServerBag($server);
         $this->request->headers = new HeaderBag($headers);
         $map = (new SymfonyAccessLogDataMap(false))->setRequestResponse($this->request, $this->response);
@@ -118,5 +121,13 @@ final class SymfonyAccessLogDataMapTest extends TestCase
 
         $this->assertSame('[02/Dec/2021:02:21:12 ' . $date->format('O') . ']', $requestTime);
         date_default_timezone_set($oldTZ);
+    }
+
+    public function testGetServerNameReturnsHostname(): void
+    {
+        $map = new SymfonyAccessLogDataMap(false);
+        $expectedHostname = gethostname() ?: '-';
+
+        $this->assertSame($expectedHostname, $map->getServerName());
     }
 }

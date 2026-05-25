@@ -58,7 +58,7 @@ final class SwooleTableStorage implements Storage
             '8bit'
         );
         Assertion::maxLength(
-            $key,
+            $data,
             $this->maxSessionDataBytes,
             'Storage data must not exceed %2$d bytes, has %3$d.',
             null,

@@ -19,6 +19,6 @@ final readonly class Apm
      */
     public function instrument(Server $server): void
     {
-        $this->injector->injectMiddlevare($server, $this->middlewareFactory);
+        $this->injector->injectMiddleware($server, $this->middlewareFactory);
     }
 }

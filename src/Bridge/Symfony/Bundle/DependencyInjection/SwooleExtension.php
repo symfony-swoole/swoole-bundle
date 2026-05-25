@@ -633,7 +633,6 @@ final class SwooleExtension extends Extension
             ->setAutoconfigured(false)
             ->setPublic(false);
         $container->register(ErrorResponder::class)
-            ->setArgument('$errorHandler', new Reference('swoole_bundle.error_handler.symfony_error_handler'))
             ->setAutowired(false)
             ->setAutoconfigured(false)
             ->setPublic(false)

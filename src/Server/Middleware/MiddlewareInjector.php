@@ -13,7 +13,7 @@ use UnexpectedValueException;
 
 final class MiddlewareInjector
 {
-    public function injectMiddlevare(Server $server, MiddlewareFactory $factory, string $eventName = 'request'): void
+    public function injectMiddleware(Server $server, MiddlewareFactory $factory, string $eventName = 'request'): void
     {
         $middleware = $this->getCallback($server, $eventName)
             ?: $this->getCallback($this->getPrimaryPort($server), $eventName);
