@@ -35,15 +35,20 @@ final class StatefulServicesPass implements CompilerPassInterface
 
     private const array MANDATORY_SERVICES_TO_PROXIFY = [
         'kernel_proxy',
+        'http_kernel',
         'annotations.reader',
         'logger',
         'profiler_listener',
         'debug.event_dispatcher',
+        'debug.debug_handlers_listener',
         'debug.stopwatch',
         'request_stack',
         'router.request_context',
         'router',
         'router.default',
+        'request_stack',
+        'slugger',
+        'swoole_bundle.error_handler.symfony_error_handler',
     ];
 
     private const array SERVICE_RESETTING_PRIORITIES = [
@@ -293,9 +298,9 @@ final class StatefulServicesPass implements CompilerPassInterface
 
     private function configureServicePoolContainer(ContainerBuilder $container, Proxifier $proxifier): void
     {
-        $poolRefs = $proxifier->getProxifiedServicePoolRefs();
+        $poolEntryDefs = $proxifier->getProxifiedServicePoolEntryDefs();
         $poolContainerDef = $container->findDefinition(ServicePoolContainer::class);
-        $poolContainerDef->setArgument(0, $poolRefs);
+        $poolContainerDef->setArgument(0, $poolEntryDefs);
     }
 
     private function detectKernelClass(ContainerBuilder $container): void

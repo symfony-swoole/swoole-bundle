@@ -6,6 +6,7 @@ namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\Co
 
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\ServicePool\BaseServicePool;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\ServicePool\ServicePoolContainer;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\ServicePool\ServicePoolEntry;
 
 final readonly class NonSharedSvcPoolConfigurator
 {
@@ -16,6 +17,6 @@ final readonly class NonSharedSvcPoolConfigurator
      */
     public function configure(BaseServicePool $servicePool): void
     {
-        $this->container->addPool($servicePool);
+        $this->container->addPoolEntry(new ServicePoolEntry($servicePool));
     }
 }

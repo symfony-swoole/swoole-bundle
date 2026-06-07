@@ -6,7 +6,6 @@ namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Container;
 
 use Co;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\ServicePool\ServicePoolContainer;
-use SwooleBundle\SwooleBundle\Common\Adapter\Swoole;
 
 final class CoWrapper
 {
@@ -14,7 +13,6 @@ final class CoWrapper
 
     public function __construct(
         private readonly ServicePoolContainer $servicePoolContainer,
-        private readonly Swoole $swoole,
     ) {
         self::$instance = $this;
     }
@@ -22,7 +20,7 @@ final class CoWrapper
     public function defer(): void
     {
         Co::defer(function (): void {
-            $this->servicePoolContainer->releaseFromCoroutine($this->swoole->getCoroutineId());
+            $this->servicePoolContainer->releaseFromCoroutine();
         });
     }
 

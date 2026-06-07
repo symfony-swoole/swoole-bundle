@@ -7,34 +7,71 @@ namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Container\ServicePool;
 final class ServicePoolContainer
 {
     /**
-     * @param array<int, array<ServicePool<object>>> $pools
+     * @var array<int, ServicePoolEntry<object>>
      */
-    public function __construct(private array $pools) {}
+    private array $poolEntries = [];
 
     /**
-     * @param ServicePool<object> $pool
+     * @var array<int, array<int, ServicePoolEntry<object>>>
      */
-    public function addPool(ServicePool $pool, int $priority = 0): void
+    private array $poolEntriesToReset = [];
+
+    /**
+     * @param array<int, ServicePoolEntry<object>> $poolEntries
+     */
+    public function __construct(array $poolEntries)
     {
-        $this->pools[$priority][] = $pool;
-        krsort($this->pools);
+        foreach ($poolEntries as $poolEntry) {
+            $this->addPoolEntry($poolEntry);
+        }
     }
 
-    public function releaseFromCoroutine(int $cId): void
+    /**
+     * @param ServicePoolEntry<object> $poolEntry
+     */
+    public function addPoolEntry(ServicePoolEntry $poolEntry): void
     {
-        foreach ($this->pools as $poolsWithPriority) {
-            foreach ($poolsWithPriority as $pool) {
-                $pool->releaseFromCoroutine($cId);
+        $this->poolEntries[] = $poolEntry;
+
+        if ($poolEntry->resetter === null) {
+            return;
+        }
+
+        if (!isset($this->poolEntriesToReset[$poolEntry->resetPriority])) {
+            $this->poolEntriesToReset[$poolEntry->resetPriority] = [];
+        }
+
+        $this->poolEntriesToReset[$poolEntry->resetPriority][] = $poolEntry;
+    }
+
+    public function releaseFromCoroutine(): void
+    {
+        // the reset cycle has to be executed before releasing the services back to the pool
+        // to not get assigned too early to other coroutines which can cause deadlocks
+        // during the reset cycle if there are dependencies among released and not released services
+        foreach ($this->poolEntriesToReset as $prioritizedPoolEntries) {
+            foreach ($prioritizedPoolEntries as $poolEntry) {
+                if ($poolEntry->resetter === null) {
+                    continue;
+                }
+
+                $instance = $poolEntry->pool->getAssigned();
+
+                if ($instance === null) {
+                    continue;
+                }
+
+                $poolEntry->resetter->reset($instance);
             }
+        }
+
+        foreach ($this->poolEntries as $poolEntry) {
+            $poolEntry->pool->releaseFromCoroutine();
         }
     }
 
     public function count(): int
     {
-        return array_reduce(
-            $this->pools,
-            static fn(int $count, array $poolsWithPriority): int => $count + count($poolsWithPriority),
-            0,
-        );
+        return count($this->poolEntries);
     }
 }

@@ -32,6 +32,7 @@ final class CounterCompileProcessor implements CompileProcessor
         $counterDef = new Definition();
         $counterDef->setClass(CountingInitializer::class);
         $counterDef->setArgument(0, new Reference($newId));
+        $counterDef->addTag('swoole_bundle.safe_stateful_service');
         $container->setDefinition($initializerId, $counterDef);
 
         $controllerDef = $container->findDefinition(DoctrineController::class);
@@ -49,6 +50,7 @@ final class CounterCompileProcessor implements CompileProcessor
         $counterDef = new Definition();
         $counterDef->setClass(CountingResetter::class);
         $counterDef->setArgument(0, new Reference($newId));
+        $counterDef->addTag('swoole_bundle.safe_stateful_service');
         $container->setDefinition($resetterId, $counterDef);
 
         $controllerDef = $container->findDefinition(DoctrineController::class);
