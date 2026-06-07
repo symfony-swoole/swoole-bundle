@@ -401,7 +401,7 @@ final class DefaultHttpServerConfiguration implements HttpServerConfiguration
             $swooleSettings[$swooleSettingKey] = $setting;
         }
 
-        return $swooleSettings; // @phpstan-ignore-line
+        return $swooleSettings;
     }
 
     /**
