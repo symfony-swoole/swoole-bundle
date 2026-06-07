@@ -34,7 +34,6 @@ final class StreamHandler extends AbstractProcessingHandler
      */
     protected $stream;
     protected string|null $url = null;
-    private string|null $errorMessage = null;
 
     /**
      * @var true|null
@@ -121,11 +120,17 @@ final class StreamHandler extends AbstractProcessingHandler
         $this->mutex = $mutex;
     }
 
-    public function customErrorHandler(int $code, string $msg): bool
+    /**
+     * this callback will ensure that in each coroutine only the correct stream handler instance will get
+     * the error message.
+     */
+    public function customErrorHandler(?string &$errorMessage): callable
     {
-        $this->errorMessage = preg_replace('{^(fopen|mkdir)\(.*?\): }', '', $msg);
+        return function (int $code, string $msg) use (&$errorMessage): bool {
+            $errorMessage = preg_replace('{^(fopen|mkdir)\(.*?\): }', '', $msg);
 
-        return true;
+            return true;
+        };
     }
 
     protected function write(LogRecord $record): void
@@ -140,17 +145,17 @@ final class StreamHandler extends AbstractProcessingHandler
                 );
             }
             $this->createDir($url);
-            $this->errorMessage = null;
+            $errorMessage = null;
 
             try {
                 $this->mutex->acquire();
-                set_error_handler($this->customErrorHandler(...));
+                set_error_handler($this->customErrorHandler($errorMessage));
                 $stream = fopen($url, 'a');
                 if ($this->filePermission !== null) {
                     @chmod($url, $this->filePermission);
                 }
-                restore_error_handler();
             } finally {
+                restore_error_handler();
                 $this->mutex->release();
             }
 
@@ -159,7 +164,7 @@ final class StreamHandler extends AbstractProcessingHandler
 
                 throw new UnexpectedValueException(
                     sprintf(
-                        'The stream or file "%s" could not be opened in append mode: ' . $this->errorMessage,
+                        'The stream or file "%s" could not be opened in append mode: ' . $errorMessage,
                         $url
                     ) . Utils::getRecordMessageForException(
                         $record
@@ -226,21 +231,21 @@ final class StreamHandler extends AbstractProcessingHandler
 
         $dir = $this->getDirFromStream($url);
         if ($dir !== null && !is_dir($dir)) {
-            $this->errorMessage = null;
+            $errorMessage = null;
 
             try {
                 $this->mutex->acquire();
-                set_error_handler($this->customErrorHandler(...));
+                set_error_handler($this->customErrorHandler($errorMessage));
                 $status = mkdir($dir, 0o777, true);
-                restore_error_handler();
             } finally {
+                restore_error_handler();
                 $this->mutex->release();
             }
 
-            if ($status === false && !is_dir($dir) && !str_contains((string) $this->errorMessage, 'File exists')) {
+            if ($status === false && !is_dir($dir) && !str_contains((string) $errorMessage, 'File exists')) {
                 throw new UnexpectedValueException(
                     sprintf(
-                        'There is no existing directory at "%s" and it could not be created: ' . $this->errorMessage,
+                        'There is no existing directory at "%s" and it could not be created: ' . $errorMessage,
                         $dir
                     )
                 );

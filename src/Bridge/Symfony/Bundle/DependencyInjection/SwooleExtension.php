@@ -12,6 +12,7 @@ use ReflectionMethod;
 use RuntimeException;
 use SwooleBundle\SwooleBundle\Bridge\Log\AccessLogFormatter;
 use SwooleBundle\SwooleBundle\Bridge\Log\SimpleAccessLogFormatter;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\EventDispatcher\DebugClassLoaderOverridingWorkerStartHandler;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\StabilityChecker;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\ErrorHandler\ErrorResponder;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\ErrorHandler\ExceptionHandlerFactory;
@@ -398,6 +399,15 @@ final class SwooleExtension extends Extension
                 new Reference(ContextReleasingHttpKernelRequestHandler::class . '.inner')
             );
             $coroutineKernelHandler->setDecoratedService(RequestHandler::class, null, -1000);
+
+            if ($this->isDebug($container) && PHP_OS_FAMILY === 'Darwin') {
+                $container->register(DebugClassLoaderOverridingWorkerStartHandler::class)
+                    ->setDecoratedService(WorkerStartHandler::class, null, -100)
+                    ->setArgument(
+                        '$decorated',
+                        new Reference(DebugClassLoaderOverridingWorkerStartHandler::class . '.inner'),
+                    );
+            }
         }
 
         if ($hmr['enabled'] === 'auto') {
@@ -488,13 +498,7 @@ final class SwooleExtension extends Extension
                 ->setDecoratedService(RequestHandler::class, null, -10);
         }
 
-        if (
-            $config['blackfire_profiler']
-            || (
-                $config['blackfire_profiler'] === false
-                && class_exists(BlackfireProfiler::class)
-            )
-        ) {
+        if ($config['blackfire_profiler'] && class_exists(BlackfireProfiler::class)) {
             $container->register(BlackfireProfiler::class)
                 ->setClass(BlackfireProfiler::class);
 
@@ -617,7 +621,7 @@ final class SwooleExtension extends Extension
         }
 
         $container->register('swoole_bundle.error_handler.symfony_error_handler', ErrorHandler::class)
-            ->setPublic(false);
+            ->setPublic(true);
         $container->register(ThrowableHandlerFactory::class)
             ->setPublic(false);
         $container->register('swoole_bundle.error_handler.symfony_kernel_throwable_handler', ReflectionMethod::class)

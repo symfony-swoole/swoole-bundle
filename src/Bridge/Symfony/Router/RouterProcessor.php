@@ -19,9 +19,9 @@ final class RouterProcessor implements CompileProcessor
             return;
         }
 
-        // the debug event dispatcher needs to be coupled to the original event dispatcher, because
+        // the debug event dispatcher needs to be proxified
         // it registers listeners to the original dispatcher
-        $dispatcherDef = $container->findDefinition('debug.event_dispatcher.inner');
-        $dispatcherDef->setShared(false);
+        // for yet unknown reason the debug.event_dispatcher has to be proxified in StatefulServicesPass
+        $proxifier->proxifyService('debug.event_dispatcher.inner');
     }
 }

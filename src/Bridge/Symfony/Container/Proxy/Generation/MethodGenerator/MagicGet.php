@@ -9,8 +9,8 @@ use Laminas\Code\Generator\ParameterGenerator;
 use Laminas\Code\Generator\PropertyGenerator;
 use ProxyManager\Generator\MagicMethodGenerator;
 use ProxyManager\ProxyGenerator\PropertyGenerator\PublicPropertiesMap;
-use ProxyManager\ProxyGenerator\Util\PublicScopeSimulator;
 use ReflectionClass;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Proxy\Generation\MethodGenerator\Util\PublicScopeSimulator;
 
 /**
  * Magic `__get` for lazy loading value holder objects.

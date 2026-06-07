@@ -2,11 +2,13 @@
 
 declare(strict_types=1);
 
+use Monolog\Formatter\LineFormatter;
 use Ramsey\Uuid\UuidFactory;
 use Ramsey\Uuid\UuidFactoryInterface;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\SimpleResetter;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Controller\DoctrineController;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Controller\SleepController;
+use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\EventHandler\LifecycleEventsEventHandler;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Service\AdvancedDoctrineUsage;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Service\DecorationTestDummyService;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Service\DefaultDummyService;
@@ -86,4 +88,14 @@ return static function (ContainerConfigurator $containerConfigurator): void {
         ->tag('kernel.reset', [
             'method' => 'reset',
         ]);
+
+    $services->set(LifecycleEventsEventHandler::class)
+        ->tag('swoole_bundle.stateful_service');
+
+    $services->set('monolog.formatter.full_trace', LineFormatter::class)
+        ->arg('$format', null)
+        ->arg('$dateFormat', null)
+        ->arg('$allowInlineLineBreaks', true)
+        ->arg('$ignoreEmptyContextAndExtra', false)
+        ->arg('$includeStacktraces', true);
 };

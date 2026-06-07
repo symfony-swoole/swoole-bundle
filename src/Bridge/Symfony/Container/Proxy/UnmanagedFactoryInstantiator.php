@@ -12,6 +12,7 @@ use RuntimeException;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Initializer;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Resetter;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\ServicePool\ServicePoolContainer;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\ServicePool\ServicePoolEntry;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\ServicePool\UnmanagedFactoryServicePool;
 use SwooleBundle\SwooleBundle\Common\Adapter\Swoole;
 use SwooleBundle\SwooleBundle\Component\Locking\MutexFactory;
@@ -109,10 +110,9 @@ final readonly class UnmanagedFactoryInstantiator
                     $swoole,
                     $limitMutex,
                     $instancesLimit,
-                    $resetter,
                     $initializer,
                 );
-                $servicePoolContainer->addPool($servicePool);
+                $servicePoolContainer->addPoolEntry(new ServicePoolEntry($servicePool, $resetter));
 
                 return $instantiator->newInstance($servicePool, $factoryConfig['returnType']);
             };

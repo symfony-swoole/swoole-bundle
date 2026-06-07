@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Container\ServicePool;
 
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Initializer;
-use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Resetter;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\StabilityChecker;
 use SwooleBundle\SwooleBundle\Common\Adapter\Swoole;
 use SwooleBundle\SwooleBundle\Component\Locking\Mutex;
@@ -32,7 +31,6 @@ abstract class BaseServicePool implements ServicePool
         private readonly Swoole $swoole,
         private readonly Mutex $mutex,
         private readonly int $instancesLimit = 50,
-        private readonly ?Resetter $resetter = null,
         private readonly ?StabilityChecker $stabilityChecker = null,
         private readonly ?Initializer $initializer = null,
     ) {}
@@ -58,8 +56,17 @@ abstract class BaseServicePool implements ServicePool
         return $this->assignedPool[$cId] = $this->getServiceToAssign();
     }
 
-    public function releaseFromCoroutine(int $cId): void
+    public function getAssigned(): ?object
     {
+        $cId = $this->getCoroutineId();
+
+        return $this->assignedPool[$cId] ?? null;
+    }
+
+    public function releaseFromCoroutine(): void
+    {
+        $cId = $this->getCoroutineId();
+
         if (!isset($this->assignedPool[$cId])) {
             return;
         }
@@ -73,8 +80,6 @@ abstract class BaseServicePool implements ServicePool
 
             return;
         }
-
-        $this->resetter?->reset($service);
 
         $this->freePool[] = $service;
         $this->unlockPool();

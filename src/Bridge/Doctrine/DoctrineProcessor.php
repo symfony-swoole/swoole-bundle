@@ -124,6 +124,9 @@ final class DoctrineProcessor implements CompileProcessor
             }
 
             $connectionDef->addTag(ContainerConstants::TAG_STATEFUL_SERVICE, $tagParams);
+            $connectionEventManagerSvcId = sprintf('doctrine.dbal.%s_connection.event_manager', $connectionName);
+            $connectionEventManagerDef = $container->findDefinition($connectionEventManagerSvcId);
+            $connectionEventManagerDef->addTag(ContainerConstants::TAG_STATEFUL_SERVICE, ['limit' => $limit]);
         }
     }
 

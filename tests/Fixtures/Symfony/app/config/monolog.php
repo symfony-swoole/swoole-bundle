@@ -11,6 +11,7 @@ $handlers = [
         'path' => '%kernel.logs_dir%/%kernel.environment%.log',
         'level' => 'warning',
         'channels' => ['!event'],
+        'formatter' => 'monolog.formatter.full_trace',
     ],
 ];
 

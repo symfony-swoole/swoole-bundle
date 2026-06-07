@@ -439,12 +439,10 @@ return static function (ContainerConfigurator $containerConfigurator): void {
         ->arg('$proxiesDirectory', '%swoole_bundle.service_proxy_cache_dir%');
 
     $services->set(CoWrapper::class)
-        ->arg('$servicePoolContainer', service(ServicePoolContainer::class))
-        ->arg('$swoole', service(Swoole::class));
+        ->arg('$servicePoolContainer', service(ServicePoolContainer::class));
 
     $services->set(ServicePoolContainer::class)
-        ->arg('$pools', [
-        ]);
+        ->arg('$poolEntries', []);
 
     $services->set(EntityManagerStabilityChecker::class)
         ->tag('swoole_bundle.stability_checker');
@@ -488,7 +486,8 @@ return static function (ContainerConfigurator $containerConfigurator): void {
         ->factory([
             service(SystemSwooleFactory::class),
             'newInstance',
-        ]);
+        ])
+        ->public();
 
     $services->set(HttpServerFactory::class)
         ->arg('$swoole', service(Swoole::class));
