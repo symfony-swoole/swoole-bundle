@@ -8,6 +8,7 @@ use Exception;
 use Swoole\Http\Request;
 use Swoole\Http\Response;
 use SwooleBundle\SwooleBundle\Client\Http;
+use SwooleBundle\SwooleBundle\Metrics\Formatter\MetricsFormatterResolver;
 use SwooleBundle\SwooleBundle\Server\RequestHandler\RequestHandler;
 use Throwable;
 
@@ -31,8 +32,10 @@ final class ApiServerRequestHandler implements RequestHandler
      */
     private array $routes;
 
-    public function __construct(Api $apiServer)
-    {
+    public function __construct(
+        private readonly Api $apiServer,
+        private readonly MetricsFormatterResolver $metricsFormatterResolver,
+    ) {
         $this->SUPPORTED_HTTP_METHOD_VALUES = array_map(
             static fn(Http $http): string => $http->value,
             self::SUPPORTED_HTTP_METHODS
@@ -47,7 +50,7 @@ final class ApiServerRequestHandler implements RequestHandler
                 Http::METHOD_DELETE->value => $this->composeSimpleRouteDefinition(204, $apiServer->shutdown(...)),
             ],
             '/api/server/metrics' => [
-                Http::METHOD_GET->value => $this->composeSimpleRouteDefinition(200, $apiServer->metrics(...)),
+                Http::METHOD_GET->value => $this->composeSimpleRouteDefinition(200, $this->handleMetrics(...)),
             ],
             '/healthz' => [
                 Http::METHOD_GET->value => $this->composeSimpleRouteDefinition(
@@ -65,6 +68,7 @@ final class ApiServerRequestHandler implements RequestHandler
     {
         try {
             [$method] = $this->parseRequestInfo($request);
+
             switch ($method) {
                 case Http::METHOD_HEAD->value:
                     $request->server['request_method'] = Http::METHOD_GET->value;
@@ -106,6 +110,24 @@ final class ApiServerRequestHandler implements RequestHandler
         ];
     }
 
+    private function handleMetrics(Request $request): FormattedResponse
+    {
+        $formatter = $this->metricsFormatterResolver->resolve($this->acceptHeader($request));
+
+        return new FormattedResponse(
+            $formatter->contentType(),
+            $formatter->format($this->apiServer->metrics()),
+        );
+    }
+
+    private function acceptHeader(Request $request): string
+    {
+        /** @var array<string, string> $headers */
+        $headers = $request->header ?? [];
+
+        return $headers[Http::HEADER_ACCEPT->value] ?? '';
+    }
+
     private function sendErrorExceptionResponse(Response $response, Throwable $exception): void
     {
         $this->sendResponse($response, 500, [
@@ -130,7 +152,7 @@ final class ApiServerRequestHandler implements RequestHandler
     }
 
     /**
-     * @return array{int, array{error?: string, routes?: array<mixed>}}
+     * @return array{int, array<mixed>|FormattedResponse|null}
      */
     private function handleRequest(Request $request): array
     {
@@ -169,10 +191,21 @@ final class ApiServerRequestHandler implements RequestHandler
     }
 
     /**
-     * @param array<mixed> $data
+     * @param array<mixed>|FormattedResponse|null $data
      */
-    private function sendResponse(Response $response, int $statusCode = 200, ?array $data = []): void
-    {
+    private function sendResponse(
+        Response $response,
+        int $statusCode = 200,
+        array|FormattedResponse|null $data = [],
+    ): void {
+        if ($data instanceof FormattedResponse) {
+            $response->header(Http::HEADER_CONTENT_TYPE->value, $data->contentType());
+            $response->status($statusCode);
+            $response->end($data->body());
+
+            return;
+        }
+
         if (empty($data) || $statusCode === 204) {
             $response->status($statusCode === 200 ? 204 : $statusCode);
             $response->end();

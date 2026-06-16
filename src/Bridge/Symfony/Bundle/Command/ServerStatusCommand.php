@@ -75,7 +75,7 @@ final class ServerStatusCommand extends Command
                 $metrics = $this->apiServerClientFactory->newClient()
                     ->metrics();
                 $io->success('Fetched metrics');
-                $this->showMetrics($io, $metrics); /** @phpstan-ignore-line */
+                $this->showMetrics($io, $metrics);
             },
         );
 

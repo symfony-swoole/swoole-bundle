@@ -10,19 +10,20 @@ use SwooleBundle\SwooleBundle\Metrics\Metrics;
 use SwooleBundle\SwooleBundle\Metrics\MetricsProvider as CommonMetricsProvider;
 
 /**
+ * @phpstan-type SwooleServerMetricsShape = array{
+ *   start_time: int,
+ *   worker_num: int,
+ *   idle_worker_num: int,
+ *   request_count: int,
+ *   connection_num: int,
+ *   accept_count: int,
+ *   abort_count: int,
+ *   coroutine_num: int,
+ *   tasking_num?: int
+ * }
  * @phpstan-type SwooleMetricsShape = array{
  *   date: string,
- *   server: array{
- *     start_time: int,
- *     worker_num: int,
- *     idle_worker_num: int,
- *     request_count: int,
- *     connection_num: int,
- *     accept_count: int,
- *     abort_count: int,
- *     coroutine_num: int,
- *     tasking_num?: int
- *   }
+ *   server: SwooleServerMetricsShape
  * }
  */
 final class MetricsProvider implements CommonMetricsProvider

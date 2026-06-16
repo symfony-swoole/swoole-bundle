@@ -10,19 +10,20 @@ use SwooleBundle\SwooleBundle\Metrics\Metrics;
 use SwooleBundle\SwooleBundle\Metrics\MetricsProvider as CommonMetricsProvider;
 
 /**
+ * @phpstan-type OpenSwooleServerMetricsShape = array{
+ *   start_time: int,
+ *   workers_total: int,
+ *   workers_idle: int,
+ *   requests_total: int,
+ *   connections_active: int,
+ *   connections_accepted: int,
+ *   connections_closed: int,
+ *   coroutine_num: int,
+ *   tasking_num: int
+ * }
  * @phpstan-type OpenSwooleMetricsShape = array{
  *   date: string,
- *   server: array{
- *     start_time: int,
- *     workers_total: int,
- *     workers_idle: int,
- *     requests_total: int,
- *     connections_active: int,
- *     connections_accepted: int,
- *     connections_closed: int,
- *     coroutine_num: int,
- *     tasking_num: int
- *   }
+ *   server: OpenSwooleServerMetricsShape
  * }
  */
 final class MetricsProvider implements CommonMetricsProvider
