@@ -1,3 +1,19 @@
+# [0.28.0](https://github.com/symfony-swoole/swoole-bundle/compare/v0.27.1...v0.28.0) (2026-06-16)
+
+[Full changelog](https://github.com/symfony-swoole/swoole-bundle/compare/v0.27.1...v0.28.0)
+
+### Bug Fixes
+
+* **code:** fix typos, duplicates, small improvements ([#260](https://github.com/symfony-swoole/swoole-bundle/issues/260)) ([782edb6](https://github.com/symfony-swoole/swoole-bundle/commit/782edb6709f93c0c6b6b58347150000c13de6db3))
+* **coroutines:** fixed service resetting and removed as much concurrent data accesses as possible ([#279](https://github.com/symfony-swoole/swoole-bundle/issues/279)) ([2006df7](https://github.com/symfony-swoole/swoole-bundle/commit/2006df701b6a059e26090c2636f48fd25bf7cc54))
+* **deps:** allow a wder ext-swoole version constraint in composer.json ([ef965cc](https://github.com/symfony-swoole/swoole-bundle/commit/ef965cc4fb6661ac1cd17c1c5f2054c622e78e8f))
+* **file-server:** fix static file path traversal outside public path ([#269](https://github.com/symfony-swoole/swoole-bundle/issues/269)) ([c5d88e4](https://github.com/symfony-swoole/swoole-bundle/commit/c5d88e4ac53bf1c85d13c80988d0c704811bfc84))
+
+
+### Features
+
+* Added Swoole OpenMetrics formatter ([#282](https://github.com/symfony-swoole/swoole-bundle/issues/282)) ([8353353](https://github.com/symfony-swoole/swoole-bundle/commit/835335305fc55261db055c0a751eb320542f3abf))
+
 ## [0.27.1](https://github.com/symfony-swoole/swoole-bundle/compare/v0.27.0...v0.27.1) (2026-05-20)
 
 [Full changelog](https://github.com/symfony-swoole/swoole-bundle/compare/v0.27.0...v0.27.1)
