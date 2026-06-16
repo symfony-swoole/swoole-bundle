@@ -48,10 +48,7 @@ interface Api
     /**
      * Get Swoole HTTP Server metrics.
      *
-     * @return array{
-     *   date: string,
-     *   server: MetricsShape
-     * }
+     * @return MetricsShape
      */
     public function metrics(): array;
 }

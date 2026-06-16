@@ -49,6 +49,9 @@ use SwooleBundle\SwooleBundle\Component\ExceptionArrayTransformer;
 use SwooleBundle\SwooleBundle\Component\GeneratedCollection;
 use SwooleBundle\SwooleBundle\Component\Locking\Channel\ChannelMutexFactory;
 use SwooleBundle\SwooleBundle\Component\Locking\FirstTimeOnly\FirstTimeOnlyMutexFactory;
+use SwooleBundle\SwooleBundle\Metrics\Formatter\JsonMetricsFormatter;
+use SwooleBundle\SwooleBundle\Metrics\Formatter\MetricsFormatterResolver;
+use SwooleBundle\SwooleBundle\Metrics\Formatter\OpenMetricsFormatter;
 use SwooleBundle\SwooleBundle\Metrics\MetricsProvider;
 use SwooleBundle\SwooleBundle\Metrics\SystemMetricsProviderRegistry;
 use SwooleBundle\SwooleBundle\Server\Api\Api;
@@ -358,7 +361,8 @@ return static function (ContainerConfigurator $containerConfigurator): void {
         ->tag('swoole_bundle.server_configurator');
 
     $services->set(ApiServerRequestHandler::class)
-        ->arg('$apiServer', service(Api::class));
+        ->arg('$apiServer', service(Api::class))
+        ->arg('$metricsFormatterResolver', service(MetricsFormatterResolver::class));
 
     $services->set('swoole_bundle.server.api_server.request_handler', ExceptionRequestHandler::class)
         ->arg('$decorated', service(ApiServerRequestHandler::class))
@@ -478,6 +482,21 @@ return static function (ContainerConfigurator $containerConfigurator): void {
             service(SystemMetricsProviderRegistry::class),
             'get',
         ]);
+
+    $services->set(JsonMetricsFormatter::class)
+        ->tag('swoole_bundle.metrics_formatter', [
+            'priority' => 0,
+        ]);
+
+    $services->set(OpenMetricsFormatter::class)
+        ->arg('$metricsProvider', service(MetricsProvider::class))
+        ->tag('swoole_bundle.metrics_formatter', [
+            'priority' => 10,
+        ]);
+
+    $services->set(MetricsFormatterResolver::class)
+        ->arg('$formatters', tagged_iterator('swoole_bundle.metrics_formatter'))
+        ->arg('$default', service(JsonMetricsFormatter::class));
 
     $services->set(SystemSwooleFactory::class)
         ->factory([SystemSwooleFactory::class, 'newFactoryInstance']);

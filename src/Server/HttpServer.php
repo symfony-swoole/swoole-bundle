@@ -18,8 +18,8 @@ use SwooleBundle\SwooleBundle\Server\Exception\UninitializedException;
 use Throwable;
 
 /**
- * @phpstan-import-type OpenSwooleMetricsShape from OpenSwooleMetricsProvider
- * @phpstan-import-type SwooleMetricsShape from SwooleMetricsProvider
+ * @phpstan-import-type OpenSwooleServerMetricsShape from OpenSwooleMetricsProvider
+ * @phpstan-import-type SwooleServerMetricsShape from SwooleMetricsProvider
  */
 final class HttpServer
 {
@@ -109,7 +109,7 @@ final class HttpServer
     }
 
     /**
-     * @return OpenSwooleMetricsShape|SwooleMetricsShape
+     * @return OpenSwooleServerMetricsShape|SwooleServerMetricsShape
      */
     public function metrics(): array
     {

@@ -51,7 +51,7 @@ final readonly class ApiServerClient implements Api
      */
     public function metrics(): array
     {
-        /** @var array{date: string, server: MetricsShape} $toReturn */
+        /** @var MetricsShape $toReturn */
         $toReturn = $this->client->send('/api/server/metrics')['response']['body'];
 
         return $toReturn;
