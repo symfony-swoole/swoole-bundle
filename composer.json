@@ -61,7 +61,7 @@
         "doctrine/persistence": "^3.2 || ^4.0",
         "friendsofphp/php-cs-fixer": "^3.94",
         "jangregor/phpstan-prophecy": "^2.3",
-        "openswoole/core": "^22.2",
+        "openswoole/core": "^26.2.0",
         "openswoole/ide-helper": "^26.2",
         "phpro/grumphp": "^2.19",
         "phpspec/prophecy": "^1.26",

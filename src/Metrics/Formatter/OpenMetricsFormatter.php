@@ -91,6 +91,21 @@ final class OpenMetricsFormatter implements MetricsFormatter
                 'Number of tasks waiting in the task queue.',
                 $metrics->tasksInQueue(),
             ),
+            ...self::floatGauge(
+                'swoole_event_loop_lag_milliseconds',
+                'Current event loop lag in milliseconds.',
+                $metrics->eventLoopLagMs(),
+            ),
+            ...self::floatGauge(
+                'swoole_event_loop_lag_max_milliseconds',
+                'Maximum event loop lag in milliseconds since the server start.',
+                $metrics->maxEventLoopLagMs(),
+            ),
+            ...self::floatGauge(
+                'swoole_event_loop_lag_avg_milliseconds',
+                'Average event loop lag in milliseconds.',
+                $metrics->avgEventLoopLagMs(),
+            ),
         ];
 
         return implode('', $lines) . "# EOF\n";
@@ -118,5 +133,28 @@ final class OpenMetricsFormatter implements MetricsFormatter
             sprintf("# HELP %s %s\n", $name, $help),
             sprintf("%s_total %d\n", $name, $value),
         ];
+    }
+
+    /**
+     * @return array<string>
+     */
+    private static function floatGauge(string $name, string $help, ?float $value): array
+    {
+        if ($value === null) {
+            return [];
+        }
+
+        return [
+            sprintf("# TYPE %s gauge\n", $name),
+            sprintf("# HELP %s %s\n", $name, $help),
+            sprintf("%s %s\n", $name, self::formatFloat($value)),
+        ];
+    }
+
+    private static function formatFloat(float $value): string
+    {
+        $formatted = rtrim(rtrim(number_format($value, 9, '.', ''), '0'), '.');
+
+        return $formatted === '' ? '0' : $formatted;
     }
 }

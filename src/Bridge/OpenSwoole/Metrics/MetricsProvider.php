@@ -19,7 +19,10 @@ use SwooleBundle\SwooleBundle\Metrics\MetricsProvider as CommonMetricsProvider;
  *   connections_accepted: int,
  *   connections_closed: int,
  *   coroutine_num: int,
- *   tasking_num: int
+ *   tasking_num: int,
+ *   event_loop_lag_ms?: float,
+ *   event_loop_lag_max_ms?: float,
+ *   event_loop_lag_avg_ms?: float
  * }
  * @phpstan-type OpenSwooleMetricsShape = array{
  *   date: string,
@@ -40,6 +43,9 @@ final class MetricsProvider implements CommonMetricsProvider
         $totaWorkers = $serverData['workers_total'];
         $idleWorkers = $serverData['workers_idle'];
         $activeWorkers = $totaWorkers - $idleWorkers;
+        $eventLoopLagMs = $serverData['event_loop_lag_ms'] ?? null;
+        $maxEventLoopLagMs = $serverData['event_loop_lag_max_ms'] ?? null;
+        $avgEventLoopLagMs = $serverData['event_loop_lag_avg_ms'] ?? null;
 
         return new Metrics(
             $serverData['requests_total'],
@@ -51,7 +57,10 @@ final class MetricsProvider implements CommonMetricsProvider
             $activeWorkers,
             $idleWorkers,
             $serverData['coroutine_num'],
-            $serverData['tasking_num']
+            $serverData['tasking_num'],
+            $eventLoopLagMs,
+            $maxEventLoopLagMs,
+            $avgEventLoopLagMs,
         );
     }
 }

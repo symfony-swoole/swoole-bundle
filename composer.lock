@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "a4b386aee16ed9bc4aea3e5f584e85a4",
+    "content-hash": "cc6b029c353ce4ba7ef0bad19d1c4d14",
     "packages": [
         {
             "name": "beberlei/assert",
@@ -5904,21 +5904,21 @@
         },
         {
             "name": "openswoole/core",
-            "version": "22.2.0",
+            "version": "26.2.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/openswoole/core.git",
-                "reference": "d611dd826aa4a9bdd094e4e0d493af4545cf1564"
+                "reference": "8bb110ec7ba6ca8b0d9d40bf8d8aa0b790d1bf22"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/openswoole/core/zipball/d611dd826aa4a9bdd094e4e0d493af4545cf1564",
-                "reference": "d611dd826aa4a9bdd094e4e0d493af4545cf1564",
+                "url": "https://api.github.com/repos/openswoole/core/zipball/8bb110ec7ba6ca8b0d9d40bf8d8aa0b790d1bf22",
+                "reference": "8bb110ec7ba6ca8b0d9d40bf8d8aa0b790d1bf22",
                 "shasum": ""
             },
             "require": {
-                "ext-openswoole": ">=22.0",
-                "php": ">=7.4",
+                "ext-openswoole": ">=26.2.0",
+                "php": ">=8.3",
                 "psr/http-message": "^1.0 || ^2.0",
                 "psr/http-server-middleware": "^1.0.0"
             },
@@ -5926,9 +5926,9 @@
                 "ext-curl": "*",
                 "ext-sockets": "*",
                 "friendsofphp/php-cs-fixer": "^3.6",
-                "openswoole/ide-helper": "^22.0",
+                "openswoole/ide-helper": "^26.2",
                 "php-http/psr7-integration-tests": "^1.1",
-                "phpunit/phpunit": "^9.5"
+                "phpunit/phpunit": "^10.5"
             },
             "suggest": {
                 "ext-mysqli": "*",
@@ -5971,7 +5971,7 @@
                 "pull-request": "https://github.com/openswoole/openswoole/pulls",
                 "source": "https://github.com/openswoole/openswoole"
             },
-            "time": "2024-09-08T21:58:46+00:00"
+            "time": "2026-02-28T15:02:48+00:00"
         },
         {
             "name": "openswoole/ide-helper",

@@ -86,6 +86,38 @@ final class OpenMetricsFormatterTest extends TestCase
         self::assertSame($expected, $formatter->format(self::RAW_METRICS));
     }
 
+    public function testOmitsEventLoopLagWhenNotAvailable(): void
+    {
+        $formatter = new OpenMetricsFormatter($this->fixedMetricsProvider());
+
+        $output = $formatter->format(self::RAW_METRICS);
+
+        self::assertStringNotContainsString('swoole_event_loop_lag', $output);
+    }
+
+    public function testFormatsEventLoopLagWhenPresent(): void
+    {
+        $formatter = new OpenMetricsFormatter($this->lagMetricsProvider());
+
+        $output = $formatter->format(self::RAW_METRICS);
+
+        $expected = <<<'OPENMETRICS'
+            # TYPE swoole_event_loop_lag_milliseconds gauge
+            # HELP swoole_event_loop_lag_milliseconds Current event loop lag in milliseconds.
+            swoole_event_loop_lag_milliseconds 2.5
+            # TYPE swoole_event_loop_lag_max_milliseconds gauge
+            # HELP swoole_event_loop_lag_max_milliseconds Maximum event loop lag in milliseconds since the server start.
+            swoole_event_loop_lag_max_milliseconds 120
+            # TYPE swoole_event_loop_lag_avg_milliseconds gauge
+            # HELP swoole_event_loop_lag_avg_milliseconds Average event loop lag in milliseconds.
+            swoole_event_loop_lag_avg_milliseconds 4
+            # EOF
+
+            OPENMETRICS;
+
+        self::assertStringContainsString($expected, $output);
+    }
+
     private function fixedMetricsProvider(): MetricsProvider
     {
         return new class implements MetricsProvider {
@@ -105,6 +137,33 @@ final class OpenMetricsFormatterTest extends TestCase
                     idleWorkers: 108,
                     runningCoroutines: 109,
                     tasksInQueue: 110,
+                );
+            }
+        };
+    }
+
+    private function lagMetricsProvider(): MetricsProvider
+    {
+        return new class implements MetricsProvider {
+            /**
+             * @param array<mixed> $metricsData
+             */
+            public function fromMetricsData(array $metricsData): Metrics
+            {
+                return new Metrics(
+                    requestCount: 101,
+                    upTimeInSeconds: 102,
+                    activeConnections: 103,
+                    acceptedConnections: 104,
+                    closedConnections: 105,
+                    totalWorkers: 106,
+                    activeWorkers: 107,
+                    idleWorkers: 108,
+                    runningCoroutines: 109,
+                    tasksInQueue: 110,
+                    eventLoopLagMs: 2.5,
+                    maxEventLoopLagMs: 120.0,
+                    avgEventLoopLagMs: 4.0,
                 );
             }
         };
