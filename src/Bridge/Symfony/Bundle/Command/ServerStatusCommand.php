@@ -161,9 +161,7 @@ final class ServerStatusCommand extends Command
     private function showMetrics(SymfonyStyle $io, array $metricsData): void
     {
         $metrics = $this->metricsProvider->fromMetricsData($metricsData);
-        $io->table([
-            'Metric', 'Quantity', 'Unit',
-        ], [
+        $rows = [
             ['Requests', $metrics->requestCount(), '1'],
             ['Up time', $metrics->upTimeInSeconds(), 'Seconds'],
             ['Active connections', $metrics->activeConnections(), '1'],
@@ -174,6 +172,22 @@ final class ServerStatusCommand extends Command
             ['Idle workers', $metrics->idleWorkers(), '1'],
             ['Running coroutines', $metrics->runningCoroutines(), '1'],
             ['Tasks in queue', $metrics->tasksInQueue(), '1'],
-        ]);
+        ];
+
+        if ($metrics->eventLoopLagMs() !== null) {
+            $rows[] = ['Event loop lag', $metrics->eventLoopLagMs(), 'Milliseconds'];
+        }
+
+        if ($metrics->maxEventLoopLagMs() !== null) {
+            $rows[] = ['Event loop lag (max)', $metrics->maxEventLoopLagMs(), 'Milliseconds'];
+        }
+
+        if ($metrics->avgEventLoopLagMs() !== null) {
+            $rows[] = ['Event loop lag (avg)', $metrics->avgEventLoopLagMs(), 'Milliseconds'];
+        }
+
+        $io->table([
+            'Metric', 'Quantity', 'Unit',
+        ], $rows);
     }
 }
