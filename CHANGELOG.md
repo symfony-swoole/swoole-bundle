@@ -1,3 +1,11 @@
+# [0.29.0](https://github.com/symfony-swoole/swoole-bundle/compare/v0.28.0...v0.29.0) (2026-06-19)
+
+[Full changelog](https://github.com/symfony-swoole/swoole-bundle/compare/v0.28.0...v0.29.0)
+
+### Features
+
+* Added OpenSwoole EventLoop lag metrics ([#288](https://github.com/symfony-swoole/swoole-bundle/issues/288)) ([c6e36f5](https://github.com/symfony-swoole/swoole-bundle/commit/c6e36f540af404c68df4d616b2fcebb51ee82219))
+
 # [0.28.0](https://github.com/symfony-swoole/swoole-bundle/compare/v0.27.1...v0.28.0) (2026-06-16)
 
 [Full changelog](https://github.com/symfony-swoole/swoole-bundle/compare/v0.27.1...v0.28.0)
