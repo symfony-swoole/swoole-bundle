@@ -305,7 +305,24 @@ final class StatefulServicesPass implements CompilerPassInterface
 
     private function detectKernelClass(ContainerBuilder $container): void
     {
-        $kernelClass = null;
+        $kernelClass = $this->resolveKernelClass($container);
+        if ($kernelClass === null) {
+            throw new UnexpectedValueException('Cannot detect kernel class.');
+        }
+
+        $kernelProxy = $container->findDefinition('kernel_proxy');
+        $kernelProxy->setClass($kernelClass);
+    }
+
+    private function resolveKernelClass(ContainerBuilder $container): ?string
+    {
+        if ($container->hasDefinition('kernel')) {
+            $kernelClass = $container->getDefinition('kernel')->getClass();
+
+            if ($kernelClass !== null && $kernelClass !== '') {
+                return $kernelClass;
+            }
+        }
 
         foreach ($container->getResources() as $resource) {
             if (!$resource instanceof FileResource) {
@@ -315,27 +332,15 @@ final class StatefulServicesPass implements CompilerPassInterface
             $content = file_get_contents($resource->getResource());
             Assertion::string($content);
 
-            // Extract namespace
             if (!preg_match('/namespace\s+([A-Za-z0-9_\\\\]+);/', $content, $namespaceMatches)) {
                 continue;
             }
 
-            $namespace = $namespaceMatches[1];
-
-            // Extract class name
-            if (preg_match('/class\s+([A-Za-z0-9_]+)\s+extends\s+Kernel/', $content, $classMatches)) {
-                $className = $classMatches[1];
-                $kernelClass = $namespace . '\\' . $className;
-
-                break;
+            if (preg_match('/class\s+([A-Za-z0-9_]+)\s+extends\s+[A-Za-z0-9_]*Kernel\b/', $content, $classMatches)) {
+                return $namespaceMatches[1] . '\\' . $classMatches[1];
             }
         }
 
-        if (!$kernelClass) {
-            throw new UnexpectedValueException('Cannot detect kernel class.');
-        }
-
-        $kernelProxy = $container->findDefinition('kernel_proxy');
-        $kernelProxy->setClass($kernelClass);
+        return null;
     }
 }
