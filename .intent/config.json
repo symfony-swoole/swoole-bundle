@@ -1,0 +1,10 @@
+{
+  "scripts": [
+    {
+      "name": "clean",
+      "command": "make clean",
+      "mode": "command",
+      "category": "other"
+    }
+  ]
+}
