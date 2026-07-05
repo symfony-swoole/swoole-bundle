@@ -1,3 +1,17 @@
+# [0.30.0](https://github.com/symfony-swoole/swoole-bundle/compare/v0.29.0...v0.30.0) (2026-07-05)
+
+[Full changelog](https://github.com/symfony-swoole/swoole-bundle/compare/v0.29.0...v0.30.0)
+
+### Bug Fixes
+
+* **container:** fix for container overriding code while cache:clear is being executed ([#299](https://github.com/symfony-swoole/swoole-bundle/issues/299)) ([dfb85df](https://github.com/symfony-swoole/swoole-bundle/commit/dfb85df6f86f3e7c088037e5072e24dfb8a31944))
+* **coroutines:** event_dispatcher proxofication ([#300](https://github.com/symfony-swoole/swoole-bundle/issues/300)) ([cf2907b](https://github.com/symfony-swoole/swoole-bundle/commit/cf2907b561b78217054755c21397cbca7ca2eabc))
+
+
+### Features
+
+* Added extended kernel class detection ([#298](https://github.com/symfony-swoole/swoole-bundle/issues/298)) ([c320df7](https://github.com/symfony-swoole/swoole-bundle/commit/c320df77ed3e4a88864b3a33738346ec8dc6a6ac))
+
 # [0.29.0](https://github.com/symfony-swoole/swoole-bundle/compare/v0.28.0...v0.29.0) (2026-06-19)
 
 [Full changelog](https://github.com/symfony-swoole/swoole-bundle/compare/v0.28.0...v0.29.0)
