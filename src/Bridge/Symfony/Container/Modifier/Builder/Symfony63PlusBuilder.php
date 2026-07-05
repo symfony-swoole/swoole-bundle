@@ -24,16 +24,17 @@ final class Symfony63PlusBuilder implements Builder
     public function overrideGeneratedContainer(ReflectionClass $reflContainer, string $cacheDir, bool $isDebug): void
     {
         $fs = new Filesystem();
+
+        $cacheDir = $this->getRealCacheDir($fs, $cacheDir);
         $containerFqcn = $reflContainer->getName();
         $overriddenFqcn = $containerFqcn . '_Overridden';
         $classParts = explode('\\', $containerFqcn);
         $containerClass = array_pop($classParts);
         $overriddenClass = $containerClass . '_Overridden';
-        $containerFile = $cacheDir . DIRECTORY_SEPARATOR . str_replace(
-            '\\',
-            DIRECTORY_SEPARATOR,
-            $containerFqcn
-        ) . '.php';
+        $containerFile = $reflContainer->getFileName();
+
+        Assertion::string($containerFile, 'Could not get container file name from reflection.');
+
         $overriddenFile = $cacheDir . DIRECTORY_SEPARATOR . str_replace(
             '\\',
             DIRECTORY_SEPARATOR,
@@ -42,6 +43,10 @@ final class Symfony63PlusBuilder implements Builder
 
         if (file_exists($overriddenFile)) {
             return;
+        }
+
+        if (!$fs->exists($containerFile)) {
+            throw new RuntimeException(sprintf('Container file "%s" does not exist.', $containerFile));
         }
 
         $containerSource = file_get_contents($containerFile);
@@ -110,6 +115,7 @@ final class Symfony63PlusBuilder implements Builder
     public function overrideGeneratedContainerGetters(ReflectionClass $reflContainer, string $cacheDir): void
     {
         $fs = new Filesystem();
+        $cacheDir = $this->getRealCacheDir($fs, $cacheDir);
         $containerNamespace = $reflContainer->getNamespaceName();
         $containerDirectory = $cacheDir . DIRECTORY_SEPARATOR . $containerNamespace;
         $files = scandir($containerDirectory);
@@ -451,5 +457,16 @@ final class Symfony63PlusBuilder implements Builder
         $getters[] = 'getDefaultParameters';
 
         return array_flip($getters);
+    }
+
+    private function getRealCacheDir(Filesystem $fs, string $cacheDir): string
+    {
+        $cacheDirTmp = substr($cacheDir, 0, -1) . '_';
+
+        if ($fs->exists($cacheDirTmp)) {
+            $cacheDir = $cacheDirTmp;
+        }
+
+        return $cacheDir;
     }
 }
