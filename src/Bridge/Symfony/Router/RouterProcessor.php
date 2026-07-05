@@ -16,6 +16,8 @@ final class RouterProcessor implements CompileProcessor
             !$container->hasDefinition('debug.event_dispatcher')
             || !$container->hasDefinition('debug.event_dispatcher.inner')
         ) {
+            $proxifier->proxifyService('event_dispatcher');
+
             return;
         }
 
