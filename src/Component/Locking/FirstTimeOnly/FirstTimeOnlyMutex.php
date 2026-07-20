@@ -19,7 +19,9 @@ final class FirstTimeOnlyMutex implements Mutex
 
     private int $waitingCount = 0;
 
-    public function __construct(private ?Mutex $wrapped) {}
+    public function __construct(
+        private ?Mutex $wrapped,
+    ) {}
 
     public function acquire(): void
     {
