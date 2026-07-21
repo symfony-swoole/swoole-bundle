@@ -41,12 +41,15 @@ use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpKernel\HttpKernelRequestHandler
 use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpKernel\KernelCloner;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Messenger\ExceptionLoggingTransportHandler;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Messenger\ServiceResettingTransportHandler;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Router\LockingConfigCacheFactory;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Router\LockingLoader;
 use SwooleBundle\SwooleBundle\Common\Adapter\Swoole;
 use SwooleBundle\SwooleBundle\Common\System\Extension;
 use SwooleBundle\SwooleBundle\Common\System\System;
 use SwooleBundle\SwooleBundle\Component\AtomicCounter;
 use SwooleBundle\SwooleBundle\Component\ExceptionArrayTransformer;
 use SwooleBundle\SwooleBundle\Component\GeneratedCollection;
+use SwooleBundle\SwooleBundle\Component\Locking\Channel\ChannelMutex;
 use SwooleBundle\SwooleBundle\Component\Locking\Channel\ChannelMutexFactory;
 use SwooleBundle\SwooleBundle\Component\Locking\FirstTimeOnly\FirstTimeOnlyMutexFactory;
 use SwooleBundle\SwooleBundle\Metrics\Formatter\JsonMetricsFormatter;
@@ -110,6 +113,7 @@ use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpKernel\Kernel;
 use Symfony\Component\HttpKernel\KernelInterface;
 
+use function Symfony\Component\DependencyInjection\Loader\Configurator\inline_service;
 use function Symfony\Component\DependencyInjection\Loader\Configurator\service;
 use function Symfony\Component\DependencyInjection\Loader\Configurator\tagged_iterator;
 
@@ -510,4 +514,18 @@ return static function (ContainerConfigurator $containerConfigurator): void {
 
     $services->set(HttpServerFactory::class)
         ->arg('$swoole', service(Swoole::class));
+
+    $services->set(LockingLoader::class)
+        ->arg(
+            '$mutex',
+            inline_service(ChannelMutex::class)
+                ->factory([service('swoole_bundle.service_pool.locking'), 'newMutex']),
+        );
+
+    $services->set(LockingConfigCacheFactory::class)
+        ->arg(
+            '$mutex',
+            inline_service(ChannelMutex::class)
+                ->factory([service('swoole_bundle.service_pool.locking'), 'newMutex']),
+        );
 };

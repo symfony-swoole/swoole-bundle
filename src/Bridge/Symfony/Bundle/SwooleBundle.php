@@ -5,15 +5,14 @@ declare(strict_types=1);
 namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle;
 
 use Assert\Assertion;
-use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\{
-    BlackfireMonitoringPass,
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\{BlackfireMonitoringPass,
     ExceptionHandlerPass,
     FinalizeDefinitionsAfterRemovalPass,
     MessengerTransportFactoryPass,
+    RouterOptimizerPass,
     SessionStorageListenerPass,
     StatefulServicesPass,
-    StreamedResponseListenerPass,
-};
+    StreamedResponseListenerPass};
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\ContainerConstants;
 use Symfony\Component\DependencyInjection\Compiler\PassConfig;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -30,6 +29,7 @@ final class SwooleBundle extends Bundle
         $container->addCompilerPass(new SessionStorageListenerPass());
         $container->addCompilerPass(new MessengerTransportFactoryPass());
         $container->addCompilerPass(new ExceptionHandlerPass());
+        $container->addCompilerPass(new RouterOptimizerPass());
         $container->addCompilerPass(new StatefulServicesPass(), PassConfig::TYPE_BEFORE_REMOVING, -10000);
         $container->addCompilerPass(new FinalizeDefinitionsAfterRemovalPass(), PassConfig::TYPE_AFTER_REMOVING, -10000);
     }
