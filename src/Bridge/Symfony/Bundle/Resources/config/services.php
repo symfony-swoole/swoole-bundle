@@ -71,6 +71,7 @@ use SwooleBundle\SwooleBundle\Server\Configurator\WithServerManagerStartHandler;
 use SwooleBundle\SwooleBundle\Server\Configurator\WithServerManagerStopHandler;
 use SwooleBundle\SwooleBundle\Server\Configurator\WithServerShutdownHandler;
 use SwooleBundle\SwooleBundle\Server\Configurator\WithServerStartHandler;
+use SwooleBundle\SwooleBundle\Server\Configurator\WithSwooleTableStorageConfigurator;
 use SwooleBundle\SwooleBundle\Server\Configurator\WithTaskFinishedHandler;
 use SwooleBundle\SwooleBundle\Server\Configurator\WithTaskHandler;
 use SwooleBundle\SwooleBundle\Server\Configurator\WithWorkerErrorHandler;
@@ -215,7 +216,9 @@ return static function (ContainerConfigurator $containerConfigurator): void {
         ->arg('$decorated', service(RequestHandler::class))
         ->arg('$coWrapper', service(CoWrapper::class));
 
-    $services->set(SwooleSessionStorageFactory::class);
+    $services->set(SwooleSessionStorageFactory::class)
+        ->arg('$storage', service(Storage::class))
+        ->arg('$sessionOptions', '%session.storage.options%');
 
     $services->set(LimitedRequestHandler::class)
         ->arg('$decorated', service(RequestHandler::class))
@@ -226,10 +229,12 @@ return static function (ContainerConfigurator $containerConfigurator): void {
     $services->set(CallableBootManagerFactory::class);
 
     $services->set(SwooleTableStorage::class)
-        ->factory([
-            SwooleTableStorage::class,
-            'fromDefaults',
-        ]);
+        ->factory([SwooleTableStorage::class, 'fromDefaults'])
+        ->arg('$maxActiveSessions', '%swoole_bundle.session.max_active_sessions%')
+        ->arg('$maxSessionDataBytes', '%swoole_bundle.session.max_data_bytes%');
+
+    $services->set(WithSwooleTableStorageConfigurator::class)
+        ->arg('$storage', service(SwooleTableStorage::class));
 
     $services->alias(Storage::class, SwooleTableStorage::class);
 

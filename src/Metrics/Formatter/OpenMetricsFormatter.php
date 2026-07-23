@@ -13,14 +13,14 @@ use SwooleBundle\SwooleBundle\Metrics\MetricsProvider;
  * @see https://github.com/prometheus/OpenMetrics/blob/main/specification/OpenMetrics.md
  * @phpstan-import-type MetricsShape from MetricsProvider
  */
-final class OpenMetricsFormatter implements MetricsFormatter
+final readonly class OpenMetricsFormatter implements MetricsFormatter
 {
     private const string CONTENT_TYPE = 'application/openmetrics-text; version=1.0.0; charset=utf-8';
 
     private const string MEDIA_TYPE = 'application/openmetrics-text';
 
     public function __construct(
-        private readonly MetricsProvider $metricsProvider,
+        private MetricsProvider $metricsProvider,
     ) {}
 
     public function supports(string $accept): bool

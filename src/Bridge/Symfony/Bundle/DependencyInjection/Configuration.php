@@ -453,6 +453,17 @@ final readonly class Configuration implements ConfigurationInterface
                         ->end() // end coroutines
                     ->end()
                 ->end() // platform
+                ->arrayNode('session')
+                    ->addDefaultsIfNotSet()
+                    ->children()
+                        ->integerNode('max_data_bytes')
+                            ->defaultValue(4096)
+                        ->end()
+                        ->integerNode('max_active_sessions')
+                            ->defaultValue(1024)
+                        ->end()
+                    ->end()
+                ->end() // session
             ->end();
 
         return $this->builder;

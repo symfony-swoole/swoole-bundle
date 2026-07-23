@@ -194,6 +194,39 @@ swoole:
           default: 9
 ```
 
+## Session Storage
+
+Session storage backed by an OpenSwoole Table (shared memory). See [swoole-session.md](./swoole-session.md) for full details.
+
+To enable, configure both the swoole bundle and Symfony's framework session:
+
+```yaml
+# config/packages/swoole.yaml
+swoole:
+    session:
+        max_data_bytes: 4096          # max bytes of serialized session data per record (default: 4096)
+        max_active_sessions: 1024     # max concurrent sessions; rounded up to next power of 2 by OpenSwoole (default: 1024)
+
+# config/packages/framework.yaml
+framework:
+    session:
+        storage_factory_id: swoole_bundle.session.table_storage_factory
+        cookie_lifetime: 3600
+        # GC is read from PHP ini (session.gc_probability / session.gc_divisor) unless overridden here:
+        # gc_probability: 1
+        # gc_divisor: 100
+```
+
+| Option | Default | Description |
+| --- | --- | --- |
+| session.max_data_bytes | 4096 | Maximum size in bytes of serialized session data per record |
+| session.max_active_sessions | 1024 | Maximum concurrent session records; OpenSwoole rounds up to the next power of 2 |
+
+**Constraints:**
+
+- Session key must not exceed 63 bytes (OpenSwoole Table key limit).
+- Table size is fixed at server start; it cannot grow dynamically.
+
 ## Additional info for coroutines usage
 
 **WARNING!!! Coroutines usage in Symfony is highly EXPERIMENTAL at this stage. It still needs to be tested properly.

@@ -156,10 +156,15 @@ use ZEngine\Core;
  *   services: ServicesConfig,
  *   exception_handler: ExceptionHandlerConfig,
  * }
+ * @phpstan-type SessionConfig = array{
+ *   max_data_bytes: int,
+ *   max_active_sessions: int,
+ * }
  * @phpstan-type BundleConfig = array{
  *   http_server: HttpServerConfig,
  *   task_worker?: TaskWorkerConfig,
  *   platform?: PlatformConfig,
+ *   session?: SessionConfig,
  * }
  */
 final class SwooleExtension extends Extension
@@ -204,6 +209,7 @@ final class SwooleExtension extends Extension
         $swooleSettings += isset($config['task_worker'])
             ? $this->configureTaskWorker($config['task_worker'], $container)
             : [];
+        $this->configureSession($config['session'] ?? [], $container);
         $this->assignSwooleConfiguration($swooleSettings, $runningMode, $maxConcurrency, $fiberContext, $container);
     }
 
@@ -715,6 +721,15 @@ final class SwooleExtension extends Extension
             ->addArgument($swooleSettings)
             ->addArgument($maxConcurrency)
             ->addArgument($fiberContext);
+    }
+
+    /**
+     * @param array<never, never>|SessionConfig $config
+     */
+    private function configureSession(array $config, ContainerBuilder $container): void
+    {
+        $container->setParameter('swoole_bundle.session.max_data_bytes', $config['max_data_bytes'] ?? 4096);
+        $container->setParameter('swoole_bundle.session.max_active_sessions', $config['max_active_sessions'] ?? 1024);
     }
 
     private function isProd(ContainerBuilder $container): bool
