@@ -8,6 +8,7 @@ use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\Command\ServerRunCommand;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\Command\ServerStartCommand;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\Command\ServerStatusCommand;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\Command\ServerStopCommand;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\Command\ServerWatchCommand;
 use SwooleBundle\SwooleBundle\Metrics\MetricsProvider;
 use SwooleBundle\SwooleBundle\Server\Api\ApiServerClientFactory;
 use SwooleBundle\SwooleBundle\Server\Config\Sockets;
@@ -49,6 +50,14 @@ return static function (ContainerConfigurator $containerConfigurator): void {
         ->arg('$parameterBag', service('parameter_bag'))
         ->tag('console.command', [
             'command' => 'swoole:server:reload',
+        ]);
+
+    $services->set(ServerWatchCommand::class)
+        ->arg('$projectDir', '%kernel.project_dir%')
+        ->arg('$kernelEnvironment', '%kernel.environment%')
+        ->arg('$kernelDebug', '%kernel.debug%')
+        ->tag('console.command', [
+            'command' => 'swoole:server:watch',
         ]);
 
     $services->set(
