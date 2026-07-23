@@ -42,6 +42,8 @@ final class SwooleSessionStorage implements SessionStorageInterface
         private readonly Storage $storage,
         private string $name = self::DEFAULT_SESSION_NAME,
         int $lifetimeSeconds = 86400,
+        private int $gcProbability = 1,
+        private int $gcDivisor = 100,
         ?MetadataBag $metadataBag = null,
     ) {
         $this->setLifetimeSeconds($lifetimeSeconds);
@@ -101,6 +103,18 @@ final class SwooleSessionStorage implements SessionStorageInterface
             json_encode($this->data, JSON_THROW_ON_ERROR),
             $this->sessionLifetimeSeconds
         );
+
+        // Probabilistic garbage collection: mirrors PHP's session.gc_probability / session.gc_divisor mechanism.
+        // SwooleTableStorage does not use PHP's native session handler so gc() is never called automatically.
+        if (
+            $this->gcProbability <= 0
+            || $this->gcDivisor <= 0
+            || random_int(1, $this->gcDivisor) > $this->gcProbability
+        ) {
+            return;
+        }
+
+        $this->storage->garbageCollect();
     }
 
     public function reset(): void

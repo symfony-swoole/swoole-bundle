@@ -11,7 +11,9 @@ use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Entity\Test;
  */
 final class DecorationTestDummyService implements DummyService
 {
-    public function __construct(private readonly DummyService $decorated) {}
+    public function __construct(
+        private readonly DummyService $decorated,
+    ) {}
 
     /**
      * @return array<Test>

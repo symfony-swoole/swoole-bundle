@@ -24,6 +24,11 @@ interface Storage
     public function garbageCollect(): void;
 
     /**
+     * Return the number of sessions currently in storage.
+     */
+    public function count(): int;
+
+    /**
      * Get session storage data by key.
      *
      * @param callable(string $key, mixed $data):void|null $expired What to do when key has expired
