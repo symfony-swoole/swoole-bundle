@@ -364,6 +364,7 @@ jobs:
               -e DATABASE_HOST=mysql \
               -e SWOOLE=<< parameters.swoole >> \
               -e COMPOSER_AUTH="${COMPOSER_AUTH}" \
+              -e APP_RUNTIME_MODE='web=1&worker=1' \
               --user app \
               --entrypoint sh \
               docker.io/symfonywithswoole/swoole-bundle-coverage-pcov:<< parameters.php-version >>-<< parameters.swoole >>-$CIRCLE_SHA1 \
@@ -438,6 +439,7 @@ jobs:
               -e DATABASE_HOST=mysql \
               -e SWOOLE=<< parameters.swoole >> \
               -e COMPOSER_AUTH="${COMPOSER_AUTH}" \
+              -e APP_RUNTIME_MODE='web=1&worker=1' \
               --user app \
               --entrypoint sh \
               docker.io/symfonywithswoole/swoole-bundle-coverage-xdebug:<< parameters.php-version >>-<< parameters.swoole >>-$CIRCLE_SHA1 \
