@@ -7,6 +7,7 @@ namespace SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Service;
 /**
  * cannot be readonly
  */
+// phpcs:ignore SlevomatCodingStandard.Classes.ReadonlyClass
 final class ShouldBeProxified
 {
     public function __construct(

@@ -9,6 +9,7 @@ use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Entity\Test;
 /**
  * cannot be readonly
  */
+// phpcs:ignore SlevomatCodingStandard.Classes.ReadonlyClass
 final class DecorationTestDummyService implements DummyService
 {
     public function __construct(
