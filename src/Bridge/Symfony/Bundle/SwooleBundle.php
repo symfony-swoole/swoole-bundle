@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle;
 
 use Assert\Assertion;
+use RuntimeException;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\{BlackfireMonitoringPass,
     ExceptionHandlerPass,
     FinalizeDefinitionsAfterRemovalPass,
@@ -40,6 +41,14 @@ final class SwooleBundle extends Bundle
      */
     public function boot(): void
     {
+        // phpcs:ignore SlevomatCodingStandard.Variables.DisallowSuperGlobalVariable
+        if (!isset($_SERVER['APP_RUNTIME_MODE']) && !isset($_ENV['APP_RUNTIME_MODE'])) {
+            throw new RuntimeException(
+                'APP_RUNTIME_MODE needs to be set either in $_SERVER or $_ENV. '
+                . 'For usual cases the configured value should be \'web=1&worker=1\' for this bundle to work properly.',
+            );
+        }
+
         Assertion::notNull($this->container);
 
         if (!$this->container->hasParameter(ContainerConstants::PARAM_COROUTINES_ENABLED)) {
