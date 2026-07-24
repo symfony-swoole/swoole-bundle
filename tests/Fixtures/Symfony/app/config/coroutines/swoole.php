@@ -62,10 +62,6 @@ return static function (ContainerConfigurator $containerConfigurator): void {
                 ],
             ],
         ],
-        'session' => [
-            'max_data_bytes' => 4096,
-            'max_active_sessions' => 100000,
-        ],
     ]);
 
     $services = $containerConfigurator->services();

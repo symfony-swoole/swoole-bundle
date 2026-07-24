@@ -2,8 +2,6 @@
 
 declare(strict_types=1);
 
-use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Message\RunDummy;
-use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Message\SleepAndAppend;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 
 return static function (ContainerConfigurator $containerConfigurator): void {
@@ -16,15 +14,11 @@ return static function (ContainerConfigurator $containerConfigurator): void {
             'app' => 'cache.adapter.array',
             'system' => 'cache.adapter.array',
         ],
-        'messenger' => [
+        'session' => [
             'enabled' => true,
-            'transports' => [
-                'swoole' => 'swoole://task',
-            ],
-            'routing' => [
-                SleepAndAppend::class => 'swoole',
-                RunDummy::class => 'swoole',
-            ],
+            'storage_factory_id' => 'swoole_bundle.session.table_storage_factory',
+            'handler_id' => 'swoole_bundle.session.pdo_handler',
+            'cookie_lifetime' => '%env(int:COOKIE_LIFETIME)%',
         ],
     ]);
 };
