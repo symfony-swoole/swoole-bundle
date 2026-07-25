@@ -47,7 +47,7 @@
         "symfony/process": "^7.4|^8.0",
         "friendsofphp/proxy-manager-lts": "^1.0.19",
         "upscale/ext-openswoole": "^26.2.0",
-        "upscale/ext-swoole": "^6.2.0"
+        "upscale/ext-swoole": "^6.2.2"
     },
     "require-dev": {
         "ext-ffi": "^8.3",
@@ -227,7 +227,7 @@
         "sort-packages": true,
         "platform": {
             "ext-openswoole": "v26.2.0",
-            "ext-swoole": "6.2.0"
+            "ext-swoole": "6.2.2"
         },
         "allow-plugins": {
             "phpstan/extension-installer": true,
