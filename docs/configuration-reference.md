@@ -211,6 +211,10 @@ swoole:
 framework:
     session:
         storage_factory_id: swoole_bundle.session.table_storage_factory
+        # Optional: delegate persistence to a custom PHP SessionHandlerInterface service
+        # (e.g. Symfony's PdoSessionHandler). When set, the bundle adapts the handler to
+        # its internal Storage interface. See swoole-session.md for limitations.
+        # handler_id: App\Session\PdoSessionHandler
         cookie_lifetime: 3600
         # GC is read from PHP ini (session.gc_probability / session.gc_divisor) unless overridden here:
         # gc_probability: 1

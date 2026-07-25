@@ -48,7 +48,9 @@ final class HttpClient
         111 => true,
     ];
 
-    public function __construct(private Client $client) {}
+    public function __construct(
+        private Client $client,
+    ) {}
 
     /**
      * @return SerializedClient

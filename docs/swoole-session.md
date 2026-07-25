@@ -29,6 +29,38 @@ framework:
         cookie_lifetime: 3600
 ```
 
+## Using a Custom Session Handler
+
+In addition to the default OpenSwoole Table storage, the bundle can persist sessions through any PHP `\SessionHandlerInterface` implementation (for example Symfony's `PdoSessionHandler`). This is useful when you need sessions to survive server restarts or to share them with non-Swoole parts of the application.
+
+To enable this, keep `storage_factory_id` pointed at the bundle's factory **and** set Symfony's `handler_id` to a service implementing `\SessionHandlerInterface`:
+
+```yaml
+# config/packages/swoole.yaml
+swoole:
+    session:
+        max_data_bytes: 4096
+        max_active_sessions: 1024
+
+# config/packages/framework.yaml
+framework:
+    session:
+        storage_factory_id: swoole_bundle.session.table_storage_factory
+        handler_id: App\Session\PdoSessionHandler
+        cookie_lifetime: 3600
+```
+
+When both options are configured together, the bundle replaces the default `Storage` implementation with a `SessionHandlerInterfaceStorage` adapter that delegates read/write operations to the configured handler.
+
+### Limitations
+
+Using a generic `\SessionHandlerInterface` imposes some restrictions compared to the native OpenSwoole Table storage:
+
+- **No per-call TTL.** `SessionHandlerInterface::write()` has no TTL parameter, so the `ttl` passed by the bundle is ignored. Expiry is controlled by the underlying handler (for example `PdoSessionHandler`'s `ttl` option or PHP's `session.gc_maxlifetime` ini setting).
+- **No proactive expiry regeneration.** The adapter cannot distinguish a missing session from an expired one, so it never invokes the `$expired` callback and will not regenerate expired sessions automatically.
+- **No `count()` support.** Calling `count()` on the storage throws a `LogicException` because `\SessionHandlerInterface` provides no counting capability.
+- **Locking is held per Storage call, not per request.** The adapter opens and closes the handler around each individual `get` / `set` / `delete` operation. Any locking strategy in the handler (for example `PdoSessionHandler::LOCK_TRANSACTIONAL`) is released between those calls, so it does not protect a full read-then-write session cycle.
+
 ## How It Works
 
 The Swoole Table is created (via `Swoole\Table::create()`) in the **master process** during container boot, before Swoole forks workers. Workers then inherit the pre-allocated shared memory via `fork()`, giving every worker direct access to the same table without any IPC.

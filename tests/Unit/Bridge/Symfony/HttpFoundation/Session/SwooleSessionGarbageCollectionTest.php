@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace SwooleBundle\SwooleBundle\Tests\Feature\Bridge\Symfony\HttpFoundation\Session;
+namespace SwooleBundle\SwooleBundle\Tests\Unit\Bridge\Symfony\HttpFoundation\Session;
 
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;

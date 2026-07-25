@@ -173,6 +173,10 @@ abstract class ServerTestCase extends KernelTestCase
         $command = array_merge([self::COMMAND], $args);
         $referenceFile = realpath(__DIR__ . '/../../app/config/reference.php');
 
+        if (!isset($envs['APP_RUNTIME_MODE'])) {
+            $envs['APP_RUNTIME_MODE'] = 'web=1&worker=1';
+        }
+
         if (is_string($referenceFile) && file_exists($referenceFile)) {
             // the reference.php file is not compatible with phpunit process isolation
             unlink($referenceFile);
