@@ -22,6 +22,13 @@ final class ChannelMutex implements Mutex
         $this->channel = new Channel(1);
     }
 
+    public function __clone(): void
+    {
+        $this->isAcquired = false;
+        $this->waiting = 0;
+        $this->channel = new Channel(1);
+    }
+
     public function acquire(): void
     {
         if (!$this->isAcquired) {
