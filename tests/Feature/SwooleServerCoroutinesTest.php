@@ -591,6 +591,52 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
     }
 
     /**
+     * @param array{
+     *    APP_ENV: string,
+     *    APP_DEBUG: string,
+     *    WORKER_COUNT: string,
+     *    REACTOR_COUNT: string,
+     *    OVERRIDE_PROD_ENV?: string,
+     *  } $envs
+     */
+    #[DataProvider('coroutineTestDataProvider')]
+    public function testProxifiedObjectCloning(array $envs): void
+    {
+        $clearCache = $this->createConsoleProcess(['cache:clear'], $envs);
+        $clearCache->setTimeout(5);
+        $clearCache->disableOutput();
+        $clearCache->run();
+
+        $serverStart = $this->createConsoleProcess(
+            [
+                'swoole:server:start',
+                '--host=localhost',
+                '--port=9999',
+            ],
+            $envs
+        );
+
+        $serverStart->setTimeout(3);
+        $serverStart->disableOutput();
+        $serverStart->run();
+
+        $this->assertProcessSucceeded($serverStart);
+
+        $this->runAsCoroutineAndWait(function (): void {
+            $this->deferServerStop();
+
+            $client = HttpClient::fromDomain('localhost', 9999, false);
+            $this->assertTrue($client->connect(waitIfNoConnection: true));
+
+            /** @var array{body: array{original_has_request: bool, cloned_does_not_have_request: bool}} $response */
+            $response = $client->send('/clone')['response'];
+
+            $this->assertTrue($response['body']['original_has_request']);
+            $this->assertTrue($response['body']['cloned_does_not_have_request']);
+        });
+    }
+
+    /**
      * @return array<array<array{
      *   APP_ENV: string,
      *   APP_DEBUG: string,
