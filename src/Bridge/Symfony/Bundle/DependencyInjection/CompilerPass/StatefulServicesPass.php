@@ -20,7 +20,7 @@ use SwooleBundle\SwooleBundle\Bridge\Symfony\Cache\CacheAdapterProcessor;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\BlockingContainer;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\ServicePool\ServicePoolContainer;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\StabilityChecker;
-use SwooleBundle\SwooleBundle\Bridge\Symfony\Router\RouterProcessor;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\EventDispatcher\EventDispatcherProcessor;
 use Symfony\Component\Config\Resource\FileResource;
 use Symfony\Component\DependencyInjection\Argument\ServiceLocatorArgument;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
@@ -39,7 +39,6 @@ final class StatefulServicesPass implements CompilerPassInterface
         'annotations.reader',
         'logger',
         'profiler_listener',
-        'debug.event_dispatcher',
         'debug.debug_handlers_listener',
         'debug.stopwatch',
         'request_stack',
@@ -56,8 +55,8 @@ final class StatefulServicesPass implements CompilerPassInterface
     ];
 
     private const array COMPILE_PROCESSORS = [
-        RouterProcessor::class => [
-            'class' => RouterProcessor::class,
+        EventDispatcherProcessor::class => [
+            'class' => EventDispatcherProcessor::class,
             'priority' => 0,
         ],
         CacheAdapterProcessor::class => [
