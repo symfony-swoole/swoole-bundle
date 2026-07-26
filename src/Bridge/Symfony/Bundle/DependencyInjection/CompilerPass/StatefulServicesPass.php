@@ -170,10 +170,12 @@ final class StatefulServicesPass implements CompilerPassInterface
         $taggedStatefulServices = $container->findTaggedServiceIds(ContainerConstants::TAG_STATEFUL_SERVICE);
         /** @var array<string> $configuredStatefulServices */
         $configuredStatefulServices = $container->getParameter(ContainerConstants::PARAM_COROUTINES_STATEFUL_SERVICES);
+        $dataCollectorServices = $container->findTaggedServiceIds('data_collector');
         $servicesToProxify = array_merge(
             array_keys($resettableStatefulServices),
             array_keys($taggedStatefulServices),
             $configuredStatefulServices,
+            array_keys($dataCollectorServices),
             self::MANDATORY_SERVICES_TO_PROXIFY,
         );
         $servicesToProxify = array_unique($servicesToProxify);

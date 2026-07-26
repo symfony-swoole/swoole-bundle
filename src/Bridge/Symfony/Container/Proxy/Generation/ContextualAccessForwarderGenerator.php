@@ -21,6 +21,7 @@ use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Proxy\Generation\MethodGe
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Proxy\Generation\MethodGenerator\MagicGet;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Proxy\Generation\MethodGenerator\MagicSet;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Proxy\Generation\MethodGenerator\StaticProxyConstructor;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Proxy\Generation\MethodGenerator\Unserialize;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Proxy\Generation\PropertyGenerator\ServicePoolProperty;
 
 /**
@@ -28,7 +29,16 @@ use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Proxy\Generation\Property
  */
 final readonly class ContextualAccessForwarderGenerator implements ProxyGeneratorInterface
 {
-    public function __construct(private MethodForwarderBuilder $forwarderBuilder) {}
+    /**
+     * @var array<string>
+     */
+    private array $excludedMethods;
+
+    public function __construct(
+        private MethodForwarderBuilder $forwarderBuilder,
+    ) {
+        $this->excludedMethods = array_merge(ProxiedMethodsFilter::DEFAULT_EXCLUDED, ['__unserialize']);
+    }
 
     /**
      * @template T of object
@@ -65,7 +75,7 @@ final readonly class ContextualAccessForwarderGenerator implements ProxyGenerato
             array_merge(
                 array_map(
                     $this->forwarderBuilder->buildMethodInterceptor($servicePoolProperty),
-                    ProxiedMethodsFilter::getProxiedMethods($originalClass)
+                    ProxiedMethodsFilter::getProxiedMethods($originalClass, $this->excludedMethods),
                 ),
                 [
                     new StaticProxyConstructor($servicePoolProperty, Properties::fromReflectionClass($originalClass)),
@@ -73,6 +83,7 @@ final readonly class ContextualAccessForwarderGenerator implements ProxyGenerato
                     new MagicGet($originalClass, $servicePoolProperty, $publicProperties),
                     new MagicSet($originalClass, $servicePoolProperty, $publicProperties),
                     new MagicClone($originalClass, $servicePoolProperty),
+                    new Unserialize($originalClass, $servicePoolProperty),
                 ]
             )
         );

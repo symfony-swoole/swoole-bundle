@@ -44,20 +44,23 @@ final class SymfonyProfilerTest extends ServerTestCase
             $this->assertNotEmpty($response['headers']['x-debug-token']);
             $debugToken = $response['headers']['x-debug-token'];
 
-            // Since Symfony 7.4 it looks like the profile is being written later then the response is sent
+            // Since Symfony 7.4 it looks like the profile is being written later than the response is sent
             // Although this only goes for 7.4.0, so the sleep call may be removed later
             usleep(200000); // 200 ms
-            $profilerResponse = $client->send('/_wdt/' . $debugToken)['response'];
+            $profileToolbarResponse = $client->send('/_wdt/' . $debugToken)['response'];
 
-            $this->assertSame(200, $profilerResponse['statusCode']);
-            $this->assertArrayHasKey('body', $profilerResponse);
-            $this->assertIsString($profilerResponse['body']);
+            $this->assertSame(200, $profileToolbarResponse['statusCode']);
+            $this->assertArrayHasKey('body', $profileToolbarResponse);
+            $this->assertIsString($profileToolbarResponse['body']);
 
             $this->assertMatchesRegularExpression(
                 '/(<div id="sfMiniToolbar-[^"]+" class="sf-minitoolbar")|'
                 . '(<div id="sfToolbarClearer-[^"]+" class="sf-toolbar-clearer")/',
-                $profilerResponse['body']
+                $profileToolbarResponse['body']
             );
+
+            $profilerResponse = $client->send('/_profiler/' . $debugToken)['response'];
+            $this->assertSame(200, $profilerResponse['statusCode']);
         });
 
         $serverRun->stop();
