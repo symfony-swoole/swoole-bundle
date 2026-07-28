@@ -8,13 +8,16 @@ use Laminas\Code\Generator\PropertyGenerator;
 use ProxyManager\Generator\MagicMethodGenerator;
 use ReflectionClass;
 
+// phpcs:disable Generic.Files.LineLength.TooLong
+// phpcs:disable SlevomatCodingStandard.Files.LineLength.LineTooLong
 /**
  * Magic `__clone` for lazy loading value holder objects
  */
 final class MagicClone extends MagicMethodGenerator
 {
     private const string TEMPLATE = <<<'PHP'
-            $this->{{$servicePoolPropertyName}} = clone $this->{{$servicePoolPropertyName}};
+            $wrapped = $this->{{$servicePoolPropertyName}}->get();
+            $this->{{$servicePoolPropertyName}} = new \SwooleBundle\SwooleBundle\Bridge\Symfony\Container\ServicePool\StaticServicePool(clone $wrapped);
         PHP;
 
     /**
