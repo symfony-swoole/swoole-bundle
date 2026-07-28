@@ -35,14 +35,6 @@ abstract class BaseServicePool implements ServicePool
         private readonly ?Initializer $initializer = null,
     ) {}
 
-    public function __clone(): void
-    {
-        $this->mutex = clone $this->mutex;
-        $this->freePool = [];
-        $this->assignedPool = [$this->swoole->getCoroutineId() => clone $this->get()];
-        $this->assignedCount = 1;
-    }
-
     /**
      * @return T
      */
