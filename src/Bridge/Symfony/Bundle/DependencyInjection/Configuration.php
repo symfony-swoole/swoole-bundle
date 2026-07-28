@@ -78,7 +78,7 @@ final readonly class Configuration implements ConfigurationInterface
                                     ->cannotBeEmpty()
                                     ->defaultValue('auto')
                                     ->treatFalseLike('off')
-                                    ->values(['off', 'auto', 'inotify', 'external'])
+                                    ->values(['off', 'auto', 'inotify', 'stat', 'external'])
                                 ->end()
                                 ->scalarNode('file_path')
                                     ->defaultValue('%swoole_bundle.cache_dir%')

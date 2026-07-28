@@ -50,6 +50,7 @@ use SwooleBundle\SwooleBundle\Server\Runtime\Bootable;
 use SwooleBundle\SwooleBundle\Server\Runtime\HMR\HotModuleReloader;
 use SwooleBundle\SwooleBundle\Server\Runtime\HMR\InotifyHMR;
 use SwooleBundle\SwooleBundle\Server\Runtime\HMR\NonReloadableFiles;
+use SwooleBundle\SwooleBundle\Server\Runtime\HMR\StatHMR;
 use SwooleBundle\SwooleBundle\Server\TaskHandler\TaskHandler;
 use SwooleBundle\SwooleBundle\Server\WorkerHandler\HMRWorkerStartHandler;
 use SwooleBundle\SwooleBundle\Server\WorkerHandler\WorkerStartHandler;
@@ -130,7 +131,7 @@ use ZEngine\Core;
  *   verbosity: 'auto'|'verbose'|'default'|'trace',
  * }
  * @phpstan-type HmrConfig = array{
- *   enabled: 'off'|'auto'|'inotify'|'external',
+ *   enabled: 'off'|'auto'|'inotify'|'stat'|'external',
  *   file_path?: string,
  * }
  * @phpstan-type HttpServerConfig = array{
@@ -456,6 +457,12 @@ final class SwooleExtension extends Extension
                 ->addTag('swoole_bundle.bootable_service');
         }
 
+        if ($hmr['enabled'] === 'stat') {
+            $container->register(HotModuleReloader::class, StatHMR::class)
+                ->addTag('swoole_bundle.bootable_service')
+                ->setArgument('$kernelCacheDir', $container->getParameter('kernel.cache_dir'));
+        }
+
         $container->register(HMRWorkerStartHandler::class)
             ->setPublic(false)
             ->setAutoconfigured(false)
@@ -466,15 +473,11 @@ final class SwooleExtension extends Extension
     }
 
     /**
-     * @return 'inotify'|'off'
+     * @return 'inotify'|'stat'
      */
     private function resolveAutoHMR(): string
     {
-        if (extension_loaded('inotify')) {
-            return 'inotify';
-        }
-
-        return 'off';
+        return extension_loaded('inotify') ? 'inotify' : 'stat';
     }
 
     /**

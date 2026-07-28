@@ -47,10 +47,12 @@ swoole:
     # enables hot module reload using inotify
     hmr:
       enabled: auto
-    # hmr enabled can be one of: off, (default) auto, inotify, external
+    # hmr enabled can be one of: off, (default) auto, inotify, stat, external
     #   - off: turn off feature
-    #   - auto: use inotify if installed in the system
+    #   - auto: use inotify if installed in the system, otherwise stat (polling); debug only
     #   - inotify: use inotify
+    #   - stat: poll file modification times from PHP (no inotify extension) and trigger a graceful
+    #     worker reload. Use when inotify is unavailable/unreliable, e.g. macOS / Docker bind mounts.
     #   - external: dump files included before server start to text files,
     # files are parsed and used in swoole entrypoint command to decide if hard/soft reload is needed
     # files location, usually %kernel.cache_dir%/swoole_bundle/

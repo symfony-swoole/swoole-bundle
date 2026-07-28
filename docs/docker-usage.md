@@ -122,7 +122,40 @@ docker-compose up
 For easy local realtime app development use entry point file bellow. For non test/development env script will run server with standard command `bin/console swoole:server:run`.
 After swoole server start, script will watch for file changes and perform soft or hard swoole server reload.
 
+### Recommended: `swoole:server:watch`
+
+The `swoole:server:watch` console command is the recommended local dev entrypoint: it supervises `bin/console swoole:server:run` as a managed child process and performs a full server restart whenever any watched file changes — `.php` files added, deleted or edited, and config files (`.yaml`, `.yml`, `.xml`, `.env`, `.neon`, `.ini`, or anything under a `config/` directory). Before restarting, it runs `php -l` on the changed/added `.php` files and skips the restart if a syntax error is found, keeping the previously running (working) server up; it then stays quiet until you save again. No `inotify` extension is required — it polls file modification times, so this works in Docker and on macOS.
+
+A full restart is used for every change on purpose. A worker reload (`hmr.enabled: auto|stat|inotify`) can only apply edits to files that were **not** already loaded before the workers forked — `StatHMR::boot()`/`InotifyHMR::boot()` mark everything in `get_included_files()` non-reloadable, because PHP cannot redeclare a class a forked worker already has in memory.
+
+```bash
+bin/console swoole:server:watch
+```
+
+Options:
+
+- `--path` (repeatable, default `src config`): directories to watch, relative to the project directory.
+- `--interval` (milliseconds, default `1000`): poll interval.
+
+```bash
+bin/console swoole:server:watch --path=src --path=config --path=templates --interval=500
+```
+
+Anything after `--` is forwarded verbatim to the supervised `swoole:server:run` and re-applied on every restart, so every option that command accepts (`--host`, `--port`, `--serve-static`, `--public-dir`, `--trusted-hosts`, `--trusted-proxies`, `--api`, `--api-port`) works here too:
+
+```bash
+bin/console swoole:server:watch --interval=500 -- --host=0.0.0.0 --port=9501 --api
+```
+
+Options you do not pass are left alone, so the server keeps resolving them from `config/packages/swoole.yaml` on every restart — editing that config, which is exactly what triggers a restart, takes effect instead of being overridden by values frozen when the watcher started.
+
+The supervised server inherits the watcher's full environment, and `APP_ENV` / `APP_DEBUG` are forwarded explicitly, so `bin/console --env=dev swoole:server:watch` starts the child in the same kernel environment even when it was selected via a console flag rather than an environment variable.
+
+### External `inotifywait` script (legacy)
+
 Requirements:
+
+> **Tip:** For a simpler setup that needs no `inotify-tools` and works on macOS, set `hmr: enabled: stat` (or leave the default `auto`, which falls back to `stat` when the `inotify` extension is absent). It polls file modification times from PHP and triggers a graceful worker reload in-process — no external watcher script required. The `external` recipe below remains available if you prefer an external watcher.
 
 - In swoole configuration set `hmr: enabled: ` to `external`.
 - You can configure `file_path`, don forget to reflect this path in shell script bellow.
