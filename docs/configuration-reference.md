@@ -273,6 +273,9 @@ To be able to use coroutines in your application the following trait has to be u
 This trait will disable state resetting of the app kernel while cloning it and makes some default overrides 
 and initializations.
 
+The custom kernel also has to implement the `Symfony\Component\HttpKernel\CacheWarmer\WarmableInterface` interface, 
+which is used to patch the kernel container for correct functioning of the cache warmup process for coroutines usage.
+
 ### Proxification
 
 To be able to run a Symfony app with Swoole coroutines without modifications of the app, this bundle implements
