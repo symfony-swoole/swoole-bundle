@@ -25,6 +25,20 @@ trait CoroutinesSupportingKernel
     }
 
     /**
+     * @return array<string>
+     */
+    public function warmUp(string $cacheDir, ?string $buildDir = null): array
+    {
+        if ($this->container->has('kernel_original')) {
+            return [];
+        }
+
+        $this->container->set('kernel_original', $this);
+
+        return [];
+    }
+
+    /**
      * this overrides the container class to a container, which is able to block the first instatiation
      * of requested service instance (because class autoloading is IO operation, which switches coroutine context).
      * the blocking ensures that only one service instance will be created concurrently and it will be registered
