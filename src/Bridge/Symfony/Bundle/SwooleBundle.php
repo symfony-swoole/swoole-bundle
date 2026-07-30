@@ -6,6 +6,7 @@ namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle;
 
 use Assert\Assertion;
 use RuntimeException;
+use SwooleBundle\SwooleBundle\Bridge\CommonSwoole\SystemSwooleFactory;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\{BlackfireMonitoringPass,
     CacheWarmupFixerPass,
     ExceptionHandlerPass,
@@ -17,6 +18,7 @@ use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\Compiler
     StreamedResponseListenerPass,
     SwooleTableStorageConfiguratorPass};
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\ContainerConstants;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\ErrorHandler\ContextualErrorHandler;
 use Symfony\Component\DependencyInjection\Compiler\PassConfig;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\ErrorHandler\ErrorHandler;
@@ -62,6 +64,9 @@ final class SwooleBundle extends Bundle
         if (!$this->container->getParameter(ContainerConstants::PARAM_COROUTINES_ENABLED)) {
             return;
         }
+
+        // from now on, error/exception handler overrides are isolated per coroutine
+        ContextualErrorHandler::register(SystemSwooleFactory::newFactoryInstance()->newInstance());
 
         /** @var ErrorHandler $handler */
         $handler = $this->container->get('swoole_bundle.error_handler.symfony_error_handler');

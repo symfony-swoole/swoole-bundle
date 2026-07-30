@@ -637,6 +637,137 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
     }
 
     /**
+     * @param array{
+     *    APP_ENV: string,
+     *    APP_DEBUG: string,
+     *    WORKER_COUNT: string,
+     *    REACTOR_COUNT: string,
+     *    OVERRIDE_PROD_ENV?: string,
+     *  } $envs
+     */
+    #[DataProvider('coroutineTestDataProvider')]
+    public function testErrorHandlersAreIsolatedPerCoroutine(array $envs): void
+    {
+        $this->startServerForCoroutineTest($envs);
+
+        $this->runAsCoroutineAndWait(function () use ($envs): void {
+            $this->deferServerStop([], $envs);
+
+            $initClient = HttpClient::fromDomain('localhost', 9999, false);
+            $this->assertTrue($initClient->connect(3, 1, true));
+
+            $wg = $this->getSwoole()->waitGroup();
+
+            for ($i = 0; $i < 5; ++$i) {
+                $marker = 'req' . $i;
+                go(function () use ($wg, $marker): void {
+                    $wg->add();
+                    $client = HttpClient::fromDomain('localhost', 9999, false);
+                    $this->assertTrue($client->connect(waitIfNoConnection: true));
+
+                    /** @var array{
+                     *    body: array{
+                     *      caught: array<string>,
+                     *      global_error_handler: string,
+                     *      global_exception_handler: string,
+                     *      own_error_handler: string,
+                     *      own_exception_handler: string,
+                     *      restored_error_handler: string,
+                     *      restored_exception_handler: string,
+                     *    },
+                     *    statusCode: int,
+                     *  } $response
+                     */
+                    $response = $client->send('/error-handler/contextual?marker=' . $marker)['response'];
+                    $this->assertSame(200, $response['statusCode']);
+
+                    $body = $response['body'];
+
+                    // all requests override the handlers while the others are still running, yet each
+                    // request may only ever see the errors it triggered itself
+                    $this->assertSame(
+                        [
+                            $marker . ':warning for ' . $marker,
+                            $marker . ':notice for ' . $marker,
+                        ],
+                        $body['caught'],
+                    );
+                    $this->assertSame('Closure', $body['own_error_handler']);
+                    $this->assertSame('Closure', $body['own_exception_handler']);
+
+                    // the handlers registered during kernel boot are never replaced by a coroutine
+                    $this->assertNotSame('Closure', $body['global_error_handler']);
+                    $this->assertNotSame('Closure', $body['global_exception_handler']);
+                    $this->assertSame($body['global_error_handler'], $body['restored_error_handler']);
+                    $this->assertSame($body['global_exception_handler'], $body['restored_exception_handler']);
+
+                    $wg->done();
+                });
+            }
+
+            $wg->wait(10);
+        });
+    }
+
+    /**
+     * @param array{
+     *    APP_ENV: string,
+     *    APP_DEBUG: string,
+     *    WORKER_COUNT: string,
+     *    REACTOR_COUNT: string,
+     *    OVERRIDE_PROD_ENV?: string,
+     *  } $envs
+     */
+    #[DataProvider('coroutineTestDataProvider')]
+    public function testOverriddenErrorHandlersAreClearedWhenCoroutineEnds(array $envs): void
+    {
+        $this->startServerForCoroutineTest($envs);
+
+        $this->runAsCoroutineAndWait(function () use ($envs): void {
+            $this->deferServerStop([], $envs);
+
+            $client = HttpClient::fromDomain('localhost', 9999, false);
+            $this->assertTrue($client->connect(3, 1, true));
+
+            for ($i = 0; $i < 5; ++$i) {
+                /**
+                 * @var array{
+                 *   body: array{error_handler: string, exception_handler: string},
+                 *   statusCode: int,
+                 * } $leaked
+                 */
+                $leaked = $client->send('/error-handler/leaking')['response'];
+                $this->assertSame(200, $leaked['statusCode']);
+                $this->assertSame('Closure', $leaked['body']['error_handler']);
+                $this->assertSame('Closure', $leaked['body']['exception_handler']);
+            }
+
+            // none of the requests above restored anything, the coroutine end had to do it for them.
+            // the coroutine serving this very request is allowed to have overrides of its own,
+            // symfony registers them while handling a request
+            /**
+             * @var array{
+             *   body: array{registered: bool, coroutine_id: int, tracked: array<int>},
+             *   statusCode: int,
+             * } $tracked
+             */
+            $tracked = $client->send('/error-handler/tracked-coroutines')['response'];
+            $this->assertSame(200, $tracked['statusCode']);
+            $this->assertTrue($tracked['body']['registered']);
+            $this->assertSame(
+                [],
+                array_values(array_diff($tracked['body']['tracked'], [$tracked['body']['coroutine_id']])),
+            );
+
+            /** @var array{body: array{error_handler: string, exception_handler: string}, statusCode: int} $current */
+            $current = $client->send('/error-handler/current')['response'];
+            $this->assertSame(200, $current['statusCode']);
+            $this->assertNotSame('Closure', $current['body']['error_handler']);
+            $this->assertNotSame('Closure', $current['body']['exception_handler']);
+        });
+    }
+
+    /**
      * @return array<array<array{
      *   APP_ENV: string,
      *   APP_DEBUG: string,
@@ -791,6 +922,40 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
             [['environment' => 'coroutines', 'debug' => false]],
             [['environment' => 'coroutines', 'debug' => true]],
         ];
+    }
+
+    /**
+     * @param array{
+     *    APP_ENV: string,
+     *    APP_DEBUG: string,
+     *    WORKER_COUNT: string,
+     *    REACTOR_COUNT: string,
+     *    OVERRIDE_PROD_ENV?: string,
+     *  } $envs
+     */
+    private function startServerForCoroutineTest(array $envs): void
+    {
+        $clearCache = $this->createConsoleProcess(['cache:clear'], $envs);
+        $clearCache->setTimeout(5);
+        $clearCache->disableOutput();
+        $clearCache->run();
+
+        $this->assertProcessSucceeded($clearCache);
+
+        $serverStart = $this->createConsoleProcess(
+            [
+                'swoole:server:start',
+                '--host=localhost',
+                '--port=9999',
+            ],
+            $envs
+        );
+
+        $serverStart->setTimeout(5);
+        $serverStart->disableOutput();
+        $serverStart->run();
+
+        $this->assertProcessSucceeded($serverStart);
     }
 
     private function generateNotExistingCustomTestFile(): string
