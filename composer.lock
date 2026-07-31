@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "4583dea5ce674da3c27650f8131a6065",
+    "content-hash": "6e14d13f72f1081d51213dc04cc13eaf",
     "packages": [
         {
             "name": "beberlei/assert",
@@ -12056,7 +12056,7 @@
             "version": "dev-reflection-fix",
             "source": {
                 "type": "git",
-                "url": "https://github.com/Rastusik/swoole-reflection.git",
+                "url": "git@github.com:Rastusik/swoole-reflection.git",
                 "reference": "5e318ae5d92f4c7b7eae8f2525446551db9495d5"
             },
             "dist": {
