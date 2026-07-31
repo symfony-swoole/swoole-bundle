@@ -46,8 +46,15 @@ final class StatefulServicesPass implements CompilerPassInterface
         'router',
         'router.default',
         'request_stack',
-        'slugger',
         'swoole_bundle.error_handler.symfony_error_handler',
+    ];
+
+    /**
+     * Services which are proxified only when their definition allows it. Applications are free to redefine them
+     * in a way which cannot be proxified at all, in such a case the proxification is silently skipped.
+     */
+    private const array OPTIONAL_SERVICES_TO_PROXIFY = [
+        'slugger',
     ];
 
     private const array SERVICE_RESETTING_PRIORITIES = [
@@ -176,8 +183,10 @@ final class StatefulServicesPass implements CompilerPassInterface
             $configuredStatefulServices,
             array_keys($dataCollectorServices),
             self::MANDATORY_SERVICES_TO_PROXIFY,
+            self::OPTIONAL_SERVICES_TO_PROXIFY,
         );
         $servicesToProxify = array_unique($servicesToProxify);
+        $optionalServices = array_flip(self::OPTIONAL_SERVICES_TO_PROXIFY);
 
         foreach ($servicesToProxify as $serviceId) {
             if (isset(self::IGNORED_SERVICES[$serviceId])) {
@@ -185,6 +194,10 @@ final class StatefulServicesPass implements CompilerPassInterface
             }
 
             if (!$container->has($serviceId)) {
+                continue;
+            }
+
+            if (isset($optionalServices[$serviceId]) && !$this->isOptionalServiceProxifiable($container, $serviceId)) {
                 continue;
             }
 
@@ -209,6 +222,17 @@ final class StatefulServicesPass implements CompilerPassInterface
             $resetPriority = self::SERVICE_RESETTING_PRIORITIES[$serviceId] ?? 0;
             $proxifier->proxifyService($serviceId, $resetter, $resetPriority);
         }
+    }
+
+    /**
+     * A service cannot be proxified when there is no concrete class to generate the proxy from, which happens
+     * when the service definition class is an interface or when it is not known at all.
+     */
+    private function isOptionalServiceProxifiable(ContainerBuilder $container, string $serviceId): bool
+    {
+        $definitionClass = $container->findDefinition($serviceId)->getClass();
+
+        return $definitionClass !== null && !interface_exists($definitionClass);
     }
 
     /**
