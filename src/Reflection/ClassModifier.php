@@ -25,7 +25,7 @@ final class ClassModifier
 
     public static function initialize(string $cacheDir): void
     {
-        Core::init();
+        self::initializeZEngine();
         self::initializeCache($cacheDir);
         self::modifyStoredFinalClasses();
     }
@@ -62,6 +62,22 @@ final class ClassModifier
         $item = $cache->getItem(self::CACHE_KEY_FINAL_CLASSES);
         $item->set(self::$originalFinalClasses);
         $cache->save($item);
+    }
+
+    /**
+     * The kernel can be booted more than once per process (cache:clear boots a temporary kernel of
+     * its own), but Core::init() is not idempotent - every call builds a brand new FFI binding and
+     * drops the previous one. Anything still pointing into the dropped binding, most notably the FFI
+     * callbacks installed by ReflectionFunction::redefine(), is invalidated by that and takes the
+     * process down with a segmentation fault the next time it is used.
+     */
+    private static function initializeZEngine(): void
+    {
+        if (isset(Core::$executor)) {
+            return;
+        }
+
+        Core::init();
     }
 
     private static function modifyStoredFinalClasses(): void
