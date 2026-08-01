@@ -377,6 +377,7 @@ return static function (ContainerConfigurator $containerConfigurator): void {
         ->arg('$decorated', service(ApiServerRequestHandler::class))
         ->arg('$exceptionHandler', service(ExceptionHandler::class));
 
+
     $services->set('swoole_bundle.server.http_server.configurator_collection', GeneratedCollection::class)
         ->arg('$itemCollection', tagged_iterator('swoole_bundle.server_configurator'))
         ->arg('$items', []);

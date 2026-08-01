@@ -39,12 +39,23 @@ use SwooleBundle\SwooleBundle\Common\Adapter\Swoole;
 use SwooleBundle\SwooleBundle\Server\Config\Socket;
 use SwooleBundle\SwooleBundle\Server\Config\Sockets;
 use SwooleBundle\SwooleBundle\Server\Configurator\Configurator;
+use SwooleBundle\SwooleBundle\Server\Grpc\ArgumentResolver\GrpcMessageValueResolver;
+use SwooleBundle\SwooleBundle\Server\Grpc\EventListener\GrpcExceptionCapturingSubscriber;
+use SwooleBundle\SwooleBundle\Server\Grpc\EventListener\GrpcMessageViewSubscriber;
+use SwooleBundle\SwooleBundle\Server\Grpc\Exception\GrpcExceptionHandler;
+use SwooleBundle\SwooleBundle\Server\Grpc\GrpcKernelRequestHandler;
+use SwooleBundle\SwooleBundle\Server\Grpc\Serialization\PayloadDeserializer;
+use SwooleBundle\SwooleBundle\Server\Grpc\Serialization\PayloadSerializer;
+use SwooleBundle\SwooleBundle\Server\Grpc\Serialization\ProtobufSerializerDeserializer;
+use SwooleBundle\SwooleBundle\Server\Grpc\WithGrpcServerConfiguration;
+use SwooleBundle\SwooleBundle\Server\Grpc\Writer\ResponseWriter;
 use SwooleBundle\SwooleBundle\Server\HttpServerConfiguration;
 use SwooleBundle\SwooleBundle\Server\Middleware\MiddlewareInjector;
 use SwooleBundle\SwooleBundle\Server\RequestHandler\AdvancedStaticFilesServer;
 use SwooleBundle\SwooleBundle\Server\RequestHandler\ExceptionHandler\ExceptionHandler;
 use SwooleBundle\SwooleBundle\Server\RequestHandler\ExceptionHandler\JsonExceptionHandler;
 use SwooleBundle\SwooleBundle\Server\RequestHandler\ExceptionHandler\ProductionExceptionHandler;
+use SwooleBundle\SwooleBundle\Server\RequestHandler\ExceptionRequestHandler;
 use SwooleBundle\SwooleBundle\Server\RequestHandler\RequestHandler;
 use SwooleBundle\SwooleBundle\Server\Runtime\Bootable;
 use SwooleBundle\SwooleBundle\Server\Runtime\HMR\HotModuleReloader;
@@ -83,6 +94,8 @@ use ZEngine\Core;
  *   group: string,
  *   http_compression: bool,
  *   http_compression_level: int,
+ *   open_http2_protocol: bool,
+ *   open_tcp_nodelay: bool,
  * }
  * @phpstan-type TaskWorkerServicesConfig = array{
  *   reset_handler: bool,
@@ -137,6 +150,11 @@ use ZEngine\Core;
  * @phpstan-type HttpServerConfig = array{
  *   running_mode: string,
  *   api: array{
+ *     enabled: bool,
+ *     host: string,
+ *     port: int,
+ *   },
+ *   grpc: array{
  *     enabled: bool,
  *     host: string,
  *     port: int,
@@ -293,11 +311,15 @@ final class SwooleExtension extends Extension
     {
         $this->configureHttpServerServices($config['services'], $container);
         $this->configureExceptionHandler($config['exception_handler'], $container);
+        $this->configureGrpc($config['grpc'], $container);
 
         $container->setParameter('swoole.http_server.trusted_proxies', $config['trusted_proxies']);
         $container->setParameter('swoole.http_server.trusted_hosts', $config['trusted_hosts']);
         $container->setParameter('swoole.http_server.api.host', $config['api']['host']);
         $container->setParameter('swoole.http_server.api.port', $config['api']['port']);
+        $container->setParameter('swoole.http_server.grpc.host', $config['grpc']['host']);
+        $container->setParameter('swoole.http_server.grpc.port', $config['grpc']['port']);
+        $container->setParameter('swoole_bundle.grpc.enabled', $config['grpc']['enabled']);
 
         return $this->prepareHttpServerConfiguration($config, $container);
     }
@@ -354,6 +376,53 @@ final class SwooleExtension extends Extension
     }
 
     /**
+     * @param array{enabled: bool, host: string, port: int} $grpcConfig
+     */
+    private function configureGrpc(array $grpcConfig, ContainerBuilder $container): void
+    {
+        if (!$grpcConfig['enabled']) {
+            return;
+        }
+
+        $container->register(ResponseWriter::class)
+            ->addArgument(new Reference('logger'))
+            ->addTag('monolog.logger', ['channel' => 'grpc']);
+
+        $container->register(ProtobufSerializerDeserializer::class);
+        $container->setAlias(PayloadSerializer::class, ProtobufSerializerDeserializer::class);
+        $container->setAlias(PayloadDeserializer::class, ProtobufSerializerDeserializer::class);
+
+        $container->register(GrpcKernelRequestHandler::class)
+            ->addArgument(new Reference(RequestFactory::class))
+            ->addArgument(new Reference(ResponseWriter::class))
+            ->addArgument(new Reference('kernel'))
+            ->addTag('swoole_bundle.bootable_service');
+
+        $container->register(GrpcExceptionHandler::class)
+            ->addArgument(new Reference(ResponseWriter::class));
+
+        $container->register('swoole_bundle.server.grpc_server.request_handler', ExceptionRequestHandler::class)
+            ->addArgument(new Reference(GrpcKernelRequestHandler::class))
+            ->addArgument(new Reference(GrpcExceptionHandler::class));
+
+        $container->register(WithGrpcServerConfiguration::class)
+            ->addArgument(new Reference(Sockets::class))
+            ->addArgument(new Reference('swoole_bundle.server.grpc_server.request_handler'))
+            ->addTag('swoole_bundle.server_configurator');
+
+        $container->register(GrpcExceptionCapturingSubscriber::class)
+            ->addTag('kernel.event_subscriber');
+
+        $container->register(GrpcMessageViewSubscriber::class)
+            ->addArgument(new Reference(PayloadSerializer::class))
+            ->addTag('kernel.event_subscriber');
+
+        $container->register(GrpcMessageValueResolver::class)
+            ->addArgument(new Reference(PayloadDeserializer::class))
+            ->addTag('controller.argument_value_resolver', ['priority' => 1]);
+    }
+
+    /**
      * @param HttpServerConfig $config
      * @return HttpServerRuntimeConfig
      */
@@ -361,6 +430,7 @@ final class SwooleExtension extends Extension
     {
         [
             'api' => $api,
+            'grpc' => $grpc,
             'hmr' => $hmr,
             'host' => $host,
             'port' => $port,
@@ -389,6 +459,10 @@ final class SwooleExtension extends Extension
 
         if ($settings['log_level'] === 'auto') {
             $settings['log_level'] = $this->isDebug($container) ? 'debug' : 'notice';
+        }
+
+        if ($grpc['enabled']) {
+            $settings['open_http2_protocol'] = true;
         }
 
         if ((bool) $container->getParameter(ContainerConstants::PARAM_COROUTINES_ENABLED)) {
@@ -422,10 +496,14 @@ final class SwooleExtension extends Extension
         }
 
         $sockets = $container->getDefinition(Sockets::class)
-            ->addArgument(new Definition(Socket::class, [$host, $port, $socketType, $sslEnabled]));
+            ->setArgument('$serverSocket', new Definition(Socket::class, [$host, $port, $socketType, $sslEnabled]));
 
         if ($api['enabled']) {
-            $sockets->addArgument(new Definition(Socket::class, [$api['host'], $api['port']]));
+            $sockets->setArgument('$apiSocket', new Definition(Socket::class, [$api['host'], $api['port']]));
+        }
+
+        if ($grpc['enabled']) {
+            $sockets->setArgument('$grpcSocket', new Definition(Socket::class, [$grpc['host'], $grpc['port']]));
         }
 
         $this->configureHttpServerHMR($hmr, $container);
