@@ -185,6 +185,16 @@ final class ContextualErrorHandler
     /**
      * The redefined closures have to be signature compatible with the functions they replace,
      * which is why the original parameter names are used here.
+     *
+     * Known limitation: whether a value satisfies the `callable` parameter type is decided against
+     * the scope the check runs in. For the real, internal set_error_handler() that is the scope of
+     * its caller, for these userland replacements it is the scope of this class. A handler such as
+     * `[$object, 'privateMethod']` is therefore rejected here even though PHP itself would accept
+     * it, and since the closures are invoked through an FFI trampoline the resulting TypeError is
+     * fatal rather than catchable. Nothing can be done about it from this side - z-engine requires
+     * the signature to match the replaced function exactly, so the type cannot be widened. This is
+     * why the bundle requires monolog >= 3.10, which passes a first class callable instead of the
+     * `[$this, 'customErrorHandler']` array that earlier versions used.
      */
     private static function redefineHandlerFunctions(): void
     {

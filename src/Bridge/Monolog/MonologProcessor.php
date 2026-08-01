@@ -4,17 +4,27 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Bridge\Monolog;
 
+use Monolog\Handler\RotatingFileHandler as OriginalRotatingFileHandler;
 use Monolog\Handler\StreamHandler as OriginalStreamHandler;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices\CompileProcessor;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices\Proxifier;
-use SwooleBundle\SwooleBundle\Component\Locking\Mutex;
+use SwooleBundle\SwooleBundle\Common\Adapter\Swoole;
 use Symfony\Component\DependencyInjection\Alias;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
 
 final class MonologProcessor implements CompileProcessor
 {
+    /**
+     * Handlers writing to a shared stream, mapped to their coroutine safe replacement. Matched by exact
+     * class name, a handler extending one of them keeps its own write() and would not be made safe by the
+     * replacement anyway.
+     */
+    private const array COROUTINE_SAFE_HANDLERS = [
+        OriginalStreamHandler::class => StreamHandler::class,
+        OriginalRotatingFileHandler::class => RotatingFileHandler::class,
+    ];
+
     public function process(ContainerBuilder $container, Proxifier $proxifier): void
     {
         $loggerAliases = array_filter(
@@ -33,21 +43,15 @@ final class MonologProcessor implements CompileProcessor
 
     private function overrideStreamHandlers(ContainerBuilder $container): void
     {
-        $streamHandlers = array_filter(
-            $container->getDefinitions(),
-            static fn(Definition $def): bool => $def->getClass() === OriginalStreamHandler::class
-        );
+        foreach ($container->getDefinitions() as $handlerDef) {
+            $handlerClass = $handlerDef->getClass();
 
-        $handlerMutexDef = new Definition(Mutex::class);
-        $handlerMutexDef->setFactory([new Reference('swoole_bundle.service_pool.locking'), 'newMutex']);
-        $container->setDefinition('swoole_bundle.monolog_stream_handler.locking', $handlerMutexDef);
+            if ($handlerClass === null || !isset(self::COROUTINE_SAFE_HANDLERS[$handlerClass])) {
+                continue;
+            }
 
-        foreach ($streamHandlers as $streamHandlerDef) {
-            $streamHandlerDef->setClass(StreamHandler::class);
-            $streamHandlerDef->addMethodCall(
-                'setMutex',
-                [new Reference('swoole_bundle.monolog_stream_handler.locking')]
-            );
+            $handlerDef->setClass(self::COROUTINE_SAFE_HANDLERS[$handlerClass]);
+            $handlerDef->addMethodCall('setSwoole', [new Reference(Swoole::class)]);
         }
     }
 }

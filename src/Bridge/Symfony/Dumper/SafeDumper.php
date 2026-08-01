@@ -5,63 +5,47 @@ declare(strict_types=1);
 namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Dumper;
 
 use Assert\Assertion;
-use Swoole\Coroutine\Channel;
+use SwooleBundle\SwooleBundle\Bridge\CommonSwoole\SystemSwooleFactory;
+use SwooleBundle\SwooleBundle\Component\Concurrency\SerialQueue;
 use Symfony\Component\VarDumper\VarDumper;
 
+/**
+ * Dumping from several coroutines at once corrupts the output of the var dumper, which writes to a shared
+ * stream. All dumps are therefore replayed one at a time by a single consumer coroutine.
+ */
 final class SafeDumper extends VarDumper
 {
-    private static bool $isInitialized = false;
+    private const int QUEUE_CAPACITY = 100;
 
-    private static bool $isConsumerRunning = false;
-
-    private static Channel $channel;
+    private static SerialQueue|null $queue = null;
 
     public static function dump(mixed $var, ?string $label = null): mixed
     {
-        self::publish($var, $label);
+        self::queue()->submit([$var, $label]);
 
         return null;
     }
 
-    private static function publish(mixed $var, ?string $label = null): void
+    /**
+     * Writes out everything dumped so far, so nothing is lost when the process is about to go away.
+     */
+    public static function flush(): void
     {
-        self::initialize();
-        $item = [$var, $label];
-
-        self::$channel->push($item);
-        self::runDumpingConsumer();
+        self::$queue?->drain();
     }
 
-    private static function initialize(): void
+    private static function queue(): SerialQueue
     {
-        if (self::$isInitialized) {
-            return;
-        }
-
-        self::$channel = new Channel(100);
-        self::$isInitialized = true;
-    }
-
-    private static function runDumpingConsumer(): void
-    {
-        if (self::$isConsumerRunning) {
-            return;
-        }
-
-        self::$isConsumerRunning = true;
-
-        go(static function (): void {
-            while (!self::$channel->isEmpty()) {
-                $item = self::$channel->pop();
-
+        return self::$queue ??= new SerialQueue(
+            SystemSwooleFactory::newFactoryInstance()->newInstance(),
+            static function (mixed $item): void {
                 Assertion::isArray($item);
                 [$var, $label] = $item;
                 Assertion::nullOrString($label);
 
                 parent::dump($var, $label);
-            }
-
-            self::$isConsumerRunning = false;
-        });
+            },
+            self::QUEUE_CAPACITY,
+        );
     }
 }

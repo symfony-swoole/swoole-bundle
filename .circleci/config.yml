@@ -282,6 +282,10 @@ jobs:
           command: sudo chown -R 1000:1000 /home/circleci/project
       - run:
           name: Run Composer and GrumPHP in CI container
+          # Composer and GrumPHP buffer their output, so CircleCI sees nothing until the container is
+          # done and the default 10m no output timeout applies to the whole step. The lowest build
+          # regularly needs more than that just to resolve and download its dependencies.
+          no_output_timeout: 25m
           command: |
             source "$BASH_ENV"
             docker run --rm \
@@ -354,6 +358,7 @@ jobs:
           command: sudo chown -R 1000:1000 /home/circleci/project
       - run:
           name: Run Composer and tests in coverage container
+          no_output_timeout: 25m
           command: |
             docker run --rm \
               --privileged \
@@ -429,6 +434,7 @@ jobs:
           command: sudo chown -R 1000:1000 /home/circleci/project
       - run:
           name: Run Composer and tests in coverage container
+          no_output_timeout: 25m
           command: |
             docker run --rm \
               --privileged \
