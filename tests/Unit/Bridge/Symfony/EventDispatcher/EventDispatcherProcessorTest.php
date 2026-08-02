@@ -76,15 +76,23 @@ final class EventDispatcherProcessorTest extends TestCase
 
         (new EventDispatcherProcessor())->process($container, $this->newProxifier($container));
 
-        self::assertFalse($container->hasDefinition('security.event_dispatcher.dev'));
+        self::assertFalse($container->has('security.event_dispatcher.dev'));
     }
 
+    /**
+     * Mirrors what Symfony's own DecoratorServicePass does once it processes a decorated service: the
+     * original id ($dispatcherId) becomes an ALIAS to the decorator, not a definition, and the original
+     * definition is relocated to "$debugDispatcherId.inner". A container built with setDefinition()
+     * for $dispatcherId directly (as an earlier version of this fixture did) doesn't reproduce that,
+     * and let a regression slip through where firewallDispatcherIds() checked hasDefinition() on an id
+     * that, post-decoration, is only ever an alias — silently skipping every firewall.
+     */
     private function registerDebugWrappedDispatcher(
         ContainerBuilder $container,
         string $dispatcherId,
         string $debugDispatcherId,
     ): void {
-        $container->setDefinition($dispatcherId, new Definition(EventDispatcher::class));
+        $container->setAlias($dispatcherId, $debugDispatcherId);
         $container->setDefinition($debugDispatcherId, new Definition(TraceableEventDispatcher::class));
         $container->setDefinition($debugDispatcherId . '.inner', new Definition(EventDispatcher::class));
     }
