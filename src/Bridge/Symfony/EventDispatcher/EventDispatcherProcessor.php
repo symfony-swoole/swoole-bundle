@@ -9,25 +9,81 @@ use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\Compiler
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\ContainerConstants;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 
+/**
+ * Symfony's SecurityBundle registers a dedicated EventDispatcher per firewall
+ * (`security.event_dispatcher.<name>`, see SecurityExtension::createFirewall()) instead of reusing the
+ * app-wide one, because firewall-scoped listeners (LazyFirewallContext, authenticator manager) must not
+ * leak across firewalls. Each one is just as shared/singleton as the app-wide dispatcher and needs the
+ * same per-coroutine treatment, otherwise concurrent requests through the same firewall collide on it.
+ */
 final class EventDispatcherProcessor implements CompileProcessor
 {
+    private const string SECURITY_FIREWALLS_PARAM = 'security.firewalls';
+    private const string SECURITY_EVENT_DISPATCHER_ID_PREFIX = 'security.event_dispatcher.';
+
     public function process(ContainerBuilder $container, Proxifier $proxifier): void
     {
+        $this->processDispatcherPair($container, $proxifier, 'event_dispatcher', 'debug.event_dispatcher');
+
+        foreach ($this->firewallDispatcherIds($container) as $dispatcherId) {
+            $this->processDispatcherPair($container, $proxifier, $dispatcherId, 'debug.' . $dispatcherId);
+        }
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function firewallDispatcherIds(ContainerBuilder $container): array
+    {
+        if (!$container->hasParameter(self::SECURITY_FIREWALLS_PARAM)) {
+            return [];
+        }
+
+        /** @var list<string> $firewallNames */
+        $firewallNames = $container->getParameter(self::SECURITY_FIREWALLS_PARAM);
+        $dispatcherIds = [];
+
+        foreach ($firewallNames as $firewallName) {
+            $dispatcherId = self::SECURITY_EVENT_DISPATCHER_ID_PREFIX . $firewallName;
+
+            if (!$container->hasDefinition($dispatcherId)) {
+                continue;
+            }
+
+            $dispatcherIds[] = $dispatcherId;
+        }
+
+        return $dispatcherIds;
+    }
+
+    /**
+     * When a debug wrapper decorates the dispatcher, the wrapper is what the rest of the app depends on
+     * and gets pooled per-coroutine by StatefulServicesPass; its inner (real) dispatcher is made
+     * non-shared so each pooled wrapper instance gets its own. Without a debug wrapper the dispatcher
+     * service itself is the one everything depends on, so it is proxified (pooled per-coroutine)
+     * directly instead.
+     */
+    private function processDispatcherPair(
+        ContainerBuilder $container,
+        Proxifier $proxifier,
+        string $dispatcherId,
+        string $debugDispatcherId,
+    ): void {
         if (
-            !$container->hasDefinition('debug.event_dispatcher')
-            || !$container->hasDefinition('debug.event_dispatcher.inner')
+            !$container->hasDefinition($debugDispatcherId)
+            || !$container->hasDefinition($debugDispatcherId . '.inner')
         ) {
-            $proxifier->proxifyService('event_dispatcher');
+            $proxifier->proxifyService($dispatcherId);
 
             return;
         }
 
         // the debug event dispatcher needs to be coupled to the original event dispatcher, because
         // it registers listene≠rs to the original dispatcher
-        $container->findDefinition('debug.event_dispatcher.inner')
+        $container->findDefinition($debugDispatcherId . '.inner')
             ->setShared(false);
 
-        $debugDispatcherDef = $container->getDefinition('debug.event_dispatcher');
+        $debugDispatcherDef = $container->getDefinition($debugDispatcherId);
         $debugDispatcherDef->addTag(ContainerConstants::TAG_STATEFUL_SERVICE);
     }
 }
