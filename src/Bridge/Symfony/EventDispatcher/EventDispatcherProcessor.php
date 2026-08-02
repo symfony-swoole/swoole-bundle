@@ -46,7 +46,14 @@ final class EventDispatcherProcessor implements CompileProcessor
         foreach ($firewallNames as $firewallName) {
             $dispatcherId = self::SECURITY_EVENT_DISPATCHER_ID_PREFIX . $firewallName;
 
-            if (!$container->hasDefinition($dispatcherId)) {
+            // By this stage Symfony's own DecoratorServicePass (PassConfig::TYPE_OPTIMIZE, which runs
+            // before this pass) has already turned $dispatcherId into an alias pointing at
+            // 'debug.' . $dispatcherId, for every firewall that has a debug wrapper — hasDefinition()
+            // returns false for an alias, so it must not be used here, or every such firewall is
+            // silently skipped and its dispatcher never gets made coroutine-safe. has() checks aliases
+            // too, and still correctly excludes firewalls with no dispatcher at all (e.g. security:
+            // false ones), which are neither a definition nor an alias.
+            if (!$container->has($dispatcherId)) {
                 continue;
             }
 
