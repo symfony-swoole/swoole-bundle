@@ -25,6 +25,7 @@ use Symfony\Component\Config\Resource\FileResource;
 use Symfony\Component\DependencyInjection\Argument\ServiceLocatorArgument;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Contracts\Service\ResetInterface;
 use UnexpectedValueException;
 
 final class StatefulServicesPass implements CompilerPassInterface
@@ -219,9 +220,42 @@ final class StatefulServicesPass implements CompilerPassInterface
                 }
             }
 
+            $resetter ??= $this->resolveResetInterfaceResetter($container, $serviceId);
+
             $resetPriority = self::SERVICE_RESETTING_PRIORITIES[$serviceId] ?? 0;
             $proxifier->proxifyService($serviceId, $resetter, $resetPriority);
         }
+    }
+
+    /**
+     * The resetters above come from Symfony's `services_resetter`, which only ever lists services
+     * tagged `kernel.reset`. That tag is added automatically to every `ResetInterface` implementation
+     * which goes through autoconfiguration - but bundles registering their own services (FrameworkBundle's
+     * data collectors, MonologBundle's loggers, DoctrineBundle's and SecurityBundle's debug/traceable
+     * decorators, ...) do not autoconfigure them, so they carry no `kernel.reset` tag at all.
+     *
+     * Such a service still gets pooled here (it is a data collector, or it is reachable through one of
+     * the other stateful-service sources above), but with a null resetter it is never reset, while its
+     * instance keeps being recycled across coroutines - so whatever it accumulates during one request
+     * is still there for every later request served by the same instance, forever.
+     *
+     * Implementing `ResetInterface` is Symfony's own declaration that `reset()` is the correct way to
+     * return the service to its between-requests state, so it is safe to fall back to it whenever no
+     * explicit resetter was configured.
+     */
+    private function resolveResetInterfaceResetter(ContainerBuilder $container, string $serviceId): ?string
+    {
+        $definitionClass = $container->findDefinition($serviceId)->getClass();
+
+        if ($definitionClass === null || !class_exists($definitionClass)) {
+            return null;
+        }
+
+        if (!is_a($definitionClass, ResetInterface::class, true)) {
+            return null;
+        }
+
+        return 'reset';
     }
 
     /**
