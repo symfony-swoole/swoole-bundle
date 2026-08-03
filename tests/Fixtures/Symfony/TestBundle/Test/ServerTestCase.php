@@ -298,6 +298,36 @@ abstract class ServerTestCase extends KernelTestCase
         return (new DateTimeImmutable())->getTimestamp();
     }
 
+    /**
+     * Sends a single request to the health endpoint over a connection of its own.
+     *
+     * The health process answers exactly one request per connection and then closes it - it says so with
+     * `Connection: close` and calls fclose() right after writing the response (see WithHealthProcess).
+     * A client can therefore never be reused for a second request: the next request races the close, and
+     * depending on whether the client notices it first, it either silently reconnects or dies with
+     * "Server Reset". That is why reusing one client here fails intermittently rather than always.
+     *
+     * @return array{statusCode: int, body: array<string, mixed>, headers: array<string, string>}
+     */
+    protected function sendHealthRequest(int $port, string $path, int $timeout = 3): array
+    {
+        /** @var array{statusCode: int, body: array<string, mixed>, headers: array<string, string>} $response */
+        $response = HttpClient::fromDomain('localhost', $port, false)
+            ->send($path, timeout: $timeout)['response'];
+
+        return $response;
+    }
+
+    /**
+     * Waits until the health process has bound its socket - it does so only after the start command has
+     * already returned. The client used for the probe is deliberately thrown away afterwards, because
+     * the probe itself consumes its connection.
+     */
+    protected function awaitHealthEndpoint(int $port): bool
+    {
+        return HttpClient::fromDomain('localhost', $port, false)->connect(3, 1, true);
+    }
+
     protected function deleteVarDirectory(): void
     {
         $fs = new Filesystem();

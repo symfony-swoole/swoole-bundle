@@ -35,6 +35,12 @@ final class PooledServiceResetTest extends ServerTestCase
 
     private const int RELEASE_GRACE_MICROSECONDS = 300_000;
 
+    /**
+     * Generous on purpose: both commands are awaited synchronously and return as soon as they are done,
+     * so this only ever caps a machine that has genuinely stalled.
+     */
+    private const int PROCESS_TIMEOUT_SECONDS = 60;
+
     #[Override]
     protected function setUp(): void
     {
@@ -133,44 +139,44 @@ final class PooledServiceResetTest extends ServerTestCase
 
         // setUp() throws the compiled cache away before every test, and this class is the first in the
         // suite to build the coroutines_profiler container - so without this the server would compile it
-        // while booting, which on a cold machine takes longer than the few seconds the client waits for
-        // the server to start answering. Compiling it up front keeps the boot itself short.
-        $this->createConsoleProcess(['cache:clear'], $envs)->mustRun();
+        // while booting. Compiling it up front keeps the boot itself short.
+        $clearCache = $this->createConsoleProcess(['cache:clear'], $envs);
+        $clearCache->setTimeout(self::PROCESS_TIMEOUT_SECONDS);
+        $clearCache->disableOutput();
+        $clearCache->run();
 
-        $serverRun = $this->createConsoleProcess([
-            'swoole:server:run',
+        $this->assertProcessSucceeded($clearCache);
+
+        // swoole:server:start returns only once the server is actually listening, unlike
+        // swoole:server:run which stays in the foreground and leaves the client racing the boot - a race
+        // the client loses on a slow machine, where booting takes longer than the few seconds it waits.
+        $serverStart = $this->createConsoleProcess([
+            'swoole:server:start',
             '--host=localhost',
             '--port=9999',
         ], $envs);
 
-        $serverRun->setTimeout(10);
-        $serverRun->start();
+        $serverStart->setTimeout(self::PROCESS_TIMEOUT_SECONDS);
+        $serverStart->run();
+
+        $this->assertProcessSucceeded($serverStart);
 
         $connected = false;
 
-        try {
-            // phpcs:ignore SlevomatCodingStandard.PHP.DisallowReference
-            $this->runAsCoroutineAndWait(static function () use ($scenario, &$connected): void {
-                $client = HttpClient::fromDomain('localhost', 9999, false);
-                $connected = $client->connect(3, 1, true);
+        // phpcs:ignore SlevomatCodingStandard.PHP.DisallowReference
+        $this->runAsCoroutineAndWait(function () use ($scenario, $envs, &$connected): void {
+            $this->deferServerStop([], $envs);
 
-                if (!$connected) {
-                    return;
-                }
+            $client = HttpClient::fromDomain('localhost', 9999, false);
+            $connected = $client->connect(3, 1, true);
 
-                $scenario($client);
-            });
-        } finally {
-            // without this the server keeps running when an assertion fails, and the failure surfaces
-            // as an unhelpful "test ended unexpectedly" instead of the actual assertion message
-            $serverRun->stop();
-        }
+            if (!$connected) {
+                return;
+            }
 
-        // asserted out here so the message can include why the server never came up
-        self::assertTrue($connected, sprintf(
-            "server did not start answering.\n--- server stdout ---\n%s\n--- server stderr ---\n%s",
-            $serverRun->getOutput(),
-            $serverRun->getErrorOutput(),
-        ));
+            $scenario($client);
+        });
+
+        self::assertTrue($connected, 'the server was started but never answered.');
     }
 }
