@@ -7,6 +7,7 @@ namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection;
 use InvalidArgumentException;
 use RuntimeException;
 use SwooleBundle\SwooleBundle\Bridge\CommonSwoole\SystemSwooleFactory;
+use SwooleBundle\SwooleBundle\Server\Configurator\WithHealthProcess;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
@@ -108,6 +109,76 @@ final readonly class Configuration implements ConfigurationInterface
                                 ->scalarNode('port')
                                     ->cannotBeEmpty()
                                     ->defaultValue(9200)
+                                ->end()
+                            ->end()
+                        ->end()
+                        ->arrayNode('healthcheck')
+                            ->info(
+                                'Liveness endpoint served by a dedicated process, '
+                                . 'unaffected by worker pool saturation.'
+                            )
+                            ->addDefaultsIfNotSet()
+                            ->beforeNormalization()
+                                ->ifTrue(
+                                    static fn($v): bool => is_string($v) || is_bool($v) || is_numeric($v) || $v === null
+                                )
+                                ->then(static fn($v): array => [
+                                    'enabled' => (bool) $v,
+                                    'host' => '0.0.0.0',
+                                    'port' => 9300,
+                                    'path' => WithHealthProcess::DEFAULT_PATH,
+                                ])
+                            ->end()
+                            ->children()
+                                ->booleanNode('enabled')
+                                    ->defaultFalse()
+                                ->end()
+                                ->scalarNode('host')
+                                    ->cannotBeEmpty()
+                                    ->defaultValue('0.0.0.0')
+                                ->end()
+                                ->scalarNode('port')
+                                    ->cannotBeEmpty()
+                                    ->defaultValue(9300)
+                                ->end()
+                                ->scalarNode('path')
+                                    ->cannotBeEmpty()
+                                    ->defaultValue(WithHealthProcess::DEFAULT_PATH)
+                                    ->validate()
+                                        ->ifTrue(static fn($v): bool => !str_starts_with((string) $v, '/'))
+                                        ->thenInvalid('Health path must start with a slash, got %s.')
+                                    ->end()
+                                ->end()
+                                ->arrayNode('checks')
+                                    ->info(
+                                        'Scheduling of the health checks registered by the project. '
+                                        . 'Ignored when none is registered.'
+                                    )
+                                    ->addDefaultsIfNotSet()
+                                    ->children()
+                                        ->integerNode('interval')
+                                            ->info('Seconds between two passes over every registered check.')
+                                            ->min(1)
+                                            ->defaultValue(5)
+                                        ->end()
+                                        ->integerNode('staleness_threshold')
+                                            ->info(
+                                                'Seconds after which a verdict no longer counts as current '
+                                                . 'and the endpoint reports unhealthy.'
+                                            )
+                                            ->min(1)
+                                            ->defaultValue(15)
+                                        ->end()
+                                    ->end()
+                                    ->validate()
+                                        ->ifTrue(
+                                            static fn(array $v): bool => $v['staleness_threshold'] < $v['interval']
+                                        )
+                                        ->thenInvalid(
+                                            'A staleness_threshold below the interval leaves the health endpoint '
+                                            . 'permanently stale, got %s.'
+                                        )
+                                    ->end()
                                 ->end()
                             ->end()
                         ->end()

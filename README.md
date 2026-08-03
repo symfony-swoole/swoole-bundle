@@ -109,6 +109,8 @@ Symfony integration with [Open Swoole](https://openswoole.com/) and [Swoole](htt
   
 -   Access logs, (disabled by default) logs are configurable is a same way as apache mod log. Documentation of this feature is available [here](docs/swoole-access-logs.md).
 
+-   Liveness endpoint (disabled by default) on a port of its own, served by a dedicated process so that it keeps answering while every worker is busy. Projects can contribute their own checks to it. Documentation of this feature is available [here](docs/swoole-health.md).
+
 ## Requirements
 
 ### Current version

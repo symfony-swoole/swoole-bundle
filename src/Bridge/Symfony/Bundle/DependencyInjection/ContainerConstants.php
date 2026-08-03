@@ -29,5 +29,7 @@ interface ContainerConstants
 
     public const string TAG_STABILITY_CHECKER = 'swoole_bundle.stability_checker';
 
+    public const string TAG_HEALTH_CHECK = 'swoole_bundle.health_check';
+
     public const string PARAM_BLACKFIRE_MONITORING_ENABLED = 'swoole_bundle.blackfire_monitoring.enabled';
 }

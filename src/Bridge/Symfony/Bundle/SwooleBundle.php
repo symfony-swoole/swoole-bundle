@@ -11,6 +11,7 @@ use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\Compiler
     CacheWarmupFixerPass,
     ExceptionHandlerPass,
     FinalizeDefinitionsAfterRemovalPass,
+    HealthCheckPass,
     MessengerTransportFactoryPass,
     RouterOptimizerPass,
     SessionHandlerStorageConfiguratorPass,
@@ -34,6 +35,7 @@ final class SwooleBundle extends Bundle
         $container->addCompilerPass(new MessengerTransportFactoryPass());
         $container->addCompilerPass(new ExceptionHandlerPass());
         $container->addCompilerPass(new RouterOptimizerPass());
+        $container->addCompilerPass(new HealthCheckPass());
         $container->addCompilerPass(new StatefulServicesPass(), PassConfig::TYPE_BEFORE_REMOVING, -10000);
         $container->addCompilerPass(new FinalizeDefinitionsAfterRemovalPass(), PassConfig::TYPE_AFTER_REMOVING, -10000);
         $container->addCompilerPass(new SwooleTableStorageConfiguratorPass());
