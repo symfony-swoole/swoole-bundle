@@ -33,6 +33,7 @@ return static function (ContainerConfigurator $containerConfigurator): void {
             // depends on fixture services (security.event_dispatcher.main/api) only registered in the
             // coroutines_security* environments, so it must not be auto-registered everywhere else.
             __DIR__ . '/../../TestBundle/Command/SecurityFirewallEventDispatcherProxyCheckCommand.php',
+            __DIR__ . '/../../TestBundle/HealthCheck',
         ]);
 
     $services->load(

@@ -71,6 +71,22 @@ swoole:
     #     host: 0.0.0.0
     #     port: 9200
 
+    # enables the liveness endpoint on a separate port, served by a process of its own
+    # so that it keeps answering while every worker is busy
+    # by default it is disabled
+    healthcheck: true
+    # equals to:
+    # ---
+    # healthcheck:
+    #     enabled: true
+    #     host: 0.0.0.0
+    #     port: 9300
+    #     path: /healthz
+    #     # only relevant once the project registers a HealthCheck, see docs/swoole-health.md
+    #     checks:
+    #         interval: 5
+    #         staleness_threshold: 15
+
     # additional swoole symfony bundle services
     services:
 
