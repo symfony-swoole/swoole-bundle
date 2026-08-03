@@ -50,10 +50,8 @@ final class SwooleServerHealthProcessTest extends ServerTestCase
 
             Coroutine::sleep(1);
 
-            $healthClient = HttpClient::fromDomain('localhost', self::HEALTH_PORT, false);
-
             $startedAt = microtime(true);
-            $response = $healthClient->send('/healthz')['response'];
+            $response = $this->sendHealthRequest(self::HEALTH_PORT, '/healthz');
             $elapsed = microtime(true) - $startedAt;
 
             $this->assertFalse(
@@ -81,15 +79,13 @@ final class SwooleServerHealthProcessTest extends ServerTestCase
         $this->runAsCoroutineAndWait(function () use ($envs): void {
             $this->deferServerStop([], $envs);
 
-            $healthClient = HttpClient::fromDomain('localhost', self::HEALTH_PORT, false);
-            $this->assertTrue($healthClient->connect(3, 1, true));
-            $this->assertSame(200, $healthClient->send('/healthz')['response']['statusCode']);
+            $this->assertTrue($this->awaitHealthEndpoint(self::HEALTH_PORT));
+            $this->assertSame(200, $this->sendHealthRequest(self::HEALTH_PORT, '/healthz')['statusCode']);
 
             $silent = stream_socket_client(sprintf('tcp://localhost:%d', self::HEALTH_PORT));
             $this->assertNotFalse($silent, 'Could not open the silent connection.');
 
-            $probe = HttpClient::fromDomain('localhost', self::HEALTH_PORT, false);
-            $response = $probe->send('/healthz', timeout: 5)['response'];
+            $response = $this->sendHealthRequest(self::HEALTH_PORT, '/healthz', 5);
 
             $this->assertSame(200, $response['statusCode']);
             $this->assertSame(['ok' => true], $response['body']);
@@ -106,15 +102,14 @@ final class SwooleServerHealthProcessTest extends ServerTestCase
         $this->runAsCoroutineAndWait(function () use ($envs): void {
             $this->deferServerStop([], $envs);
 
-            $healthClient = HttpClient::fromDomain('localhost', self::HEALTH_PORT, false);
             // The health process binds its socket after the start command has returned.
-            $this->assertTrue($healthClient->connect(3, 1, true));
+            $this->assertTrue($this->awaitHealthEndpoint(self::HEALTH_PORT));
 
-            $configured = $healthClient->send('/alive')['response'];
+            $configured = $this->sendHealthRequest(self::HEALTH_PORT, '/alive');
             $this->assertSame(200, $configured['statusCode']);
             $this->assertSame(['ok' => true], $configured['body']);
 
-            $default = $healthClient->send('/healthz')['response'];
+            $default = $this->sendHealthRequest(self::HEALTH_PORT, '/healthz');
             $this->assertSame(404, $default['statusCode']);
         });
     }

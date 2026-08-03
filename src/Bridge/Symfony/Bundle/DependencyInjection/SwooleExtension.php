@@ -14,6 +14,7 @@ use SwooleBundle\SwooleBundle\Bridge\Log\AccessLogFormatter;
 use SwooleBundle\SwooleBundle\Bridge\Log\SimpleAccessLogFormatter;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\EventDispatcher\DebugClassLoaderOverridingWorkerStartHandler;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\StabilityChecker;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\ErrorHandler\ErrorHandlerResetter;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\ErrorHandler\ErrorResponder;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\ErrorHandler\ExceptionHandlerFactory;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\ErrorHandler\SymfonyExceptionHandler;
@@ -679,8 +680,16 @@ final class SwooleExtension extends Extension
             );
         }
 
+        $container->register('swoole_bundle.error_handler.resetter', ErrorHandlerResetter::class)
+            ->setPublic(false);
         $container->register('swoole_bundle.error_handler.symfony_error_handler', ErrorHandler::class)
-            ->setPublic(true);
+            ->setPublic(true)
+            // the handler is pooled per coroutine, but ErrorHandler::handleException() leaves a
+            // `[$this, 'renderException']` behind in $exceptionHandler which makes the next request's
+            // proxied setExceptionHandler() call fatal - see ErrorHandlerResetter
+            ->addTag(ContainerConstants::TAG_STATEFUL_SERVICE, [
+                'resetter' => 'swoole_bundle.error_handler.resetter',
+            ]);
         $container->register(ThrowableHandlerFactory::class)
             ->setPublic(false);
         $container->register('swoole_bundle.error_handler.symfony_kernel_throwable_handler', ReflectionMethod::class)

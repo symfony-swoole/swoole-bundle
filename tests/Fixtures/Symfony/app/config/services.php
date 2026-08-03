@@ -34,6 +34,10 @@ return static function (ContainerConfigurator $containerConfigurator): void {
             // coroutines_security* environments, so it must not be auto-registered everywhere else.
             __DIR__ . '/../../TestBundle/Command/SecurityFirewallEventDispatcherProxyCheckCommand.php',
             __DIR__ . '/../../TestBundle/HealthCheck',
+            // decorates a specific handler and is registered explicitly by the coroutines environment.
+            // Auto-registering it would make autoconfiguration tag it as a bootable service and autowire
+            // $decorated to the outermost RequestHandler, in every environment.
+            __DIR__ . '/../../TestBundle/RequestHandler',
         ]);
 
     $services->load(
