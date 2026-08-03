@@ -22,11 +22,19 @@ final class SymfonyProfilerTest extends ServerTestCase
     #[DataProvider('environments')]
     public function testProfilerIsEnabled(string $environment): void
     {
+        $envs = ['APP_ENV' => $environment];
+
+        // setUp() throws the compiled cache away before every test, so without this the server compiles
+        // the container while booting. For the profiler environments that is slow enough - especially
+        // under xdebug in the coverage builds - to outlast the few seconds the client waits for the
+        // server to start answering. Compiling it up front keeps the boot itself short.
+        $this->createConsoleProcess(['cache:clear'], $envs)->mustRun();
+
         $serverRun = $this->createConsoleProcess([
             'swoole:server:run',
             '--host=localhost',
             '--port=9999',
-        ], ['APP_ENV' => $environment]);
+        ], $envs);
 
         $serverRun->setTimeout(10);
         $serverRun->start();

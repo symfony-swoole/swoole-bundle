@@ -42,6 +42,9 @@ return static function (ContainerConfigurator $containerConfigurator): void {
         ->tag('controller.service_arguments')
         ->exclude([
             __DIR__ . '/../../TestBundle/Controller/ReplacedContentTestController.php',
+            // constructor needs 4 explicit LeakyResource/LeakyDataCollector args that only exist in the
+            // coroutines_profiler environment, so it must not be auto-registered everywhere else.
+            __DIR__ . '/../../TestBundle/Controller/LeakyServicesController.php',
         ]);
 
     $services->set(DoctrineController::class)
