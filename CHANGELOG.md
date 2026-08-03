@@ -1,3 +1,30 @@
+# [0.31.0](https://github.com/symfony-swoole/swoole-bundle/compare/v0.30.0...v0.31.0) (2026-08-03)
+
+[Full changelog](https://github.com/symfony-swoole/swoole-bundle/compare/v0.30.0...v0.31.0)
+
+### Bug Fixes
+
+* **coroutines:** added unserialization logic to proxies to enable data collectors to work ([#324](https://github.com/symfony-swoole/swoole-bundle/issues/324)) ([327337e](https://github.com/symfony-swoole/swoole-bundle/commit/327337e6e372cbc7c1c2db3d8286cf55a9496ac2))
+* **coroutines:** event dispatcher override fix ([#334](https://github.com/symfony-swoole/swoole-bundle/issues/334)) ([336621d](https://github.com/symfony-swoole/swoole-bundle/commit/336621d903111c6232eaf3f47fac5b4063d5e589))
+* **coroutines:** event dispatcher proxification fix ([#325](https://github.com/symfony-swoole/swoole-bundle/issues/325)) ([4db3300](https://github.com/symfony-swoole/swoole-bundle/commit/4db3300a78cfa836d99b5ecd5518bfed3f580700))
+* **coroutines:** fixed cache warmup when coroutines are enabled ([#329](https://github.com/symfony-swoole/swoole-bundle/issues/329)) ([5da8049](https://github.com/symfony-swoole/swoole-bundle/commit/5da80494af534d713eece69cbe493184813c2828))
+* **coroutines:** proper resetting for kernel.reset services ([#335](https://github.com/symfony-swoole/swoole-bundle/issues/335)) ([1b96408](https://github.com/symfony-swoole/swoole-bundle/commit/1b96408e917d7bb27857aa0ac34a62c1b73330ee))
+* **coroutines:** proxification of event dispatchers for firewalls ([#333](https://github.com/symfony-swoole/swoole-bundle/issues/333)) ([47a18fb](https://github.com/symfony-swoole/swoole-bundle/commit/47a18fb07a8828b06f534c2d4f216c4cffb29746))
+* **router:** removed concurrency issues from sf router for coroutine usage ([#313](https://github.com/symfony-swoole/swoole-bundle/issues/313)) ([012e861](https://github.com/symfony-swoole/swoole-bundle/commit/012e861bca01b5e596fe994c33d54eb3e190331a))
+* **router:** unit tests for locking sf router parts ([#314](https://github.com/symfony-swoole/swoole-bundle/issues/314)) ([2908670](https://github.com/symfony-swoole/swoole-bundle/commit/2908670a390beacb1e374df257ecf26678677a03))
+* **tests:** pdo session tests cannot execute session gc because of deadlocks ([#323](https://github.com/symfony-swoole/swoole-bundle/issues/323)) ([14f29cb](https://github.com/symfony-swoole/swoole-bundle/commit/14f29cbdffa9222d10efa11ca25494f3734a09ce))
+
+
+### Features
+
+* **coroutines:** allow optional stateful services to skip proxification ([#331](https://github.com/symfony-swoole/swoole-bundle/issues/331)) ([9284477](https://github.com/symfony-swoole/swoole-bundle/commit/9284477c90e396428e0f4a899306ebcffc837c3b))
+* **coroutines:** isolate error and exception handlers per coroutine ([#330](https://github.com/symfony-swoole/swoole-bundle/issues/330)) ([aeff098](https://github.com/symfony-swoole/swoole-bundle/commit/aeff09821a5f749d8c634096f8063fe61a866c12))
+* **coroutines:** make Monolog stream handlers coroutine safe without locks ([#332](https://github.com/symfony-swoole/swoole-bundle/issues/332)) ([a657692](https://github.com/symfony-swoole/swoole-bundle/commit/a657692ba6209d80cb96bfb6d8025a7a3bbac45e))
+* **hmr:** add polling-based reload mechanism ([#328](https://github.com/symfony-swoole/swoole-bundle/issues/328)) ([d3a57fd](https://github.com/symfony-swoole/swoole-bundle/commit/d3a57fd3ef3d4a6421cfee9b86a934a507166129))
+* **proxies:** added ability to clone proxified objects for single use ([#322](https://github.com/symfony-swoole/swoole-bundle/issues/322)) ([abcb5db](https://github.com/symfony-swoole/swoole-bundle/commit/abcb5dbb56d4198bc242e7df75daaa736356ed4b))
+* **session:** integration and coroutine support for session handler interfaces ([#318](https://github.com/symfony-swoole/swoole-bundle/issues/318)) ([2a5d25c](https://github.com/symfony-swoole/swoole-bundle/commit/2a5d25c713abd7976ee0ef456c58b5357219ba67))
+* **session:** session handling refactor for swoole table session + better configurability ([#315](https://github.com/symfony-swoole/swoole-bundle/issues/315)) ([6ab87a5](https://github.com/symfony-swoole/swoole-bundle/commit/6ab87a5ae3093c450f228e30c7eae32726665c32))
+
 # [0.30.0](https://github.com/symfony-swoole/swoole-bundle/compare/v0.29.0...v0.30.0) (2026-07-05)
 
 [Full changelog](https://github.com/symfony-swoole/swoole-bundle/compare/v0.29.0...v0.30.0)
