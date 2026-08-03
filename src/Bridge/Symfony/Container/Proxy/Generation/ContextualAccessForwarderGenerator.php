@@ -16,6 +16,7 @@ use ProxyManager\ProxyGenerator\Util\Properties;
 use ProxyManager\ProxyGenerator\Util\ProxiedMethodsFilter;
 use ReflectionClass;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Proxy\ContextualProxy;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Proxy\Generation\MethodGenerator\GetContextualObject;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Proxy\Generation\MethodGenerator\GetWrappedServicePoolValue;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Proxy\Generation\MethodGenerator\MagicClone;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Proxy\Generation\MethodGenerator\MagicGet;
@@ -80,6 +81,7 @@ final readonly class ContextualAccessForwarderGenerator implements ProxyGenerato
                 [
                     new StaticProxyConstructor($servicePoolProperty, Properties::fromReflectionClass($originalClass)),
                     new GetWrappedServicePoolValue($servicePoolProperty),
+                    new GetContextualObject($servicePoolProperty),
                     new MagicGet($originalClass, $servicePoolProperty, $publicProperties),
                     new MagicSet($originalClass, $servicePoolProperty, $publicProperties),
                     new MagicClone($originalClass, $servicePoolProperty),

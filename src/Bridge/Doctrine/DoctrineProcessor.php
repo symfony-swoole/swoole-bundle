@@ -6,7 +6,9 @@ namespace SwooleBundle\SwooleBundle\Bridge\Doctrine;
 
 use Assert\Assertion;
 use SwooleBundle\ResetterBundle\DBAL\Connection\DBALPlatformAliveKeeper;
+use SwooleBundle\ResetterBundle\DBAL\Connection\OptimizedDBALAliveKeeper;
 use SwooleBundle\SwooleBundle\Bridge\Doctrine\DBAL\ConnectionKeepAliveInitializer;
+use SwooleBundle\SwooleBundle\Bridge\Doctrine\DBAL\CoroutinesOptimizedDBALAliveKeeper;
 use SwooleBundle\SwooleBundle\Bridge\Doctrine\ORM\EntityManagerResetter;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices\CompileProcessor;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices\Proxifier;
@@ -49,6 +51,7 @@ final class DoctrineProcessor implements CompileProcessor
         }
 
         $this->createEntityManagerResetterDefinition($container);
+        $this->replaceOptimizedAliveKeepers($container);
         $this->prepareConnectionsForProxification($container, $connectionSvcIds);
 
         foreach ($entityManagers as $emName => $emSvcId) {
@@ -74,6 +77,25 @@ final class DoctrineProcessor implements CompileProcessor
         $resetterDef = new Definition(EntityManagerResetter::class);
         $resetterDef->setClass(EntityManagerResetter::class);
         $container->setDefinition(EntityManagerResetter::class, $resetterDef);
+    }
+
+    /**
+     * Swaps the resetter bundle's ping-interval decorator for the coroutine-safe one.
+     *
+     * The resetter bundle registers one OptimizedDBALAliveKeeper per connection, each a ChildDefinition
+     * of a shared abstract parent. This processor runs in the before-removing stage, so those children
+     * have long been resolved into standalone definitions carrying the class themselves - hence going
+     * over every definition instead of only re-classing the parent.
+     */
+    private function replaceOptimizedAliveKeepers(ContainerBuilder $container): void
+    {
+        foreach ($container->getDefinitions() as $definition) {
+            if ($definition->getClass() !== OptimizedDBALAliveKeeper::class) {
+                continue;
+            }
+
+            $definition->setClass(CoroutinesOptimizedDBALAliveKeeper::class);
+        }
     }
 
     private function overrideEmConfigurator(ContainerBuilder $container, Definition $emDef): void
