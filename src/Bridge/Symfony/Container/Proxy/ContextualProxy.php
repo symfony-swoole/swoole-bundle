@@ -17,6 +17,17 @@ interface ContextualProxy
     public function getServicePool(): ServicePool;
 
     /**
+     * Returns the real instance the proxy currently forwards to, assigning one from the pool to the
+     * running coroutine if it does not hold one yet - exactly what any forwarded method call does.
+     *
+     * Needed by collaborators that have to tell the pooled instances apart instead of seeing them all
+     * as the single, shared proxy object.
+     *
+     * @return RealObjectType
+     */
+    public function getContextualObject(): object;
+
+    /**
      * @param ServicePool<RealObjectType> $servicePool
      * @return ContextualProxy<RealObjectType>&RealObjectType
      */
