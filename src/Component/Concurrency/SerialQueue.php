@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Component\Concurrency;
 
+use Assert\Assertion;
 use Closure;
 use Swoole\Coroutine\Channel;
 use SwooleBundle\SwooleBundle\Common\Adapter\Swoole;
@@ -21,10 +22,25 @@ use Throwable;
  * That handshake is race free: neither the emptiness check nor the flag reset below contain a yield point,
  * so a producer which sees `$consuming === true` after its push is guaranteed that the consumer has not
  * made its final emptiness check yet, and will therefore pick the payload up.
+ *
+ * A queue can also be given something for its consumer to release, which is what a resource outliving a
+ * single payload needs: a file opened by one consumer and closed by the next is opened and closed by two
+ * different coroutines, which is precisely what this queue exists to keep from happening. Such a consumer
+ * waits on the channel rather than leaving the moment it runs dry, so the resource stays with the coroutine
+ * that acquired it, and releases it before giving up on an idle queue. Work touching it is handed over with
+ * {@see runInConsumer} instead of being done by the coroutine asking for it.
  */
 final class SerialQueue
 {
     public const int DEFAULT_CAPACITY = 1024;
+
+    /**
+     * How long a consumer holding a resource waits on an empty queue before letting go of it and leaving.
+     *
+     * Waiting forever would be simpler but would also keep the coroutine alive for as long as the queue
+     * exists, and a scheduler with nothing left to run but parked consumers never finishes.
+     */
+    public const float DEFAULT_IDLE_TIMEOUT_SECONDS = 1.0;
 
     /**
      * Coroutine id reported when running outside of a coroutine.
@@ -52,11 +68,17 @@ final class SerialQueue
     /**
      * @param Closure(mixed): void $consumer invoked for every submitted payload, never concurrently
      * @param int $capacity how many payloads may be queued before producers start waiting for the consumer
+     * @param Closure(): void|null $consumerRelease lets go of whatever the consumer acquired while working.
+     *     Giving one pins the consumer: it waits on an empty queue instead of leaving it to the next
+     *     coroutine, and releases here before it does leave.
+     * @param float $idleTimeout how long a pinned consumer waits on an empty queue before releasing
      */
     public function __construct(
         private readonly Swoole $swoole,
         private readonly Closure $consumer,
         int $capacity = self::DEFAULT_CAPACITY,
+        private readonly Closure|null $consumerRelease = null,
+        private readonly float $idleTimeout = self::DEFAULT_IDLE_TIMEOUT_SECONDS,
     ) {
         $this->channel = new Channel($capacity);
     }
@@ -82,6 +104,45 @@ final class SerialQueue
     }
 
     /**
+     * Runs a task in the consumer coroutine, behind everything submitted before it, and waits for it to be
+     * done. Only meaningful with a pinned consumer, since the point is reaching the coroutine which owns
+     * whatever the task touches, and without pinning there is no such single coroutine.
+     *
+     * Called from the consumer itself the task simply runs - it is already in the right place, and queueing
+     * it up behind the payload currently being consumed would wait for something that cannot happen until
+     * this call returns. Monolog does exactly that: resetting a stream handler closes it.
+     *
+     * @param Closure(): void $task
+     */
+    public function runInConsumer(Closure $task): void
+    {
+        Assertion::true(
+            $this->isConsumerPinned(),
+            'Handing work over to the consumer only makes sense when the consumer is pinned.',
+        );
+
+        $contextId = $this->swoole->getCoroutineId();
+
+        if ($this->consumerContextId !== null && $this->consumerContextId === $contextId) {
+            $task();
+
+            return;
+        }
+
+        // No consumer means nothing has been consumed yet, or that the last one already released what it
+        // held and left. Either way there is nobody to hand the task to, and nothing it could interfere with.
+        if ($contextId === self::NO_COROUTINE_CONTEXT_ID || !$this->consuming) {
+            $task();
+
+            return;
+        }
+
+        $acknowledgement = new Channel(1);
+        $this->channel->push(new TaskMarker($task, $acknowledgement));
+        $acknowledgement->pop(self::DRAIN_TIMEOUT_SECONDS);
+    }
+
+    /**
      * Blocks until everything queued so far has been consumed. Meant for shutdown paths which have to make
      * sure nothing is lost before the underlying resource goes away.
      *
@@ -104,6 +165,13 @@ final class SerialQueue
         }
 
         if (!$this->consuming) {
+            if ($this->isConsumerPinned()) {
+                // Consuming right here would touch the resource from the wrong coroutine, which is the one
+                // thing a pinned consumer is for. There is nothing waiting either - a consumer only leaves
+                // an empty queue behind.
+                return;
+            }
+
             $this->consumeQueued();
 
             return;
@@ -177,18 +245,55 @@ final class SerialQueue
         $this->consumerContextId = $this->swoole->getCoroutineId();
 
         try {
-            while (!$this->channel->isEmpty()) {
-                $payload = $this->channel->pop();
-
-                if ($payload === false) {
-                    break;
-                }
-
-                $this->consume($payload);
+            if ($this->isConsumerPinned()) {
+                $this->consumeUntilIdle();
+            } else {
+                $this->consumeUntilEmpty();
             }
         } finally {
             $this->consumerContextId = null;
             $this->consuming = false;
+        }
+    }
+
+    private function consumeUntilEmpty(): void
+    {
+        while (!$this->channel->isEmpty()) {
+            $payload = $this->channel->pop();
+
+            if ($payload === false) {
+                break;
+            }
+
+            $this->consume($payload);
+        }
+    }
+
+    /**
+     * Waits on the queue rather than handing it to whoever submits next, so that everything touching the
+     * resource this consumer holds happens in this one coroutine.
+     *
+     * Releasing is done before the emptiness check rather than after the loop, because it is the one thing
+     * here that can yield - closing a file does - and a producer pushing during it would be left with a
+     * claim nobody is honouring. Seeing something queued afterwards means going back to work, on a resource
+     * that will be acquired again the next time it is needed.
+     */
+    private function consumeUntilIdle(): void
+    {
+        while (true) {
+            $payload = $this->channel->pop($this->idleTimeout);
+
+            if ($payload !== false) {
+                $this->consume($payload);
+
+                continue;
+            }
+
+            $this->releaseConsumer();
+
+            if ($this->channel->isEmpty()) {
+                return;
+            }
         }
     }
 
@@ -204,12 +309,56 @@ final class SerialQueue
             return;
         }
 
+        if ($payload instanceof TaskMarker) {
+            $this->runHandedOverTask($payload);
+
+            return;
+        }
+
         --$this->queued;
 
         try {
             ($this->consumer)($payload);
         } catch (Throwable $throwable) {
             error_log(sprintf('Serially queued work failed: %s', $throwable->getMessage()));
+        }
+    }
+
+    private function isConsumerPinned(): bool
+    {
+        return $this->consumerRelease !== null;
+    }
+
+    /**
+     * Runs while the consumer context id is still set, so that anything the release does through
+     * {@see runInConsumer} recognises it is already in the right coroutine instead of queueing up behind
+     * itself.
+     */
+    private function releaseConsumer(): void
+    {
+        if ($this->consumerRelease === null) {
+            return;
+        }
+
+        try {
+            ($this->consumerRelease)();
+        } catch (Throwable $throwable) {
+            error_log(sprintf('Releasing a serial queue consumer failed: %s', $throwable->getMessage()));
+        }
+    }
+
+    /**
+     * The coroutine waiting for this task has to be woken up whatever the task did, otherwise it stays on
+     * its acknowledgement until the drain timeout for no reason.
+     */
+    private function runHandedOverTask(TaskMarker $task): void
+    {
+        try {
+            $task->run();
+        } catch (Throwable $throwable) {
+            error_log(sprintf('Serially queued task failed: %s', $throwable->getMessage()));
+        } finally {
+            $task->acknowledge();
         }
     }
 

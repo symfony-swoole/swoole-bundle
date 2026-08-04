@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Bridge\Monolog;
 
+use Closure;
 use Monolog\LogRecord;
 use SwooleBundle\SwooleBundle\Bridge\CommonSwoole\SystemSwooleFactory;
 use SwooleBundle\SwooleBundle\Common\Adapter\Swoole;
@@ -20,6 +21,12 @@ use SwooleBundle\SwooleBundle\Component\Concurrency\SerialQueue;
  * Instead of locking around all of that, every write is handed to a {@see SerialQueue}, which replays them
  * one at a time in a single consumer coroutine. Only one coroutine is ever inside the original write(), so
  * none of that state can be observed by anyone else and the upstream implementation is used as it is.
+ *
+ * The stream is opened by that consumer, which is why the queue's consumer is pinned and why closing and
+ * resetting are handed over to it as well instead of being done where they are asked for. Monolog closes
+ * the file on reset - deliberately, so an externally rotated file is picked up - and these handlers are
+ * reset once per request, from whichever coroutine happens to be releasing the pooled instance. Closing a
+ * file from a coroutine other than the one that opened it is the exact violation this trait exists to avoid.
  *
  * As a side effect logging stops blocking the request coroutine on disk IO.
  */
@@ -40,25 +47,43 @@ trait CoroutineSafeWrites
     }
 
     /**
-     * Nothing queued may outlive the stream it is meant to be written to.
+     * Nothing queued may outlive the stream it is meant to be written to - which the queue takes care of by
+     * itself here, since the close is queued up behind everything submitted before it.
      */
     public function close(): void
     {
-        $this->writeQueue?->drain();
-
-        parent::close();
+        $this->inWriteQueue(function (): void {
+            parent::close();
+        });
     }
 
     public function reset(): void
     {
-        $this->writeQueue?->drain();
-
-        parent::reset();
+        $this->inWriteQueue(function (): void {
+            parent::reset();
+        });
     }
 
     protected function write(LogRecord $record): void
     {
         $this->writeQueue()->submit($record);
+    }
+
+    /**
+     * Nothing has been written yet while there is no queue, so there is no stream anybody could own and the
+     * task can be done right here.
+     *
+     * @param Closure(): void $task
+     */
+    private function inWriteQueue(Closure $task): void
+    {
+        if ($this->writeQueue === null) {
+            $task();
+
+            return;
+        }
+
+        $this->writeQueue->runInConsumer($task);
     }
 
     private function writeQueue(): SerialQueue
@@ -73,6 +98,10 @@ trait CoroutineSafeWrites
                 parent::write($record);
             },
             self::WRITE_QUEUE_CAPACITY,
+            // the stream belongs to the consumer coroutine, so it cannot be left open for the next one
+            function (): void {
+                parent::close();
+            },
         );
     }
 }
