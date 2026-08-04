@@ -33,6 +33,9 @@ return static function (ContainerConfigurator $containerConfigurator): void {
             // depends on fixture services (security.event_dispatcher.main/api) only registered in the
             // coroutines_security* environments, so it must not be auto-registered everywhere else.
             __DIR__ . '/../../TestBundle/Command/SecurityFirewallEventDispatcherProxyCheckCommand.php',
+            // same story for security.access.decision_manager, which SecurityBundle only brings along in
+            // the coroutines_security* environments.
+            __DIR__ . '/../../TestBundle/Command/AccessDecisionManagerProxyCheckCommand.php',
             __DIR__ . '/../../TestBundle/HealthCheck',
             // decorates a specific handler and is registered explicitly by the coroutines environment.
             // Auto-registering it would make autoconfiguration tag it as a bootable service and autowire
