@@ -58,6 +58,11 @@ final class AccessDecisionManagerCoroutineSafetyTest extends ServerTestCase
 
         self::assertStringContainsString('access decision manager IS proxified.', $output);
         self::assertStringContainsString('access decision WORKS.', $output);
+
+        // the one that speaks to the bug itself rather than to the plumbing around it: being pooled says
+        // nothing with kernel.debug on, where what gets pooled is the decorator and the manager holding
+        // the stack sits behind it
+        self::assertStringContainsString('coroutines DO NOT SHARE the stack.', $output);
     }
 
     /**
