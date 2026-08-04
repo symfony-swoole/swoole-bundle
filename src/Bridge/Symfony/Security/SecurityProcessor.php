@@ -56,28 +56,32 @@ final class SecurityProcessor implements CompileProcessor
 
     private function processAccessDecisionManagerPair(ContainerBuilder $container, Proxifier $proxifier): void
     {
+        $decoratedId = self::DEBUG_ACCESS_DECISION_MANAGER_ID . '.inner';
+
+        // DecoratorServicePass has already run by the time compile processors do, and it leaves the
+        // decorator answering to its own id with the decorated manager moved to `.inner` - while
+        // `security.access.decision_manager` becomes a plain alias to the decorator. Going by the
+        // presence of `.inner` is what tells the two shapes apart; asking hasDefinition() about an
+        // alias only ever answers false.
+        if ($container->hasDefinition($decoratedId)) {
+            // the decorator holds on to the manager it wraps, so the two have to travel together: one
+            // manager per pooled decorator instead of one shared by all of them
+            $container->getDefinition($decoratedId)
+                ->setShared(false);
+
+            // the decorator is resettable, so it is pooled for that alone - saying so outright keeps it
+            // pooled even if that ever stops being true
+            $container->getDefinition(self::DEBUG_ACCESS_DECISION_MANAGER_ID)
+                ->addTag(ContainerConstants::TAG_STATEFUL_SERVICE);
+
+            return;
+        }
+
         if (!$container->hasDefinition(self::ACCESS_DECISION_MANAGER_ID)) {
             return;
         }
 
-        $decoratedId = self::DEBUG_ACCESS_DECISION_MANAGER_ID . '.inner';
-
-        if (
-            !$container->hasDefinition(self::DEBUG_ACCESS_DECISION_MANAGER_ID)
-            || !$container->hasDefinition($decoratedId)
-        ) {
-            // no debug decorator: the manager holding the stack is the service everything depends on
-            $proxifier->proxifyService(self::ACCESS_DECISION_MANAGER_ID);
-
-            return;
-        }
-
-        // the decorator keeps a reference to the manager it wraps, so the two have to travel together:
-        // one manager per pooled decorator rather than one shared by all of them
-        $container->findDefinition($decoratedId)
-            ->setShared(false);
-
-        $container->getDefinition(self::DEBUG_ACCESS_DECISION_MANAGER_ID)
-            ->addTag(ContainerConstants::TAG_STATEFUL_SERVICE);
+        // no debug decorator: the manager holding the stack is the service everything depends on
+        $proxifier->proxifyService(self::ACCESS_DECISION_MANAGER_ID);
     }
 }

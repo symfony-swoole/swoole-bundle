@@ -92,15 +92,20 @@ final class SecurityProcessorTest extends TestCase
 
         // any non-final class will do: the processor goes by service id, exactly as SecurityBundle
         // registers them, and never looks at what the definitions are made of
-        $container->register(self::MANAGER_ID, ShouldBeProxified::class);
+        if (!$withDebugDecorator) {
+            $container->register(self::MANAGER_ID, ShouldBeProxified::class);
 
-        if ($withDebugDecorator) {
-            // the shape left behind by DecoratorServicePass, which has already run by the time compile
-            // processors do: the decorator answers to the original id, the decorated one moved aside
-            $container->register(self::DEBUG_MANAGER_ID . '.inner', ShouldBeProxified::class);
-            $container->register(self::DEBUG_MANAGER_ID, ShouldBeProxified::class)
-                ->setArguments([new Reference(self::DEBUG_MANAGER_ID . '.inner')]);
+            return $container;
         }
+
+        // The shape DecoratorServicePass leaves behind, which is not the obvious one: the decorator
+        // keeps its own id and the manager it decorates moves to `.inner`, while the id everything else
+        // refers to - security.access.decision_manager - is turned into an alias. hasDefinition() answers
+        // false for an alias, so a processor guarding on it walks straight past the whole thing.
+        $container->register(self::DEBUG_MANAGER_ID . '.inner', ShouldBeProxified::class);
+        $container->register(self::DEBUG_MANAGER_ID, ShouldBeProxified::class)
+            ->setArguments([new Reference(self::DEBUG_MANAGER_ID . '.inner')]);
+        $container->setAlias(self::MANAGER_ID, self::DEBUG_MANAGER_ID);
 
         return $container;
     }
