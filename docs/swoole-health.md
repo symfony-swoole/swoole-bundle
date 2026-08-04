@@ -118,6 +118,25 @@ server start and the end of the first sweep - size the startup probe accordingly
 The evaluating process only exists when at least one check is registered. With none, the
 endpoint costs a single process and answers exactly as it does above.
 
+## What a slow client can do
+
+A check is not the only thing that could hold the endpoint up. It answers from a single
+process, so a connection that stalls part way through a request would, handled one at a time,
+delay every probe queued behind it - and a probe that times out reads as a dead container just
+the same. Two things bound that:
+
+Connections are advanced together rather than one after another, so a client that stops
+sending waits on its own. A probe arriving behind a stalled connection is answered
+immediately.
+
+Every connection also carries a deadline of two seconds, fixed when it was accepted. Bytes
+arriving later do not extend it, so a request dribbled out one header at a time is dropped
+instead of being allowed to hold the endpoint for as long as it keeps typing. A request whose
+headers exceed 16 KiB is dropped as well, rather than buffered.
+
+A dropped connection is closed without an answer. A probe that sent a complete request is
+never dropped, so this is invisible to a working client.
+
 ## What a check may touch
 
 The evaluating process is forked from the server master, so it inherits the master's open

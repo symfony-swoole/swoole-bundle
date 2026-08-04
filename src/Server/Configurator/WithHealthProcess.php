@@ -11,22 +11,26 @@ use SwooleBundle\SwooleBundle\Server\Config\Socket;
 use SwooleBundle\SwooleBundle\Server\Health\HealthReport;
 use SwooleBundle\SwooleBundle\Server\Health\HealthReporter;
 
+/**
+ * @phpstan-type Pending = array<int, array{connection: resource, deadline: float, buffer: string}>
+ */
 final readonly class WithHealthProcess implements Configurator
 {
     public const string DEFAULT_PATH = '/healthz';
 
-    private const int ACCEPT_TIMEOUT_SECONDS = 60;
-
-    private const int READ_TIMEOUT_SECONDS = 2;
-
     private const int BIND_FAILURE_BACKOFF_SECONDS = 5;
 
-    private const int MAX_REQUEST_HEADERS = 100;
+    private const float REQUEST_TIMEOUT_SECONDS = 2.0;
 
-    private const int MAX_LINE_BYTES = 8192;
+    private const float IDLE_WAIT_SECONDS = 60.0;
+
+    private const int READ_CHUNK_BYTES = 8192;
+
+    private const int MAX_REQUEST_BYTES = 16384;
 
     private const array REASON_PHRASES = [
         200 => '200 OK',
+        404 => '404 Not Found',
         503 => '503 Service Unavailable',
     ];
 
@@ -40,11 +44,11 @@ final readonly class WithHealthProcess implements Configurator
     {
         $host = $this->socket->host();
         $port = $this->socket->port();
-        $healthPath = $this->path;
+        $path = $this->path;
         $reporter = $this->reporter;
 
         $server->addProcess(new Process(
-            static function () use ($host, $port, $healthPath, $reporter): void {
+            static function () use ($host, $port, $path, $reporter): void {
                 $listener = @stream_socket_server(sprintf('tcp://%s:%d', $host, $port), $errorNo, $errorMessage);
 
                 if ($listener === false) {
@@ -56,16 +60,10 @@ final readonly class WithHealthProcess implements Configurator
                     );
                 }
 
+                $pending = [];
+
                 while (true) {
-                    $connection = @stream_socket_accept($listener, self::ACCEPT_TIMEOUT_SECONDS);
-
-                    if ($connection === false) {
-                        usleep(10_000);
-
-                        continue;
-                    }
-
-                    self::respond($connection, $healthPath, $reporter);
+                    $pending = self::serve($listener, $pending, $path, $reporter);
                 }
             },
             false,
@@ -75,46 +73,152 @@ final readonly class WithHealthProcess implements Configurator
     }
 
     /**
-     * @param resource $connection
+     * @param resource $listener
+     * @param Pending $pending
+     * @return Pending
      */
-    private static function respond($connection, string $healthPath, HealthReporter $reporter): void
+    private static function serve($listener, array $pending, string $path, HealthReporter $reporter): array
     {
-        stream_set_timeout($connection, self::READ_TIMEOUT_SECONDS);
+        $now = microtime(true);
+        $wait = self::IDLE_WAIT_SECONDS;
+        $read = [$listener];
 
-        $requestLine = fgets($connection, self::MAX_LINE_BYTES);
-
-        if (!is_string($requestLine)) {
-            fclose($connection);
-
-            return;
+        foreach ($pending as $state) {
+            $read[] = $state['connection'];
+            $wait = min($wait, max(0.0, $state['deadline'] - $now));
         }
 
-        for ($header = 0; $header < self::MAX_REQUEST_HEADERS; ++$header) {
-            $line = fgets($connection, self::MAX_LINE_BYTES);
+        $write = [];
+        $except = [];
+        $seconds = (int) $wait;
+        $microseconds = (int) round(($wait - $seconds) * 1_000_000);
 
-            if ($line === false || trim($line) === '') {
-                break;
+        if (@stream_select($read, $write, $except, $seconds, $microseconds) > 0) {
+            foreach ($read as $readable) {
+                $pending = $readable === $listener
+                    ? self::accept($listener, $pending)
+                    : self::advance($readable, $pending, $path, $reporter);
             }
         }
 
-        $path = explode('?', explode(' ', $requestLine)[1] ?? '')[0];
+        return self::dropExpired($pending);
+    }
 
-        if ($path === $healthPath) {
-            $report = $reporter->report(time());
-            $status = self::REASON_PHRASES[$report->statusCode];
-            $body = $report->json();
-        } else {
-            $status = '404 Not Found';
-            $body = (new HealthReport(404, ['ok' => false]))->json();
+    /**
+     * @param resource $listener
+     * @param Pending $pending
+     * @return Pending
+     */
+    private static function accept($listener, array $pending): array
+    {
+        $connection = @stream_socket_accept($listener, 0);
+
+        if ($connection === false) {
+            return $pending;
         }
 
-        fwrite($connection, sprintf(
+        stream_set_blocking($connection, false);
+
+        $pending[get_resource_id($connection)] = [
+            'connection' => $connection,
+            'deadline' => microtime(true) + self::REQUEST_TIMEOUT_SECONDS,
+            'buffer' => '',
+        ];
+
+        return $pending;
+    }
+
+    /**
+     * @param resource $connection
+     * @param Pending $pending
+     * @return Pending
+     */
+    private static function advance($connection, array $pending, string $path, HealthReporter $reporter): array
+    {
+        $id = get_resource_id($connection);
+
+        if (!isset($pending[$id])) {
+            return $pending;
+        }
+
+        $chunk = fread($connection, self::READ_CHUNK_BYTES);
+
+        if (!is_string($chunk) || $chunk === '') {
+            return self::drop($id, $pending);
+        }
+
+        $buffer = $pending[$id]['buffer'] . $chunk;
+
+        if (strlen($buffer) > self::MAX_REQUEST_BYTES) {
+            return self::drop($id, $pending);
+        }
+
+        $pending[$id]['buffer'] = $buffer;
+
+        if (!str_contains($buffer, "\r\n\r\n") && !str_contains($buffer, "\n\n")) {
+            return $pending;
+        }
+
+        self::respond($connection, $buffer, $path, $reporter);
+
+        return self::drop($id, $pending);
+    }
+
+    /**
+     * @param resource $connection
+     */
+    private static function respond($connection, string $request, string $path, HealthReporter $reporter): void
+    {
+        $requestLine = substr($request, 0, strcspn($request, "\r\n"));
+        $requestPath = explode('?', explode(' ', $requestLine)[1] ?? '')[0];
+
+        $report = $requestPath === $path
+            ? $reporter->report(time())
+            : new HealthReport(404, ['ok' => false]);
+
+        $body = $report->json();
+
+        @fwrite($connection, sprintf(
             "HTTP/1.1 %s\r\nContent-Type: application/json\r\nContent-Length: %d\r\nConnection: close\r\n\r\n%s",
-            $status,
+            self::REASON_PHRASES[$report->statusCode],
             strlen($body),
             $body,
         ));
+    }
 
-        fclose($connection);
+    /**
+     * @param Pending $pending
+     * @return Pending
+     */
+    private static function dropExpired(array $pending): array
+    {
+        $now = microtime(true);
+
+        foreach ($pending as $id => $state) {
+            if ($state['deadline'] > $now) {
+                continue;
+            }
+
+            $pending = self::drop($id, $pending);
+        }
+
+        return $pending;
+    }
+
+    /**
+     * @param Pending $pending
+     * @return Pending
+     */
+    private static function drop(int $id, array $pending): array
+    {
+        $connection = $pending[$id]['connection'] ?? null;
+
+        if (is_resource($connection)) {
+            fclose($connection);
+        }
+
+        unset($pending[$id]);
+
+        return $pending;
     }
 }
