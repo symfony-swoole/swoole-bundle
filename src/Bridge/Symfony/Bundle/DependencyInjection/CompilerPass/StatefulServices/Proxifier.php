@@ -61,6 +61,11 @@ final class Proxifier
         /** @var class-string $class */
         $class = $serviceDef->getClass();
         $tags = new Tags($class, $serviceDef->getTags());
+
+        if ($this->isDefinedByInterfaceOnly($serviceDef)) {
+            return;
+        }
+
         $this->assertServiceIsNotReadOnly($serviceId, $serviceDef);
 
         if ($tags->hasSafeStatefulServiceTag()) {
@@ -269,6 +274,10 @@ final class Proxifier
         $hasStatefulServiceTag = $tags->hasStatefulServiceTag();
 
         if (!$isReset && !$hasStatefulServiceTag) {
+            return false;
+        }
+
+        if ($this->isDefinedByInterfaceOnly($serviceDef)) {
             return false;
         }
 

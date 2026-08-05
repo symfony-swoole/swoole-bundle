@@ -17,15 +17,6 @@ return static function (ContainerConfigurator $containerConfigurator): void {
 
     $parameters->set('env(REACTOR_COUNT)', 1);
 
-    // Without a Doctrine-registered cache pool config to resolve it indirectly, cache.system's
-    // definition stays the bare AdapterInterface, which StatefulServicesPass cannot proxify (see the
-    // ProxifierAssertions warning suggesting exactly this override).
-    $containerConfigurator->extension('framework', [
-        'cache' => [
-            'system' => 'cache.adapter.filesystem',
-        ],
-    ]);
-
     $containerConfigurator->extension('swoole', [
         'http_server' => [
             'exception_handler' => [
