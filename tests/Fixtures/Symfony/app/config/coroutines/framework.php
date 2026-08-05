@@ -12,10 +12,6 @@ return static function (ContainerConfigurator $containerConfigurator): void {
     $parameters->set('env(COOKIE_LIFETIME)', 60);
 
     $containerConfigurator->extension('framework', [
-        'cache' => [
-            'app' => 'cache.adapter.array',
-            'system' => 'cache.adapter.array',
-        ],
         'messenger' => [
             'enabled' => true,
             'transports' => [

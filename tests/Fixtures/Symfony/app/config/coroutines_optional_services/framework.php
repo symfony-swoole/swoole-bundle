@@ -6,9 +6,5 @@ use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigura
 
 return static function (ContainerConfigurator $containerConfigurator): void {
     $containerConfigurator->extension('framework', [
-        'cache' => [
-            'app' => 'cache.adapter.array',
-            'system' => 'cache.adapter.array',
-        ],
     ]);
 };
