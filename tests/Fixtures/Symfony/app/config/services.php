@@ -36,6 +36,8 @@ return static function (ContainerConfigurator $containerConfigurator): void {
             // same story for security.access.decision_manager, which SecurityBundle only brings along in
             // the coroutines_security* environments.
             __DIR__ . '/../../TestBundle/Command/AccessDecisionManagerProxyCheckCommand.php',
+            // same story for security.firewall.map.
+            __DIR__ . '/../../TestBundle/Command/SecurityFirewallContextProxyCheckCommand.php',
             __DIR__ . '/../../TestBundle/HealthCheck',
             // decorates a specific handler and is registered explicitly by the coroutines environment.
             // Auto-registering it would make autoconfiguration tag it as a bootable service and autowire

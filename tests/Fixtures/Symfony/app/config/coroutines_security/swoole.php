@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Command\{
     AccessDecisionManagerProxyCheckCommand,
+    SecurityFirewallContextProxyCheckCommand,
     SecurityFirewallEventDispatcherProxyCheckCommand,
 };
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
@@ -50,4 +51,7 @@ return static function (ContainerConfigurator $containerConfigurator): void {
     // depends on security.access.decision_manager, which only exists where SecurityBundle is registered
     // - here - so it stays excluded from the global TestBundle/* autoload in ../services.php too.
     $services->set(AccessDecisionManagerProxyCheckCommand::class);
+
+    // depends on security.firewall.map, which likewise only exists where SecurityBundle is registered.
+    $services->set(SecurityFirewallContextProxyCheckCommand::class);
 };
