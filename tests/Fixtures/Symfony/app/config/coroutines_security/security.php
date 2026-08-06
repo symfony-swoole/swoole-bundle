@@ -24,6 +24,15 @@ return static function (ContainerConfigurator $containerConfigurator): void {
                 'security' => true,
                 'stateless' => true,
             ],
+            // stateful and lazy, which is what makes SecurityBundle build a LazyFirewallContext and give
+            // it a ContextListener - the two services SecurityProcessor has to make worker-safe. The
+            // stateless firewalls above get neither.
+            'session' => [
+                'pattern' => '^/security/session',
+                'security' => true,
+                'stateless' => false,
+                'lazy' => true,
+            ],
         ],
     ]);
 };
