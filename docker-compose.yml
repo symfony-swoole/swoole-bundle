@@ -124,3 +124,8 @@ services:
       MYSQL_USER: user
       MYSQL_PASSWORD: pass
       MYSQL_DATABASE: db
+    volumes:
+      # Lets the test user create the per-worker databases parallel feature tests need. Only runs while
+      # the data directory is still empty, so an existing volume needs the grant applying by hand - see
+      # CONTRIBUTING.md.
+      - ./docker/mysql/init:/docker-entrypoint-initdb.d:ro

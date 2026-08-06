@@ -12,16 +12,13 @@ use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Test\ServerTestC
 
 final class SwooleServerHealthProcessTest extends ServerTestCase
 {
-    private const int APP_PORT = 9999;
-    private const int HEALTH_PORT = 9997;
-
     #[Override]
     protected function setUp(): void
     {
         parent::setUp();
 
         $this->deleteVarDirectory();
-        $this->killAllProcessesListeningOnPort(self::HEALTH_PORT);
+        $this->killAllProcessesListeningOnPort(self::port(2));
     }
 
     public function testHealthEndpointRespondsWhileEveryWorkerIsBlocked(): void
@@ -32,15 +29,15 @@ final class SwooleServerHealthProcessTest extends ServerTestCase
         $this->runAsCoroutineAndWait(function () use ($envs): void {
             $this->deferServerStop([], $envs);
 
-            $appClient = HttpClient::fromDomain('localhost', self::APP_PORT, false);
-            $this->assertTrue($appClient->connect(3, 1, true));
+            $appClient = HttpClient::fromDomain('localhost', self::port(), false);
+            $this->assertTrue($appClient->connect(self::connectTimeout(), 1, true));
 
             $blocking = new ArrayObject(['finished' => false]);
             $waitGroup = $this->getSwoole()->waitGroup();
 
             go(function () use ($waitGroup, $blocking): void {
                 $waitGroup->add();
-                $client = HttpClient::fromDomain('localhost', self::APP_PORT, false, ['timeout' => 15]);
+                $client = HttpClient::fromDomain('localhost', self::port(), false, ['timeout' => 15]);
                 $response = $client->send('/test/blocking/5000', timeout: 15)['response'];
 
                 $this->assertSame(200, $response['statusCode']);
@@ -51,7 +48,7 @@ final class SwooleServerHealthProcessTest extends ServerTestCase
             Coroutine::sleep(1);
 
             $startedAt = microtime(true);
-            $response = $this->sendHealthRequest(self::HEALTH_PORT, '/healthz');
+            $response = $this->sendHealthRequest(self::port(2), '/healthz');
             $elapsed = microtime(true) - $startedAt;
 
             $this->assertFalse(
@@ -79,14 +76,14 @@ final class SwooleServerHealthProcessTest extends ServerTestCase
         $this->runAsCoroutineAndWait(function () use ($envs): void {
             $this->deferServerStop([], $envs);
 
-            $this->assertTrue($this->awaitHealthEndpoint(self::HEALTH_PORT));
-            $this->assertSame(200, $this->sendHealthRequest(self::HEALTH_PORT, '/healthz')['statusCode']);
+            $this->assertTrue($this->awaitHealthEndpoint(self::port(2)));
+            $this->assertSame(200, $this->sendHealthRequest(self::port(2), '/healthz')['statusCode']);
 
-            $silent = stream_socket_client(sprintf('tcp://localhost:%d', self::HEALTH_PORT));
+            $silent = stream_socket_client(sprintf('tcp://localhost:%d', self::port(2)));
             $this->assertNotFalse($silent, 'Could not open the silent connection.');
 
             $startedAt = microtime(true);
-            $response = $this->sendHealthRequest(self::HEALTH_PORT, '/healthz', 10);
+            $response = $this->sendHealthRequest(self::port(2), '/healthz', 10);
             $elapsed = microtime(true) - $startedAt;
 
             $this->assertSame(200, $response['statusCode']);
@@ -109,19 +106,19 @@ final class SwooleServerHealthProcessTest extends ServerTestCase
         $this->runAsCoroutineAndWait(function () use ($envs): void {
             $this->deferServerStop([], $envs);
 
-            $this->assertTrue($this->awaitHealthEndpoint(self::HEALTH_PORT));
+            $this->assertTrue($this->awaitHealthEndpoint(self::port(2)));
 
             $held = [];
 
             for ($connection = 0; $connection < 3; ++$connection) {
-                $socket = stream_socket_client(sprintf('tcp://localhost:%d', self::HEALTH_PORT));
+                $socket = stream_socket_client(sprintf('tcp://localhost:%d', self::port(2)));
                 $this->assertNotFalse($socket, 'Could not open a connection to hold open.');
                 fwrite($socket, "GET /healthz HTTP/1.1\r\n");
                 $held[] = $socket;
             }
 
             $startedAt = microtime(true);
-            $response = $this->sendHealthRequest(self::HEALTH_PORT, '/healthz', 30);
+            $response = $this->sendHealthRequest(self::port(2), '/healthz', 30);
             $elapsed = microtime(true) - $startedAt;
 
             $this->assertSame(200, $response['statusCode']);
@@ -146,9 +143,9 @@ final class SwooleServerHealthProcessTest extends ServerTestCase
         $this->runAsCoroutineAndWait(function () use ($envs): void {
             $this->deferServerStop([], $envs);
 
-            $this->assertTrue($this->awaitHealthEndpoint(self::HEALTH_PORT));
+            $this->assertTrue($this->awaitHealthEndpoint(self::port(2)));
 
-            $drip = stream_socket_client(sprintf('tcp://localhost:%d', self::HEALTH_PORT));
+            $drip = stream_socket_client(sprintf('tcp://localhost:%d', self::port(2)));
             $this->assertNotFalse($drip, 'Could not open the dripping connection.');
             fwrite($drip, "GET /healthz HTTP/1.1\r\n");
 
@@ -199,9 +196,9 @@ final class SwooleServerHealthProcessTest extends ServerTestCase
         $this->runAsCoroutineAndWait(function () use ($envs): void {
             $this->deferServerStop([], $envs);
 
-            $this->assertTrue($this->awaitHealthEndpoint(self::HEALTH_PORT));
+            $this->assertTrue($this->awaitHealthEndpoint(self::port(2)));
 
-            $oversized = stream_socket_client(sprintf('tcp://localhost:%d', self::HEALTH_PORT));
+            $oversized = stream_socket_client(sprintf('tcp://localhost:%d', self::port(2)));
             $this->assertNotFalse($oversized, 'Could not open the oversized connection.');
             fwrite($oversized, "GET /healthz HTTP/1.1\r\n");
             fwrite($oversized, sprintf("X-Pad: %s\r\n", str_repeat('a', 64 * 1_024)));
@@ -224,7 +221,7 @@ final class SwooleServerHealthProcessTest extends ServerTestCase
 
             $this->assertSame(
                 200,
-                $this->sendHealthRequest(self::HEALTH_PORT, '/healthz')['statusCode'],
+                $this->sendHealthRequest(self::port(2), '/healthz')['statusCode'],
                 'Rejecting an oversized request must not take the endpoint down with it.',
             );
         });
@@ -238,10 +235,10 @@ final class SwooleServerHealthProcessTest extends ServerTestCase
         $this->runAsCoroutineAndWait(function () use ($envs): void {
             $this->deferServerStop([], $envs);
 
-            $this->assertTrue($this->awaitHealthEndpoint(self::HEALTH_PORT));
+            $this->assertTrue($this->awaitHealthEndpoint(self::port(2)));
 
-            $first = stream_socket_client(sprintf('tcp://localhost:%d', self::HEALTH_PORT));
-            $second = stream_socket_client(sprintf('tcp://localhost:%d', self::HEALTH_PORT));
+            $first = stream_socket_client(sprintf('tcp://localhost:%d', self::port(2)));
+            $second = stream_socket_client(sprintf('tcp://localhost:%d', self::port(2)));
             $this->assertNotFalse($first, 'Could not open the first connection.');
             $this->assertNotFalse($second, 'Could not open the second connection.');
 
@@ -271,16 +268,16 @@ final class SwooleServerHealthProcessTest extends ServerTestCase
         $this->runAsCoroutineAndWait(function () use ($envs): void {
             $this->deferServerStop([], $envs);
 
-            $this->assertTrue($this->awaitHealthEndpoint(self::HEALTH_PORT));
+            $this->assertTrue($this->awaitHealthEndpoint(self::port(2)));
 
             $startedAt = microtime(true);
 
             for ($round = 0; $round < 25; ++$round) {
-                $abandoned = stream_socket_client(sprintf('tcp://localhost:%d', self::HEALTH_PORT));
+                $abandoned = stream_socket_client(sprintf('tcp://localhost:%d', self::port(2)));
                 $this->assertNotFalse($abandoned, sprintf('Could not open connection %d.', $round));
                 fclose($abandoned);
 
-                $probe = stream_socket_client(sprintf('tcp://localhost:%d', self::HEALTH_PORT));
+                $probe = stream_socket_client(sprintf('tcp://localhost:%d', self::port(2)));
                 $this->assertNotFalse($probe, sprintf('Could not open probe %d.', $round));
                 fwrite($probe, "GET /healthz HTTP/1.1\r\nHost: localhost\r\n\r\n");
 
@@ -310,13 +307,13 @@ final class SwooleServerHealthProcessTest extends ServerTestCase
             $this->deferServerStop([], $envs);
 
             // The health process binds its socket after the start command has returned.
-            $this->assertTrue($this->awaitHealthEndpoint(self::HEALTH_PORT));
+            $this->assertTrue($this->awaitHealthEndpoint(self::port(2)));
 
-            $configured = $this->sendHealthRequest(self::HEALTH_PORT, '/alive');
+            $configured = $this->sendHealthRequest(self::port(2), '/alive');
             $this->assertSame(200, $configured['statusCode']);
             $this->assertSame(['ok' => true], $configured['body']);
 
-            $default = $this->sendHealthRequest(self::HEALTH_PORT, '/healthz');
+            $default = $this->sendHealthRequest(self::port(2), '/healthz');
             $this->assertSame(404, $default['statusCode']);
         });
     }
@@ -358,7 +355,7 @@ final class SwooleServerHealthProcessTest extends ServerTestCase
         $serverStart = $this->createConsoleProcess([
             'swoole:server:start',
             '--host=localhost',
-            sprintf('--port=%d', self::APP_PORT),
+            sprintf('--port=%d', self::port()),
         ], $envs);
 
         $serverStart->setTimeout(5);

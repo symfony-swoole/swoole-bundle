@@ -28,7 +28,7 @@ final class SwooleServerExceptionHandlerTest extends ServerTestCase
         $serverStart = $this->createConsoleProcess([
             'swoole:server:start',
             '--host=localhost',
-            '--port=9999',
+            sprintf('--port=%d', self::port()),
         ]);
 
         $serverStart->setTimeout(3);
@@ -40,16 +40,16 @@ final class SwooleServerExceptionHandlerTest extends ServerTestCase
         $this->runAsCoroutineAndWait(function (): void {
             $this->deferServerStop();
 
-            $client1 = HttpClient::fromDomain('localhost', 9999, false);
-            $this->assertTrue($client1->connect(waitIfNoConnection: true));
+            $client1 = HttpClient::fromDomain('localhost', self::port(), false);
+            $this->assertTrue($client1->connect(self::connectTimeout(), waitIfNoConnection: true));
             $response1 = $client1->send('/throwable/exception')['response'];
             $this->assertSame(500, $response1['statusCode']);
             $this->assertStringContainsString('text/html', $response1['headers']['content-type']);
             $this->assertStringContainsString('RuntimeException', $response1['body']);
             $this->assertStringContainsString('An exception has occurred', $response1['body']);
 
-            $client2 = HttpClient::fromDomain('localhost', 9999, false);
-            $this->assertTrue($client2->connect());
+            $client2 = HttpClient::fromDomain('localhost', self::port(), false);
+            $this->assertTrue($client2->connect(self::connectTimeout(), 1, true));
             $response2 = $client2->send('/throwable/error')['response'];
             $this->assertSame(500, $response2['statusCode']);
             $this->assertStringContainsString('application/json', $response2['headers']['content-type']);
@@ -74,7 +74,7 @@ final class SwooleServerExceptionHandlerTest extends ServerTestCase
         $serverStart = $this->createConsoleProcess([
             'swoole:server:start',
             '--host=localhost',
-            '--port=9999',
+            sprintf('--port=%d', self::port()),
         ], $envs);
 
         $serverStart->setTimeout(3);
@@ -86,16 +86,16 @@ final class SwooleServerExceptionHandlerTest extends ServerTestCase
         $this->runAsCoroutineAndWait(function () use ($envs): void {
             $this->deferServerStop([], $envs);
 
-            $client1 = HttpClient::fromDomain('localhost', 9999, false);
-            $this->assertTrue($client1->connect(waitIfNoConnection: true));
+            $client1 = HttpClient::fromDomain('localhost', self::port(), false);
+            $this->assertTrue($client1->connect(self::connectTimeout(), waitIfNoConnection: true));
             $response1 = $client1->send('/throwable/exception')['response'];
             $this->assertSame(500, $response1['statusCode']);
             $this->assertStringContainsString('text/html', $response1['headers']['content-type']);
             $this->assertStringContainsString('RuntimeException', $response1['body']);
             $this->assertStringContainsString('An exception has occurred', $response1['body']);
 
-            $client2 = HttpClient::fromDomain('localhost', 9999, false);
-            $this->assertTrue($client2->connect());
+            $client2 = HttpClient::fromDomain('localhost', self::port(), false);
+            $this->assertTrue($client2->connect(self::connectTimeout(), 1, true));
             $response2 = $client2->send('/throwable/error')['response'];
             $this->assertSame(500, $response2['statusCode']);
             $this->assertStringContainsString('application/json', $response2['headers']['content-type']);
@@ -120,7 +120,7 @@ final class SwooleServerExceptionHandlerTest extends ServerTestCase
         $serverStart = $this->createConsoleProcess([
             'swoole:server:start',
             '--host=localhost',
-            '--port=9999',
+            sprintf('--port=%d', self::port()),
         ], $envs);
 
         $serverStart->setTimeout(3);
@@ -132,15 +132,15 @@ final class SwooleServerExceptionHandlerTest extends ServerTestCase
         $this->runAsCoroutineAndWait(function () use ($envs): void {
             $this->deferServerStop([], $envs);
 
-            $client1 = HttpClient::fromDomain('localhost', 9999, false);
-            $this->assertTrue($client1->connect());
+            $client1 = HttpClient::fromDomain('localhost', self::port(), false);
+            $this->assertTrue($client1->connect(self::connectTimeout(), 1, true));
             $response1 = $client1->send('/throwable/exception')['response'];
             $this->assertSame(500, $response1['statusCode']);
             $this->assertStringContainsString('text/html', $response1['headers']['content-type']);
             $this->assertStringContainsString('An Error Occurred: Internal Server Error', $response1['body']);
 
-            $client2 = HttpClient::fromDomain('localhost', 9999, false);
-            $this->assertTrue($client2->connect());
+            $client2 = HttpClient::fromDomain('localhost', self::port(), false);
+            $this->assertTrue($client2->connect(self::connectTimeout(), 1, true));
             $response2 = $client2->send('/throwable/error')['response'];
             $this->assertSame(500, $response2['statusCode']);
             $this->assertStringContainsString('text/plain', $response2['headers']['content-type']);
@@ -163,7 +163,7 @@ final class SwooleServerExceptionHandlerTest extends ServerTestCase
         $serverStart = $this->createConsoleProcess([
             'swoole:server:start',
             '--host=localhost',
-            '--port=9999',
+            sprintf('--port=%d', self::port()),
         ], $envs);
 
         $serverStart->setTimeout(3);
@@ -175,8 +175,8 @@ final class SwooleServerExceptionHandlerTest extends ServerTestCase
         $this->runAsCoroutineAndWait(function () use ($envs): void {
             $this->deferServerStop([], $envs);
 
-            $client = HttpClient::fromDomain('localhost', 9999, false);
-            $this->assertTrue($client->connect(waitIfNoConnection: true));
+            $client = HttpClient::fromDomain('localhost', self::port(), false);
+            $this->assertTrue($client->connect(self::connectTimeout(), waitIfNoConnection: true));
             $response = $client->send('/throwable/error')['response'];
             $this->assertSame(500, $response['statusCode']);
             $this->assertStringContainsString('application/json', $response['headers']['content-type']);
@@ -202,7 +202,7 @@ final class SwooleServerExceptionHandlerTest extends ServerTestCase
         $serverStart = $this->createConsoleProcess([
             'swoole:server:start',
             '--host=localhost',
-            '--port=9999',
+            sprintf('--port=%d', self::port()),
         ], $envs);
 
         $serverStart->setTimeout(3);
@@ -214,8 +214,8 @@ final class SwooleServerExceptionHandlerTest extends ServerTestCase
         $this->runAsCoroutineAndWait(function () use ($envs): void {
             $this->deferServerStop([], $envs);
 
-            $client = HttpClient::fromDomain('localhost', 9999, false);
-            $this->assertTrue($client->connect(waitIfNoConnection: true));
+            $client = HttpClient::fromDomain('localhost', self::port(), false);
+            $this->assertTrue($client->connect(self::connectTimeout(), waitIfNoConnection: true));
             $response = $client->send('/throwable/error')['response'];
             $this->assertSame(500, $response['statusCode']);
             $this->assertStringContainsString('application/json', $response['headers']['content-type']);
@@ -244,7 +244,7 @@ final class SwooleServerExceptionHandlerTest extends ServerTestCase
         $serverStart = $this->createConsoleProcess([
             'swoole:server:start',
             '--host=localhost',
-            '--port=9999',
+            sprintf('--port=%d', self::port()),
         ], $envs);
 
         $serverStart->setTimeout(3);
@@ -256,15 +256,15 @@ final class SwooleServerExceptionHandlerTest extends ServerTestCase
         $this->runAsCoroutineAndWait(function () use ($envs): void {
             $this->deferServerStop([], $envs);
 
-            $client1 = HttpClient::fromDomain('localhost', 9999, false);
-            $this->assertTrue($client1->connect());
+            $client1 = HttpClient::fromDomain('localhost', self::port(), false);
+            $this->assertTrue($client1->connect(self::connectTimeout(), 1, true));
             $response1 = $client1->send('/throwable/exception')['response'];
             $this->assertSame(500, $response1['statusCode']);
             $this->assertStringContainsString('text/html', $response1['headers']['content-type']);
             $this->assertStringContainsString('Oops! An Error Occurred', $response1['body']);
 
-            $client2 = HttpClient::fromDomain('localhost', 9999, false);
-            $this->assertTrue($client2->connect());
+            $client2 = HttpClient::fromDomain('localhost', self::port(), false);
+            $this->assertTrue($client2->connect(self::connectTimeout(), 1, true));
             $response2 = $client2->send('/throwable/error')['response'];
             $this->assertSame(500, $response2['statusCode']);
             $this->assertStringContainsString('text/html', $response2['headers']['content-type']);
@@ -283,7 +283,7 @@ final class SwooleServerExceptionHandlerTest extends ServerTestCase
         $serverStart = $this->createConsoleProcess([
             'swoole:server:start',
             '--host=localhost',
-            '--port=9999',
+            sprintf('--port=%d', self::port()),
         ], $envs);
 
         $serverStart->setTimeout(3);
@@ -295,15 +295,15 @@ final class SwooleServerExceptionHandlerTest extends ServerTestCase
         $this->runAsCoroutineAndWait(function () use ($envs): void {
             $this->deferServerStop([], $envs);
 
-            $client1 = HttpClient::fromDomain('localhost', 9999, false);
-            $this->assertTrue($client1->connect(waitIfNoConnection: true));
+            $client1 = HttpClient::fromDomain('localhost', self::port(), false);
+            $this->assertTrue($client1->connect(self::connectTimeout(), waitIfNoConnection: true));
             $response1 = $client1->send('/throwable/exception')['response'];
             $this->assertSame(500, $response1['statusCode']);
             $this->assertStringContainsString('text/html', $response1['headers']['content-type']);
             $this->assertStringContainsString('An exception has occurred', $response1['body']);
 
-            $client2 = HttpClient::fromDomain('localhost', 9999, false);
-            $this->assertTrue($client2->connect());
+            $client2 = HttpClient::fromDomain('localhost', self::port(), false);
+            $this->assertTrue($client2->connect(self::connectTimeout(), 1, true));
             $response2 = $client2->send('/throwable/error')['response'];
             $this->assertSame(500, $response2['statusCode']);
             $this->assertStringContainsString('text/html', $response2['headers']['content-type']);
@@ -322,7 +322,7 @@ final class SwooleServerExceptionHandlerTest extends ServerTestCase
         $serverStart = $this->createConsoleProcess([
             'swoole:server:start',
             '--host=localhost',
-            '--port=9999',
+            sprintf('--port=%d', self::port()),
         ], $envs);
 
         $serverStart->setTimeout(3);
@@ -334,8 +334,8 @@ final class SwooleServerExceptionHandlerTest extends ServerTestCase
         $this->runAsCoroutineAndWait(function () use ($envs): void {
             $this->deferServerStop([], $envs);
 
-            $client = HttpClient::fromDomain('localhost', 9999, false);
-            $this->assertTrue($client->connect(waitIfNoConnection: true));
+            $client = HttpClient::fromDomain('localhost', self::port(), false);
+            $this->assertTrue($client->connect(self::connectTimeout(), waitIfNoConnection: true));
             $response = $client->send('/throwable/error')['response'];
             $this->assertSame(500, $response['statusCode']);
             $this->assertStringContainsString('text/plain', $response['headers']['content-type']);

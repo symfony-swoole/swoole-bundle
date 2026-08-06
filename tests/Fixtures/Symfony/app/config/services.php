@@ -51,7 +51,10 @@ return static function (ContainerConfigurator $containerConfigurator): void {
     )
         ->tag('controller.service_arguments')
         ->exclude([
-            __DIR__ . '/../../TestBundle/Controller/ReplacedContentTestController.php',
+            // Rewritten mid-test to prove a reload took effect, so it must stay out of the compiled
+            // container - a registered service is loaded before the workers fork, which is exactly what
+            // makes a file non-reloadable. The glob covers the per-worker copies parallel runs render.
+            __DIR__ . '/../../TestBundle/Controller/ReplacedContentTestController*.php',
             // constructor needs 4 explicit LeakyResource/LeakyDataCollector args that only exist in the
             // coroutines_profiler environment, so it must not be auto-registered everywhere else.
             __DIR__ . '/../../TestBundle/Controller/LeakyServicesController.php',

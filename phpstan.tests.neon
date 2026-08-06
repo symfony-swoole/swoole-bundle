@@ -7,6 +7,8 @@ parameters:
       - tests/Unit/Server/SwooleHttpServerMock
     excludePaths:
         - tests/Fixtures/Symfony/app/var
+        # one per parallel test worker, holding the same generated caches
+        - tests/Fixtures/Symfony/app/var-*
         # Internal error: Expected to find an ancestor with class name Swoole\Timer on Swoole\Server, but none was found.
         - tests/Unit/Server/SwooleServerMock.php
         - tests/Unit/Server/SwooleHttpServerMock

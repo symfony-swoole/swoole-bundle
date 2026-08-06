@@ -78,8 +78,19 @@ final class CodeCoverageManager implements ResetInterface
             return;
         }
 
+        // Every server, manager and console process that finishes writes into one shared directory, and
+        // the use-case names repeat by design - so the tail of the name is what has to tell two writers
+        // apart. A timestamp in seconds does not: parallel workers finish within the same second
+        // routinely, and the loser of that race is overwritten without a word. The pid separates
+        // processes, the random suffix separates a pid reused within the same second.
         $timestamp = (new DateTimeImmutable())->getTimestamp();
-        $fileName = sprintf('%s_%s.cov', $fileName ?? $this->testName, $timestamp);
+        $fileName = sprintf(
+            '%s_%s_%d_%s.cov',
+            $fileName ?? $this->testName,
+            $timestamp,
+            getmypid(),
+            bin2hex(random_bytes(4)),
+        );
 
         $this->writer->process($this->codeCoverage, sprintf('%s/%s', $path ?? $this->coveragePath, $fileName));
         $this->codeCoverage->clear();

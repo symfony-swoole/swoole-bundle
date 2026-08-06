@@ -23,15 +23,15 @@ final class SymfonyEventsTest extends ServerTestCase
         $serverRun = $this->createConsoleProcess([
             'swoole:server:run',
             '--host=localhost',
-            '--port=9999',
+            sprintf('--port=%d', self::port()),
         ], ['APP_ENV' => 'prod']);
 
         $serverRun->setTimeout(10);
         $serverRun->start();
 
         $this->runAsCoroutineAndWait(static function (): void {
-            $client = HttpClient::fromDomain('localhost', 9999, false);
-            self::assertTrue($client->connect(3, 1, true));
+            $client = HttpClient::fromDomain('localhost', self::port(), false);
+            self::assertTrue($client->connect(self::connectTimeout(), 1, true));
 
             $response = $client->send('/list-events')['response'];
             $data = $response['body'];

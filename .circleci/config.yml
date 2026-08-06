@@ -278,6 +278,27 @@ jobs:
             echo "Failed waiting for MySQL"
             exit 1
       - run:
+          name: Let the test user create its per-worker databases
+          command: |
+            # Parallel feature tests give every worker a database of its own - db_1, db_2 and so on. The
+            # MySQL entrypoint grants the test user nothing beyond "db", and in a GRANT an escaped
+            # underscore is a literal one, so this hands over the whole family in a single statement and
+            # the tests never need a privileged account of their own.
+            # Retried, because the readiness check above can be satisfied by the temporary server the
+            # MySQL entrypoint runs while it initialises the data directory. That server is then shut
+            # down and the real one started, and a single attempt landing in the gap between the two
+            # fails with "Can't connect to local MySQL server through socket".
+            for i in $(seq 1 30); do
+              if docker exec mysql mysql -uroot -proot -e "GRANT ALL ON \`db\_%\`.* TO 'user'@'%'; FLUSH PRIVILEGES;"; then
+                echo "Granted"
+                exit 0
+              fi
+              echo -n .
+              sleep 1
+            done
+            echo "Failed granting the per-worker databases"
+            exit 1
+      - run:
           name: Fix workspace permissions for UID 1000
           command: sudo chown -R 1000:1000 /home/circleci/project
       - run:
@@ -354,6 +375,27 @@ jobs:
             echo "Failed waiting for MySQL"
             exit 1
       - run:
+          name: Let the test user create its per-worker databases
+          command: |
+            # Parallel feature tests give every worker a database of its own - db_1, db_2 and so on. The
+            # MySQL entrypoint grants the test user nothing beyond "db", and in a GRANT an escaped
+            # underscore is a literal one, so this hands over the whole family in a single statement and
+            # the tests never need a privileged account of their own.
+            # Retried, because the readiness check above can be satisfied by the temporary server the
+            # MySQL entrypoint runs while it initialises the data directory. That server is then shut
+            # down and the real one started, and a single attempt landing in the gap between the two
+            # fails with "Can't connect to local MySQL server through socket".
+            for i in $(seq 1 30); do
+              if docker exec mysql mysql -uroot -proot -e "GRANT ALL ON \`db\_%\`.* TO 'user'@'%'; FLUSH PRIVILEGES;"; then
+                echo "Granted"
+                exit 0
+              fi
+              echo -n .
+              sleep 1
+            done
+            echo "Failed granting the per-worker databases"
+            exit 1
+      - run:
           name: Fix workspace permissions for UID 1000
           command: sudo chown -R 1000:1000 /home/circleci/project
       - run:
@@ -428,6 +470,27 @@ jobs:
               sleep 1
             done
             echo "Failed waiting for MySQL"
+            exit 1
+      - run:
+          name: Let the test user create its per-worker databases
+          command: |
+            # Parallel feature tests give every worker a database of its own - db_1, db_2 and so on. The
+            # MySQL entrypoint grants the test user nothing beyond "db", and in a GRANT an escaped
+            # underscore is a literal one, so this hands over the whole family in a single statement and
+            # the tests never need a privileged account of their own.
+            # Retried, because the readiness check above can be satisfied by the temporary server the
+            # MySQL entrypoint runs while it initialises the data directory. That server is then shut
+            # down and the real one started, and a single attempt landing in the gap between the two
+            # fails with "Can't connect to local MySQL server through socket".
+            for i in $(seq 1 30); do
+              if docker exec mysql mysql -uroot -proot -e "GRANT ALL ON \`db\_%\`.* TO 'user'@'%'; FLUSH PRIVILEGES;"; then
+                echo "Granted"
+                exit 0
+              fi
+              echo -n .
+              sleep 1
+            done
+            echo "Failed granting the per-worker databases"
             exit 1
       - run:
           name: Fix workspace permissions for UID 1000

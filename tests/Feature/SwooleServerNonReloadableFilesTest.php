@@ -25,7 +25,7 @@ final class SwooleServerNonReloadableFilesTest extends ServerTestCase
         $serverStart = $this->createConsoleProcess([
             'swoole:server:start',
             '--host=localhost',
-            '--port=9999',
+            sprintf('--port=%d', self::port()),
         ], $envs);
 
         $serverStart->setTimeout(3);
@@ -37,8 +37,8 @@ final class SwooleServerNonReloadableFilesTest extends ServerTestCase
         $this->runAsCoroutineAndWait(function () use ($envs): void {
             $this->deferServerStop([], $envs);
 
-            $client = HttpClient::fromDomain('localhost', 9999, false);
-            $this->assertTrue($client->connect(waitIfNoConnection: true));
+            $client = HttpClient::fromDomain('localhost', self::port(), false);
+            $this->assertTrue($client->connect(self::connectTimeout(), waitIfNoConnection: true));
             $this->assertHelloWorldRequestSucceeded($client);
         });
 

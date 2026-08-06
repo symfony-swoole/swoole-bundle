@@ -46,6 +46,15 @@ final class PooledServiceResetTest extends ServerTestCase
     {
         parent::setUp();
 
+        $this->markTestSkippedOnSwoole(
+            'Workers of a swoole server can hang on exit until swoole force-terminates them '
+            . '("Worker_reactor_try_to_exit ... forced termination"), leaving a single-worker server '
+            . 'with nothing left to answer requests. Roughly one suite run in four, and never seen on '
+            . 'openswoole. These two tests run a single worker on purpose, so they have no spare and '
+            . 'are where it turns fatal - the bug is in worker shutdown and predates running the tests '
+            . 'in parallel. @todo link the tracking issue.',
+        );
+
         $this->deleteVarDirectory();
     }
 
@@ -153,7 +162,7 @@ final class PooledServiceResetTest extends ServerTestCase
         $serverStart = $this->createConsoleProcess([
             'swoole:server:start',
             '--host=localhost',
-            '--port=9999',
+            sprintf('--port=%d', self::port()),
         ], $envs);
 
         $serverStart->setTimeout(self::PROCESS_TIMEOUT_SECONDS);
@@ -167,8 +176,8 @@ final class PooledServiceResetTest extends ServerTestCase
         $this->runAsCoroutineAndWait(function () use ($scenario, $envs, &$connected): void {
             $this->deferServerStop([], $envs);
 
-            $client = HttpClient::fromDomain('localhost', 9999, false);
-            $connected = $client->connect(3, 1, true);
+            $client = HttpClient::fromDomain('localhost', self::port(), false);
+            $connected = $client->connect(self::connectTimeout(), 1, true);
 
             if (!$connected) {
                 return;

@@ -92,15 +92,37 @@ Mostly you'll use command `composer test` which already runs unit tests, but the
 
 Command `composer feature-tests` runs real commands and/or server in subprocesses making it a little bit unstable, upon failure it may leave running server process in the background. It is recommended to run this command using **Docker**.
 
-To check whether it left server process running in background use command:
+It runs the suite in parallel through [ParaTest](https://github.com/paratestphp/paratest), four workers by
+default - set `PARATEST_PROCESSES` to change that. Each worker gets a slice of the shared resources of its
+own, so they do not trip over each other: a block of eight ports starting at 9999, its own `var-<worker>`
+directory for caches, logs and the pid file, and its own `db_<worker>` database. Should a test need the old
+one-at-a-time behaviour to be debugged, `composer feature-tests-serial` runs the same suite the way it
+always ran, on port 9999 and the `db` database.
+
+The worker databases are created on demand by the fixture user itself, which needs the grant that
+`docker/mysql/init` installs - it covers `db_1`, `db_2` and every other worker database in one statement.
+The compose stack applies it when MySQL first initialises and CI applies it after starting its container,
+so normally there is nothing to do.
+
+A MySQL volume that already exists will not pick it up, though, because `docker-entrypoint-initdb.d` only
+runs on an empty data directory. Apply it once by hand in that case:
+
 ```sh
-lsof -i :9999 | grep php
+docker-compose exec db mysql -uroot -proot -e "GRANT ALL ON \`db\_%\`.* TO 'user'@'%'"
+```
+
+Issuing that grant is itself a privileged operation, which is why it lives with whoever provisions MySQL
+rather than in the test suite - the tests run as `user` and could not hand it to themselves.
+
+To check whether it left server processes running in background use command:
+```sh
+lsof -i :9999-10063 | grep php
 ```
 
 To kill these processes use command:
 
 ```sh
-kill -9 $(lsof -t -i :9999)
+kill -9 $(lsof -t -i :9999-10063)
 ```
 
 ### Docker
@@ -151,6 +173,17 @@ docker-compose down
 To gather code coverage, a PHP extension `xdebug` or `pcov` is required. Swoole is currently officially incompatible with any debugging extension, so it is unstable and requires some hacks to reliably gather code coverage, especially for feature tests.
 
 Therefore the full flow of gathering code coverage can be done securely only in docker containers.
+
+Both coverage paths run in parallel, four workers by default (`PARATEST_PROCESSES`): `composer
+feature-code-coverage` hands the suite to ParaTest, and `tests/run-feature-tests-code-coverage.sh` - the
+xdebug path, which retries individual files because xdebug makes the servers slow enough to time out
+occasionally - deals the files out to that many shards instead. Each shard exports a `TEST_TOKEN`, which is
+what keeps it off the other shards' ports, var directories and databases. Set `PARATEST_PROCESSES=1` for
+the old one-at-a-time behaviour, or run `composer feature-code-coverage-serial`.
+
+Coverage arrives from two places and both end up in `cov/`: PHPUnit measures the test process, while the
+`CoverageBundle` measures the Swoole server processes from the inside and writes a `.cov` file per server,
+manager and console command. Those file names have to stay unique - they are what `phpcov merge` reads.
 
 **Attention**: Bellow commands creates locally `clover.xml` file with merged code coverage in the `clover` format.
 

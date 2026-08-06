@@ -27,15 +27,15 @@ final class SymfonyHttpRequestContainsRequestUriTest extends ServerTestCase
         $serverRun = $this->createConsoleProcess([
             'swoole:server:run',
             '--host=localhost',
-            '--port=9999',
+            sprintf('--port=%d', self::port()),
         ]);
 
         $serverRun->setTimeout(10);
         $serverRun->start();
 
         $this->runAsCoroutineAndWait(function (): void {
-            $client = HttpClient::fromDomain('localhost', 9999, false);
-            $this->assertTrue($client->connect(3, 1, true));
+            $client = HttpClient::fromDomain('localhost', self::port(), false);
+            $this->assertTrue($client->connect(self::connectTimeout(), 1, true));
 
             $uri = '/http/request/uri?test1=1&test2=test3';
             $response = $client->send('/http/request/uri?test1=1&test2=test3')['response'];
@@ -58,15 +58,15 @@ final class SymfonyHttpRequestContainsRequestUriTest extends ServerTestCase
         $serverRun = $this->createConsoleProcess([
             'swoole:server:run',
             '--host=localhost',
-            '--port=9999',
+            sprintf('--port=%d', self::port()),
         ]);
 
         $serverRun->setTimeout(10);
         $serverRun->start();
 
         $this->runAsCoroutineAndWait(function (): void {
-            $client = HttpClient::fromDomain('localhost', 9999, false);
-            $this->assertTrue($client->connect(3, 1, true));
+            $client = HttpClient::fromDomain('localhost', self::port(), false);
+            $this->assertTrue($client->connect(self::connectTimeout(), 1, true));
 
             $uri = '/http/request/streamed-uri?test1=1&test2=test3';
             $response = $client->send('/http/request/streamed-uri?test1=1&test2=test3')['response'];

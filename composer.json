@@ -53,6 +53,7 @@
         "ext-ffi": "^8.3",
         "ext-intl": "*",
         "blackfire/php-sdk": "^2.5",
+        "brianium/paratest": "^7.20",
         "doctrine/dbal": "^3.7 || ^4.0",
         "doctrine/doctrine-bundle": "^2.7 || ^3.0",
         "doctrine/doctrine-migrations-bundle": "^3.2.4 || ^4.0",
@@ -193,15 +194,21 @@
             "@unit-tests"
         ],
         "feature-tests": [
+            "paratest -c phpunit.feature.xml --processes=${PARATEST_PROCESSES:-4} --process-isolation --colors=always"
+        ],
+        "feature-tests-serial": [
             "phpunit tests/Feature --process-isolation --colors=always"
         ],
         "feature-tests-junit": [
-            "phpunit tests/Feature --process-isolation --colors=always --log-junit phpunit/junit.xml"
+            "paratest -c phpunit.feature.xml --processes=${PARATEST_PROCESSES:-4} --process-isolation --colors=always --log-junit phpunit/junit.xml"
         ],
         "unit-code-coverage": [
             "phpunit tests/Unit --coverage-php cov/unit-tests-${SWOOLE:-unknown}.cov --colors=always"
         ],
         "feature-code-coverage": [
+            "COVERAGE=1 paratest -c phpunit.feature.xml --processes=${PARATEST_PROCESSES:-4} --process-isolation --coverage-php cov/feature-tests-${SWOOLE:-unknown}.cov --colors=always"
+        ],
+        "feature-code-coverage-serial": [
             "COVERAGE=1 phpunit tests/Feature --coverage-php cov/feature-tests-${SWOOLE:-unknown}.cov --colors=always --process-isolation"
         ],
         "merge-code-coverage": [

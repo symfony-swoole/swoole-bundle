@@ -10,16 +10,12 @@ use SwooleBundle\SwooleBundle\Client\HttpClient;
 use SwooleBundle\SwooleBundle\Server\Api\ApiServerClientFactory;
 use SwooleBundle\SwooleBundle\Server\Config\Socket;
 use SwooleBundle\SwooleBundle\Server\Config\Sockets;
+use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Test\ReplacedContentController;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Test\ServerTestCase;
 
 final class SwooleServerReloadViaApiClientTest extends ServerTestCase
 {
-    private const string CONTROLLER_TEMPLATE_ORIGINAL_TEXT = 'Wrong response!';
-    private const string CONTROLLER_TEMPLATE_REPLACE_TEXT = '%REPLACE%';
-    private const string CONTROLLER_TEMPLATE_SRC = __DIR__
-        . '/../Fixtures/Symfony/TestBundle/Controller/ReplacedContentTestController.php.tmpl';
-    private const string CONTROLLER_TEMPLATE_DEST = __DIR__
-        . '/../Fixtures/Symfony/TestBundle/Controller/ReplacedContentTestController.php';
+    use ReplacedContentController;
 
     #[Override]
     protected function setUp(): void
@@ -27,6 +23,7 @@ final class SwooleServerReloadViaApiClientTest extends ServerTestCase
         parent::setUp();
 
         $this->deleteVarDirectory();
+        $this->writeOriginalTestController();
     }
 
     public function testStartRequestApiToReloadCallStop(): void
@@ -34,7 +31,7 @@ final class SwooleServerReloadViaApiClientTest extends ServerTestCase
         self::bootKernel();
         /** @var Sockets $sockets */
         $sockets = self::getContainer()->get(Sockets::class);
-        $sockets->changeApiSocket(new Socket('0.0.0.0', 9998));
+        $sockets->changeApiSocket(new Socket('0.0.0.0', self::port(1)));
         /** @var ApiServerClientFactory $apiClientFactory */
         $apiClientFactory = self::getContainer()->get(ApiServerClientFactory::class);
         $apiClient = $apiClientFactory->newClient();
@@ -42,9 +39,9 @@ final class SwooleServerReloadViaApiClientTest extends ServerTestCase
         $serverStart = $this->createConsoleProcess([
             'swoole:server:start',
             '--host=localhost',
-            '--port=9999',
+            sprintf('--port=%d', self::port()),
             '--api',
-            '--api-port=9998',
+            sprintf('--api-port=%d', self::port(1)),
         ]);
 
         $serverStart->setTimeout(3);
@@ -57,10 +54,10 @@ final class SwooleServerReloadViaApiClientTest extends ServerTestCase
             $this->deferServerStop();
             $this->deferRestoreOriginalTemplateControllerResponse();
 
-            $serverClient = HttpClient::fromDomain('localhost', 9999, false);
-            $this->assertTrue($serverClient->connect(waitIfNoConnection: true));
+            $serverClient = HttpClient::fromDomain('localhost', self::port(), false);
+            $this->assertTrue($serverClient->connect(self::connectTimeout(), waitIfNoConnection: true));
 
-            $response1 = $serverClient->send('/test/replaced/content')['response'];
+            $response1 = $serverClient->send($this->replacedContentRoute())['response'];
 
             $this->assertSame(200, $response1['statusCode']);
             $this->assertSame('Wrong response!', $response1['body']);
@@ -69,7 +66,7 @@ final class SwooleServerReloadViaApiClientTest extends ServerTestCase
             $this->replaceContentInTestController($expectedResponse);
             $this->assertTestControllerResponseEquals($expectedResponse);
 
-            $response2 = $serverClient->send('/test/replaced/content')['response'];
+            $response2 = $serverClient->send($this->replacedContentRoute())['response'];
 
             $this->assertSame(200, $response2['statusCode']);
             $this->assertNotSame($expectedResponse, $response2['body']);
@@ -77,7 +74,7 @@ final class SwooleServerReloadViaApiClientTest extends ServerTestCase
             $apiClient->reload();
             Coroutine::sleep(self::coverageEnabled() ? 3 : 1);
 
-            $response3 = $serverClient->send('/test/replaced/content')['response'];
+            $response3 = $serverClient->send($this->replacedContentRoute())['response'];
 
             $this->assertSame(200, $response3['statusCode']);
             $this->assertSame($expectedResponse, $response3['body']);
@@ -95,7 +92,7 @@ final class SwooleServerReloadViaApiClientTest extends ServerTestCase
         $serverStart = $this->createConsoleProcess([
             'swoole:server:start',
             '--host=localhost',
-            '--port=9999',
+            sprintf('--port=%d', self::port()),
         ], $envs);
 
         $serverStart->setTimeout(3);
@@ -108,10 +105,10 @@ final class SwooleServerReloadViaApiClientTest extends ServerTestCase
             $this->deferServerStop([], $envs);
             $this->deferRestoreOriginalTemplateControllerResponse();
 
-            $serverClient = HttpClient::fromDomain('localhost', 9999, false);
-            $this->assertTrue($serverClient->connect(waitIfNoConnection: true));
+            $serverClient = HttpClient::fromDomain('localhost', self::port(), false);
+            $this->assertTrue($serverClient->connect(self::connectTimeout(), waitIfNoConnection: true));
 
-            $response1 = $serverClient->send('/test/replaced/content')['response'];
+            $response1 = $serverClient->send($this->replacedContentRoute())['response'];
 
             $this->assertSame(200, $response1['statusCode']);
             $this->assertSame('Wrong response!', $response1['body']);
@@ -120,7 +117,7 @@ final class SwooleServerReloadViaApiClientTest extends ServerTestCase
             $this->replaceContentInTestController($expectedResponse);
             $this->assertTestControllerResponseEquals($expectedResponse);
 
-            $response2 = $serverClient->send('/test/replaced/content')['response'];
+            $response2 = $serverClient->send($this->replacedContentRoute())['response'];
 
             $this->assertSame(200, $response2['statusCode']);
             $this->assertNotSame($expectedResponse, $response2['body']);
@@ -128,41 +125,10 @@ final class SwooleServerReloadViaApiClientTest extends ServerTestCase
             $apiClient->reload();
             Coroutine::sleep(self::coverageEnabled() ? 3 : 1);
 
-            $response3 = $serverClient->send('/test/replaced/content')['response'];
+            $response3 = $serverClient->send($this->replacedContentRoute())['response'];
 
             $this->assertSame(200, $response3['statusCode']);
             $this->assertSame($expectedResponse, $response3['body']);
-        });
-    }
-
-    private function replaceContentInTestController(string $text): void
-    {
-        file_put_contents(
-            self::CONTROLLER_TEMPLATE_DEST,
-            str_replace(
-                self::CONTROLLER_TEMPLATE_REPLACE_TEXT,
-                $text,
-                (string) file_get_contents(self::CONTROLLER_TEMPLATE_SRC),
-            ),
-        );
-    }
-
-    private function assertTestControllerResponseEquals(string $expected): void
-    {
-        self::assertSame(
-            str_replace(
-                self::CONTROLLER_TEMPLATE_REPLACE_TEXT,
-                $expected,
-                (string) file_get_contents(self::CONTROLLER_TEMPLATE_SRC),
-            ),
-            file_get_contents(self::CONTROLLER_TEMPLATE_DEST),
-        );
-    }
-
-    private function deferRestoreOriginalTemplateControllerResponse(): void
-    {
-        defer(function (): void {
-            $this->replaceContentInTestController(self::CONTROLLER_TEMPLATE_ORIGINAL_TEXT);
         });
     }
 }

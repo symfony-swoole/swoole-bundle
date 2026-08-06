@@ -25,9 +25,9 @@ final class SwooleServerStatusCommandTest extends ServerTestCase
         $serverStart = $this->createConsoleProcess([
             'swoole:server:start',
             '--host=localhost',
-            '--port=9999',
+            sprintf('--port=%d', self::port()),
             '--api',
-            '--api-port=9998',
+            sprintf('--api-port=%d', self::port(1)),
         ]);
 
         $serverStart->setTimeout(3);
@@ -39,13 +39,13 @@ final class SwooleServerStatusCommandTest extends ServerTestCase
         $this->runAsCoroutineAndWait(function (): void {
             $this->deferServerStop();
 
-            $client = HttpClient::fromDomain('localhost', 9999, false);
-            $this->assertTrue($client->connect(3, 1, true));
+            $client = HttpClient::fromDomain('localhost', self::port(), false);
+            $this->assertTrue($client->connect(self::connectTimeout(), 1, true));
 
             $serverStatus = $this->createConsoleProcess([
                 'swoole:server:status',
                 '--api-host=localhost',
-                '--api-port=9998',
+                sprintf('--api-port=%d', self::port(1)),
             ]);
 
             $serverStatus->setTimeout(3);
@@ -67,9 +67,9 @@ final class SwooleServerStatusCommandTest extends ServerTestCase
         $serverStart = $this->createConsoleProcess([
             'swoole:server:start',
             '--host=localhost',
-            '--port=9999',
+            sprintf('--port=%d', self::port()),
             '--api',
-            '--api-port=9998',
+            sprintf('--api-port=%d', self::port(1)),
         ]);
 
         $serverStart->setTimeout(3);
@@ -86,13 +86,13 @@ final class SwooleServerStatusCommandTest extends ServerTestCase
         $this->runAsCoroutineAndWait(function () use ($commandTester): void {
             $this->deferServerStop();
 
-            $client = HttpClient::fromDomain('localhost', 9999, false);
-            $this->assertTrue($client->connect(3, 1, true));
+            $client = HttpClient::fromDomain('localhost', self::port(), false);
+            $this->assertTrue($client->connect(self::connectTimeout(), 1, true));
 
             $commandTester->execute([
                 'command' => 'swoole:server:status',
                 '--api-host' => 'localhost',
-                '--api-port' => '9998',
+                '--api-port' => (string) self::port(1),
             ]);
 
             $this->assertSame(0, $commandTester->getStatusCode());
@@ -117,7 +117,7 @@ final class SwooleServerStatusCommandTest extends ServerTestCase
         $commandTester->execute([
             'command' => 'swoole:server:status',
             '--api-host' => 'localhost',
-            '--api-port' => '9998',
+            '--api-port' => (string) self::port(1),
         ]);
 
         self::assertSame(1, $commandTester->getStatusCode());
