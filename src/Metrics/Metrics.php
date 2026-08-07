@@ -17,6 +17,9 @@ final readonly class Metrics
         private int $idleWorkers,
         private int $runningCoroutines,
         private int $tasksInQueue,
+        private ?float $eventLoopLagMs = null,
+        private ?float $maxEventLoopLagMs = null,
+        private ?float $avgEventLoopLagMs = null,
     ) {}
 
     public function requestCount(): int
@@ -67,5 +70,20 @@ final readonly class Metrics
     public function tasksInQueue(): int
     {
         return $this->tasksInQueue;
+    }
+
+    public function eventLoopLagMs(): ?float
+    {
+        return $this->eventLoopLagMs;
+    }
+
+    public function maxEventLoopLagMs(): ?float
+    {
+        return $this->maxEventLoopLagMs;
+    }
+
+    public function avgEventLoopLagMs(): ?float
+    {
+        return $this->avgEventLoopLagMs;
     }
 }

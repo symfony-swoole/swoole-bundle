@@ -18,6 +18,7 @@ enum Http: string
     case HEADER_ACCEPT = 'accept';
 
     case CONTENT_TYPE_APPLICATION_JSON = 'application/json';
+    case CONTENT_TYPE_OPENMETRICS = 'application/openmetrics-text';
     case CONTENT_TYPE_TEXT_PLAIN = 'text/plain';
     case CONTENT_TYPE_TEXT_HTML = 'text/html';
 }

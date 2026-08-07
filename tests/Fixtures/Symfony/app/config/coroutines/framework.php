@@ -7,11 +7,11 @@ use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Message\SleepAnd
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 
 return static function (ContainerConfigurator $containerConfigurator): void {
+    $parameters = $containerConfigurator->parameters();
+
+    $parameters->set('env(COOKIE_LIFETIME)', 60);
+
     $containerConfigurator->extension('framework', [
-        'cache' => [
-            'app' => 'cache.adapter.array',
-            'system' => 'cache.adapter.array',
-        ],
         'messenger' => [
             'enabled' => true,
             'transports' => [

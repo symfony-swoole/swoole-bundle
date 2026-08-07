@@ -19,6 +19,10 @@ parameters:
         - src/Bridge/Swoole/Swoole.php
         # remove after upgrade to PHP 8.2
         - src/Server/HttpServer.php
+        # Same Swoole\Process reflection problem as HttpServer.php above
+        # (Internal error: Undefined constant "ITIMER_REAL")
+        - src/Server/Configurator/WithHealthProcess.php
+        - src/Server/Configurator/WithHealthEvaluatorProcess.php
     ignoreErrors:
         # Put false positives here
         - '#PHPDoc tag @var for variable \$row contains unresolvable type#'

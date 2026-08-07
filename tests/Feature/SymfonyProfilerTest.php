@@ -11,6 +11,12 @@ use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Test\ServerTestC
 
 final class SymfonyProfilerTest extends ServerTestCase
 {
+    /**
+     * Generous on purpose: both commands are awaited synchronously and return as soon as they are done,
+     * so this only ever caps a machine that has genuinely stalled.
+     */
+    private const int PROCESS_TIMEOUT_SECONDS = 60;
+
     #[Override]
     protected function setUp(): void
     {
@@ -22,16 +28,35 @@ final class SymfonyProfilerTest extends ServerTestCase
     #[DataProvider('environments')]
     public function testProfilerIsEnabled(string $environment): void
     {
-        $serverRun = $this->createConsoleProcess([
-            'swoole:server:run',
+        $envs = ['APP_ENV' => $environment];
+
+        // setUp() throws the compiled cache away before every test, so without this the server compiles
+        // the container while booting. For the profiler environments that is slow enough - especially
+        // under xdebug in the coverage builds - to matter. Compiling it up front keeps the boot short.
+        $clearCache = $this->createConsoleProcess(['cache:clear'], $envs);
+        $clearCache->setTimeout(self::PROCESS_TIMEOUT_SECONDS);
+        $clearCache->disableOutput();
+        $clearCache->run();
+
+        $this->assertProcessSucceeded($clearCache);
+
+        // swoole:server:start returns only once the server is actually listening, unlike
+        // swoole:server:run which stays in the foreground and leaves the client racing the boot - a race
+        // the client loses on a slow machine, where booting takes longer than the few seconds it waits.
+        $serverStart = $this->createConsoleProcess([
+            'swoole:server:start',
             '--host=localhost',
             '--port=9999',
-        ], ['APP_ENV' => $environment]);
+        ], $envs);
 
-        $serverRun->setTimeout(10);
-        $serverRun->start();
+        $serverStart->setTimeout(self::PROCESS_TIMEOUT_SECONDS);
+        $serverStart->run();
 
-        $this->runAsCoroutineAndWait(function (): void {
+        $this->assertProcessSucceeded($serverStart);
+
+        $this->runAsCoroutineAndWait(function () use ($envs): void {
+            $this->deferServerStop([], $envs);
+
             $client = HttpClient::fromDomain('localhost', 9999, false);
             $this->assertTrue($client->connect(3, 1, true));
 
@@ -44,23 +69,24 @@ final class SymfonyProfilerTest extends ServerTestCase
             $this->assertNotEmpty($response['headers']['x-debug-token']);
             $debugToken = $response['headers']['x-debug-token'];
 
-            // Since Symfony 7.4 it looks like the profile is being written later then the response is sent
+            // Since Symfony 7.4 it looks like the profile is being written later than the response is sent
             // Although this only goes for 7.4.0, so the sleep call may be removed later
             usleep(200000); // 200 ms
-            $profilerResponse = $client->send('/_wdt/' . $debugToken)['response'];
+            $profileToolbarResponse = $client->send('/_wdt/' . $debugToken)['response'];
 
-            $this->assertSame(200, $profilerResponse['statusCode']);
-            $this->assertArrayHasKey('body', $profilerResponse);
-            $this->assertIsString($profilerResponse['body']);
+            $this->assertSame(200, $profileToolbarResponse['statusCode']);
+            $this->assertArrayHasKey('body', $profileToolbarResponse);
+            $this->assertIsString($profileToolbarResponse['body']);
 
             $this->assertMatchesRegularExpression(
                 '/(<div id="sfMiniToolbar-[^"]+" class="sf-minitoolbar")|'
                 . '(<div id="sfToolbarClearer-[^"]+" class="sf-toolbar-clearer")/',
-                $profilerResponse['body']
+                $profileToolbarResponse['body']
             );
-        });
 
-        $serverRun->stop();
+            $profilerResponse = $client->send('/_profiler/' . $debugToken)['response'];
+            $this->assertSame(200, $profilerResponse['statusCode']);
+        });
     }
 
     /**

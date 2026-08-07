@@ -14,5 +14,7 @@ interface ServicePool
      */
     public function get(): object;
 
-    public function releaseFromCoroutine(int $cId): void;
+    public function getAssigned(): ?object;
+
+    public function releaseFromCoroutine(): void;
 }

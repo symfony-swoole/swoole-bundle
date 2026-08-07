@@ -2,11 +2,13 @@
 
 declare(strict_types=1);
 
+use Monolog\Formatter\LineFormatter;
 use Ramsey\Uuid\UuidFactory;
 use Ramsey\Uuid\UuidFactoryInterface;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\SimpleResetter;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Controller\DoctrineController;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Controller\SleepController;
+use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\EventHandler\LifecycleEventsEventHandler;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Service\AdvancedDoctrineUsage;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Service\DecorationTestDummyService;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Service\DefaultDummyService;
@@ -28,6 +30,19 @@ return static function (ContainerConfigurator $containerConfigurator): void {
     $services->load('SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\\', __DIR__ . '/../../TestBundle/*')
         ->exclude([
             __DIR__ . '/../../TestBundle/{Message,Test,Controller,Migrations,Resetter,Service/NoAutowiring}',
+            // depends on fixture services (security.event_dispatcher.main/api) only registered in the
+            // coroutines_security* environments, so it must not be auto-registered everywhere else.
+            __DIR__ . '/../../TestBundle/Command/SecurityFirewallEventDispatcherProxyCheckCommand.php',
+            // same story for security.access.decision_manager, which SecurityBundle only brings along in
+            // the coroutines_security* environments.
+            __DIR__ . '/../../TestBundle/Command/AccessDecisionManagerProxyCheckCommand.php',
+            // same story for security.firewall.map.
+            __DIR__ . '/../../TestBundle/Command/SecurityFirewallContextProxyCheckCommand.php',
+            __DIR__ . '/../../TestBundle/HealthCheck',
+            // decorates a specific handler and is registered explicitly by the coroutines environment.
+            // Auto-registering it would make autoconfiguration tag it as a bootable service and autowire
+            // $decorated to the outermost RequestHandler, in every environment.
+            __DIR__ . '/../../TestBundle/RequestHandler',
         ]);
 
     $services->load(
@@ -37,6 +52,9 @@ return static function (ContainerConfigurator $containerConfigurator): void {
         ->tag('controller.service_arguments')
         ->exclude([
             __DIR__ . '/../../TestBundle/Controller/ReplacedContentTestController.php',
+            // constructor needs 4 explicit LeakyResource/LeakyDataCollector args that only exist in the
+            // coroutines_profiler environment, so it must not be auto-registered everywhere else.
+            __DIR__ . '/../../TestBundle/Controller/LeakyServicesController.php',
         ]);
 
     $services->set(DoctrineController::class)
@@ -86,4 +104,14 @@ return static function (ContainerConfigurator $containerConfigurator): void {
         ->tag('kernel.reset', [
             'method' => 'reset',
         ]);
+
+    $services->set(LifecycleEventsEventHandler::class)
+        ->tag('swoole_bundle.stateful_service');
+
+    $services->set('monolog.formatter.full_trace', LineFormatter::class)
+        ->arg('$format', null)
+        ->arg('$dateFormat', null)
+        ->arg('$allowInlineLineBreaks', true)
+        ->arg('$ignoreEmptyContextAndExtra', false)
+        ->arg('$includeStacktraces', true);
 };

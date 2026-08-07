@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpKernel\HttpKernelRequestHandler;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Controller\CoroutinesTaskController;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\DependencyInjection\CompilerPass\{
     CounterCompileProcessor,
@@ -9,12 +10,15 @@ use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\DependencyInject
 };
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\MessageHandler\RunDummyHandler;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\MessageHandler\SleepAndAppendHandler;
+use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\RequestHandler\ThrowingRequestHandler;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Service\AlwaysReset;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Service\AlwaysResetSafe;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Service\NonSharedExample;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Service\ShouldBeProxified;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Service\ShouldBeProxified2;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
+
+use function Symfony\Component\DependencyInjection\Loader\Configurator\service;
 
 return static function (ContainerConfigurator $containerConfigurator): void {
     $parameters = $containerConfigurator->parameters();
@@ -27,10 +31,7 @@ return static function (ContainerConfigurator $containerConfigurator): void {
 
     $containerConfigurator->extension('swoole', [
         'http_server' => [
-            'static' => [
-                'strategy' => 'advanced',
-                'public_dir' => '%kernel.project_dir%/public',
-            ],
+            'static' => 'default',
             'exception_handler' => [
                 'type' => 'symfony',
             ],
@@ -102,4 +103,10 @@ return static function (ContainerConfigurator $containerConfigurator): void {
         ->share(false)
         ->tag('swoole_bundle.stateful_service')
         ->tag('kernel.reset', ['method' => '?optionalReset']);
+
+    // Lets PooledErrorHandlerResetTest raise a throwable that escapes the kernel, which is the only way
+    // to reach swoole-bundle's own ErrorResponder/ErrorHandler path. A no-op for every other route.
+    $services->set(ThrowingRequestHandler::class)
+        ->decorate(HttpKernelRequestHandler::class)
+        ->arg('$decorated', service('.inner'));
 };

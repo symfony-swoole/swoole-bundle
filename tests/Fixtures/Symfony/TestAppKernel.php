@@ -20,6 +20,7 @@ use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\TestBundle;
 use Symfony\Bundle\FrameworkBundle\FrameworkBundle;
 use Symfony\Bundle\FrameworkBundle\Kernel\MicroKernelTrait;
 use Symfony\Bundle\MonologBundle\MonologBundle;
+use Symfony\Bundle\SecurityBundle\SecurityBundle;
 use Symfony\Bundle\TwigBundle\TwigBundle;
 use Symfony\Bundle\WebProfilerBundle\WebProfilerBundle;
 use Symfony\Component\Config\Exception\LoaderLoadException;
@@ -27,11 +28,12 @@ use Symfony\Component\Config\Loader\LoaderInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\CacheWarmer\WarmableInterface;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\HttpKernel\Kernel;
 use Symfony\Component\Routing\Loader\Configurator\RoutingConfigurator;
 
-final class TestAppKernel extends Kernel
+final class TestAppKernel extends Kernel implements WarmableInterface
 {
     use CoroutinesSupportingKernel;
     use MicroKernelTrait;
@@ -46,6 +48,8 @@ final class TestAppKernel extends Kernel
 
     private bool $profilerEnabled = false;
 
+    private bool $securityEnabled = false;
+
     public function __construct(string $environment, bool $debug, ?string $overrideProdEnv = null)
     {
         if (mb_substr($environment, -4, 4) === '_cov') {
@@ -59,6 +63,13 @@ final class TestAppKernel extends Kernel
 
         if ($environment === 'profiler' || $environment === 'coroutines_profiler') {
             $this->profilerEnabled = true;
+        }
+
+        // symfony/security-bundle is only needed to exercise the real, Symfony-built
+        // security.event_dispatcher.<firewall> definitions (see coroutines_security/security.php) —
+        // registering it only for this environment keeps every other test unaffected.
+        if ($environment === 'coroutines_security') {
+            $this->securityEnabled = true;
         }
 
         $enableSessionCache = false;
@@ -108,6 +119,10 @@ final class TestAppKernel extends Kernel
 
         if ($this->coverageEnabled) {
             yield new CoverageBundle();
+        }
+
+        if ($this->securityEnabled) {
+            yield new SecurityBundle();
         }
 
         if (!$this->profilerEnabled) {

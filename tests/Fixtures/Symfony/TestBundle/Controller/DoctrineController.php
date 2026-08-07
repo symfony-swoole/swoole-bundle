@@ -58,7 +58,9 @@ final readonly class DoctrineController
     #[Route(path: '/doctrine-queries', methods: ['GET'])]
     public function queries(): JsonResponse
     {
-        return new JsonResponse($this->dataHolder->getData()['default']);
+        $data = $this->dataHolder?->getData() ?? [];
+
+        return new JsonResponse($data['default'] ?? []);
     }
 
     #[Route(path: '/doctrine-lifecycle', methods: ['GET'])]

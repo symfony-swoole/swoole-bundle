@@ -401,7 +401,7 @@ final class DefaultHttpServerConfiguration implements HttpServerConfiguration
             $swooleSettings[$swooleSettingKey] = $setting;
         }
 
-        return $swooleSettings; // @phpstan-ignore-line
+        return $swooleSettings;
     }
 
     /**
@@ -606,7 +606,7 @@ final class DefaultHttpServerConfiguration implements HttpServerConfiguration
             case self::SWOOLE_HTTP_SERVER_CONFIG_REACTOR_COUNT:
             case self::SWOOLE_HTTP_SERVER_CONFIG_WORKER_COUNT:
                 Assertion::integer($value, sprintf('Setting "%s" must be an integer.', $key));
-                Assertion::greaterThan($value, 0, 'Count value cannot be negative, "%s" provided.');
+                Assertion::greaterOrEqualThan($value, 0, 'Count value cannot be negative, "%s" provided.');
 
                 break;
             case self::SWOOLE_HTTP_SERVER_CONFIG_WORKER_MAX_REQUEST:

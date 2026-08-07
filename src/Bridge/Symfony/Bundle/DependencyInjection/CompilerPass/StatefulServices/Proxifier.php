@@ -11,6 +11,7 @@ use SwooleBundle\SwooleBundle\Bridge\Doctrine\ORM\EntityManagerStabilityChecker;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\ContainerConstants;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Proxy\Instantiator;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\ServicePool\DiServicePool;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\ServicePool\ServicePoolEntry;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\SimpleResetter;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\StabilityChecker;
 use SwooleBundle\SwooleBundle\Common\Adapter\Swoole;
@@ -30,9 +31,9 @@ final class Proxifier
     ];
 
     /**
-     * @var array<int, array<Reference>>
+     * @var array<int, Definition>
      */
-    private array $proxifiedServicePoolRefs = [];
+    private array $proxifiedServicePoolEntryDefs = [];
 
     /**
      * @var array<class-string, class-string<StabilityChecker>|string>
@@ -60,6 +61,11 @@ final class Proxifier
         /** @var class-string $class */
         $class = $serviceDef->getClass();
         $tags = new Tags($class, $serviceDef->getTags());
+
+        if ($this->isDefinedByInterfaceOnly($serviceDef)) {
+            return;
+        }
+
         $this->assertServiceIsNotReadOnly($serviceId, $serviceDef);
 
         if ($tags->hasSafeStatefulServiceTag()) {
@@ -76,13 +82,13 @@ final class Proxifier
     }
 
     /**
-     * @return array<int, array<Reference>>
+     * @return array<int, Definition>
      */
-    public function getProxifiedServicePoolRefs(): array
+    public function getProxifiedServicePoolEntryDefs(): array
     {
-        krsort($this->proxifiedServicePoolRefs);
+        krsort($this->proxifiedServicePoolEntryDefs);
 
-        return $this->proxifiedServicePoolRefs;
+        return $this->proxifiedServicePoolEntryDefs;
     }
 
     private function doProxifyService(
@@ -95,8 +101,12 @@ final class Proxifier
             throw new RuntimeException(sprintf('Service missing: %s', $serviceId));
         }
 
+        /** @var class-string $serviceClass */
+        $serviceClass = $serviceDef->getClass();
+        $serviceTags = new Tags($serviceClass, $serviceDef->getTags());
+
         $wrappedServiceId = sprintf('%s.swoole_coop.wrapped', $serviceId);
-        $svcPoolDef = $this->prepareServicePool($wrappedServiceId, $serviceDef, $externalResetter);
+        $svcPoolDef = $this->prepareServicePool($wrappedServiceId, $serviceDef, $serviceTags);
         $svcPoolServiceId = sprintf('%s.swoole_coop.service_pool', $serviceId);
         $wasShared = $serviceDef->isShared();
         $proxyDef = $this->prepareProxy($svcPoolServiceId, $serviceDef);
@@ -112,7 +122,30 @@ final class Proxifier
             return;
         }
 
-        $this->registerProxifiedServicePoolRef(new Reference($svcPoolServiceId), $resetPriority);
+        $customResetter = null;
+        $serviceTag = $serviceTags->findStatefulServiceTag();
+
+        if ($serviceTag?->getResetter() !== null) {
+            $customResetter = $serviceTag->getResetter();
+        }
+
+        $resetterDefOrRef = null;
+
+        if ($customResetter !== null) {
+            $resetterDefOrRef = new Reference($customResetter);
+        }
+
+        if ($resetterDefOrRef === null && $externalResetter !== null) {
+            $resetterDefOrRef = new Definition();
+            $resetterDefOrRef->setClass(SimpleResetter::class);
+            $resetterDefOrRef->setArgument(0, $externalResetter);
+        }
+
+        $this->registerProxifiedServicePoolEntryDefinition(
+            new Reference($svcPoolServiceId),
+            $resetterDefOrRef,
+            $resetPriority,
+        );
     }
 
     private function doProxifyDecoratedService(
@@ -150,11 +183,8 @@ final class Proxifier
         $serviceDef->setShared(false);
     }
 
-    private function prepareServicePool(
-        string $wrappedServiceId,
-        Definition $serviceDef,
-        ?string $externalResetter = null,
-    ): Definition {
+    private function prepareServicePool(string $wrappedServiceId, Definition $serviceDef, Tags $serviceTags): Definition
+    {
         $svcPoolDef = new Definition(DiServicePool::class);
         $svcPoolDef->setShared($serviceDef->isShared());
 
@@ -174,38 +204,14 @@ final class Proxifier
             );
         }
 
-        /** @var class-string $serviceClass */
-        $serviceClass = $serviceDef->getClass();
-        $serviceTags = new Tags($serviceClass, $serviceDef->getTags());
         $serviceTag = $serviceTags->findStatefulServiceTag();
-        $customResetter = null;
+        $serviceClass = $serviceDef->getClass();
 
         if ($serviceTag?->getLimit() !== null) {
             $instanceLimit = $serviceTag->getLimit();
         }
 
-        if ($serviceTag?->getResetter() !== null) {
-            $customResetter = $serviceTag->getResetter();
-        }
-
         $svcPoolDef->setArgument(4, $instanceLimit);
-        $svcPoolDef->setArgument(5, null);
-
-        $resetterDefOrRef = null;
-
-        if ($customResetter !== null) {
-            $resetterDefOrRef = new Reference($customResetter);
-        }
-
-        if ($resetterDefOrRef === null && $externalResetter !== null) {
-            $resetterDefOrRef = new Definition();
-            $resetterDefOrRef->setClass(SimpleResetter::class);
-            $resetterDefOrRef->setArgument(0, $externalResetter);
-        }
-
-        if ($resetterDefOrRef) {
-            $svcPoolDef->setArgument(5, $resetterDefOrRef);
-        }
 
         $stabilityCheckerRef = null;
 
@@ -215,10 +221,10 @@ final class Proxifier
             $stabilityCheckerRef = new Reference($checkerSvcId);
         }
 
-        $svcPoolDef->setArgument(6, $stabilityCheckerRef);
+        $svcPoolDef->setArgument(5, $stabilityCheckerRef);
 
         if ($serviceTag?->getInitializer() !== null) {
-            $svcPoolDef->setArgument(7, new Reference($serviceTag->getInitializer()));
+            $svcPoolDef->setArgument(6, new Reference($serviceTag->getInitializer()));
         }
 
         return $svcPoolDef;
@@ -271,6 +277,10 @@ final class Proxifier
             return false;
         }
 
+        if ($this->isDefinedByInterfaceOnly($serviceDef)) {
+            return false;
+        }
+
         $this->assertServiceIsNotReadOnly($serviceId, $serviceDef);
         $factory = $serviceDef->getFactory();
 
@@ -283,12 +293,19 @@ final class Proxifier
         return !$factorySvc instanceof Reference || (string) $factorySvc !== Instantiator::class;
     }
 
-    private function registerProxifiedServicePoolRef(Reference $ref, int $resetPriority): void
-    {
-        if (!isset($this->proxifiedServicePoolRefs[$resetPriority])) {
-            $this->proxifiedServicePoolRefs[$resetPriority] = [];
+    private function registerProxifiedServicePoolEntryDefinition(
+        Reference $ref,
+        Definition|Reference|null $resetterDefOrRef = null,
+        int $resetPriority = 0,
+    ): void {
+        $recordDef = new Definition(ServicePoolEntry::class);
+        $recordDef->setArgument(0, $ref);
+
+        if ($resetterDefOrRef !== null) {
+            $recordDef->setArgument(1, $resetterDefOrRef);
+            $recordDef->setArgument(2, $resetPriority);
         }
 
-        $this->proxifiedServicePoolRefs[$resetPriority][] = $ref;
+        $this->proxifiedServicePoolEntryDefs[] = $recordDef;
     }
 }

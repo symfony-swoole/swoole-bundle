@@ -16,7 +16,7 @@ final class BlackfireProfilerRegisteredTest extends ServerTestCase
      */
     public function testWiring(): void
     {
-        $kernel = self::createKernel(['environment' => 'dev']);
+        $kernel = self::createKernel(['environment' => 'blackfire']);
         $kernel->boot();
 
         $container = $kernel->getContainer();

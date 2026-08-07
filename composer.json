@@ -36,7 +36,7 @@
         "ext-json": "*",
         "beberlei/assert": "^3.3.3",
         "laminas/laminas-code": "^4.7||^4.8",
-        "monolog/monolog": "^3.6",
+        "monolog/monolog": "^3.10",
         "symfony/cache": "^7.4|^8.0",
         "symfony/config": "^7.4|^8.0",
         "symfony/console": "^7.4|^8.0",
@@ -47,7 +47,7 @@
         "symfony/process": "^7.4|^8.0",
         "friendsofphp/proxy-manager-lts": "^1.0.19",
         "upscale/ext-openswoole": "^26.2.0",
-        "upscale/ext-swoole": "^6.2.0"
+        "upscale/ext-swoole": "^6.2.2"
     },
     "require-dev": {
         "ext-ffi": "^8.3",
@@ -61,7 +61,7 @@
         "doctrine/persistence": "^3.2 || ^4.0",
         "friendsofphp/php-cs-fixer": "^3.94",
         "jangregor/phpstan-prophecy": "^2.3",
-        "openswoole/core": "^22.2",
+        "openswoole/core": "^26.2.0",
         "openswoole/ide-helper": "^26.2",
         "phpro/grumphp": "^2.19",
         "phpspec/prophecy": "^1.26",
@@ -89,6 +89,7 @@
         "symfony/messenger": "^7.4|^8.0",
         "symfony/monolog-bridge": "^7.4|^8.0",
         "symfony/monolog-bundle": "^3.10 || ^4.0",
+        "symfony/security-bundle": "^7.4|^8.0",
         "symfony/stopwatch": "^7.4|^8.0",
         "symfony/twig-bridge": "^7.4|^8.0",
         "symfony/twig-bundle": "^7.4|^8.0",
@@ -227,7 +228,7 @@
         "sort-packages": true,
         "platform": {
             "ext-openswoole": "v26.2.0",
-            "ext-swoole": "6.2.0"
+            "ext-swoole": "6.2.2"
         },
         "allow-plugins": {
             "phpstan/extension-installer": true,

@@ -20,11 +20,13 @@ use SwooleBundle\SwooleBundle\Bridge\Symfony\Cache\CacheAdapterProcessor;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\BlockingContainer;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\ServicePool\ServicePoolContainer;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\StabilityChecker;
-use SwooleBundle\SwooleBundle\Bridge\Symfony\Router\RouterProcessor;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\EventDispatcher\EventDispatcherProcessor;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Security\SecurityProcessor;
 use Symfony\Component\Config\Resource\FileResource;
 use Symfony\Component\DependencyInjection\Argument\ServiceLocatorArgument;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Contracts\Service\ResetInterface;
 use UnexpectedValueException;
 
 final class StatefulServicesPass implements CompilerPassInterface
@@ -35,15 +37,26 @@ final class StatefulServicesPass implements CompilerPassInterface
 
     private const array MANDATORY_SERVICES_TO_PROXIFY = [
         'kernel_proxy',
+        'http_kernel',
         'annotations.reader',
         'logger',
         'profiler_listener',
-        'debug.event_dispatcher',
+        'debug.debug_handlers_listener',
         'debug.stopwatch',
         'request_stack',
         'router.request_context',
         'router',
         'router.default',
+        'request_stack',
+        'swoole_bundle.error_handler.symfony_error_handler',
+    ];
+
+    /**
+     * Services which are proxified only when their definition allows it. Applications are free to redefine them
+     * in a way which cannot be proxified at all, in such a case the proxification is silently skipped.
+     */
+    private const array OPTIONAL_SERVICES_TO_PROXIFY = [
+        'slugger',
     ];
 
     private const array SERVICE_RESETTING_PRIORITIES = [
@@ -51,8 +64,8 @@ final class StatefulServicesPass implements CompilerPassInterface
     ];
 
     private const array COMPILE_PROCESSORS = [
-        RouterProcessor::class => [
-            'class' => RouterProcessor::class,
+        EventDispatcherProcessor::class => [
+            'class' => EventDispatcherProcessor::class,
             'priority' => 0,
         ],
         CacheAdapterProcessor::class => [
@@ -65,6 +78,10 @@ final class StatefulServicesPass implements CompilerPassInterface
         ],
         MonologProcessor::class => [
             'class' => MonologProcessor::class,
+            'priority' => 0,
+        ],
+        SecurityProcessor::class => [
+            'class' => SecurityProcessor::class,
             'priority' => 0,
         ],
     ];
@@ -165,13 +182,17 @@ final class StatefulServicesPass implements CompilerPassInterface
         $taggedStatefulServices = $container->findTaggedServiceIds(ContainerConstants::TAG_STATEFUL_SERVICE);
         /** @var array<string> $configuredStatefulServices */
         $configuredStatefulServices = $container->getParameter(ContainerConstants::PARAM_COROUTINES_STATEFUL_SERVICES);
+        $dataCollectorServices = $container->findTaggedServiceIds('data_collector');
         $servicesToProxify = array_merge(
             array_keys($resettableStatefulServices),
             array_keys($taggedStatefulServices),
             $configuredStatefulServices,
+            array_keys($dataCollectorServices),
             self::MANDATORY_SERVICES_TO_PROXIFY,
+            self::OPTIONAL_SERVICES_TO_PROXIFY,
         );
         $servicesToProxify = array_unique($servicesToProxify);
+        $optionalServices = array_flip(self::OPTIONAL_SERVICES_TO_PROXIFY);
 
         foreach ($servicesToProxify as $serviceId) {
             if (isset(self::IGNORED_SERVICES[$serviceId])) {
@@ -179,6 +200,10 @@ final class StatefulServicesPass implements CompilerPassInterface
             }
 
             if (!$container->has($serviceId)) {
+                continue;
+            }
+
+            if (isset($optionalServices[$serviceId]) && !$this->isOptionalServiceProxifiable($container, $serviceId)) {
                 continue;
             }
 
@@ -200,9 +225,53 @@ final class StatefulServicesPass implements CompilerPassInterface
                 }
             }
 
+            $resetter ??= $this->resolveResetInterfaceResetter($container, $serviceId);
+
             $resetPriority = self::SERVICE_RESETTING_PRIORITIES[$serviceId] ?? 0;
             $proxifier->proxifyService($serviceId, $resetter, $resetPriority);
         }
+    }
+
+    /**
+     * The resetters above come from Symfony's `services_resetter`, which only ever lists services
+     * tagged `kernel.reset`. That tag is added automatically to every `ResetInterface` implementation
+     * which goes through autoconfiguration - but bundles registering their own services (FrameworkBundle's
+     * data collectors, MonologBundle's loggers, DoctrineBundle's and SecurityBundle's debug/traceable
+     * decorators, ...) do not autoconfigure them, so they carry no `kernel.reset` tag at all.
+     *
+     * Such a service still gets pooled here (it is a data collector, or it is reachable through one of
+     * the other stateful-service sources above), but with a null resetter it is never reset, while its
+     * instance keeps being recycled across coroutines - so whatever it accumulates during one request
+     * is still there for every later request served by the same instance, forever.
+     *
+     * Implementing `ResetInterface` is Symfony's own declaration that `reset()` is the correct way to
+     * return the service to its between-requests state, so it is safe to fall back to it whenever no
+     * explicit resetter was configured.
+     */
+    private function resolveResetInterfaceResetter(ContainerBuilder $container, string $serviceId): ?string
+    {
+        $definitionClass = $container->findDefinition($serviceId)->getClass();
+
+        if ($definitionClass === null || !class_exists($definitionClass)) {
+            return null;
+        }
+
+        if (!is_a($definitionClass, ResetInterface::class, true)) {
+            return null;
+        }
+
+        return 'reset';
+    }
+
+    /**
+     * A service cannot be proxified when there is no concrete class to generate the proxy from, which happens
+     * when the service definition class is an interface or when it is not known at all.
+     */
+    private function isOptionalServiceProxifiable(ContainerBuilder $container, string $serviceId): bool
+    {
+        $definitionClass = $container->findDefinition($serviceId)->getClass();
+
+        return $definitionClass !== null && !interface_exists($definitionClass);
     }
 
     /**
@@ -293,14 +362,31 @@ final class StatefulServicesPass implements CompilerPassInterface
 
     private function configureServicePoolContainer(ContainerBuilder $container, Proxifier $proxifier): void
     {
-        $poolRefs = $proxifier->getProxifiedServicePoolRefs();
+        $poolEntryDefs = $proxifier->getProxifiedServicePoolEntryDefs();
         $poolContainerDef = $container->findDefinition(ServicePoolContainer::class);
-        $poolContainerDef->setArgument(0, $poolRefs);
+        $poolContainerDef->setArgument(0, $poolEntryDefs);
     }
 
     private function detectKernelClass(ContainerBuilder $container): void
     {
-        $kernelClass = null;
+        $kernelClass = $this->resolveKernelClass($container);
+        if ($kernelClass === null) {
+            throw new UnexpectedValueException('Cannot detect kernel class.');
+        }
+
+        $kernelProxy = $container->findDefinition('kernel_proxy');
+        $kernelProxy->setClass($kernelClass);
+    }
+
+    private function resolveKernelClass(ContainerBuilder $container): ?string
+    {
+        if ($container->hasDefinition('kernel')) {
+            $kernelClass = $container->getDefinition('kernel')->getClass();
+
+            if ($kernelClass !== null && $kernelClass !== '') {
+                return $kernelClass;
+            }
+        }
 
         foreach ($container->getResources() as $resource) {
             if (!$resource instanceof FileResource) {
@@ -310,27 +396,15 @@ final class StatefulServicesPass implements CompilerPassInterface
             $content = file_get_contents($resource->getResource());
             Assertion::string($content);
 
-            // Extract namespace
             if (!preg_match('/namespace\s+([A-Za-z0-9_\\\\]+);/', $content, $namespaceMatches)) {
                 continue;
             }
 
-            $namespace = $namespaceMatches[1];
-
-            // Extract class name
-            if (preg_match('/class\s+([A-Za-z0-9_]+)\s+extends\s+Kernel/', $content, $classMatches)) {
-                $className = $classMatches[1];
-                $kernelClass = $namespace . '\\' . $className;
-
-                break;
+            if (preg_match('/class\s+([A-Za-z0-9_]+)\s+extends\s+[A-Za-z0-9_]*Kernel\b/', $content, $classMatches)) {
+                return $namespaceMatches[1] . '\\' . $classMatches[1];
             }
         }
 
-        if (!$kernelClass) {
-            throw new UnexpectedValueException('Cannot detect kernel class.');
-        }
-
-        $kernelProxy = $container->findDefinition('kernel_proxy');
-        $kernelProxy->setClass($kernelClass);
+        return null;
     }
 }

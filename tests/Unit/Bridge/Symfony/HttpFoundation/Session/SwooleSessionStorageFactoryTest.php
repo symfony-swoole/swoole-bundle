@@ -4,50 +4,30 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Tests\Unit\Bridge\Symfony\HttpFoundation\Session;
 
+use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
-use Prophecy\Argument;
-use Prophecy\PhpUnit\ProphecyTrait;
-use SwooleBundle\SwooleBundle\Bridge\Symfony\Event\RequestWithSessionFinishedEvent;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation\Session\SwooleSessionStorage;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation\Session\SwooleSessionStorageFactory;
 use SwooleBundle\SwooleBundle\Server\Session\Storage;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\Request;
 
 final class SwooleSessionStorageFactoryTest extends TestCase
 {
-    use ProphecyTrait;
+    private Storage&Stub $storage;
+
+    protected function setUp(): void
+    {
+        $this->storage = $this->createStub(Storage::class);
+    }
 
     public function testCreateStorageCreatesSwooleSessionStorageInInitialState(): void
     {
-        $subject = new SwooleSessionStorageFactory(
-            $this->prophesize(Storage::class)->reveal(),
-            $this->prophesize(EventDispatcherInterface::class)->reveal(),
-        );
+        $subject = new SwooleSessionStorageFactory($this->storage);
 
         $result = $subject->createStorage(new Request());
 
         $this->assertInstanceOf(SwooleSessionStorage::class, $result);
         $this->assertFalse($result->isStarted());
-        $this->assertSame(
-            '',
-            $result->getId()
-        );
-    }
-
-    public function testCreateStorageAddsListenerForSwooleSessionResetEvent(): void
-    {
-        $dispatcher = $this->prophesize(EventDispatcherInterface::class);
-
-        $dispatcher->addListener()
-            ->withArguments([RequestWithSessionFinishedEvent::NAME, Argument::type('closure')])
-            ->shouldBeCalled();
-
-        $subject = new SwooleSessionStorageFactory(
-            $this->prophesize(Storage::class)->reveal(),
-            $dispatcher->reveal(),
-        );
-
-        $subject->createStorage(new Request());
+        $this->assertSame('', $result->getId());
     }
 }

@@ -41,14 +41,20 @@ use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpKernel\HttpKernelRequestHandler
 use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpKernel\KernelCloner;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Messenger\ExceptionLoggingTransportHandler;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Messenger\ServiceResettingTransportHandler;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Router\LockingConfigCacheFactory;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Router\LockingLoader;
 use SwooleBundle\SwooleBundle\Common\Adapter\Swoole;
 use SwooleBundle\SwooleBundle\Common\System\Extension;
 use SwooleBundle\SwooleBundle\Common\System\System;
 use SwooleBundle\SwooleBundle\Component\AtomicCounter;
 use SwooleBundle\SwooleBundle\Component\ExceptionArrayTransformer;
 use SwooleBundle\SwooleBundle\Component\GeneratedCollection;
+use SwooleBundle\SwooleBundle\Component\Locking\Channel\ChannelMutex;
 use SwooleBundle\SwooleBundle\Component\Locking\Channel\ChannelMutexFactory;
 use SwooleBundle\SwooleBundle\Component\Locking\FirstTimeOnly\FirstTimeOnlyMutexFactory;
+use SwooleBundle\SwooleBundle\Metrics\Formatter\JsonMetricsFormatter;
+use SwooleBundle\SwooleBundle\Metrics\Formatter\MetricsFormatterResolver;
+use SwooleBundle\SwooleBundle\Metrics\Formatter\OpenMetricsFormatter;
 use SwooleBundle\SwooleBundle\Metrics\MetricsProvider;
 use SwooleBundle\SwooleBundle\Metrics\SystemMetricsProviderRegistry;
 use SwooleBundle\SwooleBundle\Server\Api\Api;
@@ -65,6 +71,7 @@ use SwooleBundle\SwooleBundle\Server\Configurator\WithServerManagerStartHandler;
 use SwooleBundle\SwooleBundle\Server\Configurator\WithServerManagerStopHandler;
 use SwooleBundle\SwooleBundle\Server\Configurator\WithServerShutdownHandler;
 use SwooleBundle\SwooleBundle\Server\Configurator\WithServerStartHandler;
+use SwooleBundle\SwooleBundle\Server\Configurator\WithSwooleTableStorageConfigurator;
 use SwooleBundle\SwooleBundle\Server\Configurator\WithTaskFinishedHandler;
 use SwooleBundle\SwooleBundle\Server\Configurator\WithTaskHandler;
 use SwooleBundle\SwooleBundle\Server\Configurator\WithWorkerErrorHandler;
@@ -107,6 +114,7 @@ use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpKernel\Kernel;
 use Symfony\Component\HttpKernel\KernelInterface;
 
+use function Symfony\Component\DependencyInjection\Loader\Configurator\inline_service;
 use function Symfony\Component\DependencyInjection\Loader\Configurator\service;
 use function Symfony\Component\DependencyInjection\Loader\Configurator\tagged_iterator;
 
@@ -208,7 +216,9 @@ return static function (ContainerConfigurator $containerConfigurator): void {
         ->arg('$decorated', service(RequestHandler::class))
         ->arg('$coWrapper', service(CoWrapper::class));
 
-    $services->set(SwooleSessionStorageFactory::class);
+    $services->set(SwooleSessionStorageFactory::class)
+        ->arg('$storage', service(Storage::class))
+        ->arg('$sessionOptions', '%session.storage.options%');
 
     $services->set(LimitedRequestHandler::class)
         ->arg('$decorated', service(RequestHandler::class))
@@ -219,10 +229,12 @@ return static function (ContainerConfigurator $containerConfigurator): void {
     $services->set(CallableBootManagerFactory::class);
 
     $services->set(SwooleTableStorage::class)
-        ->factory([
-            SwooleTableStorage::class,
-            'fromDefaults',
-        ]);
+        ->factory([SwooleTableStorage::class, 'fromDefaults'])
+        ->arg('$maxActiveSessions', '%swoole_bundle.session.max_active_sessions%')
+        ->arg('$maxSessionDataBytes', '%swoole_bundle.session.max_data_bytes%');
+
+    $services->set(WithSwooleTableStorageConfigurator::class)
+        ->arg('$storage', service(SwooleTableStorage::class));
 
     $services->alias(Storage::class, SwooleTableStorage::class);
 
@@ -358,7 +370,8 @@ return static function (ContainerConfigurator $containerConfigurator): void {
         ->tag('swoole_bundle.server_configurator');
 
     $services->set(ApiServerRequestHandler::class)
-        ->arg('$apiServer', service(Api::class));
+        ->arg('$apiServer', service(Api::class))
+        ->arg('$metricsFormatterResolver', service(MetricsFormatterResolver::class));
 
     $services->set('swoole_bundle.server.api_server.request_handler', ExceptionRequestHandler::class)
         ->arg('$decorated', service(ApiServerRequestHandler::class))
@@ -439,12 +452,10 @@ return static function (ContainerConfigurator $containerConfigurator): void {
         ->arg('$proxiesDirectory', '%swoole_bundle.service_proxy_cache_dir%');
 
     $services->set(CoWrapper::class)
-        ->arg('$servicePoolContainer', service(ServicePoolContainer::class))
-        ->arg('$swoole', service(Swoole::class));
+        ->arg('$servicePoolContainer', service(ServicePoolContainer::class));
 
     $services->set(ServicePoolContainer::class)
-        ->arg('$pools', [
-        ]);
+        ->arg('$poolEntries', []);
 
     $services->set(EntityManagerStabilityChecker::class)
         ->tag('swoole_bundle.stability_checker');
@@ -481,6 +492,21 @@ return static function (ContainerConfigurator $containerConfigurator): void {
             'get',
         ]);
 
+    $services->set(JsonMetricsFormatter::class)
+        ->tag('swoole_bundle.metrics_formatter', [
+            'priority' => 0,
+        ]);
+
+    $services->set(OpenMetricsFormatter::class)
+        ->arg('$metricsProvider', service(MetricsProvider::class))
+        ->tag('swoole_bundle.metrics_formatter', [
+            'priority' => 10,
+        ]);
+
+    $services->set(MetricsFormatterResolver::class)
+        ->arg('$formatters', tagged_iterator('swoole_bundle.metrics_formatter'))
+        ->arg('$default', service(JsonMetricsFormatter::class));
+
     $services->set(SystemSwooleFactory::class)
         ->factory([SystemSwooleFactory::class, 'newFactoryInstance']);
 
@@ -488,8 +514,23 @@ return static function (ContainerConfigurator $containerConfigurator): void {
         ->factory([
             service(SystemSwooleFactory::class),
             'newInstance',
-        ]);
+        ])
+        ->public();
 
     $services->set(HttpServerFactory::class)
         ->arg('$swoole', service(Swoole::class));
+
+    $services->set(LockingLoader::class)
+        ->arg(
+            '$mutex',
+            inline_service(ChannelMutex::class)
+                ->factory([service('swoole_bundle.service_pool.locking'), 'newMutex']),
+        );
+
+    $services->set(LockingConfigCacheFactory::class)
+        ->arg(
+            '$mutex',
+            inline_service(ChannelMutex::class)
+                ->factory([service('swoole_bundle.service_pool.locking'), 'newMutex']),
+        );
 };

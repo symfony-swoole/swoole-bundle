@@ -100,8 +100,16 @@ Symfony integration with [Open Swoole](https://openswoole.com/) and [Swoole](htt
     Since Swoole HTTP Server runs in Event Loop and does not flush memory between requests, to keep DX equal with normal servers, this bundle uses code replacement technique, using `inotify` PHP Extension to allow continuous development. It is enabled by default (when the extension is found) and requires no additional configuration. You can turn it off in bundle configuration.
 
     _Remarks: This feature currently works only on a Linux host machine. It probably won't work with Docker, and it is possible that it works only with configuration: `swoole.http_server.running_mode: process` (default)._
+
+    _A polling-based `stat` mode is also available: it detects changes by polling file modification times from PHP (no `inotify` extension required) and triggers the same graceful worker reload, so it also works in Docker and on macOS. The `auto` default selects `stat` when the `inotify` extension is not loaded (debug builds only)._
+
+    _Note that a worker reload can only apply changes to files that were not already loaded before the workers forked - PHP cannot redeclare a class the forked worker already holds. Applications that load most of their service classes during kernel boot get little or nothing out of it._
+
+    _For reliable local dev, use the [`swoole:server:watch`](docs/docker-usage.md#local-development) console command as a supervisor: it restarts the server on any watched change (with a `php -l` guard), so your edit always takes effect regardless of what was loaded before the fork._
   
 -   Access logs, (disabled by default) logs are configurable is a same way as apache mod log. Documentation of this feature is available [here](docs/swoole-access-logs.md).
+
+-   Liveness endpoint (disabled by default) on a port of its own, served by a dedicated process so that it keeps answering while every worker is busy. Projects can contribute their own checks to it. Documentation of this feature is available [here](docs/swoole-health.md).
 
 ## Requirements
 
@@ -109,7 +117,7 @@ Symfony integration with [Open Swoole](https://openswoole.com/) and [Swoole](htt
 
 -   PHP version `>= 8.3 && <= 8.5`
 -   Open Swoole PHP Extension `^v26.2.0`
--   Swoole PHP Extension `^6.2.0`
+-   Swoole PHP Extension `^6.2.0`+
 -   Symfony `^7.4 || 8.0.*`
 
 Additional requirements to enable specific features:

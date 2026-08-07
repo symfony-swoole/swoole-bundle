@@ -7,7 +7,7 @@ aliases:
 
   # Supported lowest Swoole versions
   - &coverage-swooles
-    swoole: [ 'openswoole-v26.2.0', 'swoole-v6.2.0' ]
+    swoole: [ 'openswoole-v26.2.0', 'swoole-v6.2.2' ]
 
   # Supported PHP versions
   - &php-versions
@@ -15,7 +15,7 @@ aliases:
 
   # Supported Swoole/OpenSwoole versions
   - &swooles
-    swoole: [ 'openswoole-v26.2.0', 'swoole-v6.2.0' ]
+    swoole: [ 'openswoole-v26.2.0', 'swoole-v6.2.2' ]
 
   # Docker bake matrix - combinations of PHP version with Swoole extension and version
   - &bake-matrix
@@ -38,7 +38,7 @@ aliases:
         symfony-version: '7.4.*'
       - composer-build: 'std'
         php-version: '8.4'
-        swoole: 'swoole-v6.2.0'
+        swoole: 'swoole-v6.2.2'
         symfony-version: '7.4.*'
       - composer-build: 'std'
         php-version: '8.5'
@@ -46,7 +46,7 @@ aliases:
         symfony-version: '7.4.*'
       - composer-build: 'std'
         php-version: '8.5'
-        swoole: 'swoole-v6.2.0'
+        swoole: 'swoole-v6.2.2'
         symfony-version: '7.4.*'
       - composer-build: 'std'
         php-version: '8.3'
@@ -62,15 +62,15 @@ aliases:
         symfony-version: '8.0.*'
       - composer-build: 'std'
         php-version: '8.3'
-        swoole: 'swoole-v6.2.0'
+        swoole: 'swoole-v6.2.2'
         symfony-version: '8.0.*'
       - composer-build: 'lowest'
         php-version: '8.3'
-        swoole: 'swoole-v6.2.0'
+        swoole: 'swoole-v6.2.2'
         symfony-version: '8.0.*'
       - composer-build: 'latest'
         php-version: '8.3'
-        swoole: 'swoole-v6.2.0'
+        swoole: 'swoole-v6.2.2'
         symfony-version: '8.0.*'
       - composer-build: 'std'
         php-version: '8.4'
@@ -78,7 +78,7 @@ aliases:
         symfony-version: '8.0.*'
       - composer-build: 'std'
         php-version: '8.4'
-        swoole: 'swoole-v6.2.0'
+        swoole: 'swoole-v6.2.2'
         symfony-version: '8.0.*'
       - composer-build: 'std'
         php-version: '8.5'
@@ -86,7 +86,7 @@ aliases:
         symfony-version: '8.0.*'
       - composer-build: 'std'
         php-version: '8.5'
-        swoole: 'swoole-v6.2.0'
+        swoole: 'swoole-v6.2.2'
         symfony-version: '8.0.*'
 
   # Remote Docker config
@@ -282,6 +282,10 @@ jobs:
           command: sudo chown -R 1000:1000 /home/circleci/project
       - run:
           name: Run Composer and GrumPHP in CI container
+          # Composer and GrumPHP buffer their output, so CircleCI sees nothing until the container is
+          # done and the default 10m no output timeout applies to the whole step. The lowest build
+          # regularly needs more than that just to resolve and download its dependencies.
+          no_output_timeout: 25m
           command: |
             source "$BASH_ENV"
             docker run --rm \
@@ -354,6 +358,7 @@ jobs:
           command: sudo chown -R 1000:1000 /home/circleci/project
       - run:
           name: Run Composer and tests in coverage container
+          no_output_timeout: 25m
           command: |
             docker run --rm \
               --privileged \
@@ -364,6 +369,7 @@ jobs:
               -e DATABASE_HOST=mysql \
               -e SWOOLE=<< parameters.swoole >> \
               -e COMPOSER_AUTH="${COMPOSER_AUTH}" \
+              -e APP_RUNTIME_MODE='web=1&worker=1' \
               --user app \
               --entrypoint sh \
               docker.io/symfonywithswoole/swoole-bundle-coverage-pcov:<< parameters.php-version >>-<< parameters.swoole >>-$CIRCLE_SHA1 \
@@ -428,6 +434,7 @@ jobs:
           command: sudo chown -R 1000:1000 /home/circleci/project
       - run:
           name: Run Composer and tests in coverage container
+          no_output_timeout: 25m
           command: |
             docker run --rm \
               --privileged \
@@ -438,6 +445,7 @@ jobs:
               -e DATABASE_HOST=mysql \
               -e SWOOLE=<< parameters.swoole >> \
               -e COMPOSER_AUTH="${COMPOSER_AUTH}" \
+              -e APP_RUNTIME_MODE='web=1&worker=1' \
               --user app \
               --entrypoint sh \
               docker.io/symfonywithswoole/swoole-bundle-coverage-xdebug:<< parameters.php-version >>-<< parameters.swoole >>-$CIRCLE_SHA1 \

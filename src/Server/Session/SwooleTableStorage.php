@@ -34,12 +34,12 @@ final class SwooleTableStorage implements Storage
 
     public static function fromDefaults(
         int $maxActiveSessions = 1024,
-        int $maxSessionDataBytes = 1024,
+        int $maxSessionDataBytes = 4096,
         float $tableConflictProportion = 0.2,
     ): self {
         return new self(
             new Table($maxActiveSessions, $tableConflictProportion),
-            $maxSessionDataBytes
+            $maxSessionDataBytes,
         );
     }
 
@@ -48,7 +48,7 @@ final class SwooleTableStorage implements Storage
      */
     public function set(string $key, mixed $data, int $ttl): void
     {
-        Assertion::greaterThan($ttl, 0, 'Provided TTL "%d" is not a positive number.');
+        Assertion::greaterThan($ttl, 0, 'Provided TTL "%s" is not a positive number.');
         Assertion::string($data, 'Storage data expected to be string, type %$2s given.');
         Assertion::maxLength(
             $key,
@@ -90,6 +90,11 @@ final class SwooleTableStorage implements Storage
 
             $this->sharedMemory->del($key);
         }
+    }
+
+    public function count(): int
+    {
+        return $this->sharedMemory->count();
     }
 
     /**

@@ -12,7 +12,9 @@ use ReflectionMethod;
 use RuntimeException;
 use SwooleBundle\SwooleBundle\Bridge\Log\AccessLogFormatter;
 use SwooleBundle\SwooleBundle\Bridge\Log\SimpleAccessLogFormatter;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\EventDispatcher\DebugClassLoaderOverridingWorkerStartHandler;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\StabilityChecker;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\ErrorHandler\ErrorHandlerResetter;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\ErrorHandler\ErrorResponder;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\ErrorHandler\ExceptionHandlerFactory;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\ErrorHandler\SymfonyExceptionHandler;
@@ -38,6 +40,11 @@ use SwooleBundle\SwooleBundle\Common\Adapter\Swoole;
 use SwooleBundle\SwooleBundle\Server\Config\Socket;
 use SwooleBundle\SwooleBundle\Server\Config\Sockets;
 use SwooleBundle\SwooleBundle\Server\Configurator\Configurator;
+use SwooleBundle\SwooleBundle\Server\Configurator\WithHealthEvaluatorProcess;
+use SwooleBundle\SwooleBundle\Server\Configurator\WithHealthProcess;
+use SwooleBundle\SwooleBundle\Server\Health\HealthCheck;
+use SwooleBundle\SwooleBundle\Server\Health\HealthReporter;
+use SwooleBundle\SwooleBundle\Server\Health\HealthStatusTable;
 use SwooleBundle\SwooleBundle\Server\HttpServerConfiguration;
 use SwooleBundle\SwooleBundle\Server\Middleware\MiddlewareInjector;
 use SwooleBundle\SwooleBundle\Server\RequestHandler\AdvancedStaticFilesServer;
@@ -49,10 +56,12 @@ use SwooleBundle\SwooleBundle\Server\Runtime\Bootable;
 use SwooleBundle\SwooleBundle\Server\Runtime\HMR\HotModuleReloader;
 use SwooleBundle\SwooleBundle\Server\Runtime\HMR\InotifyHMR;
 use SwooleBundle\SwooleBundle\Server\Runtime\HMR\NonReloadableFiles;
+use SwooleBundle\SwooleBundle\Server\Runtime\HMR\StatHMR;
 use SwooleBundle\SwooleBundle\Server\TaskHandler\TaskHandler;
 use SwooleBundle\SwooleBundle\Server\WorkerHandler\HMRWorkerStartHandler;
 use SwooleBundle\SwooleBundle\Server\WorkerHandler\WorkerStartHandler;
 use Symfony\Component\Config\FileLocator;
+use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Exception\ServiceNotFoundException;
@@ -129,8 +138,18 @@ use ZEngine\Core;
  *   verbosity: 'auto'|'verbose'|'default'|'trace',
  * }
  * @phpstan-type HmrConfig = array{
- *   enabled: 'off'|'auto'|'inotify'|'external',
+ *   enabled: 'off'|'auto'|'inotify'|'stat'|'external',
  *   file_path?: string,
+ * }
+ * @phpstan-type HealthcheckConfig = array{
+ *   enabled: bool,
+ *   host: string,
+ *   port: int,
+ *   path: string,
+ *   checks: array{
+ *     interval: int,
+ *     staleness_threshold: int,
+ *   },
  * }
  * @phpstan-type HttpServerConfig = array{
  *   running_mode: string,
@@ -139,6 +158,7 @@ use ZEngine\Core;
  *     host: string,
  *     port: int,
  *   },
+ *   healthcheck: HealthcheckConfig,
  *   hmr: HmrConfig,
  *   host: string,
  *   port: int,
@@ -155,10 +175,15 @@ use ZEngine\Core;
  *   services: ServicesConfig,
  *   exception_handler: ExceptionHandlerConfig,
  * }
+ * @phpstan-type SessionConfig = array{
+ *   max_data_bytes: int,
+ *   max_active_sessions: int,
+ * }
  * @phpstan-type BundleConfig = array{
  *   http_server: HttpServerConfig,
  *   task_worker?: TaskWorkerConfig,
  *   platform?: PlatformConfig,
+ *   session?: SessionConfig,
  * }
  */
 final class SwooleExtension extends Extension
@@ -178,6 +203,8 @@ final class SwooleExtension extends Extension
             ->addTag('swoole_bundle.bootable_service');
         $container->registerForAutoconfiguration(Configurator::class)
             ->addTag('swoole_bundle.server_configurator');
+        $container->registerForAutoconfiguration(HealthCheck::class)
+            ->addTag(ContainerConstants::TAG_HEALTH_CHECK);
 
         /** @var BundleConfig $config */
         $config = $this->processConfiguration($configuration, $configs);
@@ -203,6 +230,7 @@ final class SwooleExtension extends Extension
         $swooleSettings += isset($config['task_worker'])
             ? $this->configureTaskWorker($config['task_worker'], $container)
             : [];
+        $this->configureSession($config['session'] ?? [], $container);
         $this->assignSwooleConfiguration($swooleSettings, $runningMode, $maxConcurrency, $fiberContext, $container);
     }
 
@@ -353,6 +381,7 @@ final class SwooleExtension extends Extension
     {
         [
             'api' => $api,
+            'healthcheck' => $healthcheck,
             'hmr' => $hmr,
             'host' => $host,
             'port' => $port,
@@ -398,6 +427,15 @@ final class SwooleExtension extends Extension
                 new Reference(ContextReleasingHttpKernelRequestHandler::class . '.inner')
             );
             $coroutineKernelHandler->setDecoratedService(RequestHandler::class, null, -1000);
+
+            if ($this->isDebug($container) && PHP_OS_FAMILY === 'Darwin') {
+                $container->register(DebugClassLoaderOverridingWorkerStartHandler::class)
+                    ->setDecoratedService(WorkerStartHandler::class, null, -100)
+                    ->setArgument(
+                        '$decorated',
+                        new Reference(DebugClassLoaderOverridingWorkerStartHandler::class . '.inner'),
+                    );
+            }
         }
 
         if ($hmr['enabled'] === 'auto') {
@@ -411,9 +449,39 @@ final class SwooleExtension extends Extension
             $sockets->addArgument(new Definition(Socket::class, [$api['host'], $api['port']]));
         }
 
+        if ($healthcheck['enabled']) {
+            $this->configureHttpServerHealthcheck($healthcheck, $container);
+        }
+
         $this->configureHttpServerHMR($hmr, $container);
 
         return $settings;
+    }
+
+    /**
+     * @param HealthcheckConfig $healthcheck
+     */
+    private function configureHttpServerHealthcheck(array $healthcheck, ContainerBuilder $container): void
+    {
+        $container->register(HealthStatusTable::class)
+            ->setFactory([HealthStatusTable::class, 'forChecks'])
+            ->setArgument('$checkCount', 0);
+
+        $container->register(HealthReporter::class)
+            ->setArgument('$table', new Reference(HealthStatusTable::class))
+            ->setArgument('$stalenessThreshold', $healthcheck['checks']['staleness_threshold']);
+
+        $container->register(WithHealthEvaluatorProcess::class)
+            ->setArgument('$table', new Reference(HealthStatusTable::class))
+            ->setArgument('$checks', new TaggedIteratorArgument(ContainerConstants::TAG_HEALTH_CHECK))
+            ->setArgument('$interval', $healthcheck['checks']['interval'])
+            ->addTag('swoole_bundle.server_configurator');
+
+        $container->register(WithHealthProcess::class)
+            ->setArgument('$socket', new Definition(Socket::class, [$healthcheck['host'], $healthcheck['port']]))
+            ->setArgument('$reporter', new Reference(HealthReporter::class))
+            ->setArgument('$path', $healthcheck['path'])
+            ->addTag('swoole_bundle.server_configurator');
     }
 
     /**
@@ -440,6 +508,12 @@ final class SwooleExtension extends Extension
                 ->addTag('swoole_bundle.bootable_service');
         }
 
+        if ($hmr['enabled'] === 'stat') {
+            $container->register(HotModuleReloader::class, StatHMR::class)
+                ->addTag('swoole_bundle.bootable_service')
+                ->setArgument('$kernelCacheDir', $container->getParameter('kernel.cache_dir'));
+        }
+
         $container->register(HMRWorkerStartHandler::class)
             ->setPublic(false)
             ->setAutoconfigured(false)
@@ -450,15 +524,11 @@ final class SwooleExtension extends Extension
     }
 
     /**
-     * @return 'inotify'|'off'
+     * @return 'inotify'|'stat'
      */
     private function resolveAutoHMR(): string
     {
-        if (extension_loaded('inotify')) {
-            return 'inotify';
-        }
-
-        return 'off';
+        return extension_loaded('inotify') ? 'inotify' : 'stat';
     }
 
     /**
@@ -488,13 +558,7 @@ final class SwooleExtension extends Extension
                 ->setDecoratedService(RequestHandler::class, null, -10);
         }
 
-        if (
-            $config['blackfire_profiler']
-            || (
-                $config['blackfire_profiler'] === false
-                && class_exists(BlackfireProfiler::class)
-            )
-        ) {
+        if ($config['blackfire_profiler'] && class_exists(BlackfireProfiler::class)) {
             $container->register(BlackfireProfiler::class)
                 ->setClass(BlackfireProfiler::class);
 
@@ -616,8 +680,16 @@ final class SwooleExtension extends Extension
             );
         }
 
-        $container->register('swoole_bundle.error_handler.symfony_error_handler', ErrorHandler::class)
+        $container->register('swoole_bundle.error_handler.resetter', ErrorHandlerResetter::class)
             ->setPublic(false);
+        $container->register('swoole_bundle.error_handler.symfony_error_handler', ErrorHandler::class)
+            ->setPublic(true)
+            // the handler is pooled per coroutine, but ErrorHandler::handleException() leaves a
+            // `[$this, 'renderException']` behind in $exceptionHandler which makes the next request's
+            // proxied setExceptionHandler() call fatal - see ErrorHandlerResetter
+            ->addTag(ContainerConstants::TAG_STATEFUL_SERVICE, [
+                'resetter' => 'swoole_bundle.error_handler.resetter',
+            ]);
         $container->register(ThrowableHandlerFactory::class)
             ->setPublic(false);
         $container->register('swoole_bundle.error_handler.symfony_kernel_throwable_handler', ReflectionMethod::class)
@@ -711,6 +783,15 @@ final class SwooleExtension extends Extension
             ->addArgument($swooleSettings)
             ->addArgument($maxConcurrency)
             ->addArgument($fiberContext);
+    }
+
+    /**
+     * @param array<never, never>|SessionConfig $config
+     */
+    private function configureSession(array $config, ContainerBuilder $container): void
+    {
+        $container->setParameter('swoole_bundle.session.max_data_bytes', $config['max_data_bytes'] ?? 4096);
+        $container->setParameter('swoole_bundle.session.max_active_sessions', $config['max_active_sessions'] ?? 1024);
     }
 
     private function isProd(ContainerBuilder $container): bool

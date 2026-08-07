@@ -132,6 +132,7 @@
   <file>src</file>
   <file>tests</file>
   <exclude-pattern>/src/Bridge/Monolog/StreamHandler\.php$</exclude-pattern>
+  <exclude-pattern>/tests/Fixtures/Symfony/app/config/reference.php</exclude-pattern>
   <exclude-pattern>/tests/Fixtures/Symfony/app/var/*</exclude-pattern>
 
 </ruleset>
