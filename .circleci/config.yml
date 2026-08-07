@@ -309,9 +309,16 @@ jobs:
           no_output_timeout: 25m
           command: |
             source "$BASH_ENV"
+            # --ulimit memlock: swoole is built with io_uring, and every ring it creates pins memory
+            # against the container's locked-memory limit. Docker defaults that to 8MB, which four
+            # parallel test workers exhaust between them - and swoole treats a failed
+            # io_uring_queue_init as fatal, so the process dies where it stands: no output, nothing
+            # on stderr, nothing in dmesg. It surfaced as "the server was started but never
+            # answered", and as PHPUnit's "child process ended unexpectedly".
             docker run --rm \
               --privileged \
               --security-opt seccomp=unconfined \
+              --ulimit memlock=-1 \
               --network grumphp-network \
               -v /home/circleci/project:/usr/src/app \
               -w /usr/src/app \
@@ -402,9 +409,11 @@ jobs:
           name: Run Composer and tests in coverage container
           no_output_timeout: 25m
           command: |
+            # --ulimit memlock: see the note in the grumphp job above.
             docker run --rm \
               --privileged \
               --security-opt seccomp=unconfined \
+              --ulimit memlock=-1 \
               --network coverage-network \
               -v /home/circleci/project:/usr/src/app \
               -w /usr/src/app \
@@ -499,9 +508,11 @@ jobs:
           name: Run Composer and tests in coverage container
           no_output_timeout: 25m
           command: |
+            # --ulimit memlock: see the note in the grumphp job above.
             docker run --rm \
               --privileged \
               --security-opt seccomp=unconfined \
+              --ulimit memlock=-1 \
               --network coverage-xdebug-network \
               -v /home/circleci/project:/usr/src/app \
               -w /usr/src/app \

@@ -28,14 +28,12 @@ return static function (ContainerConfigurator $containerConfigurator): void {
 
     $parameters->set('env(REACTOR_COUNT)', 1);
 
-    // Swoole gives an exiting worker three seconds to finish what it is doing and then force-terminates
-    // it ("Worker_reactor_try_to_exit ... forced termination"). A worker with hooked file I/O still
-    // outstanding can need longer than that: with SWOOLE_HOOK_FILE those writes go through io_uring, and
-    // draining them is slow enough under load to overrun the budget - measured at ~12s to drain work that
-    // completes cleanly given the time, while the same load parked in timers drains instantly. A test
-    // worker that dies mid-shutdown holds its port past the next test's server start, so the failure
-    // surfaces one test later as "started but never answered". Nothing here needs a shutdown that brisk.
-    $parameters->set('env(WORKER_MAX_WAIT_TIME)', 30);
+    // Do not raise worker_max_wait_time here. Swoole force-terminates an exiting worker after three
+    // seconds, and it turns out a good number of these servers hit that limit every single run - on
+    // openswoole as much as on swoole, so it is not the io_uring file draining it first looked like.
+    // Raising the budget to 30 did not stop anything failing, it only made every one of those shutdowns
+    // wait ten times as long: the whole suite went from 4.1 to 8.1 minutes on both engines. The
+    // force-termination is routine here, and cheap; waiting it out is neither.
 
     $containerConfigurator->extension('swoole', [
         'http_server' => [
@@ -46,7 +44,6 @@ return static function (ContainerConfigurator $containerConfigurator): void {
             'settings' => [
                 'worker_count' => '%env(int:WORKER_COUNT)%',
                 'reactor_count' => '%env(int:REACTOR_COUNT)%',
-                'worker_max_wait_time' => '%env(int:WORKER_MAX_WAIT_TIME)%',
             ],
         ],
     ]);
