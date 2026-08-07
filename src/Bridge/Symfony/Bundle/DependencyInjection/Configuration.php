@@ -358,6 +358,13 @@ final readonly class Configuration implements ConfigurationInterface
                                 ->scalarNode('worker_max_request_grace')
                                     ->defaultNull()
                                 ->end()
+                                // Seconds a worker is given to finish what it is doing when it is told
+                                // to exit, before swoole force-terminates it. Left unset, swoole's own
+                                // default of 3 applies - which a worker with outstanding hooked file
+                                // I/O can overrun, and then it dies mid-shutdown.
+                                ->scalarNode('worker_max_wait_time')
+                                    ->defaultNull()
+                                ->end()
                                 ->scalarNode('upload_tmp_dir')
                                     ->defaultValue('/tmp')
                                 ->end()

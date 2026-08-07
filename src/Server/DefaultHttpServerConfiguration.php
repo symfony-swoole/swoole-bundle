@@ -28,6 +28,7 @@ use SwooleBundle\SwooleBundle\Server\Config\Sockets;
  *   package_max_length?: string,
  *   worker_max_request?: int,
  *   worker_max_request_grace?: int,
+ *   worker_max_wait_time?: int,
  *   enable_coroutine?: bool,
  *   task_enable_coroutine?: bool,
  *   task_use_object?: bool,
@@ -54,6 +55,7 @@ use SwooleBundle\SwooleBundle\Server\Config\Sockets;
  *    package_max_length?: string,
  *    worker_max_request: int,
  *    worker_max_request_grace?: int,
+ *    worker_max_wait_time?: int,
  *    enable_coroutine?: bool,
  *    task_enable_coroutine?: bool,
  *    task_use_object?: bool,
@@ -85,6 +87,7 @@ final class DefaultHttpServerConfiguration implements HttpServerConfiguration
     private const string SWOOLE_HTTP_SERVER_CONFIG_PACKAGE_MAX_LENGTH = 'package_max_length';
     private const string SWOOLE_HTTP_SERVER_CONFIG_WORKER_MAX_REQUEST = 'worker_max_request';
     private const string SWOOLE_HTTP_SERVER_CONFIG_WORKER_MAX_REQUEST_GRACE = 'worker_max_request_grace';
+    private const string SWOOLE_HTTP_SERVER_CONFIG_WORKER_MAX_WAIT_TIME = 'worker_max_wait_time';
     private const string SWOOLE_HTTP_SERVER_CONFIG_ENABLE_COROUTINE = 'enable_coroutine';
     private const string SWOOLE_HTTP_SERVER_CONFIG_MAX_COROUTINE = 'max_coroutine';
     private const string SWOOLE_HTTP_SERVER_CONFIG_TASK_ENABLE_COROUTINE = 'task_enable_coroutine';
@@ -119,6 +122,7 @@ final class DefaultHttpServerConfiguration implements HttpServerConfiguration
         self::SWOOLE_HTTP_SERVER_CONFIG_TASK_WORKER_COUNT => 'task_worker_num',
         self::SWOOLE_HTTP_SERVER_CONFIG_WORKER_COUNT => 'worker_num',
         self::SWOOLE_HTTP_SERVER_CONFIG_WORKER_MAX_REQUEST => 'max_request',
+        self::SWOOLE_HTTP_SERVER_CONFIG_WORKER_MAX_WAIT_TIME => 'max_wait_time',
         self::SWOOLE_HTTP_SERVER_CONFIG_USER => 'user',
         self::SWOOLE_HTTP_SERVER_CONFIG_GROUP => 'group',
     ];
@@ -617,6 +621,11 @@ final class DefaultHttpServerConfiguration implements HttpServerConfiguration
             case self::SWOOLE_HTTP_SERVER_CONFIG_WORKER_MAX_REQUEST_GRACE:
                 Assertion::nullOrInteger($value, sprintf('Setting "%s" must be an integer or null.', $key));
                 Assertion::nullOrGreaterOrEqualThan($value, 0, 'Value cannot be negative, "%s" provided.');
+
+                break;
+            case self::SWOOLE_HTTP_SERVER_CONFIG_WORKER_MAX_WAIT_TIME:
+                Assertion::nullOrInteger($value, sprintf('Setting "%s" must be an integer or null.', $key));
+                Assertion::nullOrGreaterThan($value, 0, 'Wait time must be a positive number, "%s" provided.');
 
                 break;
             case self::SWOOLE_HTTP_SERVER_CONFIG_ENABLE_COROUTINE:
