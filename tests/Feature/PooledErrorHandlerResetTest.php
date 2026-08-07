@@ -53,15 +53,6 @@ final class PooledErrorHandlerResetTest extends ServerTestCase
     {
         parent::setUp();
 
-        $this->markTestSkippedOnSwoole(
-            'Workers of a swoole server can hang on exit until swoole force-terminates them '
-            . '("Worker_reactor_try_to_exit ... forced termination"), leaving a single-worker server '
-            . 'with nothing left to answer requests. Roughly one suite run in four, and never seen on '
-            . 'openswoole. These two tests run a single worker on purpose, so they have no spare and '
-            . 'are where it turns fatal - the bug is in worker shutdown and predates running the tests '
-            . 'in parallel. @todo link the tracking issue.',
-        );
-
         $this->deleteVarDirectory();
     }
 

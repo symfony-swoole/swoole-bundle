@@ -28,6 +28,13 @@ return static function (ContainerConfigurator $containerConfigurator): void {
 
     $parameters->set('env(REACTOR_COUNT)', 1);
 
+    // Do not raise worker_max_wait_time here. Swoole force-terminates an exiting worker after three
+    // seconds, and it turns out a good number of these servers hit that limit every single run - on
+    // openswoole as much as on swoole, so it is not the io_uring file draining it first looked like.
+    // Raising the budget to 30 did not stop anything failing, it only made every one of those shutdowns
+    // wait ten times as long: the whole suite went from 4.1 to 8.1 minutes on both engines. The
+    // force-termination is routine here, and cheap; waiting it out is neither.
+
     $containerConfigurator->extension('swoole', [
         'http_server' => [
             'port' => '%env(int:PORT)%',
