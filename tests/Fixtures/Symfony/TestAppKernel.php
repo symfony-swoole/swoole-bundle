@@ -17,6 +17,7 @@ use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\DependencyInject
     CompilerPass\OverrideDoctrineCompilerPass,
 };
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\TestBundle;
+use SwooleBundle\SwooleBundle\Tests\Helper\TestToken;
 use Symfony\Bundle\FrameworkBundle\FrameworkBundle;
 use Symfony\Bundle\FrameworkBundle\Kernel\MicroKernelTrait;
 use Symfony\Bundle\MonologBundle\MonologBundle;
@@ -25,6 +26,7 @@ use Symfony\Bundle\TwigBundle\TwigBundle;
 use Symfony\Bundle\WebProfilerBundle\WebProfilerBundle;
 use Symfony\Component\Config\Exception\LoaderLoadException;
 use Symfony\Component\Config\Loader\LoaderInterface;
+use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -170,6 +172,7 @@ final class TestAppKernel extends Kernel implements WarmableInterface
     protected function build(ContainerBuilder $container): void
     {
         $container->addCompilerPass(new OverrideDoctrineCompilerPass());
+        $this->doNotDumpTheConfigReference($container);
     }
 
     /**
@@ -195,6 +198,9 @@ final class TestAppKernel extends Kernel implements WarmableInterface
     protected function configureContainer(ContainerBuilder $container, LoaderInterface $loader): void
     {
         $container->setParameter('bundle.root_dir', dirname(__DIR__, 3));
+        // Fixtures that put a file next to the caches and logs have to follow the worker's var
+        // directory rather than assume "var" - see self::getVarDir().
+        $container->setParameter('test.var_dir', $this->getVarDir());
 
         $confDir = $this->getProjectDir() . '/config';
 
@@ -207,7 +213,8 @@ final class TestAppKernel extends Kernel implements WarmableInterface
 
         foreach ($configFiles as $file) {
             if (basename($file) === 'reference.php') {
-                unlink($file);
+                // Parallel workers race each other to it; losing the race is not worth a warning.
+                @unlink($file);
 
                 continue;
             }
@@ -226,9 +233,38 @@ final class TestAppKernel extends Kernel implements WarmableInterface
         $this->loadOverrideForProdEnvironment($confDir, $loader);
     }
 
+    /**
+     * Drops the compiler pass that writes config/reference.php.
+     *
+     * That file is an IDE convenience - generated types for autocompleting the php config files - and no
+     * test reads it. FrameworkBundle writes it on every debug compile, into the single config directory
+     * all the parallel workers share, and PhpFileLoader includes it while compiling: one worker rewriting
+     * it while another is part-way through including it ends the second one with "Cannot redeclare class
+     * AppReference". Not generating it is simpler than racing over it, which is why the fixtures used to
+     * delete it on the way past.
+     *
+     * Matched by name rather than by class, so this keeps working on Symfony versions that have no such
+     * pass - and it is marked @internal, which is reason enough not to import it.
+     */
+    private function doNotDumpTheConfigReference(ContainerBuilder $container): void
+    {
+        $passConfig = $container->getCompilerPassConfig();
+
+        $passConfig->setBeforeOptimizationPasses(array_values(array_filter(
+            $passConfig->getBeforeOptimizationPasses(),
+            static fn(CompilerPassInterface $pass): bool => $pass::class
+                !== 'Symfony\Bundle\FrameworkBundle\DependencyInjection\Compiler\PhpConfigReferenceDumpPass',
+        )));
+    }
+
+    /**
+     * Caches and logs land in a directory of this worker's own - "var" on its own, "var-2" for the
+     * second ParaTest worker and so on. Feature tests wipe this directory between tests, and without
+     * the split one worker would pull the compiled container out from under another mid-boot.
+     */
     private function getVarDir(): string
     {
-        return $this->getProjectDir() . '/var';
+        return $this->getProjectDir() . '/var' . TestToken::suffix();
     }
 
     private function loadOverrideForProdEnvironment(string $confDir, LoaderInterface $loader): void

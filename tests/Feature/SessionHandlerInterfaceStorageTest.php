@@ -66,7 +66,7 @@ final class SessionHandlerInterfaceStorageTest extends ServerTestCase
         $serverStart = $this->createConsoleProcess([
             'swoole:server:start',
             '--host=localhost',
-            '--port=9999',
+            sprintf('--port=%d', self::port()),
         ], $envs);
 
         $serverStart->setTimeout(5);
@@ -78,8 +78,8 @@ final class SessionHandlerInterfaceStorageTest extends ServerTestCase
         $this->runAsCoroutineAndWait(function () use ($envs): void {
             $this->deferServerStop([], $envs);
 
-            $client = HttpClient::fromDomain('localhost', 9999, false);
-            $this->assertTrue($client->connect(3, 1, true));
+            $client = HttpClient::fromDomain('localhost', self::port(), false);
+            $this->assertTrue($client->connect(self::connectTimeout(), 1, true));
 
             $response1 = $client->send('/session/1')['response'];
             $this->assertSame(200, $response1['statusCode']);

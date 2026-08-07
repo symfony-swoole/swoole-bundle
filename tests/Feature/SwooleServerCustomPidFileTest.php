@@ -25,7 +25,7 @@ final class SwooleServerCustomPidFileTest extends ServerTestCase
         $serverStart = $this->createConsoleProcess([
             'swoole:server:start',
             '--host=localhost',
-            '--port=9999',
+            sprintf('--port=%d', self::port()),
             sprintf('--pid-file=%s', $pidFile),
         ]);
 
@@ -40,8 +40,8 @@ final class SwooleServerCustomPidFileTest extends ServerTestCase
         $this->runAsCoroutineAndWait(function () use ($pidFile): void {
             $this->deferServerStop([sprintf('--pid-file=%s', $pidFile)]);
 
-            $client = HttpClient::fromDomain('localhost', 9999, false);
-            $this->assertTrue($client->connect(waitIfNoConnection: true));
+            $client = HttpClient::fromDomain('localhost', self::port(), false);
+            $this->assertTrue($client->connect(self::connectTimeout(), waitIfNoConnection: true));
 
             $this->assertFileExists($pidFile);
             $this->assertIsNumeric(file_get_contents($pidFile));
@@ -57,7 +57,7 @@ final class SwooleServerCustomPidFileTest extends ServerTestCase
         $serverStart = $this->createConsoleProcess([
             'swoole:server:start',
             '--host=localhost',
-            '--port=9999',
+            sprintf('--port=%d', self::port()),
             sprintf('--pid-file=%s', $pidFile),
         ]);
 

@@ -26,6 +26,10 @@ final class RecursiveOwnerMutex implements Mutex
     {
         $possibleOwnerId = $this->swoole->getCoroutineId();
 
+        if ($this->isOutsideACoroutine($possibleOwnerId)) {
+            return;
+        }
+
         if ($this->canBeAcquired($possibleOwnerId)) {
             if (!$this->isAcquired()) {
                 Assertion::notNull($this->wrapped);
@@ -46,6 +50,10 @@ final class RecursiveOwnerMutex implements Mutex
     public function release(): void
     {
         $possibleOwnerId = $this->swoole->getCoroutineId();
+
+        if ($this->isOutsideACoroutine($possibleOwnerId)) {
+            return;
+        }
 
         if (!$this->isOwnedBy($possibleOwnerId)) {
             throw new RuntimeException(sprintf('Mutex cannot be released by %d.', $possibleOwnerId));
@@ -75,5 +83,23 @@ final class RecursiveOwnerMutex implements Mutex
     private function isOwnedBy(int $possibleOwnerId): bool
     {
         return $this->ownerId === $possibleOwnerId;
+    }
+
+    /**
+     * Swoole reports -1 when nothing is running inside a coroutine - the server's own lifecycle
+     * callbacks, onWorkerExit above all, are called that way.
+     *
+     * There is nothing to lock there, and no way to lock: the wrapped mutex waits on a Channel, and a
+     * Channel outside a coroutine does not block, it throws "API must be called in the coroutine". A
+     * worker exiting while another coroutine still holds this mutex would take that exception through
+     * its exit handler and die mid-shutdown, leaving a server with no worker to answer anything.
+     *
+     * Skipping is also the honest answer rather than a workaround: without a coroutine there is no
+     * scheduler running, so no other coroutine of this process can be resumed while we are in here,
+     * and nothing can race us for the container.
+     */
+    private function isOutsideACoroutine(int $possibleOwnerId): bool
+    {
+        return $possibleOwnerId < 0;
     }
 }

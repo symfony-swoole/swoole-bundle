@@ -29,7 +29,7 @@ final class SwooleSessionGarbageCollectionTest extends ServerTestCase
         $serverStart = $this->createConsoleProcess([
             'swoole:server:start',
             '--host=localhost',
-            '--port=9998',
+            sprintf('--port=%d', self::port(1)),
         ], $envs);
 
         $serverStart->setTimeout(3);
@@ -42,8 +42,8 @@ final class SwooleSessionGarbageCollectionTest extends ServerTestCase
             $this->deferServerStop([], $envs);
 
             // Create initial session via client1
-            $client1 = HttpClient::fromDomain('localhost', 9998, false);
-            $this->assertTrue($client1->connect(3, 1, true));
+            $client1 = HttpClient::fromDomain('localhost', self::port(1), false);
+            $this->assertTrue($client1->connect(self::connectTimeout(), 1, true));
 
             $response1 = $client1->send('/session/gc-test')['response'];
             $this->assertSame(200, $response1['statusCode']);
@@ -57,8 +57,8 @@ final class SwooleSessionGarbageCollectionTest extends ServerTestCase
             sleep(2);
 
             // Use a fresh client (no cookies) to trigger GC without refreshing the expired session
-            $client2 = HttpClient::fromDomain('localhost', 9998, false);
-            $this->assertTrue($client2->connect(3, 1, true));
+            $client2 = HttpClient::fromDomain('localhost', self::port(1), false);
+            $this->assertTrue($client2->connect(self::connectTimeout(), 1, true));
             $client2->send('/session/gc-test');
 
             // GC (100% probability) should have removed the expired session
@@ -79,7 +79,7 @@ final class SwooleSessionGarbageCollectionTest extends ServerTestCase
         $serverStart = $this->createConsoleProcess([
             'swoole:server:start',
             '--host=localhost',
-            '--port=9997',
+            sprintf('--port=%d', self::port(2)),
         ], $envs);
 
         $serverStart->setTimeout(3);
@@ -92,8 +92,8 @@ final class SwooleSessionGarbageCollectionTest extends ServerTestCase
             $this->deferServerStop([], $envs);
 
             // Create initial session via client1
-            $client1 = HttpClient::fromDomain('localhost', 9997, false);
-            $this->assertTrue($client1->connect(3, 1, true));
+            $client1 = HttpClient::fromDomain('localhost', self::port(2), false);
+            $this->assertTrue($client1->connect(self::connectTimeout(), 1, true));
 
             $response1 = $client1->send('/session/gc-test')['response'];
             $this->assertSame(200, $response1['statusCode']);
@@ -106,8 +106,8 @@ final class SwooleSessionGarbageCollectionTest extends ServerTestCase
             sleep(2);
 
             // Use a fresh client (no cookies) so the expired session is not refreshed
-            $client2 = HttpClient::fromDomain('localhost', 9997, false);
-            $this->assertTrue($client2->connect(3, 1, true));
+            $client2 = HttpClient::fromDomain('localhost', self::port(2), false);
+            $this->assertTrue($client2->connect(self::connectTimeout(), 1, true));
             $client2->send('/session/gc-test');
 
             // GC did not run (probability=0); expired session (id1) still in table alongside new one (id2)

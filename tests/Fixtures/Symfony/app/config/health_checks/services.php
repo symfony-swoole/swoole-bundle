@@ -8,6 +8,6 @@ use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigura
 return static function (ContainerConfigurator $containerConfigurator): void {
     $containerConfigurator->services()
         ->set(FlaggedHealthCheck::class)
-        ->arg('$flagFile', '%kernel.project_dir%/var/health-check-unhealthy')
+        ->arg('$flagFile', '%test.var_dir%/health-check-unhealthy')
         ->autoconfigure();
 };

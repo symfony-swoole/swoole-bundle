@@ -11,16 +11,13 @@ use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Test\ServerTestC
 
 final class SwooleServerHealthCheckFailureTest extends ServerTestCase
 {
-    private const int APP_PORT = 9999;
-    private const int HEALTH_PORT = 9997;
-
     #[Override]
     protected function setUp(): void
     {
         parent::setUp();
 
         $this->deleteVarDirectory();
-        $this->killAllProcessesListeningOnPort(self::HEALTH_PORT);
+        $this->killAllProcessesListeningOnPort(self::port(2));
     }
 
     public function testACheckThatCannotBeBuiltDoesNotRestartTheEvaluatorInALoop(): void
@@ -31,8 +28,8 @@ final class SwooleServerHealthCheckFailureTest extends ServerTestCase
         $this->runAsCoroutineAndWait(function () use ($envs): void {
             $this->deferServerStop([], $envs);
 
-            $client = HttpClient::fromDomain('localhost', self::HEALTH_PORT, false);
-            $this->assertTrue($client->connect(3, 1, true));
+            $client = HttpClient::fromDomain('localhost', self::port(2), false);
+            $this->assertTrue($client->connect(self::connectTimeout(), 1, true));
 
             $before = $this->serverProcessIds();
             $this->assertNotEmpty($before, 'Could not find any server process.');
@@ -92,7 +89,7 @@ final class SwooleServerHealthCheckFailureTest extends ServerTestCase
         $serverStart = $this->createConsoleProcess([
             'swoole:server:start',
             '--host=localhost',
-            sprintf('--port=%d', self::APP_PORT),
+            sprintf('--port=%d', self::port()),
         ], $envs);
 
         $serverStart->setTimeout(5);

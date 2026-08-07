@@ -10,16 +10,13 @@ use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Test\ServerTestC
 
 final class SwooleServerHealthChecksTest extends ServerTestCase
 {
-    private const int APP_PORT = 9999;
-    private const int HEALTH_PORT = 9997;
-
     #[Override]
     protected function setUp(): void
     {
         parent::setUp();
 
         $this->deleteVarDirectory();
-        $this->killAllProcessesListeningOnPort(self::HEALTH_PORT);
+        $this->killAllProcessesListeningOnPort(self::port(2));
         $this->clearUnhealthyFlag();
     }
 
@@ -39,7 +36,7 @@ final class SwooleServerHealthChecksTest extends ServerTestCase
         $this->runAsCoroutineAndWait(function () use ($envs): void {
             $this->deferServerStop([], $envs);
 
-            $this->assertTrue($this->awaitHealthEndpoint(self::HEALTH_PORT));
+            $this->assertTrue($this->awaitHealthEndpoint(self::port(2)));
 
             $healthy = $this->probeUntil(static fn(array $body): bool => $body['ok'] === true);
 
@@ -69,10 +66,10 @@ final class SwooleServerHealthChecksTest extends ServerTestCase
         $this->runAsCoroutineAndWait(function () use ($envs): void {
             $this->deferServerStop([], $envs);
 
-            $this->assertTrue($this->awaitHealthEndpoint(self::HEALTH_PORT));
+            $this->assertTrue($this->awaitHealthEndpoint(self::port(2)));
 
             $startedAt = microtime(true);
-            $response = $this->sendHealthRequest(self::HEALTH_PORT, '/healthz');
+            $response = $this->sendHealthRequest(self::port(2), '/healthz');
             $elapsed = microtime(true) - $startedAt;
 
             $this->assertLessThan(
@@ -86,7 +83,7 @@ final class SwooleServerHealthChecksTest extends ServerTestCase
             Coroutine::sleep(5);
 
             $startedAt = microtime(true);
-            $response = $this->sendHealthRequest(self::HEALTH_PORT, '/healthz');
+            $response = $this->sendHealthRequest(self::port(2), '/healthz');
             $elapsed = microtime(true) - $startedAt;
 
             $this->assertLessThan(1.0, $elapsed);
@@ -104,7 +101,7 @@ final class SwooleServerHealthChecksTest extends ServerTestCase
         $response = null;
 
         for ($attempt = 0; $attempt < $attempts; ++$attempt) {
-            $response = $this->sendHealthRequest(self::HEALTH_PORT, '/healthz');
+            $response = $this->sendHealthRequest(self::port(2), '/healthz');
 
             if ($isSettled($response['body'])) {
                 break;
@@ -147,7 +144,7 @@ final class SwooleServerHealthChecksTest extends ServerTestCase
         $serverStart = $this->createConsoleProcess([
             'swoole:server:start',
             '--host=localhost',
-            sprintf('--port=%d', self::APP_PORT),
+            sprintf('--port=%d', self::port()),
         ], $envs);
 
         $serverStart->setTimeout(5);

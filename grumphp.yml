@@ -2,6 +2,13 @@ grumphp:
   stop_on_failure: true
   process_timeout: 900
   hide_circumvention_tip: true
+  parallel:
+    # GrumPHP runs its tasks concurrently by default, which puts PHPStan and the feature tests on the
+    # build box at the same time. PHPStan then walks the fixture tree while ParaTest is creating and
+    # deleting the per-worker var directories under it, and dies with "Failed to open directory" - and
+    # the two suites fight over the same cores, which is what the feature tests' timeouts are sized
+    # against. They are cheap enough to run one after another.
+    enabled: false
   testsuites:
     complete:
       tasks:
@@ -10,11 +17,11 @@ grumphp:
         - phpstan_src
         - phpstan_tests
         - phpunit_unit
-        - phpunit_feature
+        - paratest_feature
     tests:
       tasks:
         - phpunit_unit
-        - phpunit_feature
+        - paratest_feature
   tasks:
     phpcs:
       standard: 'phpcs.xml'
@@ -54,9 +61,13 @@ grumphp:
       always_execute: true
       metadata:
         task: phpunit
-    phpunit_feature:
-      config_file: phpunit.feature.xml
+    # Feature tests run in parallel - each worker gets its own ports, var directory, pid file and
+    # database, see SwooleBundle\SwooleBundle\Tests\Helper\TestToken. Process isolation comes from
+    # phpunit.feature.xml, which the workers load; the task has no flag for it.
+    paratest_feature:
+      configuration: phpunit.feature.xml
       testsuite: FeatureTests
+      processes: 4
       always_execute: true
       metadata:
-        task: phpunit
+        task: paratest

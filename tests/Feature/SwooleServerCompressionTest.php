@@ -24,7 +24,7 @@ final class SwooleServerCompressionTest extends ServerTestCase
             [
                 'swoole:server:start',
                 '--host=localhost',
-                '--port=9999',
+                sprintf('--port=%d', self::port()),
             ],
             [
                 'APP_ENV' => 'compression',
@@ -40,8 +40,8 @@ final class SwooleServerCompressionTest extends ServerTestCase
         $this->runAsCoroutineAndWait(function (): void {
             $this->deferServerStop();
 
-            $client = HttpClient::fromDomain('localhost', 9999, false);
-            $this->assertTrue($client->connect(waitIfNoConnection: true));
+            $client = HttpClient::fromDomain('localhost', self::port(), false);
+            $this->assertTrue($client->connect(self::connectTimeout(), waitIfNoConnection: true));
             /** @var array{
              *    body: array{
              *      server: array{
@@ -66,7 +66,7 @@ final class SwooleServerCompressionTest extends ServerTestCase
             [
                 'swoole:server:start',
                 '--host=localhost',
-                '--port=9999',
+                sprintf('--port=%d', self::port()),
             ],
         );
 
@@ -79,8 +79,8 @@ final class SwooleServerCompressionTest extends ServerTestCase
         $this->runAsCoroutineAndWait(function (): void {
             $this->deferServerStop();
 
-            $client = HttpClient::fromDomain('localhost', 9999, false);
-            $this->assertTrue($client->connect(waitIfNoConnection: true));
+            $client = HttpClient::fromDomain('localhost', self::port(), false);
+            $this->assertTrue($client->connect(self::connectTimeout(), waitIfNoConnection: true));
             /** @var array{
              *   body: array{
              *     server: array{

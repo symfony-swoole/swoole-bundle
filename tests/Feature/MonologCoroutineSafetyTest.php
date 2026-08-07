@@ -31,13 +31,6 @@ use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Test\ServerTestC
  */
 final class MonologCoroutineSafetyTest extends ServerTestCase
 {
-    private const int PORT = 9998;
-
-    /**
-     * The environments under test have the api server on, and it binds a port of its own.
-     */
-    private const int API_PORT = 9201;
-
     /**
      * Above the environments' `max_service_instances`, so handlers are recycled rather than one per request.
      */
@@ -73,7 +66,7 @@ final class MonologCoroutineSafetyTest extends ServerTestCase
         $this->runAsCoroutineAndWait(function () use ($envs, $markersByWave): void {
             $this->deferServerStop([], $envs);
 
-            self::assertTrue($this->awaitHealthEndpoint(self::PORT));
+            self::assertTrue($this->awaitHealthEndpoint(self::port(1)));
 
             foreach ($markersByWave as $waveMarkers) {
                 $waitGroup = $this->getSwoole()->waitGroup();
@@ -82,8 +75,8 @@ final class MonologCoroutineSafetyTest extends ServerTestCase
                     go(static function () use ($waitGroup, $marker): void {
                         $waitGroup->add();
 
-                        $client = HttpClient::fromDomain('localhost', self::PORT, false);
-                        self::assertTrue($client->connect(waitIfNoConnection: true));
+                        $client = HttpClient::fromDomain('localhost', self::port(1), false);
+                        self::assertTrue($client->connect(self::connectTimeout(), waitIfNoConnection: true));
 
                         $response = $client->send(sprintf('/log-warning/%s', $marker))['response'];
 
@@ -98,8 +91,11 @@ final class MonologCoroutineSafetyTest extends ServerTestCase
 
             // the worker dying takes the whole thing with it, so whether it is still there has to be asked
             // after the load, not during it
-            $client = HttpClient::fromDomain('localhost', self::PORT, false);
-            self::assertTrue($client->connect(3, 1, true), 'The worker did not survive concurrent logging.');
+            $client = HttpClient::fromDomain('localhost', self::port(1), false);
+            self::assertTrue(
+                $client->connect(self::connectTimeout(), 1, true),
+                'The worker did not survive concurrent logging.',
+            );
             self::assertSame(
                 200,
                 $client->send(sprintf('/log-warning/%s', self::FINAL_MARKER))['response']['statusCode'],
@@ -181,8 +177,9 @@ final class MonologCoroutineSafetyTest extends ServerTestCase
         $serverStart = $this->createConsoleProcess([
             'swoole:server:start',
             '--host=localhost',
-            sprintf('--port=%d', self::PORT),
-            sprintf('--api-port=%d', self::API_PORT),
+            sprintf('--port=%d', self::port(1)),
+            // The environments under test have the api server on, and it binds a port of its own.
+            sprintf('--api-port=%d', self::port(3)),
         ], $envs);
         $serverStart->setTimeout(30);
         $serverStart->disableOutput();

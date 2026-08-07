@@ -5,6 +5,10 @@ sync:
       paths:
         - .DS_Store # macOS files
         - .idea
+        # One per parallel feature-test worker, holding nothing but that worker's compiled container,
+        # logs and pid file. They are created inside the container, there is a fresh set of them every
+        # run, and each is a full Symfony cache - syncing them back costs far more than they are worth.
+        - tests/Fixtures/Symfony/app/var-*
     permissions:
       defaultFileMode: 644
       defaultDirectoryMode: 755

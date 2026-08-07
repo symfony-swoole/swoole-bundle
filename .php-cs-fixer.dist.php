@@ -13,7 +13,9 @@ $finder = Finder::create()
         'tests/Unit/Server/Php8',
         'vendor',
         'ext',
-    ]);
+    ])
+    // one var directory per parallel test worker, holding the same generated caches
+    ->notPath('#^tests/Fixtures/Symfony/app/var-#');
 
 /**
  * @see https://github.com/FriendsOfPHP/PHP-CS-Fixer for rules

@@ -7,6 +7,7 @@ namespace SwooleBundle\SwooleBundle\Server\Session;
 use Assert\Assertion;
 use Assert\AssertionFailedException;
 use Swoole\Table;
+use SwooleBundle\SwooleBundle\Server\Session\Exception\RuntimeException;
 
 /**
  * Class SwooleTableStorage.
@@ -65,10 +66,27 @@ final class SwooleTableStorage implements Storage
             '8bit'
         );
 
-        $this->sharedMemory->set($key, [
+        $stored = $this->sharedMemory->set($key, [
             self::TABLE_COLUMN_DATA => $data,
             self::TABLE_COLUMN_EXPIRES_AT => time() + $ttl,
         ]);
+
+        // A table that cannot place the row says so and carries on, and the session is simply gone: the
+        // next request finds nothing under its id and is handed a brand new session, which reads as data
+        // that silently forgot itself. Worth noting the row need not be the one past capacity - the hash
+        // conflict pool runs out first, and a table of 64 has been seen refusing the 47th key.
+        //
+        // Only swoole gets here. OpenSwoole raises an exception of its own instead of returning false,
+        // so this is the same failure being reported the same way on both extensions.
+        if ($stored === false) {
+            throw new RuntimeException(sprintf(
+                'Could not store session "%s": the session table is full. It holds %d of %d rows - '
+                . 'raise the "max_active_sessions" setting, or its conflict proportion.',
+                $key,
+                $this->sharedMemory->count(),
+                $this->sharedMemory->size,
+            ));
+        }
     }
 
     public function delete(string $key): void

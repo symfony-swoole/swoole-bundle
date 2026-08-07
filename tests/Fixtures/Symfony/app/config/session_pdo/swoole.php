@@ -18,7 +18,7 @@ return static function (ContainerConfigurator $containerConfigurator): void {
 
     $services->set('swoole_bundle.session.pdo_handler.pdo', PDO::class)
         ->factory([PdoConnectionFactory::class, 'newInstanceFromDsnOrUrl'])
-        ->arg('$dsnOrUrl', 'mysql://user:pass@%env(DATABASE_HOST)%:3306/db');
+        ->arg('$dsnOrUrl', 'mysql://user:pass@%env(DATABASE_HOST)%:3306/%env(DATABASE_NAME)%');
 
     $services->set('swoole_bundle.session.pdo_handler', PdoSessionHandler::class)
         ->arg('$pdoOrDsn', service('swoole_bundle.session.pdo_handler.pdo'))
