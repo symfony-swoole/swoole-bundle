@@ -47,7 +47,6 @@ final class StatefulServicesPass implements CompilerPassInterface
         'router.request_context',
         'router',
         'router.default',
-        'request_stack',
         'swoole_bundle.error_handler.symfony_error_handler',
     ];
 
@@ -57,6 +56,33 @@ final class StatefulServicesPass implements CompilerPassInterface
      */
     private const array OPTIONAL_SERVICES_TO_PROXIFY = [
         'slugger',
+        // The translator carries the current request's locale: LocaleAwareListener writes it on every
+        // kernel.request, so one shared instance has every concurrent request overwriting the locale of
+        // all the others - a silent wrong-language bug, and a hard ConcurrencyException once fiber_viber
+        // is watching ownership. Both ids are listed for the same reason `router` and `router.default`
+        // are: `translator` is an alias, and in debug it resolves to the data collector decorating the
+        // real one. Optional rather than mandatory because translation can be turned off entirely and
+        // applications routinely decorate or replace the translator.
+        'translator',
+        'translator.default',
+        // Same defect, same listener, one service along: LocaleSwitcher is tagged kernel.locale_aware
+        // as well and keeps the locale in a property of its own, so leaving it shared would just move
+        // the exception rather than fix it.
+        'translation.locale_switcher',
+        // Holds the firewall the current request matched, in $currentFirewallName and
+        // $currentFirewallContext. SecurityBundle's FirewallListener writes them on kernel.request and
+        // nulls them again on kernel.finish_request, so concurrent requests through different firewalls
+        // hand each other the wrong logout URL - and each other's null, once one of them finishes.
+        'security.logout_url_generator',
+        // The security token is per-request state in both layers. `security.untracked_token_storage` is
+        // the plain TokenStorage holding $token and the $initializer that LazyFirewallContext installs
+        // on every authenticate(), and `security.token_storage` is the UsageTrackingTokenStorage wrapping
+        // it, whose $enableUsageTracking the context listener toggles per request through a callback
+        // wired in by RegisterTokenUsageTrackingPass. Sharing either across coroutines means sharing who
+        // is logged in, so both are pooled - they already carry the kernel.reset tags the pool needs to
+        // hand a clean instance to the next request.
+        'security.untracked_token_storage',
+        'security.token_storage',
     ];
 
     private const array SERVICE_RESETTING_PRIORITIES = [
