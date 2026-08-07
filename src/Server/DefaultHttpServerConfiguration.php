@@ -6,6 +6,7 @@ namespace SwooleBundle\SwooleBundle\Server;
 
 use Assert\Assertion;
 use Assert\AssertionFailedException;
+use RuntimeException;
 use SwooleBundle\SwooleBundle\Common\Adapter\Swoole;
 use SwooleBundle\SwooleBundle\Server\Config\Socket;
 use SwooleBundle\SwooleBundle\Server\Config\Sockets;
@@ -548,6 +549,10 @@ final class DefaultHttpServerConfiguration implements HttpServerConfiguration
             $key,
             'There is no configuration mapping for setting "%s".'
         );
+
+        if ($key === self::SWOOLE_HTTP_SERVER_CONFIG_PID_FILE && !$this->isDaemon()) {
+            throw new RuntimeException('Pid file can only be configured when using daemon mode.');
+        }
 
         switch ($key) {
             case self::SWOOLE_HTTP_SERVER_CONFIG_SERVE_STATIC:
