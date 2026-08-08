@@ -13,6 +13,7 @@ use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\MessageHandler\S
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\RequestHandler\ThrowingRequestHandler;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Service\AlwaysReset;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Service\AlwaysResetSafe;
+use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Service\LazyGhostExample;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Service\NonSharedExample;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Service\ShouldBeProxified;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Service\ShouldBeProxified2;
@@ -103,6 +104,11 @@ return static function (ContainerConfigurator $containerConfigurator): void {
         ->share(false)
         ->tag('swoole_bundle.stateful_service')
         ->tag('kernel.reset', ['method' => '?optionalReset']);
+
+    // Lazy and shared, deliberately not pooled: a pooled service is handed out through a non-shared
+    // wrapped definition, and it is the shared path that the generated factory gets wrong.
+    $services->set(LazyGhostExample::class)
+        ->lazy();
 
     // Lets PooledErrorHandlerResetTest raise a throwable that escapes the kernel, which is the only way
     // to reach swoole-bundle's own ErrorResponder/ErrorHandler path. A no-op for every other route.
