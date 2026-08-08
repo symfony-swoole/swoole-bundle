@@ -22,6 +22,7 @@ use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\ServicePool\ServicePoolCo
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\StabilityChecker;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\EventDispatcher\EventDispatcherProcessor;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Security\SecurityProcessor;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Twig\TwigProcessor;
 use Symfony\Component\Config\Resource\FileResource;
 use Symfony\Component\DependencyInjection\Argument\ServiceLocatorArgument;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
@@ -104,6 +105,10 @@ final class StatefulServicesPass implements CompilerPassInterface
         ],
         MonologProcessor::class => [
             'class' => MonologProcessor::class,
+            'priority' => 0,
+        ],
+        TwigProcessor::class => [
+            'class' => TwigProcessor::class,
             'priority' => 0,
         ],
         SecurityProcessor::class => [
