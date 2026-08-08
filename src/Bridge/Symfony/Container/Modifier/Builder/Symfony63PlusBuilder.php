@@ -275,11 +275,16 @@ final class Symfony63PlusBuilder implements Builder
             Assertion::keyExists($internals, 'type');
 
             $arrayKey = "['{$internals['key']}']" . (isset($internals['key2']) ? "['{$internals['key2']}']" : '');
+            // See the note in buildProxifiedServiceFactory(): only the literal `true` asks for the lazy
+            // instance. A native lazy ghost's initializer passes the proxy object here and needs the
+            // factory to run __construct() on it, and an object is truthy.
             $sharedCheck = <<<EOF
                                         if (isset(\$this->{$internals['type']}{$arrayKey})) {
-                                            if (\$lazyLoad) {
+                                            if (\$lazyLoad === true) {
                                                 return \$this->{$internals['type']}{$arrayKey};
-                                            } elseif (isset(\$this->lazyInitializedShared['$methodName'])) {
+                                            } elseif (\$lazyLoad === false
+                                                && isset(\$this->lazyInitializedShared['$methodName'])
+                                            ) {
                                                 return \$this->lazyInitializedShared['$methodName'];
                                             }
                                         }
@@ -302,7 +307,7 @@ final class Symfony63PlusBuilder implements Builder
 
                             \$return = parent::{$methodName}(\$container, \$lazyLoad);
 
-                            if (!\$lazyLoad) \$this->lazyInitializedShared['$methodName'] = \$return;
+                            if (\$lazyLoad !== true) \$this->lazyInitializedShared['$methodName'] = \$return;
                         } finally {
                             self::\$mutex->release();
                         }
@@ -394,11 +399,17 @@ final class Symfony63PlusBuilder implements Builder
             Assertion::keyExists($internals, 'type');
 
             $arrayKey = "['{$internals['key']}']" . (isset($internals['key2']) ? "['{$internals['key2']}']" : '');
+            // Only the literal `true` means "hand back the lazy instance". Symfony calls the factory a
+            // third way as well: a native lazy ghost's initializer passes the *proxy object* as
+            // $lazyLoad and expects the factory to run __construct() on it. An object is truthy, so a
+            // plain if ($lazyLoad) returned the still-uninitialized ghost and the constructor never ran,
+            // leaving the promoted properties unset - "Typed property X must not be accessed before
+            // initialization", thrown from inside the service's own methods.
             $sharedCheck = <<<EOF
                 if (isset(\$container->{$internals['type']}{$arrayKey})) {
-                    if (\$lazyLoad) {
+                    if (\$lazyLoad === true) {
                         return \$container->{$internals['type']}{$arrayKey};
-                    } elseif (isset(\$container->lazyInitializedShared['$overriddenClass'])) {
+                    } elseif (\$lazyLoad === false && isset(\$container->lazyInitializedShared['$overriddenClass'])) {
                         return \$container->lazyInitializedShared['$overriddenClass'];
                     }
                 }
@@ -418,6 +429,14 @@ final class Symfony63PlusBuilder implements Builder
             {
                 public static function do(\$container, \$lazyLoad = true)
                 {
+                    // Symfony sometimes calls the factory with the service id instead of a flag; it
+                    // means the same as `true`, and normalising here keeps the strict comparisons
+                    // below honest about the one case that is genuinely different - a lazy ghost
+                    // handing us the proxy object to construct.
+                    if (is_string(\$lazyLoad)) {
+                        \$lazyLoad = true;
+                    }
+
                     $sharedCheck
 
                     try {
@@ -426,7 +445,7 @@ final class Symfony63PlusBuilder implements Builder
                         $sharedCheck
 
                         \$return = parent::do(\$container, \$lazyLoad);
-                        if (!\$lazyLoad) \$container->lazyInitializedShared['$overriddenClass'] = \$return;
+                        if (\$lazyLoad !== true) \$container->lazyInitializedShared['$overriddenClass'] = \$return;
                     } finally {
                         \$container::\$mutex->release();
                     }
