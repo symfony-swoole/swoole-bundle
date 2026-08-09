@@ -11,6 +11,7 @@ use Symfony\Bundle\SecurityBundle\Security\LazyFirewallContext;
 use Symfony\Component\DependencyInjection\Argument\AbstractArgument;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
+use Symfony\Component\Security\Http\Authenticator\Debug\TraceableAuthenticator;
 use Symfony\Component\Security\Http\Firewall\ContextListener;
 
 /**
@@ -61,6 +62,42 @@ final class SecurityProcessor implements CompileProcessor
         $this->processAccessDecisionManagerPair($container, $proxifier);
         $this->processLazyFirewallContexts($container);
         $this->processContextListeners($container);
+        $this->processTraceableAuthenticators($container);
+    }
+
+    /**
+     * Gives every coroutine its own copy of the profiler's authenticator decorators.
+     *
+     * TraceableAuthenticator wraps each configured authenticator when kernel.debug is on, and records what
+     * it saw on itself as the request goes through - whether the authenticator supported the request, the
+     * passport it produced, how long it took, whether it threw:
+     *
+     * ```php
+     * public function supports(Request $request): ?bool
+     * {
+     *     return $this->supports = $this->authenticator->supports($request);
+     * }
+     * ```
+     *
+     * One instance serves the whole worker, so those writes land on an object every other request is
+     * reading from, and the security panel ends up describing a request that never happened.
+     *
+     * SecurityBundle registers one per authenticator per firewall, under ids built from their names, so
+     * there is nothing to list - they are found by what they are instead.
+     */
+    private function processTraceableAuthenticators(ContainerBuilder $container): void
+    {
+        foreach ($container->getDefinitions() as $definition) {
+            if ($definition->isAbstract() || $definition->getClass() !== TraceableAuthenticator::class) {
+                continue;
+            }
+
+            if ($this->hasAbstractArguments($definition)) {
+                continue;
+            }
+
+            $definition->addTag(ContainerConstants::TAG_STATEFUL_SERVICE);
+        }
     }
 
     /**

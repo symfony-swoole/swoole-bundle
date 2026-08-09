@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Command\TwigProfileProxyCheckCommand;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Controller\CoroutinesTaskController;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Controller\LeakyServicesController;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\DataCollector\LeakyDataCollector;
@@ -142,6 +143,9 @@ return static function (ContainerConfigurator $containerConfigurator): void {
         ->public()
         ->tag('data_collector', ['id' => 'leaky_reset_on_each_request'])
         ->tag('swoole_bundle.stateful_service', ['reset_on_each_request' => true]);
+
+    // depends on twig.profile, which the Twig profiler only registers where it is turned on - here.
+    $services->set(TwigProfileProxyCheckCommand::class);
 
     $services->set(LeakyServicesController::class)
         ->arg('$statefulOnlyResource', service('leaky_resource.stateful_only'))

@@ -16,6 +16,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Security\Http\Authenticator\AuthenticatorInterface;
 use Symfony\Component\Security\Http\Firewall\ContextListener;
 
 /**
@@ -35,6 +36,10 @@ final class SecurityFirewallContextProxyCheckCommand extends Command
     public function __construct(
         #[Autowire(service: 'security.firewall.map')]
         private readonly FirewallMap $firewallMap,
+        // only exists with kernel.debug on - SecurityBundle wraps the authenticators in traceable
+        // decorators nowhere else - so the environment wires it in as an optional reference and this
+        // is null whenever the profiler is off
+        private readonly ?AuthenticatorInterface $authenticator = null,
     ) {
         parent::__construct();
     }
@@ -58,6 +63,17 @@ final class SecurityFirewallContextProxyCheckCommand extends Command
         $output->writeln(sprintf(
             'context listener %s proxified.',
             $contextListener instanceof ContextualProxy ? 'IS' : 'IS NOT',
+        ));
+
+        if ($this->authenticator === null) {
+            $output->writeln('traceable authenticator IS ABSENT.');
+
+            return self::SUCCESS;
+        }
+
+        $output->writeln(sprintf(
+            'traceable authenticator %s proxified.',
+            $this->authenticator instanceof ContextualProxy ? 'IS' : 'IS NOT',
         ));
 
         return self::SUCCESS;
