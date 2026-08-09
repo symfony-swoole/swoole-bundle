@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Tests\Feature;
 
+use DateTimeImmutable;
 use Override;
 use PHPUnit\Framework\Attributes\DataProvider;
 use ReflectionClass;
@@ -119,6 +120,82 @@ final class SymfonySessionSwooleSessionStorageTest extends ServerTestCase
 
             $this->assertSame($sessionId1, $sessionId2);
             $this->assertSame($body1, $body2);
+        });
+    }
+
+    /**
+     * A session bag carries whatever the application puts in it, objects included - Symfony's security
+     * component depends on it, leaving the AuthenticationException of a failed login in the session for
+     * the login page to read back. A store that cannot carry one does not fail: it writes what it can
+     * and hands back a value of another type, and the first piece of Symfony to read it dies on the
+     * type it was promised.
+     *
+     * @see \SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation\Session\SwooleSessionStorage
+     */
+    #[DataProvider('environmentProvider')]
+    public function testAnObjectStoredInTheSessionSurvivesToTheNextRequest(string $env): void
+    {
+        $envs = [
+            'APP_ENV' => $env,
+            'COOKIE_LIFETIME' => 5,
+        ];
+
+        $clearCache = $this->createConsoleProcess(['cache:clear'], $envs);
+        $clearCache->setTimeout(5);
+        $clearCache->disableOutput();
+        $clearCache->run();
+
+        $this->assertProcessSucceeded($clearCache);
+
+        $dropSchema = $this->createConsoleProcess(
+            ['doctrine:schema:drop', '--full-database', '--force'],
+            $envs
+        );
+        $dropSchema->setTimeout(5);
+        $dropSchema->disableOutput();
+        $dropSchema->run();
+
+        $this->assertProcessSucceeded($dropSchema);
+
+        $migrations = $this->createConsoleProcess(['doctrine:migrations:migrate', '--no-interaction'], $envs);
+        $migrations->setTimeout(5);
+        $migrations->disableOutput();
+        $migrations->run();
+
+        $this->assertProcessSucceeded($migrations);
+
+        $serverStart = $this->createConsoleProcess([
+            'swoole:server:start',
+            '--host=localhost',
+            sprintf('--port=%d', self::port()),
+        ], $envs);
+
+        $serverStart->setTimeout(3);
+        $serverStart->disableOutput();
+        $serverStart->run();
+
+        $this->assertProcessSucceeded($serverStart);
+
+        $this->runAsCoroutineAndWait(function () use ($envs): void {
+            $this->deferServerStop([], $envs);
+
+            $client = HttpClient::fromDomain('localhost', self::port(), false);
+            $this->assertTrue($client->connect(self::connectTimeout(), 1, true));
+
+            $storeResponse = $client->send('/session/object')['response'];
+            $this->assertSame(200, $storeResponse['statusCode']);
+            $this->assertArrayHasKey('SWOOLESSID', $storeResponse['cookies']);
+
+            $readResponse = $client->send('/session/object')['response'];
+            $this->assertSame(200, $readResponse['statusCode']);
+            $this->assertIsArray($readResponse['body']);
+
+            /** @var array{stored: bool, type: string, value: string|null} $read */
+            $read = $readResponse['body'];
+
+            $this->assertFalse($read['stored'], 'The second request did not find the session of the first.');
+            $this->assertSame(DateTimeImmutable::class, $read['type']);
+            $this->assertSame('2020-02-02T02:02:02+00:00', $read['value']);
         });
     }
 
