@@ -16,6 +16,23 @@ use Symfony\Component\HttpFoundation\Session\SessionBagInterface;
 use Symfony\Component\HttpFoundation\Session\Storage\MetadataBag;
 use Symfony\Component\HttpFoundation\Session\Storage\SessionStorageInterface;
 
+/**
+ * Session storage backed by one of the bundle's own stores rather than by PHP's native session handling.
+ *
+ * Session data is written with serialize(), which is what PHP's own handling does and what the rest of
+ * Symfony assumes: a session bag holds whatever the application puts in it, objects included. The
+ * security component relies on that outright - a failed login leaves the AuthenticationException in the
+ * session for the login page to render:
+ *
+ * ```php
+ * $authenticationException = $session->get(SecurityRequestAttributes::AUTHENTICATION_ERROR);
+ * ```
+ *
+ * Storing the data as JSON instead reads as an equivalent choice and is not one. json_encode() turns an
+ * object into its public properties - none, for an exception - and json_decode() hands back an array, so
+ * the write succeeds, the read succeeds, and the caller is given something of the wrong type with no
+ * error anywhere in between. What it costs is a TypeError in whichever piece of Symfony reads it next.
+ */
 final class SwooleSessionStorage implements SessionStorageInterface
 {
     public const string DEFAULT_SESSION_NAME = 'SWOOLESSID';
@@ -100,7 +117,7 @@ final class SwooleSessionStorage implements SessionStorageInterface
 
         $this->storage->set(
             $this->currentId,
-            json_encode($this->data, JSON_THROW_ON_ERROR),
+            serialize($this->data),
             $this->sessionLifetimeSeconds
         );
 
@@ -226,10 +243,25 @@ final class SwooleSessionStorage implements SessionStorageInterface
         }
 
         Assertion::string($sessionData);
-        /** @var array<string, mixed> $toReturn */
-        $toReturn = json_decode($sessionData, true, 512, JSON_THROW_ON_ERROR);
 
-        return $toReturn;
+        // Sessions stored by a version of this bundle that wrote them as JSON. There is nothing in them
+        // worth reading back: JSON cannot carry an object, so whatever the application put in the
+        // session was flattened on the way out and would come back as the plain array that its reader
+        // has no idea what to do with. Discarding them costs the session and nothing more.
+        if (!str_starts_with($sessionData, 'a:')) {
+            return [];
+        }
+
+        // The session belongs to the application, and only a session id ever reaches it from outside -
+        // the same trust PHP's own session handling places in its store. Restricting the classes here
+        // would not harden anything; it would only turn the objects the application stored into
+        // __PHP_Incomplete_Class on the way back.
+        /** @var array<string, mixed> $decoded */
+        $decoded = unserialize($sessionData, ['allowed_classes' => true]);
+        // @phpstan-ignore-next-line
+        Assertion::isArray($decoded, 'Session data is not readable: expected a serialized array.');
+
+        return $decoded;
     }
 
     /**
