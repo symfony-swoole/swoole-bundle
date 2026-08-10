@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Command\DoctrineQueryLogResetCheckCommand;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Command\TwigProfileProxyCheckCommand;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Controller\CoroutinesTaskController;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Controller\LeakyServicesController;
@@ -146,6 +147,13 @@ return static function (ContainerConfigurator $containerConfigurator): void {
 
     // depends on twig.profile, which the Twig profiler only registers where it is turned on - here.
     $services->set(TwigProfileProxyCheckCommand::class);
+
+    // Both of its collaborators are private, and asking for them by id is the point: the question is
+    // whether the resetter everything else uses reaches the query log once the container is compiled.
+    $services->set(DoctrineQueryLogResetCheckCommand::class)
+        ->arg('$queryLog', service('doctrine.debug_data_holder'))
+        ->arg('$servicesResetter', service('services_resetter'))
+        ->arg('$connection', service('doctrine.dbal.default_connection'));
 
     $services->set(LeakyServicesController::class)
         ->arg('$statefulOnlyResource', service('leaky_resource.stateful_only'))

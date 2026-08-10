@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Twig;
 
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices\CompileProcessor;
-use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices\Proxifier;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices\ServiceProxifier;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\ContainerConstants;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 
@@ -39,7 +39,7 @@ final class TwigProcessor implements CompileProcessor
     private const string PROFILE_ID = 'twig.profile';
     private const string DATA_COLLECTOR_ID = 'data_collector.twig';
 
-    public function process(ContainerBuilder $container, Proxifier $proxifier): void
+    public function process(ContainerBuilder $container, ServiceProxifier $proxifier): void
     {
         if (!$container->hasDefinition(self::PROFILE_ID)) {
             return;
