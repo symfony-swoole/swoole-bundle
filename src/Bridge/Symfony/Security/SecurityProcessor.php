@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Security;
 
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices\CompileProcessor;
-use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices\Proxifier;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices\ServiceProxifier;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\ContainerConstants;
 use Symfony\Bundle\SecurityBundle\Security\LazyFirewallContext;
 use Symfony\Component\DependencyInjection\Argument\AbstractArgument;
@@ -50,7 +50,7 @@ final class SecurityProcessor implements CompileProcessor
     private const string CONTEXT_LISTENER_RESETTER_ID =
         'swoole_bundle.coroutines_support.security.context_listener_resetter';
 
-    public function process(ContainerBuilder $container, Proxifier $proxifier): void
+    public function process(ContainerBuilder $container, ServiceProxifier $proxifier): void
     {
         /** @var array<string,string> $bundles */
         $bundles = $container->getParameter('kernel.bundles');
@@ -215,7 +215,7 @@ final class SecurityProcessor implements CompileProcessor
         }
     }
 
-    private function processAccessDecisionManagerPair(ContainerBuilder $container, Proxifier $proxifier): void
+    private function processAccessDecisionManagerPair(ContainerBuilder $container, ServiceProxifier $proxifier): void
     {
         $decoratedId = self::DEBUG_ACCESS_DECISION_MANAGER_ID . '.inner';
 

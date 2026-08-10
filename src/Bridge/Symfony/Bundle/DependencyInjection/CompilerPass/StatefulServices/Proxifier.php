@@ -22,7 +22,7 @@ use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
 use UnexpectedValueException;
 
-final class Proxifier
+final class Proxifier implements ServiceProxifier
 {
     use ProxifierAssertions;
 
@@ -56,6 +56,8 @@ final class Proxifier
         if (!$this->container->has($serviceId)) {
             throw new RuntimeException(sprintf('Service missing: %s', $serviceId));
         }
+
+        $this->assertNotAlreadyProxified($serviceId);
 
         $serviceDef = $this->container->findDefinition($serviceId);
         /** @var class-string $class */
@@ -307,5 +309,35 @@ final class Proxifier
         }
 
         $this->proxifiedServicePoolEntryDefs[] = $recordDef;
+    }
+
+    /**
+     * Refuses to pool a service that is already pooled.
+     *
+     * Proxifying twice wraps the proxy in another proxy, and it is the second pool entry that decides
+     * how the service is reset - including deciding that it is not, since a caller which knows nothing
+     * about resetting passes null, and ServicePoolContainer skips a pool entry without a resetter. The
+     * service then quietly stops being reset, a long way from wherever the second call was written.
+     *
+     * Tagging is how a service asks to be pooled, and StatefulServicesPass acts on the tags after the
+     * compile processors have run. A processor that tags a service has already asked for it; asking
+     * again through here is the mistake this reports.
+     *
+     * Asked of the container rather than of a property, so it holds across however many Proxifier
+     * instances one compile uses - StatefulServicesPass builds a second for unmanaged factories.
+     */
+    private function assertNotAlreadyProxified(string $serviceId): void
+    {
+        if (!$this->container->has(sprintf('%s.swoole_coop.wrapped', $serviceId))) {
+            return;
+        }
+
+        throw new RuntimeException(sprintf(
+            'Service "%s" is already proxified and must not be proxified again. It is most likely both '
+            . 'tagged "%s" and passed to proxifyService() explicitly - the tag alone is enough, and is '
+            . 'acted on after the compile processors have run.',
+            $serviceId,
+            ContainerConstants::TAG_STATEFUL_SERVICE,
+        ));
     }
 }
