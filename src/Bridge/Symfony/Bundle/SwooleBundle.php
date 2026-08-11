@@ -78,6 +78,27 @@ final class SwooleBundle extends Bundle
         // override the default error handler registered earlier by Symfony to not get an exception
         set_exception_handler([$handler, 'handleException']);
 
+        // ErrorHandler::register() claims the root handler slot - a write to its private $isRoot -
+        // when get_error_handler() comes back null. $handler is a pooled proxy, and ProxyManager
+        // resolves the scope of a private property write from the calling frame's object; a static
+        // method like register() has none, so it falls back to a scope that cannot see
+        // ErrorHandler's privates and the write fatals with "Cannot access private property".
+        //
+        // Null is a perfectly ordinary answer here. ContextualErrorHandler::register() above holds
+        // the real handler slot itself and reports per-coroutine handlers instead, so an empty
+        // context stack reads as "no handler" even though PHP has one. The stack is empty whenever
+        // nothing registered a handler before this point: FrameworkBundle::boot() only seeds one
+        // when symfony/runtime is absent, and a kernel booted outside a runtime entrypoint - as
+        // PHPUnit extensions do to get at the container - has nothing else that would.
+        //
+        // Registering the handler ourselves first sends register() down its non-root branch and
+        // puts it on the global context stack, which is where coroutines inherit it from anyway.
+        // Nothing is lost: isRoot only decides whether reRegister() repeats the error-type mask,
+        // and handleError() filters on thrownErrors/loggedErrors regardless.
+        if (get_error_handler() === null) {
+            set_error_handler([$handler, 'handleError']);
+        }
+
         $handler = ErrorHandler::register($handler, true);
         $configurator = $this->container->get('debug.error_handler_configurator');
 
