@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Command\DoctrineQueryLogResetCheckCommand;
+use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Command\MessengerTraceableBusProxyCheckCommand;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Command\TwigProfileProxyCheckCommand;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Controller\CoroutinesTaskController;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Controller\LeakyServicesController;
@@ -154,6 +155,11 @@ return static function (ContainerConfigurator $containerConfigurator): void {
         ->arg('$queryLog', service('doctrine.debug_data_holder'))
         ->arg('$servicesResetter', service('services_resetter'))
         ->arg('$connection', service('doctrine.dbal.default_connection'));
+
+    // data_collector.messenger only exists where the profiler is on, which is also the only place the
+    // traceable buses this checks exist at all.
+    $services->set(MessengerTraceableBusProxyCheckCommand::class)
+        ->arg('$dataCollector', service('data_collector.messenger'));
 
     $services->set(LeakyServicesController::class)
         ->arg('$statefulOnlyResource', service('leaky_resource.stateful_only'))
