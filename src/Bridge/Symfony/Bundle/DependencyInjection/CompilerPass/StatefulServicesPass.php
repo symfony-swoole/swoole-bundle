@@ -21,6 +21,7 @@ use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\BlockingContainer;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\ServicePool\ServicePoolContainer;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\StabilityChecker;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\EventDispatcher\EventDispatcherProcessor;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Messenger\MessengerProcessor;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Security\SecurityProcessor;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Twig\TwigProcessor;
 use Symfony\Component\Config\Resource\FileResource;
@@ -113,6 +114,10 @@ final class StatefulServicesPass implements CompilerPassInterface
         ],
         SecurityProcessor::class => [
             'class' => SecurityProcessor::class,
+            'priority' => 0,
+        ],
+        MessengerProcessor::class => [
+            'class' => MessengerProcessor::class,
             'priority' => 0,
         ],
     ];

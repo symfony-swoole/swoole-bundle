@@ -42,6 +42,8 @@ return static function (ContainerConfigurator $containerConfigurator): void {
             __DIR__ . '/../../TestBundle/Command/TwigProfileProxyCheckCommand.php',
             // depends on doctrine.debug_data_holder, which only exists where profiling is on.
             __DIR__ . '/../../TestBundle/Command/DoctrineQueryLogResetCheckCommand.php',
+            // same story for data_collector.messenger.
+            __DIR__ . '/../../TestBundle/Command/MessengerTraceableBusProxyCheckCommand.php',
             __DIR__ . '/../../TestBundle/HealthCheck',
             // decorates a specific handler and is registered explicitly by the coroutines environment.
             // Auto-registering it would make autoconfiguration tag it as a bootable service and autowire
