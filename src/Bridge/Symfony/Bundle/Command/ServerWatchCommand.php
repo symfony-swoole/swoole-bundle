@@ -22,6 +22,8 @@ final class ServerWatchCommand extends Command implements SignalableCommandInter
 
     private const int MAX_CONSECUTIVE_FAILURES = 30;
 
+    private const float STOP_TIMEOUT_S = 2.0;
+
     private ?Process $server = null;
 
     private bool $stopping = false;
@@ -121,6 +123,27 @@ final class ServerWatchCommand extends Command implements SignalableCommandInter
 
         while (!$this->stopping) {
             if (!$this->waitInterval($intervalMs)) {
+                if ($this->stopping) {
+                    break;
+                }
+
+                $current = $watcher->snapshot();
+                if ($lintBlocked === $current) {
+                    usleep($intervalMs * 1000);
+
+                    continue;
+                }
+
+                $change = $watcher->classify($previous, $current);
+
+                if ($change->hasChanges && !$this->lint($change->lintTargets, $io)) {
+                    $io->warning('[watch] server is DOWN — fix the error above and save to restart it.');
+                    $lintBlocked = $current;
+                    usleep($intervalMs * 1000);
+
+                    continue;
+                }
+
                 ++$consecutiveFailures;
 
                 if ($consecutiveFailures > self::MAX_CONSECUTIVE_FAILURES) {
@@ -130,9 +153,9 @@ final class ServerWatchCommand extends Command implements SignalableCommandInter
                 }
 
                 $io->warning('[watch] server is not running — restarting.');
-                $this->restartServer($output);
-                $previous = $watcher->snapshot();
+                $previous = $current;
                 $lintBlocked = null;
+                $this->restartServer($output);
 
                 continue;
             }
@@ -162,8 +185,8 @@ final class ServerWatchCommand extends Command implements SignalableCommandInter
             $lintBlocked = null;
 
             $io->writeln(sprintf('[watch] %s — restarting server', $change->reason));
+            $previous = $current;
             $this->restartServer($output);
-            $previous = $watcher->snapshot();
         }
 
         $this->stopServer();
@@ -202,7 +225,7 @@ final class ServerWatchCommand extends Command implements SignalableCommandInter
         }
 
         if ($this->server->isRunning()) {
-            $this->server->stop(10.0);
+            $this->server->stop(self::STOP_TIMEOUT_S);
         }
 
         $this->server = null;
@@ -215,6 +238,7 @@ final class ServerWatchCommand extends Command implements SignalableCommandInter
         $this->server = $this->startServer($output);
     }
 
+    /** @phpstan-impure the signal handler can flip $stopping and drop the server while this sleeps */
     private function waitInterval(int $intervalMs): bool
     {
         $deadline = microtime(true) + ($intervalMs / 1000);
@@ -249,7 +273,7 @@ final class ServerWatchCommand extends Command implements SignalableCommandInter
                 continue;
             }
 
-            $io->warning(sprintf('[watch] syntax error in %s — keeping current server, not restarting', $file));
+            $io->warning(sprintf('[watch] syntax error in %s — not restarting until it compiles', $file));
             $ok = false;
         }
 
