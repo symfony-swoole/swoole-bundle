@@ -27,7 +27,7 @@ final readonly class SwooleServerTaskTransportHandler implements TaskHandler
         $data = $task->data;
 
         $sentStamp = $data->last(SentStamp::class);
-        $alias = null === $sentStamp ? 'swoole-task' : ($sentStamp->getSenderAlias() ?: $sentStamp->getSenderClass());
+        $alias = $sentStamp === null ? 'swoole-task' : ($sentStamp->getSenderAlias() ?: $sentStamp->getSenderClass());
 
         $this->bus->dispatch($data->with(new ReceivedStamp($alias), new ConsumedByWorkerStamp()));
 
