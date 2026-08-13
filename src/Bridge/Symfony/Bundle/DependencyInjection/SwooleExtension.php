@@ -223,7 +223,7 @@ final class SwooleExtension extends Extension
             $fiberContext = $config['platform']['fiber_context']['enabled'];
         }
 
-        $swooleSettings = isset($config['platform']) // @phpstan-ignore-line
+        $swooleSettings = isset($config['platform'])
             ? $this->configurePlatform($config['platform'], $maxConcurrency, $container)
             : [];
         $swooleSettings += $this->configureHttpServer($config['http_server'], $container);
