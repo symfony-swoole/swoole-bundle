@@ -5,6 +5,7 @@ declare(strict_types=1);
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Command\DoctrineQueryLogResetCheckCommand;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Command\MessengerTraceableBusProxyCheckCommand;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Command\TwigProfileProxyCheckCommand;
+use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Command\TwigProfilerExtensionsCheckCommand;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Controller\CoroutinesTaskController;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Controller\LeakyServicesController;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\DataCollector\LeakyDataCollector;
@@ -148,6 +149,9 @@ return static function (ContainerConfigurator $containerConfigurator): void {
 
     // depends on twig.profile, which the Twig profiler only registers where it is turned on - here.
     $services->set(TwigProfileProxyCheckCommand::class);
+
+    // twig.extension.webprofiler comes with WebProfilerBundle, which only this environment registers.
+    $services->set(TwigProfilerExtensionsCheckCommand::class);
 
     // Both of its collaborators are private, and asking for them by id is the point: the question is
     // whether the resetter everything else uses reaches the query log once the container is compiled.
