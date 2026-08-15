@@ -24,6 +24,7 @@ use SwooleBundle\SwooleBundle\Bridge\Symfony\EventDispatcher\EventDispatcherProc
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Messenger\MessengerProcessor;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Security\SecurityProcessor;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Twig\TwigProcessor;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\WebProfiler\WebProfilerProcessor;
 use Symfony\Component\Config\Resource\FileResource;
 use Symfony\Component\DependencyInjection\Argument\ServiceLocatorArgument;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
@@ -85,6 +86,15 @@ final class StatefulServicesPass implements CompilerPassInterface
         // hand a clean instance to the next request.
         'security.untracked_token_storage',
         'security.token_storage',
+        // The same defect SecurityProcessor fixes in AccessDecisionManager, one layer up in the class
+        // that calls into it - and the one that actually shows, because templates ask it directly by
+        // way of `is_granted()`. isGranted() pushes the decision being made onto $accessDecisionStack
+        // and pops it in a finally, isGrantedForUser() does the same with $tokenStack, so a voter doing
+        // any I/O suspends its coroutine mid-decision and leaves the stack non-empty for whoever runs
+        // next: end() hands that request somebody else's decision, and the pops unwind in an order
+        // nobody intended. Both stacks balance themselves, so no resetter is needed - one instance per
+        // coroutine is the whole fix.
+        'security.authorization_checker',
     ];
 
     private const array SERVICE_RESETTING_PRIORITIES = [
@@ -118,6 +128,10 @@ final class StatefulServicesPass implements CompilerPassInterface
         ],
         MessengerProcessor::class => [
             'class' => MessengerProcessor::class,
+            'priority' => 0,
+        ],
+        WebProfilerProcessor::class => [
+            'class' => WebProfilerProcessor::class,
             'priority' => 0,
         ],
     ];
