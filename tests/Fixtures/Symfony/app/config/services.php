@@ -36,6 +36,8 @@ return static function (ContainerConfigurator $containerConfigurator): void {
             // same story for security.access.decision_manager, which SecurityBundle only brings along in
             // the coroutines_security* environments.
             __DIR__ . '/../../TestBundle/Command/AccessDecisionManagerProxyCheckCommand.php',
+            // and for security.authorization_checker, the class one layer up that calls into it.
+            __DIR__ . '/../../TestBundle/Command/AuthorizationCheckerProxyCheckCommand.php',
             // same story for security.firewall.map.
             __DIR__ . '/../../TestBundle/Command/SecurityFirewallContextProxyCheckCommand.php',
             // depends on twig.profile, which only exists where the Twig profiler is on.
