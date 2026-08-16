@@ -402,6 +402,24 @@ final readonly class Configuration implements ConfigurationInterface
                                 ->end()
                             ->end()
                         ->end()
+                        // EXPERIMENTAL - see docs/swoole-task-worker-commands.md
+                        ->arrayNode('commands')
+                            ->info(
+                                'EXPERIMENTAL. Long running console commands to run inside task worker '
+                                . 'processes. Each entry is one task worker. An entry may be a single '
+                                . 'command line, or a list of command lines to run side by side in that '
+                                . 'one worker - which requires platform.coroutines.enabled.'
+                            )
+                            ->arrayPrototype()
+                                ->beforeNormalization()
+                                    ->ifString()
+                                    ->then(static fn(string $commandLine): array => [$commandLine])
+                                ->end()
+                                ->scalarPrototype()
+                                    ->cannotBeEmpty()
+                                ->end()
+                            ->end()
+                        ->end()
                     ->end()
                 ->end() // task_worker
                 ->arrayNode('platform')

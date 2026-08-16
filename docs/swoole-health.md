@@ -146,3 +146,15 @@ worker, and two processes reading the same socket corrupt each other's traffic.
 Checks are resolved from the container inside the forked process, on the first sweep, which
 keeps anything they construct out of the parent. Keep it that way: open what a check needs
 inside `check()` rather than in a constructor that could run earlier.
+
+The same fork is why a check cannot read state a worker holds in memory - it would be reading
+its own copy. To report on work happening in a worker, have the worker write to shared memory
+and have the check read that. See
+[reporting on the loops themselves](swoole-task-worker-commands.md#reporting-on-the-loops-themselves).
+
+## Serving probes for a worker-only deployment
+
+Because this endpoint is a process of its own rather than a route, it also gives a liveness
+probe to a server that serves no application traffic at all - one whose job is running worker
+loops in task workers. That combination is described under
+[the worker unit](swoole-task-worker-commands.md#the-worker-unit) (**EXPERIMENTAL**).

@@ -95,6 +95,10 @@ Symfony integration with [Open Swoole](https://openswoole.com/) and [Swoole](htt
 
     Swoole Server Task Transport has been integrated into this bundle to allow easy execution of asynchronous actions. Documentation of this feature is available [here](docs/swoole-task-symfony-messenger-transport.md).
 
+-   Long running console commands in task workers **EXPERIMENTAL**
+
+    Runs commands such as `messenger:consume` inside Swoole task worker processes, so one server supervises both the HTTP workers and the consumers. This makes a *worker unit* possible: a single deployable running several worker loops at once while answering HTTP health checks throughout - which a supervisor-per-consumer deployment cannot express. Works with coroutines on (several commands per task worker) and off (one per task worker) - **both modes are experimental**, and shutdown behaviour differs sharply between them. Read the documentation [here](docs/swoole-task-worker-commands.md) before using it.
+
 -   Hot Module Reload (HMR) for development **ALPHA**
 
     Since Swoole HTTP Server runs in Event Loop and does not flush memory between requests, to keep DX equal with normal servers, this bundle uses code replacement technique, using `inotify` PHP Extension to allow continuous development. It is enabled by default (when the extension is found) and requires no additional configuration. You can turn it off in bundle configuration.
