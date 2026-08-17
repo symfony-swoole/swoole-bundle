@@ -8,6 +8,7 @@ use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Command\TwigProf
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Command\TwigProfilerExtensionsCheckCommand;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Controller\CoroutinesTaskController;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Controller\LeakyServicesController;
+use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Controller\TracedHttpClientController;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\DataCollector\LeakyDataCollector;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\DependencyInjection\CompilerPass\{
     CounterCompileProcessor,
@@ -33,6 +34,10 @@ return static function (ContainerConfigurator $containerConfigurator): void {
     $parameters->set('env(TASK_WORKER_COUNT)', 1);
 
     $parameters->set('env(REACTOR_COUNT)', 1);
+
+    // Where TracedHttpClientController sends its outbound call, published by the feature test out of
+    // the mock web server it started. Empty for every other test in this environment.
+    $parameters->set('env(MOCK_WEBSERVER_URL)', '');
 
     $containerConfigurator->extension('swoole', [
         'http_server' => [
@@ -164,6 +169,11 @@ return static function (ContainerConfigurator $containerConfigurator): void {
     // traceable buses this checks exist at all.
     $services->set(MessengerTraceableBusProxyCheckCommand::class)
         ->arg('$dataCollector', service('data_collector.messenger'));
+
+    $services->set(TracedHttpClientController::class)
+        ->arg('$tracedHttpClient', service('.debug.http_client'))
+        ->arg('$mockWebServerUrl', '%env(MOCK_WEBSERVER_URL)%')
+        ->tag('controller.service_arguments');
 
     $services->set(LeakyServicesController::class)
         ->arg('$statefulOnlyResource', service('leaky_resource.stateful_only'))

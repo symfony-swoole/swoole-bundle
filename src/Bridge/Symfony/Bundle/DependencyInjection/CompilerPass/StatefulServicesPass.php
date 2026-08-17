@@ -22,6 +22,7 @@ use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\ServicePool\ServicePoolCo
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\StabilityChecker;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\EventDispatcher\EventDispatcherProcessor;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Form\FormProcessor;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpClient\HttpClientProcessor;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Messenger\MessengerProcessor;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Security\SecurityProcessor;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Twig\TwigProcessor;
@@ -137,6 +138,10 @@ final class StatefulServicesPass implements CompilerPassInterface
         ],
         WebProfilerProcessor::class => [
             'class' => WebProfilerProcessor::class,
+            'priority' => 0,
+        ],
+        HttpClientProcessor::class => [
+            'class' => HttpClientProcessor::class,
             'priority' => 0,
         ],
     ];
