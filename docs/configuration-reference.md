@@ -119,6 +119,12 @@ swoole:
         # custom line formatter format, extra section is used by monolog processors
         monolog_formatter_format: "%%message%% %%context%% %%extra%%\n"
 
+      # see: \SwooleBundle\SwooleBundle\Bridge\Symfony\Scheduler\WithScheduler
+      # polls Symfony Scheduler for due messages off the Swoole event loop, see docs/swoole-scheduler.md
+      scheduler:
+        enabled: false
+        interval: 60 # seconds between polls, must be >= 1
+
     # swoole http server settings
     # see https://openswoole.com/docs/modules/swoole-server/configuration
     settings:

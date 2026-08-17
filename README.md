@@ -111,6 +111,8 @@ Symfony integration with [Open Swoole](https://openswoole.com/) and [Swoole](htt
 
 -   Liveness endpoint (disabled by default) on a port of its own, served by a dedicated process so that it keeps answering while every worker is busy. Projects can contribute their own checks to it. Documentation of this feature is available [here](docs/swoole-health.md).
 
+-   Symfony Scheduler integration, (disabled by default) polls [Symfony Scheduler](https://symfony.com/doc/current/scheduler.html) for due messages off the Swoole event loop instead of a separate `messenger:consume scheduler_*` worker process. Documentation of this feature is available [here](docs/swoole-scheduler.md).
+
 ## Requirements
 
 ### Current version

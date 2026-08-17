@@ -20,4 +20,15 @@ parameters:
         # Put false positives here
         # Symfony configuration files
         - '#Variable \$container might not be defined#'
+        -
+            # Swoole's stubs type Timer::list()'s generator as always empty - real ext-swoole
+            # obviously doesn't behave that way once a Timer::tick() has actually been registered.
+            message: '#(will always evaluate to (false|true)|is always false)#'
+            path: tests/Unit/Bridge/Symfony/Scheduler/WithSchedulerTest.php
+        -
+            # PHPStan doesn't model a captured-by-value object's property mutating across
+            # separate invocations of the same closure - the trigger's whole point is to flip
+            # $state->fired the first time it's called and read that flip back the second time.
+            message: '#If condition is always false#'
+            path: tests/Unit/Bridge/Symfony/Scheduler/DefaultSchedulerTest.php
     tmpDir: /tmp/phpstan_tests
