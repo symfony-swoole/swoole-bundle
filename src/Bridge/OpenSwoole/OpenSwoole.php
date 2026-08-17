@@ -22,8 +22,18 @@ final class OpenSwoole extends CommonSwoole
         return new WaitGroup($delta);
     }
 
-    public function enableCoroutines(int $flags = SWOOLE_HOOK_ALL): void
+    /**
+     * Plain SWOOLE_HOOK_ALL: OpenSwoole's already selects the native curl hook rather than the PHP
+     * reimplementation swoole's picks, so there is nothing here to correct.
+     */
+    public function coroutineHookFlags(): int
     {
+        return SWOOLE_HOOK_ALL;
+    }
+
+    public function enableCoroutines(?int $flags = null): void
+    {
+        $flags ??= $this->coroutineHookFlags();
         Runtime::enableCoroutine(true, $flags);
     }
 

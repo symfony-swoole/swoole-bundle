@@ -21,5 +21,10 @@ return static function (ContainerConfigurator $containerConfigurator): void {
         'profiler' => [
             'only_exceptions' => false,
         ],
+        // Brings in TraceableHttpClient and HttpClientDataCollector, which is what
+        // HttpClientCoroutineSafetyTest is about.
+        'http_client' => [
+            'enabled' => true,
+        ],
     ]);
 };

@@ -10,6 +10,7 @@ use Monolog\Formatter\LineFormatter;
 use Override;
 use ReflectionMethod;
 use RuntimeException;
+use SwooleBundle\SwooleBundle\Bridge\CommonSwoole\SystemSwooleFactory;
 use SwooleBundle\SwooleBundle\Bridge\Log\AccessLogFormatter;
 use SwooleBundle\SwooleBundle\Bridge\Log\SimpleAccessLogFormatter;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\EventDispatcher\DebugClassLoaderOverridingWorkerStartHandler;
@@ -278,7 +279,8 @@ final class SwooleExtension extends Extension
             throw new RuntimeException('Please install lisachenko/z-engine to use coroutines');
         }
 
-        $swooleSettings['hook_flags'] = SWOOLE_HOOK_ALL;
+        $swooleSettings['hook_flags'] = SystemSwooleFactory::newFactoryInstance()->newInstance()
+            ->coroutineHookFlags();
         $swooleSettings['max_coroutine'] = $coroutineSettings['max_coroutines'];
         $container->setParameter(ContainerConstants::PARAM_COROUTINES_ENABLED, true);
         $maxServiceInstances = $maxConcurrency ?? $swooleSettings['max_coroutine'];

@@ -13,6 +13,13 @@ RUN pecl install inotify && \
 FROM ext-builder AS ext-pcntl
 RUN docker-php-ext-install pcntl
 
+# Required by donatj/mock-webserver, which the feature tests point the http client at: it finds a free
+# port and waits for its server to answer through socket_create()/socket_bind() rather than through
+# streams. Test-only, but installed here because the extension has to be in every image that runs the
+# suite.
+FROM ext-builder AS ext-sockets
+RUN docker-php-ext-install sockets
+
 FROM ext-builder AS ext-intl
 RUN apk add --no-cache icu-dev && \
     docker-php-ext-install intl
@@ -75,6 +82,8 @@ COPY --from=ext-inotify /usr/local/lib/php/extensions/no-debug-non-zts-${PHP_API
 COPY --from=ext-inotify /usr/local/etc/php/conf.d/docker-php-ext-inotify.ini /usr/local/etc/php/conf.d/docker-php-ext-inotify.ini
 COPY --from=ext-pcntl /usr/local/lib/php/extensions/no-debug-non-zts-${PHP_API_VERSION}/pcntl.so /usr/local/lib/php/extensions/no-debug-non-zts-${PHP_API_VERSION}/pcntl.so
 COPY --from=ext-pcntl /usr/local/etc/php/conf.d/docker-php-ext-pcntl.ini /usr/local/etc/php/conf.d/docker-php-ext-pcntl.ini
+COPY --from=ext-sockets /usr/local/lib/php/extensions/no-debug-non-zts-${PHP_API_VERSION}/sockets.so /usr/local/lib/php/extensions/no-debug-non-zts-${PHP_API_VERSION}/sockets.so
+COPY --from=ext-sockets /usr/local/etc/php/conf.d/docker-php-ext-sockets.ini /usr/local/etc/php/conf.d/docker-php-ext-sockets.ini
 COPY --from=ext-intl /usr/local/lib/php/extensions/no-debug-non-zts-${PHP_API_VERSION}/intl.so /usr/local/lib/php/extensions/no-debug-non-zts-${PHP_API_VERSION}/intl.so
 COPY --from=ext-intl /usr/local/etc/php/conf.d/docker-php-ext-intl.ini /usr/local/etc/php/conf.d/docker-php-ext-intl.ini
 COPY --from=ext-apcu /usr/local/lib/php/extensions/no-debug-non-zts-${PHP_API_VERSION}/apcu.so /usr/local/lib/php/extensions/no-debug-non-zts-${PHP_API_VERSION}/apcu.so

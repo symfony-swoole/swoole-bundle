@@ -66,6 +66,10 @@ return static function (ContainerConfigurator $containerConfigurator): void {
             // constructor needs 4 explicit LeakyResource/LeakyDataCollector args that only exist in the
             // coroutines_profiler environment, so it must not be auto-registered everywhere else.
             __DIR__ . '/../../TestBundle/Controller/LeakyServicesController.php',
+            // asks for the traced http client, which only exists where the profiler and the http client
+            // are both on, and for a mock web server url only the feature test publishes - so the
+            // coroutines_profiler environment registers it and nowhere else may.
+            __DIR__ . '/../../TestBundle/Controller/TracedHttpClientController.php',
         ]);
 
     $services->set(DoctrineController::class)
