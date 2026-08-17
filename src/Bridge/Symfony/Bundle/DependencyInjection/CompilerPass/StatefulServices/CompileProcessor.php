@@ -8,5 +8,5 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 
 interface CompileProcessor
 {
-    public function process(ContainerBuilder $container, Proxifier $proxifier): void;
+    public function process(ContainerBuilder $container, ServiceProxifier $proxifier): void;
 }

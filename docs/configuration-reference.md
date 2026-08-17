@@ -169,6 +169,16 @@ swoole:
       reset_handler: true # default true, set to false to disable services resetter on task processing end
     settings:
       worker_count: 2 # one of: positive number, "auto", or null to disable creation of task worker processes (default: null)
+    # EXPERIMENTAL - long running console commands run inside task worker processes.
+    # Each entry claims one task worker. An entry may be a single command line, or a list of
+    # command lines sharing that one worker - the list form requires platform.coroutines.enabled.
+    # worker_count defaults to the number of entries when omitted.
+    # See docs/swoole-task-worker-commands.md before using this.
+    commands:
+      - 'messenger:consume default --memory-limit=512M'
+      -
+        - 'messenger:consume scheduling --memory-limit=170M'
+        - 'app:projection:run --memory-limit=170M'
   platform:
     fiber_context: 
       enabled: auto # can be one of: auto, true, false (default: auto, runtime change only works for openswoole, for swoole use ini setting to enable)
@@ -328,13 +338,13 @@ declare(strict_types=1);
 namespace SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\DependencyInjection\CompilerPass;
 
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices\CompileProcessor;
-use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices\Proxifier;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices\ServiceProxifier;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Service\SleepingCounter;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 
 final class SleepingCounterCompileProcessor implements CompileProcessor
 {
-    public function process(ContainerBuilder $container, Proxifier $proxifier): void
+    public function process(ContainerBuilder $container, ServiceProxifier $proxifier): void
     {
         // this line can be achieved by registering FQCN to the coroutines_support.stateful_services configuration
         $proxifier->proxifyService(SleepingCounter::class);

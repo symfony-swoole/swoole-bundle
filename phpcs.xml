@@ -134,5 +134,9 @@
   <exclude-pattern>/src/Bridge/Monolog/StreamHandler\.php$</exclude-pattern>
   <exclude-pattern>/tests/Fixtures/Symfony/app/config/reference.php</exclude-pattern>
   <exclude-pattern>/tests/Fixtures/Symfony/app/var/*</exclude-pattern>
+  <!-- one var directory per parallel test worker, holding the same generated caches -->
+  <exclude-pattern>/tests/Fixtures/Symfony/app/var-*/*</exclude-pattern>
+  <!-- the per-worker copies of the controller the reload and HMR tests rewrite -->
+  <exclude-pattern>/tests/Fixtures/Symfony/TestBundle/Controller/ReplacedContentTestController*</exclude-pattern>
 
 </ruleset>

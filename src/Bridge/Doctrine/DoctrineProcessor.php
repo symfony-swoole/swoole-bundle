@@ -11,7 +11,7 @@ use SwooleBundle\SwooleBundle\Bridge\Doctrine\DBAL\ConnectionKeepAliveInitialize
 use SwooleBundle\SwooleBundle\Bridge\Doctrine\DBAL\CoroutinesOptimizedDBALAliveKeeper;
 use SwooleBundle\SwooleBundle\Bridge\Doctrine\ORM\EntityManagerResetter;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices\CompileProcessor;
-use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices\Proxifier;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices\ServiceProxifier;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\ContainerConstants;
 use Symfony\Component\DependencyInjection\Argument\IteratorArgument;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -26,7 +26,7 @@ final class DoctrineProcessor implements CompileProcessor
      */
     public function __construct(private array $config = []) {}
 
-    public function process(ContainerBuilder $container, Proxifier $proxifier): void
+    public function process(ContainerBuilder $container, ServiceProxifier $proxifier): void
     {
         /** @var array<string,string> $bundles */
         $bundles = $container->getParameter('kernel.bundles');
@@ -69,7 +69,7 @@ final class DoctrineProcessor implements CompileProcessor
             $this->decorateRepositoryFactory($container, $emName, $emSvcId);
         }
 
-        $this->fixDebugDataHolderResetter($container, $proxifier);
+        $this->fixDebugDataHolderResetter($container);
     }
 
     private function createEntityManagerResetterDefinition(ContainerBuilder $container): void
@@ -162,19 +162,42 @@ final class DoctrineProcessor implements CompileProcessor
         return $statefulSvcTag && isset($statefulSvcTag[0]['limit']) ? $statefulSvcTag[0]['limit'] : null;
     }
 
-    private function fixDebugDataHolderResetter(ContainerBuilder $container, Proxifier $proxifier): void
+    /**
+     * Keeps Doctrine's query log where something will empty it.
+     *
+     * With profiling on, BacktraceDebugDataHolder keeps every query it has seen plus a full
+     * debug_backtrace() with each of them, and only reset() empties it.
+     *
+     * The tag is the whole point and has to be added whatever else the log is tagged with, because
+     * StatefulServicesPass calls reduceServiceResetters() right after the compile processors have run,
+     * and that keeps only the services asking to be reset on each request. Everything else leaves
+     * services_resetter - a kernel.reset tag included, which is how DoctrineBundle registers the log
+     * from 2.14 on. Without this the log is emptied by nobody: measured at ~10 MiB/min in a worker,
+     * until the PHP memory limit killed the process and its read models stopped updating with no
+     * outward sign.
+     *
+     * What follows the tag is only for the older shape, where the log carries no kernel.reset tag and
+     * so is not in services_resetter to begin with. There is nothing to add when it already is.
+     *
+     * Pooling it is left to the tag rather than proxified here. StatefulServicesPass proxifies every
+     * tagged service after the compile processors have run, and it does so with the reset method it
+     * reads back out of services_resetter - which is the entry the block below has just written.
+     * Proxifying from in here would happen before that map exists, so the pool entry could only be
+     * given a null resetter, and a pool entry without one is skipped by ServicePoolContainer entirely.
+     */
+    private function fixDebugDataHolderResetter(ContainerBuilder $container): void
     {
         if (!$container->has('doctrine.debug_data_holder')) {
             return;
         }
 
         $dataHolderDef = $container->findDefinition('doctrine.debug_data_holder');
+        $dataHolderDef->addTag(ContainerConstants::TAG_STATEFUL_SERVICE, ['reset_on_each_request' => true]);
 
         if ($dataHolderDef->hasTag('kernel.reset')) {
             return;
         }
 
-        $proxifier->proxifyService('doctrine.debug_data_holder');
         $resetterDef = $container->findDefinition('services_resetter');
 
         if ($resetterDef->hasTag('kernel.reset')) {

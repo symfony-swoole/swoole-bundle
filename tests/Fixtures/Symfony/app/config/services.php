@@ -36,8 +36,16 @@ return static function (ContainerConfigurator $containerConfigurator): void {
             // same story for security.access.decision_manager, which SecurityBundle only brings along in
             // the coroutines_security* environments.
             __DIR__ . '/../../TestBundle/Command/AccessDecisionManagerProxyCheckCommand.php',
+            // and for security.authorization_checker, the class one layer up that calls into it.
+            __DIR__ . '/../../TestBundle/Command/AuthorizationCheckerProxyCheckCommand.php',
             // same story for security.firewall.map.
             __DIR__ . '/../../TestBundle/Command/SecurityFirewallContextProxyCheckCommand.php',
+            // depends on twig.profile, which only exists where the Twig profiler is on.
+            __DIR__ . '/../../TestBundle/Command/TwigProfileProxyCheckCommand.php',
+            // depends on doctrine.debug_data_holder, which only exists where profiling is on.
+            __DIR__ . '/../../TestBundle/Command/DoctrineQueryLogResetCheckCommand.php',
+            // same story for data_collector.messenger.
+            __DIR__ . '/../../TestBundle/Command/MessengerTraceableBusProxyCheckCommand.php',
             __DIR__ . '/../../TestBundle/HealthCheck',
             // decorates a specific handler and is registered explicitly by the coroutines environment.
             // Auto-registering it would make autoconfiguration tag it as a bootable service and autowire
@@ -51,10 +59,17 @@ return static function (ContainerConfigurator $containerConfigurator): void {
     )
         ->tag('controller.service_arguments')
         ->exclude([
-            __DIR__ . '/../../TestBundle/Controller/ReplacedContentTestController.php',
+            // Rewritten mid-test to prove a reload took effect, so it must stay out of the compiled
+            // container - a registered service is loaded before the workers fork, which is exactly what
+            // makes a file non-reloadable. The glob covers the per-worker copies parallel runs render.
+            __DIR__ . '/../../TestBundle/Controller/ReplacedContentTestController*.php',
             // constructor needs 4 explicit LeakyResource/LeakyDataCollector args that only exist in the
             // coroutines_profiler environment, so it must not be auto-registered everywhere else.
             __DIR__ . '/../../TestBundle/Controller/LeakyServicesController.php',
+            // asks for the traced http client, which only exists where the profiler and the http client
+            // are both on, and for a mock web server url only the feature test publishes - so the
+            // coroutines_profiler environment registers it and nowhere else may.
+            __DIR__ . '/../../TestBundle/Controller/TracedHttpClientController.php',
         ]);
 
     $services->set(DoctrineController::class)

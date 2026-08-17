@@ -20,6 +20,7 @@ use Symfony\Bundle\SecurityBundle\Security\LazyFirewallContext;
 use Symfony\Component\DependencyInjection\Argument\AbstractArgument;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Reference;
+use Symfony\Component\Security\Http\Authenticator\Debug\TraceableAuthenticator;
 use Symfony\Component\Security\Http\Firewall\ContextListener;
 
 #[CoversClass(SecurityProcessor::class)]
@@ -184,6 +185,43 @@ final class SecurityProcessorTest extends TestCase
         $this->process($container);
 
         self::assertFalse($container->hasDefinition(self::CONTEXT_LISTENER_RESETTER_ID));
+    }
+
+    /**
+     * The profiler's authenticator decorator records what it saw of the request on itself, so one shared
+     * instance has every request writing over what the others are still reporting.
+     */
+    public function testTraceableAuthenticatorsArePooled(): void
+    {
+        $container = $this->containerWithFirewalls(withProfiler: true);
+        $container->register('debug.security.authenticator.form_login.main', TraceableAuthenticator::class);
+
+        $this->process($container);
+
+        self::assertSame(
+            [[]],
+            $container->getDefinition('debug.security.authenticator.form_login.main')
+                ->getTag(ContainerConstants::TAG_STATEFUL_SERVICE),
+        );
+    }
+
+    /**
+     * SecurityBundle keeps a template decorator with the authenticator it wraps left abstract, the same
+     * way it does for context listeners.
+     */
+    public function testTheTemplateTraceableAuthenticatorIsLeftAlone(): void
+    {
+        $container = $this->containerWithFirewalls(withProfiler: true);
+        $container->register('debug.security.authenticator', TraceableAuthenticator::class)
+            ->setArguments([new AbstractArgument('Authenticator')]);
+
+        $this->process($container);
+
+        self::assertSame(
+            [],
+            $container->getDefinition('debug.security.authenticator')
+                ->getTag(ContainerConstants::TAG_STATEFUL_SERVICE),
+        );
     }
 
     private function containerWithFirewalls(bool $withProfiler): ContainerBuilder

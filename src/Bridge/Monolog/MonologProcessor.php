@@ -7,7 +7,7 @@ namespace SwooleBundle\SwooleBundle\Bridge\Monolog;
 use Monolog\Handler\RotatingFileHandler as OriginalRotatingFileHandler;
 use Monolog\Handler\StreamHandler as OriginalStreamHandler;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices\CompileProcessor;
-use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices\Proxifier;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices\ServiceProxifier;
 use SwooleBundle\SwooleBundle\Common\Adapter\Swoole;
 use Symfony\Component\DependencyInjection\Alias;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -25,7 +25,7 @@ final class MonologProcessor implements CompileProcessor
         OriginalRotatingFileHandler::class => RotatingFileHandler::class,
     ];
 
-    public function process(ContainerBuilder $container, Proxifier $proxifier): void
+    public function process(ContainerBuilder $container, ServiceProxifier $proxifier): void
     {
         $loggerAliases = array_filter(
             $container->getAliases(),

@@ -54,6 +54,10 @@ final class SecurityFirewallContextWorkerSafetyTest extends ServerTestCase
 
         // and the listener carrying the registered flag needs one instance per coroutine
         self::assertStringContainsString('context listener IS proxified.', $output);
+
+        // as does the profiler's authenticator decorator, which records what it made of the request on
+        // itself - one shared instance has every request overwriting what the others are reporting
+        self::assertStringContainsString('traceable authenticator IS proxified.', $output);
     }
 
     /**

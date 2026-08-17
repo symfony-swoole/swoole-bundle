@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Controller;
 
+use DateTimeImmutable;
 use Exception;
 use SwooleBundle\SwooleBundle\Server\Session\Storage;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -35,6 +36,32 @@ final class SessionController
             ],
             'luckyNumber' => $session->get('luckyNumber'),
         ], 200);
+    }
+
+    /**
+     * Puts an object in the session and reports what comes back out of it on a later request.
+     *
+     * A session bag takes whatever the application gives it, and Symfony's own security component
+     * relies on that - a failed login is left in the session as an AuthenticationException for the
+     * login page to read. A store that cannot carry an object hands back something of another type
+     * without failing anywhere along the way.
+     */
+    #[Route(path: '/session/object', methods: ['GET'])]
+    public function objectRoundTrip(SessionInterface $session): JsonResponse
+    {
+        if (!$session->has('storedObject')) {
+            $session->set('storedObject', new DateTimeImmutable('2020-02-02T02:02:02+00:00'));
+
+            return new JsonResponse(['stored' => true]);
+        }
+
+        $stored = $session->get('storedObject');
+
+        return new JsonResponse([
+            'stored' => false,
+            'type' => get_debug_type($stored),
+            'value' => $stored instanceof DateTimeImmutable ? $stored->format(DATE_ATOM) : null,
+        ]);
     }
 
     /**

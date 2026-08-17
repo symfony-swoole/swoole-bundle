@@ -15,9 +15,25 @@ return static function (ContainerConfigurator $containerConfigurator): void {
 
     $parameters->set('env(TRUSTED_PROXIES)', '*,192.168.0.0/16');
 
-    $parameters->set('env(WORKER_COUNT)', 6);
+    // Two is what it takes to be a multi-worker server, which is all any test that does not say
+    // otherwise is asking for - and the count is what the suite can least afford to be generous with.
+    // Every server here costs its worker count in processes, so at six a single test held ten, and four
+    // test workers on a four-core build box held forty. Servers then started and died before a client
+    // could reach them, which the tests reported as "the server was started but never answered". At two
+    // the same four workers run green and finish sooner than three workers did with six.
+    //
+    // The coroutines environments set their own - one worker, one task worker, one reactor - since a
+    // coroutine server has no use for more.
+    $parameters->set('env(WORKER_COUNT)', 2);
 
-    $parameters->set('env(REACTOR_COUNT)', 3);
+    $parameters->set('env(REACTOR_COUNT)', 1);
+
+    // Do not raise worker_max_wait_time here. Swoole force-terminates an exiting worker after three
+    // seconds, and it turns out a good number of these servers hit that limit every single run - on
+    // openswoole as much as on swoole, so it is not the io_uring file draining it first looked like.
+    // Raising the budget to 30 did not stop anything failing, it only made every one of those shutdowns
+    // wait ten times as long: the whole suite went from 4.1 to 8.1 minutes on both engines. The
+    // force-termination is routine here, and cheap; waiting it out is neither.
 
     $containerConfigurator->extension('swoole', [
         'http_server' => [

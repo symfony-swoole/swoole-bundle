@@ -74,7 +74,7 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
         $serverStart = $this->createConsoleProcess([
             'swoole:server:start',
             '--host=localhost',
-            '--port=9999',
+            sprintf('--port=%d', self::port()),
         ], $envs);
 
         $serverStart->setTimeout(5);
@@ -86,8 +86,8 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
         $this->runAsCoroutineAndWait(function () use ($envs): void {
             $this->deferServerStop([], $envs);
 
-            $initClient = HttpClient::fromDomain('localhost', 9999, false);
-            $this->assertTrue($initClient->connect(3, 1, true));
+            $initClient = HttpClient::fromDomain('localhost', self::port(), false);
+            $this->assertTrue($initClient->connect(self::connectTimeout(), 1, true));
 
             $start = microtime(true);
             $wg = $this->getSwoole()->waitGroup();
@@ -95,8 +95,8 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
             for ($i = 0; $i < 9; ++$i) {
                 go(function () use ($wg): void {
                     $wg->add();
-                    $client = HttpClient::fromDomain('localhost', 9999, false);
-                    $this->assertTrue($client->connect(waitIfNoConnection: true));
+                    $client = HttpClient::fromDomain('localhost', self::port(), false);
+                    $this->assertTrue($client->connect(self::connectTimeout(), waitIfNoConnection: true));
                     $response = $client->send('/sleep')['response']; // request sleeps for 2 seconds
                     $this->assertSame(200, $response['statusCode']);
                     $this->assertStringContainsString('text/html', $response['headers']['content-type']);
@@ -124,8 +124,8 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
 
             // this has to be the 10th request becasue PCOV coverage tests run weirdly and don't free svc pool services
             // seems like global instances limit 20 is exhausted
-            $client = HttpClient::fromDomain('localhost', 9999, false);
-            $this->assertTrue($client->connect(3, 1, true));
+            $client = HttpClient::fromDomain('localhost', self::port(), false);
+            $this->assertTrue($client->connect(self::connectTimeout(), 1, true));
             $response = $client->send('/sleep')['response']; // request sleeps for 2 seconds
             $this->assertSame(200, $response['statusCode']);
             $this->assertStringContainsString('text/html', $response['headers']['content-type']);
@@ -188,7 +188,7 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
             [
                 'swoole:server:start',
                 '--host=localhost',
-                '--port=9999',
+                sprintf('--port=%d', self::port()),
             ],
             $envs
         );
@@ -202,8 +202,8 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
         $this->runAsCoroutineAndWait(function () use ($envs): void {
             $this->deferServerStop([], $envs);
 
-            $initClient = HttpClient::fromDomain('localhost', 9999, false);
-            $this->assertTrue($initClient->connect(3, 1, true));
+            $initClient = HttpClient::fromDomain('localhost', self::port(), false);
+            $this->assertTrue($initClient->connect(self::connectTimeout(), 1, true));
 
             $start = microtime(true);
             $wg = $this->getSwoole()->waitGroup();
@@ -215,8 +215,8 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
             for ($i = 0; $i < $max; ++$i) {
                 go(function () use ($wg): void {
                     $wg->add();
-                    $client = HttpClient::fromDomain('localhost', 9999, false);
-                    $this->assertTrue($client->connect(waitIfNoConnection: true));
+                    $client = HttpClient::fromDomain('localhost', self::port(), false);
+                    $this->assertTrue($client->connect(self::connectTimeout(), waitIfNoConnection: true));
                     $response = $client->send('/doctrine')['response'];
                     $this->assertSame(200, $response['statusCode']);
                     $this->assertStringContainsString('text/html', $response['headers']['content-type']);
@@ -232,8 +232,8 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
 
             // this has to be the 10th request becasue PCOV coverage tests run weirdly and don't free svc pool services
             // seems like global instances limit 20 is exhausted
-            $client = HttpClient::fromDomain('localhost', 9999, false);
-            $this->assertTrue($client->connect(waitIfNoConnection: true));
+            $client = HttpClient::fromDomain('localhost', self::port(), false);
+            $this->assertTrue($client->connect(self::connectTimeout(), waitIfNoConnection: true));
             $client->send('/doctrine'); // trigger em reset
             $response = $client->send('/doctrine-lifecycle')['response']; // request sleeps for 2 seconds
             $this->assertSame(200, $response['statusCode']);
@@ -306,7 +306,7 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
             [
                 'swoole:server:start',
                 '--host=localhost',
-                '--port=9999',
+                sprintf('--port=%d', self::port()),
             ],
             $envs
         );
@@ -320,8 +320,8 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
         $this->runAsCoroutineAndWait(function () use ($envs): void {
             $this->deferServerStop([], $envs);
 
-            $initClient = HttpClient::fromDomain('localhost', 9999, false);
-            $this->assertTrue($initClient->connect(3, 1, true));
+            $initClient = HttpClient::fromDomain('localhost', self::port(), false);
+            $this->assertTrue($initClient->connect(self::connectTimeout(), 1, true));
 
             $start = microtime(true);
             $wg = $this->getSwoole()->waitGroup();
@@ -329,8 +329,8 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
             for ($i = 0; $i < 9; ++$i) {
                 go(function () use ($wg): void {
                     $wg->add();
-                    $client = HttpClient::fromDomain('localhost', 9999, false);
-                    $this->assertTrue($client->connect(waitIfNoConnection: true));
+                    $client = HttpClient::fromDomain('localhost', self::port(), false);
+                    $this->assertTrue($client->connect(self::connectTimeout(), waitIfNoConnection: true));
                     $response = $client->send('/doctrine-advanced')['response'];
                     $this->assertSame(200, $response['statusCode']);
                     $this->assertStringContainsString('application/json', $response['headers']['content-type']);
@@ -375,7 +375,7 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
             [
                 'swoole:server:start',
                 '--host=localhost',
-                '--port=9999',
+                sprintf('--port=%d', self::port()),
             ],
             $envs
         );
@@ -390,8 +390,8 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
         $this->runAsCoroutineAndWait(function () use ($fileName, $envs): void {
             $this->deferServerStop([], $envs);
 
-            $initClient = HttpClient::fromDomain('localhost', 9999, false);
-            $this->assertTrue($initClient->connect(3, 1, true));
+            $initClient = HttpClient::fromDomain('localhost', self::port(), false);
+            $this->assertTrue($initClient->connect(self::connectTimeout(), 1, true));
 
             $start = microtime(true);
             $requestData = [
@@ -405,8 +405,8 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
                 $query = '?fileName=' . $fileName . $requestData[$i];
                 go(function () use ($wg, $query): void {
                     $wg->add();
-                    $client = HttpClient::fromDomain('localhost', 9999, false);
-                    $this->assertTrue($client->connect(waitIfNoConnection: true));
+                    $client = HttpClient::fromDomain('localhost', self::port(), false);
+                    $this->assertTrue($client->connect(self::connectTimeout(), waitIfNoConnection: true));
 
                     $response = $client->send('/coroutines/message/sleep-and-append' . $query)['response'];
                     $this->assertSame(200, $response['statusCode']);
@@ -481,7 +481,7 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
             [
                 'swoole:server:start',
                 '--host=localhost',
-                '--port=9999',
+                sprintf('--port=%d', self::port()),
             ],
             $envs
         );
@@ -495,8 +495,8 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
         $this->runAsCoroutineAndWait(function () use ($envs): void {
             $this->deferServerStop([], $envs);
 
-            $initClient = HttpClient::fromDomain('localhost', 9999, false);
-            $this->assertTrue($initClient->connect(3, 1, true));
+            $initClient = HttpClient::fromDomain('localhost', self::port(), false);
+            $this->assertTrue($initClient->connect(self::connectTimeout(), 1, true));
 
             $start = microtime(true);
             $wg = $this->getSwoole()->waitGroup();
@@ -504,8 +504,8 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
             for ($i = 0; $i < 3; ++$i) {
                 go(function () use ($wg): void {
                     $wg->add();
-                    $client = HttpClient::fromDomain('localhost', 9999, false);
-                    $this->assertTrue($client->connect(waitIfNoConnection: true));
+                    $client = HttpClient::fromDomain('localhost', self::port(), false);
+                    $this->assertTrue($client->connect(self::connectTimeout(), waitIfNoConnection: true));
 
                     $response = $client->send('/coroutines/message/run-dummy')['response'];
                     $this->assertSame(200, $response['statusCode']);
@@ -546,7 +546,7 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
             [
                 'swoole:server:start',
                 '--host=localhost',
-                '--port=9999',
+                sprintf('--port=%d', self::port()),
             ],
             [
                 'APP_ENV' => $env,
@@ -562,8 +562,8 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
         $this->runAsCoroutineAndWait(function () use ($enabled): void {
             $this->deferServerStop();
 
-            $client = HttpClient::fromDomain('localhost', 9999, false);
-            $this->assertTrue($client->connect(waitIfNoConnection: true));
+            $client = HttpClient::fromDomain('localhost', self::port(), false);
+            $this->assertTrue($client->connect(self::connectTimeout(), waitIfNoConnection: true));
 
             $fiberKey = extension_loaded('openswoole') ? 'use_fiber_context' : 'enable_fiber_mock';
 
@@ -611,7 +611,7 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
             [
                 'swoole:server:start',
                 '--host=localhost',
-                '--port=9999',
+                sprintf('--port=%d', self::port()),
             ],
             $envs
         );
@@ -625,8 +625,8 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
         $this->runAsCoroutineAndWait(function (): void {
             $this->deferServerStop();
 
-            $client = HttpClient::fromDomain('localhost', 9999, false);
-            $this->assertTrue($client->connect(waitIfNoConnection: true));
+            $client = HttpClient::fromDomain('localhost', self::port(), false);
+            $this->assertTrue($client->connect(self::connectTimeout(), waitIfNoConnection: true));
 
             /** @var array{body: array{original_has_request: bool, cloned_does_not_have_request: bool}} $response */
             $response = $client->send('/clone')['response'];
@@ -653,8 +653,8 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
         $this->runAsCoroutineAndWait(function () use ($envs): void {
             $this->deferServerStop([], $envs);
 
-            $initClient = HttpClient::fromDomain('localhost', 9999, false);
-            $this->assertTrue($initClient->connect(3, 1, true));
+            $initClient = HttpClient::fromDomain('localhost', self::port(), false);
+            $this->assertTrue($initClient->connect(self::connectTimeout(), 1, true));
 
             $wg = $this->getSwoole()->waitGroup();
 
@@ -662,8 +662,8 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
                 $marker = 'req' . $i;
                 go(function () use ($wg, $marker): void {
                     $wg->add();
-                    $client = HttpClient::fromDomain('localhost', 9999, false);
-                    $this->assertTrue($client->connect(waitIfNoConnection: true));
+                    $client = HttpClient::fromDomain('localhost', self::port(), false);
+                    $this->assertTrue($client->connect(self::connectTimeout(), waitIfNoConnection: true));
 
                     /** @var array{
                      *    body: array{
@@ -726,8 +726,8 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
         $this->runAsCoroutineAndWait(function () use ($envs): void {
             $this->deferServerStop([], $envs);
 
-            $client = HttpClient::fromDomain('localhost', 9999, false);
-            $this->assertTrue($client->connect(3, 1, true));
+            $client = HttpClient::fromDomain('localhost', self::port(), false);
+            $this->assertTrue($client->connect(self::connectTimeout(), 1, true));
 
             for ($i = 0; $i < 5; ++$i) {
                 /**
@@ -946,7 +946,7 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
             [
                 'swoole:server:start',
                 '--host=localhost',
-                '--port=9999',
+                sprintf('--port=%d', self::port()),
             ],
             $envs
         );

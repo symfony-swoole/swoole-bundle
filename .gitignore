@@ -11,6 +11,10 @@ tests/Fixtures/Symfony/app/config/reference.php
 tests/Fixtures/Symfony/app/data/*
 tests/Fixtures/Symfony/app/var/*
 !tests/Fixtures/Symfony/app/var/.gitkeep
+# one var directory per parallel test worker
+tests/Fixtures/Symfony/app/var-*
+# the per-worker copies of the controller the reload and HMR tests rewrite
+tests/Fixtures/Symfony/TestBundle/Controller/ReplacedContentTestController[0-9]*.php
 docker-compose.override.yml
 Dockerfile.override
 ext

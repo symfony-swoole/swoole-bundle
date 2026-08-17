@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Cache;
 
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices\CompileProcessor;
-use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices\Proxifier;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices\ServiceProxifier;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\ContainerConstants;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\SimpleResetter;
 use Symfony\Component\Cache\Adapter\AbstractAdapter;
@@ -24,7 +24,7 @@ final class CacheAdapterProcessor implements CompileProcessor
     private const string ADAPTER_RESETTER_ID = 'swoole_bundle.coroutines_support.cache_adapter_resetter';
     private const string TRACEABLE_RESETTER_ID = 'swoole_bundle.coroutines_support.cache_traceable_adapter_resetter';
 
-    public function process(ContainerBuilder $container, Proxifier $proxifier): void
+    public function process(ContainerBuilder $container, ServiceProxifier $proxifier): void
     {
         $taggedAdapters = 0;
         $taggedTraceables = 0;

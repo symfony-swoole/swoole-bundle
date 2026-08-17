@@ -21,7 +21,12 @@ use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\BlockingContainer;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\ServicePool\ServicePoolContainer;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\StabilityChecker;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\EventDispatcher\EventDispatcherProcessor;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Form\FormProcessor;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpClient\HttpClientProcessor;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Messenger\MessengerProcessor;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Security\SecurityProcessor;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Twig\TwigProcessor;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\WebProfiler\WebProfilerProcessor;
 use Symfony\Component\Config\Resource\FileResource;
 use Symfony\Component\DependencyInjection\Argument\ServiceLocatorArgument;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
@@ -47,7 +52,6 @@ final class StatefulServicesPass implements CompilerPassInterface
         'router.request_context',
         'router',
         'router.default',
-        'request_stack',
         'swoole_bundle.error_handler.symfony_error_handler',
     ];
 
@@ -57,6 +61,42 @@ final class StatefulServicesPass implements CompilerPassInterface
      */
     private const array OPTIONAL_SERVICES_TO_PROXIFY = [
         'slugger',
+        // The translator carries the current request's locale: LocaleAwareListener writes it on every
+        // kernel.request, so one shared instance has every concurrent request overwriting the locale of
+        // all the others - a silent wrong-language bug, and a hard ConcurrencyException once fiber_viber
+        // is watching ownership. Both ids are listed for the same reason `router` and `router.default`
+        // are: `translator` is an alias, and in debug it resolves to the data collector decorating the
+        // real one. Optional rather than mandatory because translation can be turned off entirely and
+        // applications routinely decorate or replace the translator.
+        'translator',
+        'translator.default',
+        // Same defect, same listener, one service along: LocaleSwitcher is tagged kernel.locale_aware
+        // as well and keeps the locale in a property of its own, so leaving it shared would just move
+        // the exception rather than fix it.
+        'translation.locale_switcher',
+        // Holds the firewall the current request matched, in $currentFirewallName and
+        // $currentFirewallContext. SecurityBundle's FirewallListener writes them on kernel.request and
+        // nulls them again on kernel.finish_request, so concurrent requests through different firewalls
+        // hand each other the wrong logout URL - and each other's null, once one of them finishes.
+        'security.logout_url_generator',
+        // The security token is per-request state in both layers. `security.untracked_token_storage` is
+        // the plain TokenStorage holding $token and the $initializer that LazyFirewallContext installs
+        // on every authenticate(), and `security.token_storage` is the UsageTrackingTokenStorage wrapping
+        // it, whose $enableUsageTracking the context listener toggles per request through a callback
+        // wired in by RegisterTokenUsageTrackingPass. Sharing either across coroutines means sharing who
+        // is logged in, so both are pooled - they already carry the kernel.reset tags the pool needs to
+        // hand a clean instance to the next request.
+        'security.untracked_token_storage',
+        'security.token_storage',
+        // The same defect SecurityProcessor fixes in AccessDecisionManager, one layer up in the class
+        // that calls into it - and the one that actually shows, because templates ask it directly by
+        // way of `is_granted()`. isGranted() pushes the decision being made onto $accessDecisionStack
+        // and pops it in a finally, isGrantedForUser() does the same with $tokenStack, so a voter doing
+        // any I/O suspends its coroutine mid-decision and leaves the stack non-empty for whoever runs
+        // next: end() hands that request somebody else's decision, and the pops unwind in an order
+        // nobody intended. Both stacks balance themselves, so no resetter is needed - one instance per
+        // coroutine is the whole fix.
+        'security.authorization_checker',
     ];
 
     private const array SERVICE_RESETTING_PRIORITIES = [
@@ -80,8 +120,28 @@ final class StatefulServicesPass implements CompilerPassInterface
             'class' => MonologProcessor::class,
             'priority' => 0,
         ],
+        TwigProcessor::class => [
+            'class' => TwigProcessor::class,
+            'priority' => 0,
+        ],
+        FormProcessor::class => [
+            'class' => FormProcessor::class,
+            'priority' => 0,
+        ],
         SecurityProcessor::class => [
             'class' => SecurityProcessor::class,
+            'priority' => 0,
+        ],
+        MessengerProcessor::class => [
+            'class' => MessengerProcessor::class,
+            'priority' => 0,
+        ],
+        WebProfilerProcessor::class => [
+            'class' => WebProfilerProcessor::class,
+            'priority' => 0,
+        ],
+        HttpClientProcessor::class => [
+            'class' => HttpClientProcessor::class,
             'priority' => 0,
         ],
     ];

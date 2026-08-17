@@ -12,7 +12,13 @@ interface Swoole
 
     public function waitGroup(int $delta = 0): WaitGroup;
 
-    public function enableCoroutines(int $flags = SWOOLE_HOOK_ALL): void;
+    /**
+     * The runtime hooks this engine turns on when coroutines are enabled, and what enableCoroutines()
+     * applies when it is not given any.
+     */
+    public function coroutineHookFlags(): int;
+
+    public function enableCoroutines(?int $flags = null): void;
 
     public function disableCoroutines(): void;
 

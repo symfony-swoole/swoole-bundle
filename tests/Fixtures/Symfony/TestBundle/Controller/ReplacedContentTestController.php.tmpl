@@ -7,11 +7,11 @@ namespace SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Controller
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
-final class ReplacedContentTestController
+final class ReplacedContentTestController%CLASS_SUFFIX%
 {
     private const string BASH_REPLACE_PATTERN = '%REPLACE%';
 
-    #[Route(path: '/test/replaced/content', methods: ['GET'])]
+    #[Route(path: '/test/replaced/content%ROUTE_SUFFIX%', methods: ['GET'])]
     public function index(): Response
     {
         return new Response(self::BASH_REPLACE_PATTERN, 200, ['Content-Type' => 'text/plain']);

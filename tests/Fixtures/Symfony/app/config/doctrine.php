@@ -10,6 +10,10 @@ return static function (ContainerConfigurator $containerConfigurator): void {
 
     $parameters->set('env(DATABASE_HOST)', 'db');
 
+    // Parallel feature tests each get a database of their own - they drop and re-migrate the whole
+    // schema, which no sibling worker would survive. ServerTestCase exports the name.
+    $parameters->set('env(DATABASE_NAME)', 'db');
+
     $doctrineConfig = [
         'dbal' => [
             'default_connection' => 'default',
@@ -21,7 +25,7 @@ return static function (ContainerConfigurator $containerConfigurator): void {
                     'password' => 'pass',
                     'host' => '%env(DATABASE_HOST)%',
                     'port' => 3306,
-                    'dbname' => 'db',
+                    'dbname' => '%env(DATABASE_NAME)%',
                 ],
             ],
         ],

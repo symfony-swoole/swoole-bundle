@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace SwooleBundle\SwooleBundle\Bridge\Symfony\EventDispatcher;
 
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices\CompileProcessor;
-use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices\Proxifier;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices\ServiceProxifier;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\ContainerConstants;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 
@@ -21,7 +21,7 @@ final class EventDispatcherProcessor implements CompileProcessor
     private const string SECURITY_FIREWALLS_PARAM = 'security.firewalls';
     private const string SECURITY_EVENT_DISPATCHER_ID_PREFIX = 'security.event_dispatcher.';
 
-    public function process(ContainerBuilder $container, Proxifier $proxifier): void
+    public function process(ContainerBuilder $container, ServiceProxifier $proxifier): void
     {
         $this->processDispatcherPair($container, $proxifier, 'event_dispatcher', 'debug.event_dispatcher');
 
@@ -72,7 +72,7 @@ final class EventDispatcherProcessor implements CompileProcessor
      */
     private function processDispatcherPair(
         ContainerBuilder $container,
-        Proxifier $proxifier,
+        ServiceProxifier $proxifier,
         string $dispatcherId,
         string $debugDispatcherId,
     ): void {

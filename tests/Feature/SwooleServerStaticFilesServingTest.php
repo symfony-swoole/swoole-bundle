@@ -23,15 +23,15 @@ final class SwooleServerStaticFilesServingTest extends ServerTestCase
         $serverRun = $this->createConsoleProcess([
             'swoole:server:run',
             '--host=localhost',
-            '--port=9999',
+            sprintf('--port=%d', self::port()),
         ], ['APP_ENV' => 'auto']);
 
         $serverRun->setTimeout(10);
         $serverRun->start();
 
         $this->runAsCoroutineAndWait(function (): void {
-            $client = HttpClient::fromDomain('localhost', 9999, false);
-            $this->assertTrue($client->connect(3, 1, true));
+            $client = HttpClient::fromDomain('localhost', self::port(), false);
+            $this->assertTrue($client->connect(self::connectTimeout(), 1, true));
 
             $response = $client->send('/robots.txt')['response'];
 
@@ -53,15 +53,15 @@ final class SwooleServerStaticFilesServingTest extends ServerTestCase
         $serverRun = $this->createConsoleProcess([
             'swoole:server:run',
             '--host=localhost',
-            '--port=9999',
+            sprintf('--port=%d', self::port()),
         ], ['APP_ENV' => 'static']);
 
         $serverRun->setTimeout(10);
         $serverRun->start();
 
         $this->runAsCoroutineAndWait(function (): void {
-            $client = HttpClient::fromDomain('localhost', 9999, false);
-            $this->assertTrue($client->connect(3, 1, true));
+            $client = HttpClient::fromDomain('localhost', self::port(), false);
+            $this->assertTrue($client->connect(self::connectTimeout(), 1, true));
 
             $response = $client->send('/robots.txt')['response'];
 
@@ -83,15 +83,15 @@ final class SwooleServerStaticFilesServingTest extends ServerTestCase
         $serverRun = $this->createConsoleProcess([
             'swoole:server:run',
             '--host=localhost',
-            '--port=9999',
+            sprintf('--port=%d', self::port()),
         ], ['APP_ENV' => 'prod']);
 
         $serverRun->setTimeout(10);
         $serverRun->start();
 
         $this->runAsCoroutineAndWait(function (): void {
-            $client = HttpClient::fromDomain('localhost', 9999, false);
-            $this->assertTrue($client->connect(3, 1, true));
+            $client = HttpClient::fromDomain('localhost', self::port(), false);
+            $this->assertTrue($client->connect(self::connectTimeout(), 1, true));
 
             $response = $client->send('/robots.txt')['response'];
 
@@ -106,15 +106,15 @@ final class SwooleServerStaticFilesServingTest extends ServerTestCase
         $serverRun = $this->createConsoleProcess([
             'swoole:server:run',
             '--host=localhost',
-            '--port=9999',
+            sprintf('--port=%d', self::port()),
         ], ['APP_ENV' => 'mime']);
 
         $serverRun->setTimeout(10);
         $serverRun->start();
 
         $this->runAsCoroutineAndWait(function (): void {
-            $client = HttpClient::fromDomain('localhost', 9999, false);
-            $this->assertTrue($client->connect(3, 1, true));
+            $client = HttpClient::fromDomain('localhost', self::port(), false);
+            $this->assertTrue($client->connect(self::connectTimeout(), 1, true));
 
             $response = $client->send('/robots.txt')['response'];
 

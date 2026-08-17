@@ -1,3 +1,33 @@
+# [0.32.0](https://github.com/symfony-swoole/swoole-bundle/compare/v0.31.0...v0.32.0) (2026-08-13)
+
+[Full changelog](https://github.com/symfony-swoole/swoole-bundle/compare/v0.31.0...v0.32.0)
+
+### Bug Fixes
+
+* **coroutines:** added coroutine safe dbal optimized connection alive keeper ([#342](https://github.com/symfony-swoole/swoole-bundle/issues/342)) ([0383fda](https://github.com/symfony-swoole/swoole-bundle/commit/0383fda305cf6fe6bb6e371fc3de613a6a55866a))
+* **coroutines:** default caching works with coroutines again ([#348](https://github.com/symfony-swoole/swoole-bundle/issues/348)) ([38b3cab](https://github.com/symfony-swoole/swoole-bundle/commit/38b3cab566ce768456bb138331a25b1cc4d5481b))
+* **coroutines:** fixed coroutine race conditions in twig and traceable authenticator ([#357](https://github.com/symfony-swoole/swoole-bundle/issues/357)) ([51f3d79](https://github.com/symfony-swoole/swoole-bundle/commit/51f3d792f4393efdc4f57ae5447ea99ca98c2ffa))
+* **coroutines:** fixed traceable message bus for coroutine workloads ([#361](https://github.com/symfony-swoole/swoole-bundle/issues/361)) ([fd30263](https://github.com/symfony-swoole/swoole-bundle/commit/fd302635acaef3570d2725e79c84a09dca2ed5bd))
+* **coroutines:** fixes for default system.cache and for loggers ([#347](https://github.com/symfony-swoole/swoole-bundle/issues/347)) ([8dadaf2](https://github.com/symfony-swoole/swoole-bundle/commit/8dadaf2ecfafa26302434009b294a72d33e787f0))
+* **coroutines:** lazy firewall context listener made usable with coroutines ([#349](https://github.com/symfony-swoole/swoole-bundle/issues/349)) ([305af93](https://github.com/symfony-swoole/swoole-bundle/commit/305af93f9853cf9540c473a4b62429b2c5b9c91c))
+* **coroutines:** proxification for security access manager - fixed for debug mode ([#346](https://github.com/symfony-swoole/swoole-bundle/issues/346)) ([1f6a9b4](https://github.com/symfony-swoole/swoole-bundle/commit/1f6a9b428a0adc864d246c6a28288f53b21ea07b))
+* **coroutines:** proxification for security access manager ([#345](https://github.com/symfony-swoole/swoole-bundle/issues/345)) ([d933883](https://github.com/symfony-swoole/swoole-bundle/commit/d9338833755c1efa91a969b6dfb62d027e167712))
+* **coroutines:** proxification of security and translation related services ([#354](https://github.com/symfony-swoole/swoole-bundle/issues/354)) ([8c29cd7](https://github.com/symfony-swoole/swoole-bundle/commit/8c29cd752b7e533f4bf107cea31efb467737fa3f))
+* **coroutines:** removed controller resolver container mutation on controllers ([#343](https://github.com/symfony-swoole/swoole-bundle/issues/343)) ([488132a](https://github.com/symfony-swoole/swoole-bundle/commit/488132a12e5e4fe66e5dbc2650dd4ad197f09156))
+* **coroutines:** support for lazy services in di container with coroutines enabled ([#356](https://github.com/symfony-swoole/swoole-bundle/issues/356)) ([ff656d6](https://github.com/symfony-swoole/swoole-bundle/commit/ff656d649efc82f4192c4fc506d76c8b69fad68a))
+* **doctrine:** debug data holder resetting fix ([#359](https://github.com/symfony-swoole/swoole-bundle/issues/359)) ([e485833](https://github.com/symfony-swoole/swoole-bundle/commit/e4858338d1ddac79d4755bdfdcfa903260c7859f))
+* **error_handler:** fix for app boot with error handler when coroutines enabled ([#360](https://github.com/symfony-swoole/swoole-bundle/issues/360)) ([99d0130](https://github.com/symfony-swoole/swoole-bundle/commit/99d013042edaa803ffd537bf9448ee58b5287e93))
+* **error_handler:** resetting error handler before each usage to avoid unexpected shutdowns ([#341](https://github.com/symfony-swoole/swoole-bundle/issues/341)) ([f08c9b2](https://github.com/symfony-swoole/swoole-bundle/commit/f08c9b26ace484bb94f635fb071493ef6baa8b84))
+* **healthcheck:** prevent a stalled client from delaying liveness probes ([#344](https://github.com/symfony-swoole/swoole-bundle/issues/344)) ([51c9d70](https://github.com/symfony-swoole/swoole-bundle/commit/51c9d70e9b2a7fb90a4f057b705c65229d56f5eb))
+* **server:watch:** watch crash recovery improvements ([#362](https://github.com/symfony-swoole/swoole-bundle/issues/362)) ([6e5ffe9](https://github.com/symfony-swoole/swoole-bundle/commit/6e5ffe9dafe80fdb75dceef386710013d39bd05a))
+* **session:** fixed deserialization failure ([#358](https://github.com/symfony-swoole/swoole-bundle/issues/358)) ([27a38df](https://github.com/symfony-swoole/swoole-bundle/commit/27a38dfd1b99cdd8929855d6ea9ecbc30069f6d1))
+
+
+### Features
+
+* **config:** create pid_file only for daemon server ([#309](https://github.com/symfony-swoole/swoole-bundle/issues/309)) ([1983412](https://github.com/symfony-swoole/swoole-bundle/commit/198341248947d680a9f1e80b9a3e1d9dae794aae))
+* **max_wait_time:** added max_wait_time open/swoole flag to fix flaky swoole tests ([#353](https://github.com/symfony-swoole/swoole-bundle/issues/353)) ([8ceda25](https://github.com/symfony-swoole/swoole-bundle/commit/8ceda25a9bd8d3b40b593ed5659e3bd2cf6c2ee9))
+
 # [0.31.0](https://github.com/symfony-swoole/swoole-bundle/compare/v0.30.0...v0.31.0) (2026-08-03)
 
 [Full changelog](https://github.com/symfony-swoole/swoole-bundle/compare/v0.30.0...v0.31.0)

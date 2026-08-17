@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Tests\Feature;
 
+use DateTimeImmutable;
 use Override;
 use PHPUnit\Framework\Attributes\DataProvider;
 use ReflectionClass;
@@ -11,6 +12,7 @@ use Swoole\Coroutine;
 use SwooleBundle\SwooleBundle\Client\HttpClient;
 use SwooleBundle\SwooleBundle\Server\Session\SwooleTableStorage;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Test\ServerTestCase;
+use Throwable;
 
 final class SymfonySessionSwooleSessionStorageTest extends ServerTestCase
 {
@@ -89,7 +91,7 @@ final class SymfonySessionSwooleSessionStorageTest extends ServerTestCase
         $serverStart = $this->createConsoleProcess([
             'swoole:server:start',
             '--host=localhost',
-            '--port=9999',
+            sprintf('--port=%d', self::port()),
         ], $envs);
 
         $serverStart->setTimeout(3);
@@ -101,8 +103,8 @@ final class SymfonySessionSwooleSessionStorageTest extends ServerTestCase
         $this->runAsCoroutineAndWait(function () use ($envs): void {
             $this->deferServerStop([], $envs);
 
-            $client = HttpClient::fromDomain('localhost', 9999, false);
-            $this->assertTrue($client->connect(3, 1, true));
+            $client = HttpClient::fromDomain('localhost', self::port(), false);
+            $this->assertTrue($client->connect(self::connectTimeout(), 1, true));
 
             $response1 = $client->send('/session/1')['response'];
             $this->assertSame(200, $response1['statusCode']);
@@ -118,6 +120,82 @@ final class SymfonySessionSwooleSessionStorageTest extends ServerTestCase
 
             $this->assertSame($sessionId1, $sessionId2);
             $this->assertSame($body1, $body2);
+        });
+    }
+
+    /**
+     * A session bag carries whatever the application puts in it, objects included - Symfony's security
+     * component depends on it, leaving the AuthenticationException of a failed login in the session for
+     * the login page to read back. A store that cannot carry one does not fail: it writes what it can
+     * and hands back a value of another type, and the first piece of Symfony to read it dies on the
+     * type it was promised.
+     *
+     * @see \SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation\Session\SwooleSessionStorage
+     */
+    #[DataProvider('environmentProvider')]
+    public function testAnObjectStoredInTheSessionSurvivesToTheNextRequest(string $env): void
+    {
+        $envs = [
+            'APP_ENV' => $env,
+            'COOKIE_LIFETIME' => 5,
+        ];
+
+        $clearCache = $this->createConsoleProcess(['cache:clear'], $envs);
+        $clearCache->setTimeout(5);
+        $clearCache->disableOutput();
+        $clearCache->run();
+
+        $this->assertProcessSucceeded($clearCache);
+
+        $dropSchema = $this->createConsoleProcess(
+            ['doctrine:schema:drop', '--full-database', '--force'],
+            $envs
+        );
+        $dropSchema->setTimeout(5);
+        $dropSchema->disableOutput();
+        $dropSchema->run();
+
+        $this->assertProcessSucceeded($dropSchema);
+
+        $migrations = $this->createConsoleProcess(['doctrine:migrations:migrate', '--no-interaction'], $envs);
+        $migrations->setTimeout(5);
+        $migrations->disableOutput();
+        $migrations->run();
+
+        $this->assertProcessSucceeded($migrations);
+
+        $serverStart = $this->createConsoleProcess([
+            'swoole:server:start',
+            '--host=localhost',
+            sprintf('--port=%d', self::port()),
+        ], $envs);
+
+        $serverStart->setTimeout(3);
+        $serverStart->disableOutput();
+        $serverStart->run();
+
+        $this->assertProcessSucceeded($serverStart);
+
+        $this->runAsCoroutineAndWait(function () use ($envs): void {
+            $this->deferServerStop([], $envs);
+
+            $client = HttpClient::fromDomain('localhost', self::port(), false);
+            $this->assertTrue($client->connect(self::connectTimeout(), 1, true));
+
+            $storeResponse = $client->send('/session/object')['response'];
+            $this->assertSame(200, $storeResponse['statusCode']);
+            $this->assertArrayHasKey('SWOOLESSID', $storeResponse['cookies']);
+
+            $readResponse = $client->send('/session/object')['response'];
+            $this->assertSame(200, $readResponse['statusCode']);
+            $this->assertIsArray($readResponse['body']);
+
+            /** @var array{stored: bool, type: string, value: string|null} $read */
+            $read = $readResponse['body'];
+
+            $this->assertFalse($read['stored'], 'The second request did not find the session of the first.');
+            $this->assertSame(DateTimeImmutable::class, $read['type']);
+            $this->assertSame('2020-02-02T02:02:02+00:00', $read['value']);
         });
     }
 
@@ -167,7 +245,7 @@ final class SymfonySessionSwooleSessionStorageTest extends ServerTestCase
         $serverStart = $this->createConsoleProcess([
             'swoole:server:start',
             '--host=localhost',
-            '--port=9999',
+            sprintf('--port=%d', self::port()),
         ], $envs);
 
         $serverStart->setTimeout(3);
@@ -179,16 +257,16 @@ final class SymfonySessionSwooleSessionStorageTest extends ServerTestCase
         $this->runAsCoroutineAndWait(function () use ($envs): void {
             $this->deferServerStop([], $envs);
 
-            $client1 = HttpClient::fromDomain('localhost', 9999, false);
-            $this->assertTrue($client1->connect(3, 1, true));
+            $client1 = HttpClient::fromDomain('localhost', self::port(), false);
+            $this->assertTrue($client1->connect(self::connectTimeout(), 1, true));
 
             $response1 = $client1->send('/session/1')['response'];
             $this->assertArrayHasKey('SWOOLESSID', $response1['cookies']);
             $sessionId1 = $response1['cookies']['SWOOLESSID'];
             $body1 = $response1['body'];
 
-            $client2 = HttpClient::fromDomain('localhost', 9999, false);
-            $this->assertTrue($client2->connect());
+            $client2 = HttpClient::fromDomain('localhost', self::port(), false);
+            $this->assertTrue($client2->connect(self::connectTimeout(), 1, true));
 
             $response2 = $client2->send('/session/2')['response'];
             $this->assertArrayHasKey('SWOOLESSID', $response2['cookies']);
@@ -246,7 +324,7 @@ final class SymfonySessionSwooleSessionStorageTest extends ServerTestCase
         $serverStart = $this->createConsoleProcess([
             'swoole:server:start',
             '--host=localhost',
-            '--port=9999',
+            sprintf('--port=%d', self::port()),
         ], $envs);
 
         $serverStart->setTimeout(3);
@@ -258,8 +336,8 @@ final class SymfonySessionSwooleSessionStorageTest extends ServerTestCase
         $this->runAsCoroutineAndWait(function () use ($cookieLifetime, $envs): void {
             $this->deferServerStop([], $envs);
 
-            $client = HttpClient::fromDomain('localhost', 9999, false);
-            $this->assertTrue($client->connect(3, 1, true));
+            $client = HttpClient::fromDomain('localhost', self::port(), false);
+            $this->assertTrue($client->connect(self::connectTimeout(), 1, true));
 
             $response1 = $client->send('/session/1')['response'];
             $this->assertSame(200, $response1['statusCode']);
@@ -295,7 +373,7 @@ final class SymfonySessionSwooleSessionStorageTest extends ServerTestCase
         $serverStart = $this->createConsoleProcess([
             'swoole:server:start',
             '--host=localhost',
-            '--port=9999',
+            sprintf('--port=%d', self::port()),
         ], $envs);
 
         $serverStart->setTimeout(3);
@@ -307,8 +385,8 @@ final class SymfonySessionSwooleSessionStorageTest extends ServerTestCase
         $this->runAsCoroutineAndWait(function () use ($envs): void {
             $this->deferServerStop([], $envs);
 
-            $client = HttpClient::fromDomain('localhost', 9999, false);
-            $this->assertTrue($client->connect(3, 1, true));
+            $client = HttpClient::fromDomain('localhost', self::port(), false);
+            $this->assertTrue($client->connect(self::connectTimeout(), 1, true));
 
             $response1 = $client->send('/session/1')['response'];
             $this->assertSame(200, $response1['statusCode']);
@@ -340,7 +418,7 @@ final class SymfonySessionSwooleSessionStorageTest extends ServerTestCase
         $serverStart = $this->createConsoleProcess([
             'swoole:server:start',
             '--host=localhost',
-            '--port=9999',
+            sprintf('--port=%d', self::port()),
         ], $envs);
 
         $serverStart->setTimeout(3);
@@ -352,8 +430,8 @@ final class SymfonySessionSwooleSessionStorageTest extends ServerTestCase
         $this->runAsCoroutineAndWait(function () use ($envs): void {
             $this->deferServerStop([], $envs);
 
-            $client = HttpClient::fromDomain('localhost', 9999, false);
-            $this->assertTrue($client->connect(3, 1, true));
+            $client = HttpClient::fromDomain('localhost', self::port(), false);
+            $this->assertTrue($client->connect(self::connectTimeout(), 1, true));
 
             // /session/large stores 600+ bytes which exceeds max_data_bytes=512 set in the session fixture
             $response = $client->send('/session/large')['response'];
@@ -410,7 +488,7 @@ final class SymfonySessionSwooleSessionStorageTest extends ServerTestCase
         $serverStart = $this->createConsoleProcess([
             'swoole:server:start',
             '--host=localhost',
-            '--port=9999',
+            sprintf('--port=%d', self::port()),
         ], $envs);
 
         $serverStart->setTimeout(3);
@@ -422,16 +500,16 @@ final class SymfonySessionSwooleSessionStorageTest extends ServerTestCase
         $this->runAsCoroutineAndWait(function () use ($envs): void {
             $this->deferServerStop([], $envs);
 
-            $client1 = HttpClient::fromDomain('localhost', 9999, false);
-            $this->assertTrue($client1->connect(3, 1, true));
+            $client1 = HttpClient::fromDomain('localhost', self::port(), false);
+            $this->assertTrue($client1->connect(self::connectTimeout(), 1, true));
 
             $response1 = $client1->send('/session/1')['response'];
             $this->assertArrayHasKey('SWOOLESSID', $response1['cookies']);
             $sessionId1 = $response1['cookies']['SWOOLESSID'];
             $body1 = $response1['body'];
 
-            $client2 = HttpClient::fromDomain('localhost', 9999, false);
-            $this->assertTrue($client2->connect());
+            $client2 = HttpClient::fromDomain('localhost', self::port(), false);
+            $this->assertTrue($client2->connect(self::connectTimeout(), 1, true));
 
             $response2 = $client2->send('/session/2')['response'];
             $this->assertArrayHasKey('SWOOLESSID', $response2['cookies']);
@@ -459,7 +537,7 @@ final class SymfonySessionSwooleSessionStorageTest extends ServerTestCase
         $serverStart = $this->createConsoleProcess([
             'swoole:server:start',
             '--host=localhost',
-            '--port=9999',
+            sprintf('--port=%d', self::port()),
         ], $envs);
 
         $serverStart->setTimeout(3);
@@ -475,35 +553,55 @@ final class SymfonySessionSwooleSessionStorageTest extends ServerTestCase
             $max = self::coverageEnabled() ? 8 : 40;
             $wg = $this->getSwoole()->waitGroup();
             $luckyNumbers = [];
+            $failures = [];
 
             for ($i = 0; $i < $max; ++$i) {
+                $wg->add();
+
                 // phpcs:ignore SlevomatCodingStandard.PHP.DisallowReference.DisallowedInheritingVariableByReference
-                go(function () use ($wg, &$luckyNumbers): void {
-                    $wg->add();
-                    $client = HttpClient::fromDomain('localhost', 9999, false);
-                    $this->assertTrue($client->connect(3, 1, true));
+                go(function () use ($wg, $i, &$luckyNumbers, &$failures): void {
+                    // An exception thrown in a coroutine dies with it, and the only trace left would be
+                    // this request missing from the tally below - "39 is not 40", with nothing to say
+                    // which request failed or why. Carry the reason back out instead.
+                    try {
+                        $client = HttpClient::fromDomain('localhost', self::port(), false);
+                        $this->assertTrue($client->connect(self::connectTimeout(), 1, true));
 
-                    $response1 = $client->send('/session/1')['response'];
-                    $this->assertSame(200, $response1['statusCode']);
-                    $this->assertArrayHasKey('set-cookie', $response1['headers']);
-                    $this->assertArrayHasKey('SWOOLESSID', $response1['cookies']);
-                    $sessionId1 = $response1['cookies']['SWOOLESSID'];
-                    $body1 = $response1['body'];
+                        $response1 = $client->send('/session/1')['response'];
+                        $this->assertSame(200, $response1['statusCode']);
+                        $this->assertArrayHasKey('set-cookie', $response1['headers']);
+                        $this->assertArrayHasKey('SWOOLESSID', $response1['cookies']);
+                        $sessionId1 = $response1['cookies']['SWOOLESSID'];
+                        $body1 = $response1['body'];
 
-                    $response2 = $client->send('/session/2')['response'];
-                    $this->assertArrayHasKey('SWOOLESSID', $response2['cookies']);
-                    $sessionId2 = $response2['cookies']['SWOOLESSID'];
-                    $body2 = $response2['body'];
+                        $response2 = $client->send('/session/2')['response'];
+                        $this->assertArrayHasKey('SWOOLESSID', $response2['cookies']);
+                        $sessionId2 = $response2['cookies']['SWOOLESSID'];
+                        $body2 = $response2['body'];
 
-                    $this->assertSame($sessionId1, $sessionId2);
-                    $this->assertSame($body1['luckyNumber'], $body2['luckyNumber']);
-                    $luckyNumbers[$body1['luckyNumber']] = $body2['luckyNumber'];
+                        $this->assertSame($sessionId1, $sessionId2);
+                        $this->assertSame($body1['luckyNumber'], $body2['luckyNumber']);
 
-                    $wg->done();
+                        // Keyed by the request, not by the lucky number it drew. The number is a
+                        // random_int(1, 1_000_000) picked per session, and forty of them collide about
+                        // once in thirteen hundred runs - which showed up as a request that had
+                        // seemingly never happened.
+                        $luckyNumbers[$i] = $body2['luckyNumber'];
+                    } catch (Throwable $throwable) {
+                        $failures[$i] = $throwable->getMessage();
+                    } finally {
+                        $wg->done();
+                    }
                 });
             }
 
-            $wg->wait($max);
+            // Scaled like the other waits, and its result is checked: a coroutine that hangs used to
+            // leave the timeout to expire unnoticed and be reported as a missing request.
+            self::assertTrue(
+                $wg->wait(self::connectTimeout(self::coverageEnabled() ? 60 : 30)),
+                'not every request finished before the wait group timed out.',
+            );
+            self::assertSame([], $failures, 'some requests failed');
             $this->assertCount($max, $luckyNumbers);
         });
     }

@@ -29,7 +29,7 @@ final class SymfonyMessengerSwooleTaskTransportTest extends ServerTestCase
         $serverRun = $this->createConsoleProcess([
             'swoole:server:run',
             '--host=localhost',
-            '--port=9999',
+            sprintf('--port=%d', self::port()),
         ], ['APP_ENV' => 'messenger']);
 
         self::assertFileDoesNotExist($testFilePath);
@@ -38,8 +38,8 @@ final class SymfonyMessengerSwooleTaskTransportTest extends ServerTestCase
         $serverRun->start();
 
         $this->runAsCoroutineAndWait(function () use ($testFile, $testFileContent): void {
-            $client = HttpClient::fromDomain('localhost', 9999, false);
-            $this->assertTrue($client->connect(3, 1, true));
+            $client = HttpClient::fromDomain('localhost', self::port(), false);
+            $this->assertTrue($client->connect(self::connectTimeout(), 1, true));
 
             $response = $client->send('/message/dispatch', Http::METHOD_POST, [
                 'Content-Type' => 'application/x-www-form-urlencoded',

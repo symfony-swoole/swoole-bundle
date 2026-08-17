@@ -25,7 +25,7 @@ final class SwooleServerStartStopCommandTest extends ServerTestCase
         $serverStart = $this->createConsoleProcess([
             'swoole:server:start',
             '--host=localhost',
-            '--port=9999',
+            sprintf('--port=%d', self::port()),
         ]);
 
         $serverStart->setTimeout(3);
@@ -37,8 +37,8 @@ final class SwooleServerStartStopCommandTest extends ServerTestCase
         $this->runAsCoroutineAndWait(function (): void {
             $this->deferServerStop();
 
-            $client = HttpClient::fromDomain('localhost', 9999, false);
-            $this->assertTrue($client->connect(waitIfNoConnection: true));
+            $client = HttpClient::fromDomain('localhost', self::port(), false);
+            $this->assertTrue($client->connect(self::connectTimeout(), waitIfNoConnection: true));
             $this->assertHelloWorldRequestSucceeded($client);
         });
     }
@@ -49,7 +49,7 @@ final class SwooleServerStartStopCommandTest extends ServerTestCase
         $serverStart = $this->createConsoleProcess([
             'swoole:server:start',
             '--host=localhost',
-            '--port=9999',
+            sprintf('--port=%d', self::port()),
         ], $envs);
 
         $serverStart->setTimeout(3);
@@ -61,8 +61,8 @@ final class SwooleServerStartStopCommandTest extends ServerTestCase
         $this->runAsCoroutineAndWait(function () use ($envs): void {
             $this->deferServerStop([], $envs);
 
-            $client = HttpClient::fromDomain('localhost', 9999, false);
-            $this->assertTrue($client->connect(waitIfNoConnection: true));
+            $client = HttpClient::fromDomain('localhost', self::port(), false);
+            $this->assertTrue($client->connect(self::connectTimeout(), waitIfNoConnection: true));
             $this->assertHelloWorldRequestSucceeded($client);
         });
     }
@@ -72,7 +72,7 @@ final class SwooleServerStartStopCommandTest extends ServerTestCase
         $serverStart = $this->createConsoleProcess([
             'swoole:server:start',
             '--host=localhost',
-            '--port=9999',
+            sprintf('--port=%d', self::port()),
         ]);
 
         $serverStart->setTimeout(3);
@@ -84,8 +84,8 @@ final class SwooleServerStartStopCommandTest extends ServerTestCase
         $this->runAsCoroutineAndWait(function (): void {
             go(function (): void {
                 sleep(1); // weird behaviour with swoole, connections need some "boot" time
-                $client = HttpClient::fromDomain('localhost', 9999, false);
-                $this->assertTrue($client->connect(waitIfNoConnection: true));
+                $client = HttpClient::fromDomain('localhost', self::port(), false);
+                $this->assertTrue($client->connect(self::connectTimeout(), waitIfNoConnection: true));
 
                 try {
                     $response = $client->send('/dummy-sleep')['response'];

@@ -42,6 +42,11 @@ services:
       DATABASE_HOST: 'db'
     security_opt:
       - seccomp=unconfined
+    ulimits:
+      # io_uring pins its rings against the locked-memory limit, and swoole aborts the whole
+      # process when a ring cannot be created. Docker's 8MB default is not enough for a suite
+      # running several servers at once. See .circleci/config.yml for the full story.
+      memlock: -1
     ports:
       - 9501:9501
 
@@ -66,6 +71,11 @@ services:
       DATABASE_HOST: 'db'
     security_opt:
       - seccomp=unconfined
+    ulimits:
+      # io_uring pins its rings against the locked-memory limit, and swoole aborts the whole
+      # process when a ring cannot be created. Docker's 8MB default is not enough for a suite
+      # running several servers at once. See .circleci/config.yml for the full story.
+      memlock: -1
 
   coverage-xdebug:
     image: "${REGISTRY:-docker.io}/${NAMESPACE:-symfonywithswoole}/${IMAGE:-swoole-bundle}-coverage-xdebug:${TAG:-local}"
@@ -78,6 +88,11 @@ services:
       DATABASE_HOST: 'db'
     security_opt:
       - seccomp=unconfined
+    ulimits:
+      # io_uring pins its rings against the locked-memory limit, and swoole aborts the whole
+      # process when a ring cannot be created. Docker's 8MB default is not enough for a suite
+      # running several servers at once. See .circleci/config.yml for the full story.
+      memlock: -1
 
   coverage-pcov:
     image: "${REGISTRY:-docker.io}/${NAMESPACE:-symfonywithswoole}/${IMAGE:-swoole-bundle}-coverage-pcov:${TAG:-local}"
@@ -90,6 +105,11 @@ services:
       DATABASE_HOST: 'db'
     security_opt:
       - seccomp=unconfined
+    ulimits:
+      # io_uring pins its rings against the locked-memory limit, and swoole aborts the whole
+      # process when a ring cannot be created. Docker's 8MB default is not enough for a suite
+      # running several servers at once. See .circleci/config.yml for the full story.
+      memlock: -1
 
   coverage-xdebug-feature-with-retry:
     image: "${REGISTRY:-docker.io}/${NAMESPACE:-symfonywithswoole}/${IMAGE:-swoole-bundle}-coverage-xdebug:${TAG:-local}"
@@ -106,6 +126,11 @@ services:
       DATABASE_HOST: 'db'
     security_opt:
       - seccomp=unconfined
+    ulimits:
+      # io_uring pins its rings against the locked-memory limit, and swoole aborts the whole
+      # process when a ring cannot be created. Docker's 8MB default is not enough for a suite
+      # running several servers at once. See .circleci/config.yml for the full story.
+      memlock: -1
 
   merge-code-coverage:
     image: "${REGISTRY:-docker.io}/${NAMESPACE:-symfonywithswoole}/${IMAGE:-swoole-bundle}-merge-code-coverage:${MERGE_COVERAGE_TAG:-local}"
@@ -124,3 +149,8 @@ services:
       MYSQL_USER: user
       MYSQL_PASSWORD: pass
       MYSQL_DATABASE: db
+    volumes:
+      # Lets the test user create the per-worker databases parallel feature tests need. Only runs while
+      # the data directory is still empty, so an existing volume needs the grant applying by hand - see
+      # CONTRIBUTING.md.
+      - ./docker/mysql/init:/docker-entrypoint-initdb.d:ro

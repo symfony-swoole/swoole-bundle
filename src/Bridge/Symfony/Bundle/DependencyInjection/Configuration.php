@@ -358,6 +358,13 @@ final readonly class Configuration implements ConfigurationInterface
                                 ->scalarNode('worker_max_request_grace')
                                     ->defaultNull()
                                 ->end()
+                                // Seconds a worker is given to finish what it is doing when it is told
+                                // to exit, before swoole force-terminates it. Left unset, swoole's own
+                                // default of 3 applies - which a worker with outstanding hooked file
+                                // I/O can overrun, and then it dies mid-shutdown.
+                                ->scalarNode('worker_max_wait_time')
+                                    ->defaultNull()
+                                ->end()
                                 ->scalarNode('upload_tmp_dir')
                                     ->defaultValue('/tmp')
                                 ->end()
@@ -392,6 +399,24 @@ final readonly class Configuration implements ConfigurationInterface
                             ->children()
                                 ->scalarNode('worker_count')
                                     ->defaultNull()
+                                ->end()
+                            ->end()
+                        ->end()
+                        // EXPERIMENTAL - see docs/swoole-task-worker-commands.md
+                        ->arrayNode('commands')
+                            ->info(
+                                'EXPERIMENTAL. Long running console commands to run inside task worker '
+                                . 'processes. Each entry is one task worker. An entry may be a single '
+                                . 'command line, or a list of command lines to run side by side in that '
+                                . 'one worker - which requires platform.coroutines.enabled.'
+                            )
+                            ->arrayPrototype()
+                                ->beforeNormalization()
+                                    ->ifString()
+                                    ->then(static fn(string $commandLine): array => [$commandLine])
+                                ->end()
+                                ->scalarPrototype()
+                                    ->cannotBeEmpty()
                                 ->end()
                             ->end()
                         ->end()

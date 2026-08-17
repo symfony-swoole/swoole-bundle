@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Command\{
     AccessDecisionManagerProxyCheckCommand,
+    AuthorizationCheckerProxyCheckCommand,
     SecurityFirewallContextProxyCheckCommand,
     SecurityFirewallEventDispatcherProxyCheckCommand,
 };
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
+
+use function Symfony\Component\DependencyInjection\Loader\Configurator\service;
 
 return static function (ContainerConfigurator $containerConfigurator): void {
     $parameters = $containerConfigurator->parameters();
@@ -52,6 +55,12 @@ return static function (ContainerConfigurator $containerConfigurator): void {
     // - here - so it stays excluded from the global TestBundle/* autoload in ../services.php too.
     $services->set(AccessDecisionManagerProxyCheckCommand::class);
 
+    // the sibling one layer up, which is what templates reach through `is_granted()`
+    $services->set(AuthorizationCheckerProxyCheckCommand::class);
+
     // depends on security.firewall.map, which likewise only exists where SecurityBundle is registered.
-    $services->set(SecurityFirewallContextProxyCheckCommand::class);
+    $services->set(SecurityFirewallContextProxyCheckCommand::class)
+        // the traceable decorator only exists while the profiler is on, so the reference has to survive
+        // the environment being run with debug off - which the other security tests do
+        ->arg('$authenticator', service('debug.security.authenticator.http_basic.session')->ignoreOnInvalid());
 };

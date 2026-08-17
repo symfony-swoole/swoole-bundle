@@ -10,9 +10,11 @@ use Monolog\Formatter\LineFormatter;
 use Override;
 use ReflectionMethod;
 use RuntimeException;
+use SwooleBundle\SwooleBundle\Bridge\CommonSwoole\SystemSwooleFactory;
 use SwooleBundle\SwooleBundle\Bridge\Log\AccessLogFormatter;
 use SwooleBundle\SwooleBundle\Bridge\Log\SimpleAccessLogFormatter;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\EventDispatcher\DebugClassLoaderOverridingWorkerStartHandler;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\ServicePool\ServicePoolContainer;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\StabilityChecker;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\ErrorHandler\ErrorHandlerResetter;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\ErrorHandler\ErrorResponder;
@@ -27,7 +29,17 @@ use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation\TrustAllProxiesReque
 use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpKernel\ContextReleasingHttpKernelRequestHandler;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpKernel\HttpKernelRequestHandler;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Messenger\ExceptionLoggingTransportHandler;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Messenger\ResetServicePoolsBetweenMessages;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Messenger\ServiceResettingTransportHandler;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\ApplicationCommandResolver;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\CommandGroupRunner;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\LongRunningCommandsWorkerStartHandler;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\RaiseStopSignalOnWorkerShutdown;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\StopMessengerWorkerOnShutdown;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\StreamCommandOutputFactory;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\TaskWorkerCommands;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\WithWorkerStopSignal;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\WorkerStopSignal;
 use SwooleBundle\SwooleBundle\Bridge\Tideways\Apm\Apm;
 use SwooleBundle\SwooleBundle\Bridge\Tideways\Apm\RequestDataProvider;
 use SwooleBundle\SwooleBundle\Bridge\Tideways\Apm\RequestProfiler;
@@ -60,6 +72,7 @@ use SwooleBundle\SwooleBundle\Server\Runtime\HMR\StatHMR;
 use SwooleBundle\SwooleBundle\Server\TaskHandler\TaskHandler;
 use SwooleBundle\SwooleBundle\Server\WorkerHandler\HMRWorkerStartHandler;
 use SwooleBundle\SwooleBundle\Server\WorkerHandler\WorkerStartHandler;
+use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -70,6 +83,8 @@ use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\ErrorHandler\ErrorHandler;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
+use Symfony\Component\Messenger\Event\WorkerMessageReceivedEvent;
+use Symfony\Component\Messenger\Event\WorkerRunningEvent;
 use Tideways\Profiler as TidewaysProfiler;
 use Upscale\Swoole\Blackfire\Profiler as BlackfireProfiler;
 use ZEngine\Core;
@@ -99,6 +114,7 @@ use ZEngine\Core;
  *   settings: array{
  *     worker_count: int|null,
  *   },
+ *   commands?: array<int, list<string>>,
  * }
  * @phpstan-type PlatformConfig = array{
  *   fiber_context: array{
@@ -206,6 +222,18 @@ final class SwooleExtension extends Extension
         $container->registerForAutoconfiguration(HealthCheck::class)
             ->addTag(ContainerConstants::TAG_HEALTH_CHECK);
 
+        // Not tied to the task worker: a messenger worker keeps one coroutine - or none at all - across
+        // every message it handles either way, so the pools need resetting between them wherever
+        // messenger:consume is run from.
+        if (class_exists(WorkerMessageReceivedEvent::class)) {
+            $container->register(ResetServicePoolsBetweenMessages::class)
+                ->setPublic(false)
+                ->setAutowired(false)
+                ->setAutoconfigured(false)
+                ->setArgument('$servicePoolContainer', new Reference(ServicePoolContainer::class))
+                ->addTag('kernel.event_subscriber');
+        }
+
         /** @var BundleConfig $config */
         $config = $this->processConfiguration($configuration, $configs);
 
@@ -223,7 +251,7 @@ final class SwooleExtension extends Extension
             $fiberContext = $config['platform']['fiber_context']['enabled'];
         }
 
-        $swooleSettings = isset($config['platform']) // @phpstan-ignore-line
+        $swooleSettings = isset($config['platform'])
             ? $this->configurePlatform($config['platform'], $maxConcurrency, $container)
             : [];
         $swooleSettings += $this->configureHttpServer($config['http_server'], $container);
@@ -266,7 +294,8 @@ final class SwooleExtension extends Extension
             throw new RuntimeException('Please install lisachenko/z-engine to use coroutines');
         }
 
-        $swooleSettings['hook_flags'] = SWOOLE_HOOK_ALL;
+        $swooleSettings['hook_flags'] = SystemSwooleFactory::newFactoryInstance()->newInstance()
+            ->coroutineHookFlags();
         $swooleSettings['max_coroutine'] = $coroutineSettings['max_coroutines'];
         $container->setParameter(ContainerConstants::PARAM_COROUTINES_ENABLED, true);
         $maxServiceInstances = $maxConcurrency ?? $swooleSettings['max_coroutine'];
@@ -726,20 +755,170 @@ final class SwooleExtension extends Extension
      */
     private function configureTaskWorker(array $config, ContainerBuilder $container): array
     {
-        if (!isset($config['settings']['worker_count'])) {
+        $commandGroups = array_values($config['commands'] ?? []);
+        $workerCount = $config['settings']['worker_count'] ?? null;
+        $coroutinesEnabled = (bool) $container->getParameter(ContainerConstants::PARAM_COROUTINES_ENABLED);
+
+        if ($commandGroups !== []) {
+            // Commands imply the workers to run them on, so a worker_count left unset is filled in
+            // rather than treated as "no task workers wanted" - which is what the check below would
+            // otherwise make of it, silently dropping every configured command.
+            $workerCount = $this->configureTaskWorkerCommands(
+                $commandGroups,
+                $workerCount,
+                $coroutinesEnabled,
+                $container,
+            );
+        }
+
+        if ($workerCount === null) {
             return [];
         }
 
         $settings = [];
-        $settings['task_worker_count'] = $config['settings']['worker_count'];
+        $settings['task_worker_count'] = $workerCount;
         $settings['task_use_object'] = true;
         $this->configureTaskWorkerServices($config['services'], $container);
 
-        if ((bool) $container->getParameter(ContainerConstants::PARAM_COROUTINES_ENABLED)) {
+        if ($coroutinesEnabled) {
             $settings['task_enable_coroutine'] = true;
         }
 
         return $settings;
+    }
+
+    /**
+     * EXPERIMENTAL. Registers the long running console command machinery.
+     *
+     * @param list<list<string>> $commandGroups one group per task worker
+     * @return int the task worker count the configured groups need
+     * @see docs/swoole-task-worker-commands.md
+     */
+    private function configureTaskWorkerCommands(
+        array $commandGroups,
+        ?int $workerCount,
+        bool $coroutinesEnabled,
+        ContainerBuilder $container,
+    ): int {
+        $this->assertCommandGroupsRunnable($commandGroups, $coroutinesEnabled);
+
+        $required = count($commandGroups);
+        $workerCount ??= $required;
+
+        if ($workerCount < $required) {
+            throw new InvalidConfigurationException(sprintf(
+                'swoole.task_worker.commands configures %d task worker(s) but '
+                . 'swoole.task_worker.settings.worker_count is %d. Every command group needs a task '
+                . 'worker of its own, so raise worker_count to at least %d or remove some groups.',
+                $required,
+                $workerCount,
+                $required,
+            ));
+        }
+
+        $container->register(WorkerStopSignal::class)
+            ->setPublic(false)
+            ->setAutowired(false)
+            ->setAutoconfigured(false);
+
+        $container->register(WithWorkerStopSignal::class)
+            ->setPublic(false)
+            ->setAutowired(false)
+            ->setAutoconfigured(false)
+            ->setArgument('$stopSignal', new Reference(WorkerStopSignal::class))
+            ->addTag('swoole_bundle.server_configurator');
+
+        $container->register(RaiseStopSignalOnWorkerShutdown::class)
+            ->setPublic(false)
+            ->setAutowired(false)
+            ->setAutoconfigured(false)
+            ->setArgument('$stopSignal', new Reference(WorkerStopSignal::class))
+            ->addTag('kernel.event_subscriber');
+
+        $container->register(ApplicationCommandResolver::class)
+            ->setPublic(false)
+            ->setAutowired(false)
+            ->setAutoconfigured(false)
+            ->setArgument('$kernel', new Reference('kernel'));
+
+        $container->register(StreamCommandOutputFactory::class)
+            ->setPublic(false)
+            ->setAutowired(false)
+            ->setAutoconfigured(false);
+
+        $container->register(CommandGroupRunner::class)
+            ->setPublic(false)
+            ->setAutowired(false)
+            ->setAutoconfigured(false)
+            ->setArgument('$resolver', new Reference(ApplicationCommandResolver::class))
+            ->setArgument('$outputFactory', new Reference(StreamCommandOutputFactory::class))
+            ->setArgument('$stopSignal', new Reference(WorkerStopSignal::class))
+            ->setArgument('$swoole', new Reference(Swoole::class))
+            ->setArgument('$logger', new Reference('logger'))
+            ->addTag('monolog.logger', [
+                'channel' => 'swoole',
+            ]);
+
+        $container->register(TaskWorkerCommands::class)
+            ->setPublic(false)
+            ->setAutowired(false)
+            ->setAutoconfigured(false)
+            ->setArgument('$groups', $commandGroups);
+
+        $container->register(LongRunningCommandsWorkerStartHandler::class)
+            ->setPublic(false)
+            ->setAutowired(false)
+            ->setAutoconfigured(false)
+            ->setArgument('$commands', new Reference(TaskWorkerCommands::class))
+            ->setArgument('$runner', new Reference(CommandGroupRunner::class))
+            ->setArgument('$coroutinesEnabled', $coroutinesEnabled)
+            ->setArgument('$decorated', new Reference(LongRunningCommandsWorkerStartHandler::class . '.inner'))
+            // Lower priority than HMR's decorator puts this one outermost, so the handlers it wraps have
+            // all run by the time a blocking command takes the process over and never returns.
+            ->setDecoratedService(WorkerStartHandler::class, null, -10);
+
+        if (class_exists(WorkerRunningEvent::class)) {
+            $container->register(StopMessengerWorkerOnShutdown::class)
+                ->setPublic(false)
+                ->setAutowired(false)
+                ->setAutoconfigured(false)
+                ->setArgument('$stopSignal', new Reference(WorkerStopSignal::class))
+                ->addTag('kernel.event_subscriber');
+        }
+
+        return $workerCount;
+    }
+
+    /**
+     * @param list<list<string>> $commandGroups
+     */
+    private function assertCommandGroupsRunnable(array $commandGroups, bool $coroutinesEnabled): void
+    {
+        foreach ($commandGroups as $index => $group) {
+            if ($group === []) {
+                throw new InvalidConfigurationException(sprintf(
+                    'swoole.task_worker.commands group #%d is empty. Every group must name at least one '
+                    . 'command, since a group is what claims a task worker.',
+                    $index,
+                ));
+            }
+
+            if ($coroutinesEnabled || count($group) === 1) {
+                continue;
+            }
+
+            // Without coroutines there is no scheduler to spawn into: the one command blocks
+            // onWorkerStart and owns the process, so a second command in the same group could never
+            // start. Rejecting it here beats a task worker that silently runs only its first command.
+            throw new InvalidConfigurationException(sprintf(
+                'swoole.task_worker.commands group #%d lists %d commands to share one task worker, '
+                . 'which needs platform.coroutines.enabled to be true. With coroutines off a task '
+                . 'worker can run a single command; split them into %d separate groups instead.',
+                $index,
+                count($group),
+                count($group),
+            ));
+        }
     }
 
     /**

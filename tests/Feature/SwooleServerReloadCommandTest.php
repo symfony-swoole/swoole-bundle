@@ -7,16 +7,12 @@ namespace SwooleBundle\SwooleBundle\Tests\Feature;
 use Override;
 use Swoole\Coroutine;
 use SwooleBundle\SwooleBundle\Client\HttpClient;
+use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Test\ReplacedContentController;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Test\ServerTestCase;
 
 final class SwooleServerReloadCommandTest extends ServerTestCase
 {
-    private const string CONTROLLER_TEMPLATE_ORIGINAL_TEXT = 'Wrong response!';
-    private const string CONTROLLER_TEMPLATE_REPLACE_TEXT = '%REPLACE%';
-    private const string CONTROLLER_TEMPLATE_SRC = __DIR__
-        . '/../Fixtures/Symfony/TestBundle/Controller/ReplacedContentTestController.php.tmpl';
-    private const string CONTROLLER_TEMPLATE_DEST = __DIR__
-        . '/../Fixtures/Symfony/TestBundle/Controller/ReplacedContentTestController.php';
+    use ReplacedContentController;
 
     #[Override]
     protected function setUp(): void
@@ -24,6 +20,7 @@ final class SwooleServerReloadCommandTest extends ServerTestCase
         parent::setUp();
 
         $this->deleteVarDirectory();
+        $this->writeOriginalTestController();
     }
 
     public function testStartCallReloadCallStop(): void
@@ -31,7 +28,7 @@ final class SwooleServerReloadCommandTest extends ServerTestCase
         $serverStart = $this->createConsoleProcess([
             'swoole:server:start',
             '--host=localhost',
-            '--port=9999',
+            sprintf('--port=%d', self::port()),
         ]);
 
         $serverStart->setTimeout(3);
@@ -44,10 +41,10 @@ final class SwooleServerReloadCommandTest extends ServerTestCase
             $this->deferServerStop();
             $this->deferRestoreOriginalTemplateControllerResponse();
 
-            $client = HttpClient::fromDomain('localhost', 9999, false);
-            $this->assertTrue($client->connect(waitIfNoConnection: true));
+            $client = HttpClient::fromDomain('localhost', self::port(), false);
+            $this->assertTrue($client->connect(self::connectTimeout(), waitIfNoConnection: true));
 
-            $response1 = $client->send('/test/replaced/content')['response'];
+            $response1 = $client->send($this->replacedContentRoute())['response'];
 
             $this->assertSame(200, $response1['statusCode']);
             $this->assertSame('Wrong response!', $response1['body']);
@@ -56,7 +53,7 @@ final class SwooleServerReloadCommandTest extends ServerTestCase
             $this->replaceContentInTestController($expectedResponse);
             $this->assertTestControllerResponseEquals($expectedResponse);
 
-            $response2 = $client->send('/test/replaced/content')['response'];
+            $response2 = $client->send($this->replacedContentRoute())['response'];
 
             $this->assertSame(200, $response2['statusCode']);
             $this->assertNotSame($expectedResponse, $response2['body']);
@@ -64,7 +61,7 @@ final class SwooleServerReloadCommandTest extends ServerTestCase
             $this->runSwooleServerReload();
             Coroutine::sleep(self::coverageEnabled() ? 3 : 1);
 
-            $response3 = $client->send('/test/replaced/content')['response'];
+            $response3 = $client->send($this->replacedContentRoute())['response'];
 
             $this->assertSame(200, $response3['statusCode']);
             $this->assertSame($expectedResponse, $response3['body']);
@@ -88,36 +85,5 @@ final class SwooleServerReloadCommandTest extends ServerTestCase
             'Swoole HTTP Server\'s workers reloaded successfully',
             $serverReload->getOutput()
         );
-    }
-
-    private function replaceContentInTestController(string $text): void
-    {
-        file_put_contents(
-            self::CONTROLLER_TEMPLATE_DEST,
-            str_replace(
-                self::CONTROLLER_TEMPLATE_REPLACE_TEXT,
-                $text,
-                (string) file_get_contents(self::CONTROLLER_TEMPLATE_SRC),
-            ),
-        );
-    }
-
-    private function assertTestControllerResponseEquals(string $expected): void
-    {
-        self::assertSame(
-            str_replace(
-                self::CONTROLLER_TEMPLATE_REPLACE_TEXT,
-                $expected,
-                (string) file_get_contents(self::CONTROLLER_TEMPLATE_SRC),
-            ),
-            file_get_contents(self::CONTROLLER_TEMPLATE_DEST),
-        );
-    }
-
-    private function deferRestoreOriginalTemplateControllerResponse(): void
-    {
-        defer(function (): void {
-            $this->replaceContentInTestController(self::CONTROLLER_TEMPLATE_ORIGINAL_TEXT);
-        });
     }
 }

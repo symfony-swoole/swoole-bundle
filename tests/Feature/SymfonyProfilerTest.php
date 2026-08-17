@@ -46,7 +46,7 @@ final class SymfonyProfilerTest extends ServerTestCase
         $serverStart = $this->createConsoleProcess([
             'swoole:server:start',
             '--host=localhost',
-            '--port=9999',
+            sprintf('--port=%d', self::port()),
         ], $envs);
 
         $serverStart->setTimeout(self::PROCESS_TIMEOUT_SECONDS);
@@ -57,8 +57,8 @@ final class SymfonyProfilerTest extends ServerTestCase
         $this->runAsCoroutineAndWait(function () use ($envs): void {
             $this->deferServerStop([], $envs);
 
-            $client = HttpClient::fromDomain('localhost', 9999, false);
-            $this->assertTrue($client->connect(3, 1, true));
+            $client = HttpClient::fromDomain('localhost', self::port(), false);
+            $this->assertTrue($client->connect(self::connectTimeout(), 1, true));
 
             $response = $client->send('/twig')['response'];
 
@@ -83,6 +83,18 @@ final class SymfonyProfilerTest extends ServerTestCase
                 . '(<div id="sfToolbarClearer-[^"]+" class="sf-toolbar-clearer")/',
                 $profileToolbarResponse['body']
             );
+
+            // The name of the template the request rendered, which the toolbar takes from the profiling
+            // tree the collector stored at the end of that request and read back for this one:
+            //
+            //     {% set template = collector.templates|keys|first %}
+            //
+            // Nothing else on the page knows it. Under coroutines the collector is handed a pooled
+            // profile, and storing what a proxy serializes to leaves nothing readable at this end - a
+            // tree that comes back empty prints no entry view at all, while one that comes back under a
+            // class the collector refuses to load fails the whole toolbar. Asserting the toolbar merely
+            // renders catches only the second.
+            $this->assertStringContainsString('base.html.twig', $profileToolbarResponse['body']);
 
             $profilerResponse = $client->send('/_profiler/' . $debugToken)['response'];
             $this->assertSame(200, $profilerResponse['statusCode']);

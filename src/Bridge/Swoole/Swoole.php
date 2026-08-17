@@ -22,8 +22,27 @@ final class Swoole extends CommonSwoole
         return new WaitGroup($delta);
     }
 
-    public function enableCoroutines(int $flags = SWOOLE_HOOK_ALL): void
+    /**
+     * SWOOLE_HOOK_ALL with the native curl hook in place of the original one.
+     *
+     * swoole ships two curl hooks: the original reimplements curl in PHP on top of Swoole\Curl\Handler,
+     * and the native one drives libcurl's own multi interface. `ALL` still selects the original, which
+     * implements only part of curl's option set - CURLOPT_SHARE among the parts it does not:
+     *
+     *   Swoole\Curl\Exception: swoole_curl_setopt(): option[10100] is not supported
+     *
+     * Symfony's CurlHttpClient sets exactly that on every request, from the share handle
+     * CurlClientState keeps for connection and DNS reuse, so with the original hook symfony/http-client
+     * throws before it sends anything and every outbound call is a 500.
+     */
+    public function coroutineHookFlags(): int
     {
+        return (SWOOLE_HOOK_ALL & ~SWOOLE_HOOK_CURL) | SWOOLE_HOOK_NATIVE_CURL;
+    }
+
+    public function enableCoroutines(?int $flags = null): void
+    {
+        $flags ??= $this->coroutineHookFlags();
         Runtime::enableCoroutine($flags); /** @phpstan-ignore-line */
     }
 
