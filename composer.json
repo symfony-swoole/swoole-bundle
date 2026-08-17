@@ -86,6 +86,7 @@
         "symfony/doctrine-messenger": "^7.4|^8.0",
         "symfony/error-handler": "^7.4|^8.0",
         "symfony/flex": "^2.4.7",
+        "symfony/form": "^7.4|^8.0",
         "symfony/framework-bundle": "^7.4|^8.0",
         "symfony/messenger": "^7.4|^8.0",
         "symfony/monolog-bridge": "^7.4|^8.0",
