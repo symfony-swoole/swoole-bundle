@@ -8,11 +8,13 @@ use Composer\InstalledVersions;
 use Exception;
 use Monolog\Formatter\LineFormatter;
 use Override;
+use Psr\EventDispatcher\EventDispatcherInterface;
 use ReflectionMethod;
 use RuntimeException;
 use SwooleBundle\SwooleBundle\Bridge\Log\AccessLogFormatter;
 use SwooleBundle\SwooleBundle\Bridge\Log\SimpleAccessLogFormatter;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\EventDispatcher\DebugClassLoaderOverridingWorkerStartHandler;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\CoWrapper;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\StabilityChecker;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\ErrorHandler\ErrorHandlerResetter;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\ErrorHandler\ErrorResponder;
@@ -28,6 +30,9 @@ use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpKernel\ContextReleasingHttpKern
 use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpKernel\HttpKernelRequestHandler;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Messenger\ExceptionLoggingTransportHandler;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Messenger\ServiceResettingTransportHandler;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Scheduler\DefaultScheduler;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Scheduler\Scheduler;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Scheduler\WithScheduler;
 use SwooleBundle\SwooleBundle\Bridge\Tideways\Apm\Apm;
 use SwooleBundle\SwooleBundle\Bridge\Tideways\Apm\RequestDataProvider;
 use SwooleBundle\SwooleBundle\Bridge\Tideways\Apm\RequestProfiler;
@@ -70,6 +75,8 @@ use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\ErrorHandler\ErrorHandler;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
+use Symfony\Component\Messenger\MessageBusInterface;
+use Symfony\Component\Scheduler\Generator\MessageGenerator;
 use Tideways\Profiler as TidewaysProfiler;
 use Upscale\Swoole\Blackfire\Profiler as BlackfireProfiler;
 use ZEngine\Core;
@@ -130,6 +137,10 @@ use ZEngine\Core;
  *     register_monolog_formatter_service: bool,
  *     monolog_formatter_service_name?: string,
  *     monolog_formatter_format?: string,
+ *   },
+ *   scheduler: array{
+ *     enabled: bool,
+ *     interval: int,
  *   },
  * }
  * @phpstan-type ExceptionHandlerConfig = array{
@@ -628,6 +639,10 @@ final class SwooleExtension extends Extension
             $def->addArgument(new Reference(WithApm::class));
         }
 
+        if ($config['scheduler']['enabled']) {
+            $this->configureScheduler($config['scheduler'], $container);
+        }
+
         if (!$config['access_log']['enabled']) {
             return;
         }
@@ -669,6 +684,45 @@ final class SwooleExtension extends Extension
             ->setAutoconfigured(false)
             ->setPublic(false)
             ->setArgument('$format', $lineFormatterFormat);
+    }
+
+    /**
+     * @param array{enabled: bool, interval: int} $config
+     */
+    private function configureScheduler(array $config, ContainerBuilder $container): void
+    {
+        if (!class_exists(MessageGenerator::class)) {
+            throw new RuntimeException(
+                'To be able to use the swoole scheduler configurator, '
+                . 'the "symfony/scheduler" package needs to be installed.'
+            );
+        }
+
+        if (!class_exists(MessageBusInterface::class)) {
+            throw new RuntimeException(
+                'To be able to use the swoole scheduler configurator, '
+                . 'the "symfony/messenger" package needs to be installed and configured.'
+            );
+        }
+
+        $container->register(Scheduler::class, DefaultScheduler::class)
+            ->setAutowired(false)
+            ->setAutoconfigured(false)
+            ->setPublic(false)
+            ->setArgument('$bus', new Reference(MessageBusInterface::class))
+            ->setArgument('$scheduleProviders', new TaggedIteratorArgument('scheduler.schedule_provider'))
+            ->setArgument('$dispatcher', new Reference(EventDispatcherInterface::class));
+
+        $container->register(WithScheduler::class)
+            ->setAutowired(false)
+            ->setAutoconfigured(false)
+            ->setPublic(false)
+            ->setArgument('$scheduler', new Reference(Scheduler::class))
+            ->setArgument('$coWrapper', new Reference(CoWrapper::class))
+            ->setArgument('$logger', new Reference('logger'))
+            ->setArgument('$intervalMs', $config['interval'] * 1000)
+            ->setArgument('$afterTick', null)
+            ->addTag('swoole_bundle.server_configurator');
     }
 
     private function configureSymfonyExceptionHandler(ContainerBuilder $container): void

@@ -36,4 +36,7 @@ parameters:
         -
             message: "#Call to function method_exists\\(\\) with 'BlackfireProbe' and 'setAttribute' will always evaluate to false.#"
             path: src/Bridge/Upscale/Blackfire/Monitoring/RequestMonitoring.php
+        -
+            message: '#Call to function class_exists\(\) with ''Symfony\\\\Component\\\\Messenger\\\\MessageBusInterface'' will always evaluate to false\.#'
+            path: src/Bridge/Symfony/Bundle/DependencyInjection/SwooleExtension.php
     tmpDir: /tmp/phpstan_src

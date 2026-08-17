@@ -323,6 +323,27 @@ final readonly class Configuration implements ConfigurationInterface
                                         ->end()
                                     ->end()
                                 ->end()
+                                ->arrayNode('scheduler')
+                                    ->addDefaultsIfNotSet()
+                                    ->beforeNormalization()
+                                        ->ifTrue(static fn($v): bool => is_bool($v) || $v === null)
+                                        ->then(static fn($v): array => ['enabled' => (bool) $v])
+                                    ->end()
+                                    ->children()
+                                        ->booleanNode('enabled')
+                                            ->defaultFalse()
+                                            ->treatNullLike(false)
+                                        ->end()
+                                        ->integerNode('interval')
+                                            ->info(
+                                                'How often, in seconds, to poll Symfony Scheduler '
+                                                . 'schedules for due messages.'
+                                            )
+                                            ->defaultValue(60)
+                                            ->min(1)
+                                        ->end()
+                                    ->end()
+                                ->end()
                             ->end()
                         ->end() // drivers
                         ->arrayNode('settings')
