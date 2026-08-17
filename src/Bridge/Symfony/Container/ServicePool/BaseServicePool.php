@@ -85,6 +85,26 @@ abstract class BaseServicePool implements ServicePool
         $this->unlockPool();
     }
 
+    public function discardUnstableAssigned(): void
+    {
+        $cId = $this->getCoroutineId();
+
+        if (!isset($this->assignedPool[$cId])) {
+            return;
+        }
+
+        if ($this->isServiceStable($this->assignedPool[$cId])) {
+            return;
+        }
+
+        // deliberately not returned to the free pool - the same reasoning as the unstable branch of
+        // releaseFromCoroutine(), an instance that failed the stability check must not be handed out
+        // again. Dropping it here is the whole point: the next get() builds a new one.
+        unset($this->assignedPool[$cId]);
+        $this->assignedCount--;
+        $this->unlockPool();
+    }
+
     /**
      * @return T
      */

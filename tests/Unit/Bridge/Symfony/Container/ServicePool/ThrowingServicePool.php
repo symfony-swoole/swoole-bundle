@@ -9,7 +9,8 @@ use stdClass;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\ServicePool\ServicePool;
 
 /**
- * A pool whose release blows up, standing in for whatever a real one can throw on the way out.
+ * A pool whose release and discard blow up, standing in for whatever a real one can throw on the way
+ * out.
  *
  * @template-implements ServicePool<object>
  */
@@ -31,6 +32,11 @@ final readonly class ThrowingServicePool implements ServicePool
     }
 
     public function releaseFromCoroutine(): void
+    {
+        throw new RuntimeException($this->message);
+    }
+
+    public function discardUnstableAssigned(): void
     {
         throw new RuntimeException($this->message);
     }
