@@ -68,6 +68,57 @@ final class ServicePoolContainer
         // the reset cycle has to be executed before releasing the services back to the pool
         // to not get assigned too early to other coroutines which can cause deadlocks
         // during the reset cycle if there are dependencies among released and not released services
+        $this->runResetters();
+
+        foreach ($this->poolEntries as $poolEntry) {
+            try {
+                $poolEntry->pool->releaseFromCoroutine();
+            } catch (Throwable $throwable) {
+                $this->report('release', $poolEntry->pool::class, $throwable);
+            }
+        }
+    }
+
+    /**
+     * The same cycle as releaseFromCoroutine(), minus the release.
+     *
+     * A coroutine that handles one unit of work and ends - an http request, a swoole task - gets its
+     * instances back into circulation from the Co::defer() callback, and the stability check there is
+     * what keeps a broken one out of the free pool. A loop that stays in a single coroutine across many
+     * units of work - messenger:consume in a task worker, or run as a plain console command with no
+     * coroutine at all - never reaches that point until it exits, so releasing between units would be
+     * both pointless and wrong: the instances are about to be handed straight back to the same
+     * coroutine.
+     *
+     * What such a loop still needs is the rest of it. The resetters clear per-unit state, and the
+     * stability check has to be applied without the release, or an instance that has gone bad stays
+     * assigned for the life of the process - a closed EntityManager being the case that prompted this,
+     * where every later message dies on "The EntityManager is closed."
+     *
+     * Guarded exactly like releaseFromCoroutine(), for the weaker of the same reasons: this one does
+     * have a caller that could catch, but one service failing to reset must still not stop the others
+     * from being reset, nor cost the loop every message that follows.
+     */
+    public function resetInCoroutine(): void
+    {
+        $this->runResetters();
+
+        foreach ($this->poolEntries as $poolEntry) {
+            try {
+                $poolEntry->pool->discardUnstableAssigned();
+            } catch (Throwable $throwable) {
+                $this->report('discard', $poolEntry->pool::class, $throwable);
+            }
+        }
+    }
+
+    public function count(): int
+    {
+        return count($this->poolEntries);
+    }
+
+    private function runResetters(): void
+    {
         foreach ($this->poolEntriesToReset as $prioritizedPoolEntries) {
             foreach ($prioritizedPoolEntries as $poolEntry) {
                 if ($poolEntry->resetter === null) {
@@ -87,19 +138,6 @@ final class ServicePoolContainer
                 }
             }
         }
-
-        foreach ($this->poolEntries as $poolEntry) {
-            try {
-                $poolEntry->pool->releaseFromCoroutine();
-            } catch (Throwable $throwable) {
-                $this->report('release', $poolEntry->pool::class, $throwable);
-            }
-        }
-    }
-
-    public function count(): int
-    {
-        return count($this->poolEntries);
     }
 
     /**

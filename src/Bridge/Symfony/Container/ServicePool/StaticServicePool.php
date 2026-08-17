@@ -37,4 +37,9 @@ final readonly class StaticServicePool implements ServicePool
     {
         // no need to release anything
     }
+
+    public function discardUnstableAssigned(): void
+    {
+        // the one instance is the pool - there is nothing to replace it with
+    }
 }

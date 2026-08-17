@@ -90,4 +90,72 @@ final class ServicePoolContainerTest extends TestCase
 
         self::assertSame(1, $pool->releaseFromCoroutineCallCount());
     }
+
+    /**
+     * A messenger worker stays in one coroutine across every message it handles, so the instances have
+     * to keep their assignment - resetting is the whole point, releasing would hand them straight back
+     * to the same coroutine.
+     */
+    public function testResettingInCoroutineResetsWithoutReleasing(): void
+    {
+        $resettable = new ResettableSpy();
+        $pool = new ServicePoolSpy(assigned: $resettable);
+        $container = new ServicePoolContainer([new ServicePoolEntry($pool, new SimpleResetter('reset'))]);
+
+        $container->resetInCoroutine();
+
+        self::assertSame(1, $resettable->resetCallCount());
+        self::assertSame(1, $pool->discardUnstableAssignedCallCount());
+        self::assertSame(0, $pool->releaseFromCoroutineCallCount());
+    }
+
+    /**
+     * The half that resetting alone cannot do: a closed EntityManager cannot be reopened, only replaced,
+     * so every pool has to be given the chance to drop an instance the stability checker rejects -
+     * including the ones with no resetter of their own.
+     */
+    public function testEveryPoolIsAskedToDiscardAnUnstableInstance(): void
+    {
+        $withResetter = new ServicePoolSpy(assigned: new ResettableSpy());
+        $withoutResetter = new ServicePoolSpy(assigned: new ResettableSpy());
+        $container = new ServicePoolContainer([
+            new ServicePoolEntry($withResetter, new SimpleResetter('reset')),
+            new ServicePoolEntry($withoutResetter),
+        ]);
+
+        $container->resetInCoroutine();
+
+        self::assertSame(1, $withResetter->discardUnstableAssignedCallCount());
+        self::assertSame(1, $withoutResetter->discardUnstableAssignedCallCount());
+    }
+
+    public function testAFailingResetterDoesNotStopTheOtherServicesBeingResetInCoroutine(): void
+    {
+        $resettable = new ResettableSpy();
+        $healthy = new ServicePoolSpy(assigned: $resettable);
+        $container = new ServicePoolContainer([
+            new ServicePoolEntry(new ServicePoolSpy(assigned: new ResettableSpy()), new ThrowingResetter()),
+            new ServicePoolEntry($healthy, new SimpleResetter('reset')),
+        ]);
+
+        $container->resetInCoroutine();
+
+        self::assertSame(1, $resettable->resetCallCount());
+        self::assertSame(1, $healthy->discardUnstableAssignedCallCount());
+    }
+
+    /**
+     * One service failing to reset must not cost the worker every message that follows it.
+     */
+    public function testTheResetCycleNeverThrows(): void
+    {
+        $container = new ServicePoolContainer([
+            new ServicePoolEntry(new ThrowingServicePool(), new ThrowingResetter()),
+        ]);
+
+        $container->resetInCoroutine();
+
+        // reaching here at all is the assertion
+        self::assertSame(1, $container->count());
+    }
 }

@@ -14,6 +14,7 @@ use SwooleBundle\SwooleBundle\Bridge\CommonSwoole\SystemSwooleFactory;
 use SwooleBundle\SwooleBundle\Bridge\Log\AccessLogFormatter;
 use SwooleBundle\SwooleBundle\Bridge\Log\SimpleAccessLogFormatter;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\EventDispatcher\DebugClassLoaderOverridingWorkerStartHandler;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\ServicePool\ServicePoolContainer;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\StabilityChecker;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\ErrorHandler\ErrorHandlerResetter;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\ErrorHandler\ErrorResponder;
@@ -28,6 +29,7 @@ use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation\TrustAllProxiesReque
 use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpKernel\ContextReleasingHttpKernelRequestHandler;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpKernel\HttpKernelRequestHandler;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Messenger\ExceptionLoggingTransportHandler;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Messenger\ResetServicePoolsBetweenMessages;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Messenger\ServiceResettingTransportHandler;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\ApplicationCommandResolver;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\CommandGroupRunner;
@@ -81,6 +83,7 @@ use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\ErrorHandler\ErrorHandler;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
+use Symfony\Component\Messenger\Event\WorkerMessageReceivedEvent;
 use Symfony\Component\Messenger\Event\WorkerRunningEvent;
 use Tideways\Profiler as TidewaysProfiler;
 use Upscale\Swoole\Blackfire\Profiler as BlackfireProfiler;
@@ -218,6 +221,18 @@ final class SwooleExtension extends Extension
             ->addTag('swoole_bundle.server_configurator');
         $container->registerForAutoconfiguration(HealthCheck::class)
             ->addTag(ContainerConstants::TAG_HEALTH_CHECK);
+
+        // Not tied to the task worker: a messenger worker keeps one coroutine - or none at all - across
+        // every message it handles either way, so the pools need resetting between them wherever
+        // messenger:consume is run from.
+        if (class_exists(WorkerMessageReceivedEvent::class)) {
+            $container->register(ResetServicePoolsBetweenMessages::class)
+                ->setPublic(false)
+                ->setAutowired(false)
+                ->setAutoconfigured(false)
+                ->setArgument('$servicePoolContainer', new Reference(ServicePoolContainer::class))
+                ->addTag('kernel.event_subscriber');
+        }
 
         /** @var BundleConfig $config */
         $config = $this->processConfiguration($configuration, $configs);
