@@ -84,10 +84,13 @@ final class ApplicationCommandResolver implements CommandResolver
             return $this->contextual($command);
         }
 
-        // Reading, never writing: getCommand() assigns LazyCommand::$command on its first call and
-        // returns it untouched on every later one, so the wrapper - which the container shares, one
-        // instance per command name however many Applications ask for it - is not written to from a
-        // second coroutine.
+        // The wrapper is shared - one instance per command name, however many resolves reach it - and
+        // getCommand() writes to it the first time it is called. Several coroutines of a group can be
+        // inside that first call at once, because it ends in a container lookup that parks them, so
+        // this is not the single write it looks like. It is safe because every one of those writes
+        // stores the same object: the closure asks the container for one service id, and what comes
+        // back is the pooled proxy where {@see TaskWorkerProcessor} pools the command and the shared
+        // instance where it does not.
         return $this->contextual($command->getCommand());
     }
 

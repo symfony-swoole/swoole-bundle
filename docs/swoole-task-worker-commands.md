@@ -165,6 +165,77 @@ Grouping more than one command into a single entry **requires `platform.coroutin
 rejected at compile time otherwise. Without a scheduler the one command blocks the worker and owns
 the process, so a second command in the same group could never start.
 
+## Several consumers of one queue
+
+A group may run the same consumer more than once, which is how one unit puts several workers on a busy
+queue:
+
+```yaml
+framework:
+  messenger:
+    transports:
+      default: 'doctrine://default?queue_name=default'
+
+swoole:
+  platform:
+    coroutines:
+      enabled: true
+  task_worker:
+    commands:
+      -
+        - 'messenger:consume default --memory-limit=128M'
+        - 'messenger:consume default --memory-limit=128M'
+        - 'messenger:consume default --memory-limit=128M'
+        - 'messenger:consume default --memory-limit=128M'
+```
+
+One transport, four consumers, and nothing to configure for it. The queue is built to be shared - the
+doctrine transport reads with `SELECT ... FOR UPDATE SKIP LOCKED`, so a row goes to exactly one
+consumer - and the bundle takes care of the transport, which is not.
+
+**Why the transport needs taking care of.** It is a shared service that keeps per-receive state on
+itself, which holds while a process runs one consumer and stops holding the moment it runs several.
+`DoctrineTransport` memoizes the receiver it hands out, so every consumer of the group would poll
+through one `DoctrineReceiver` and one `Connection`, and the bookkeeping on those would be written by
+whichever of them polled last.
+
+`DoctrineReceiver::$retryingSafetyCounter` is the clearest example, because it exists for exactly the
+situation it is then wrong about: it counts consecutive deadlocks so a run of them becomes an error
+rather than a silent stall, and its own comment gives "concurrent consumers" as the reason there
+would be any. Shared, one consumer's successful poll resets the count another was accumulating, and
+three deadlocks spread across three consumers trip a limit meant for three in a row on one. Nothing
+warns you either way - the queue itself is fine, and what breaks is the transport's opinion of it.
+
+So `MessengerProcessor` gives each coroutine a transport of its own, the same way this bundle pools
+the other services Symfony shares.
+
+### When it cannot, and what to do about it
+
+Transports are built by a factory behind `new Definition(TransportInterface::class)`, so the bundle
+has to work out what the concrete class will be before it can pool one: it asks each registered
+transport factory whether it handles the DSN, and takes the class from the factory's own name -
+`XTransportFactory` builds `XTransport`. Three things stop that, and in each the transport is left
+shared rather than pooled:
+
+- **The DSN comes from an environment variable.** A compiler pass sees a placeholder, not
+  `doctrine://`, and resolving it would bake the machine that built the container into it.
+- **The factory is one the convention does not fit,** including an application's own.
+- **The transport class is `final` or `readonly`,** so there is nothing to generate a proxy from.
+
+`sync://` and `in-memory://` are deliberately left shared too: the first keeps nothing between calls,
+and keeping what was sent is the whole point of the second.
+
+When a transport is left shared, give each consumer a transport of its own instead - it is one line of
+configuration each, and the queue is still shared:
+
+```yaml
+framework:
+  messenger:
+    transports:
+      default: '%env(MESSENGER_TRANSPORT_DSN)%'
+      default_2: '%env(MESSENGER_TRANSPORT_DSN)%'
+```
+
 ## What the two modes actually do
 
 **Coroutines on.** Each command is spawned into its own coroutine and the worker start hook returns
