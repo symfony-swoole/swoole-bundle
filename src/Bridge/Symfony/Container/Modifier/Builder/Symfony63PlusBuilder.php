@@ -21,6 +21,14 @@ use ZEngine\Reflection\ReflectionMethod;
  */
 final class Symfony63PlusBuilder implements Builder
 {
+    /**
+     * Enough of a generated file to reach its `class X extends Y` line. Every file this reads - the
+     * container itself and the per-service factories - opens with a namespace, a handful of use
+     * statements and a docblock; the include_once calls that make these files long live inside the
+     * method body, well past the declaration.
+     */
+    private const int CLASS_DECLARATION_LOOKAHEAD_BYTES = 2048;
+
     public function overrideGeneratedContainer(ReflectionClass $reflContainer, string $cacheDir, bool $isDebug): void
     {
         $fs = new Filesystem();
@@ -41,7 +49,19 @@ final class Symfony63PlusBuilder implements Builder
             $overriddenFqcn
         ) . '.php';
 
-        if (file_exists($overriddenFile)) {
+        // Asking whether the live file is already the wrapper, not whether the _Overridden copy exists.
+        //
+        // The two can disagree, and silently. Symfony re-dumps into the same directory whenever it
+        // decides the container is stale - the namespace is derived from the container, so a rebuild
+        // lands on the same name - and it writes the plain generated file straight over the wrapper.
+        // The _Overridden copy survives, because Symfony knows nothing about it. Keying off that copy
+        // therefore reads "already done" for a container that has just lost every mutex this builder
+        // put in it, and never repairs it: the application runs on with no lock around first
+        // instantiation, for as long as that cache directory lives.
+        //
+        // Requiring the copy to exist as well, because a wrapper whose parent has been deleted is not
+        // a container that works.
+        if (file_exists($overriddenFile) && $this->isAlreadyOverridden($containerFile, $overriddenClass)) {
             return;
         }
 
@@ -368,12 +388,14 @@ final class Symfony63PlusBuilder implements Builder
         }
 
         $fullOverriddenPath = str_replace('.php', '__Overridden.php', $fullPath);
+        $overriddenClass = $class . '__Overridden';
 
-        if (file_exists($fullOverriddenPath)) {
+        // Same test as in overrideGeneratedContainer(), for the same reason and the same failure: a
+        // re-dump overwrites these factories with the plain generated versions and leaves their
+        // __Overridden copies behind.
+        if (file_exists($fullOverriddenPath) && $this->isAlreadyOverridden($fullPath, $overriddenClass)) {
             return;
         }
-
-        $overriddenClass = $class . '__Overridden';
         $overriddenFqcn = $namespace . '\\' . $overriddenClass;
         $origContent = file_get_contents($fullPath);
 
@@ -458,6 +480,28 @@ final class Symfony63PlusBuilder implements Builder
 
         require_once $fullOverriddenPath;
         require_once $fullPath;
+    }
+
+    /**
+     * Whether the file at this path is the wrapper this builder writes, rather than the plain file
+     * Symfony generated.
+     *
+     * Told apart by what the class extends: everything this builder writes extends the `_Overridden`
+     * copy it made, and nothing Symfony generates does - its factories extend the container, and the
+     * container extends {@see BlockingContainer}.
+     *
+     * Read as a bounded prefix rather than whole: a container directory holds a file per service, and
+     * this runs over all of them on every boot.
+     */
+    private function isAlreadyOverridden(string $filePath, string $overriddenClass): bool
+    {
+        $head = @file_get_contents($filePath, false, null, 0, self::CLASS_DECLARATION_LOOKAHEAD_BYTES);
+
+        if ($head === false) {
+            return false;
+        }
+
+        return str_contains($head, 'extends ' . $overriddenClass);
     }
 
     /**

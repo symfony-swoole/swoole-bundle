@@ -33,6 +33,7 @@ use SwooleBundle\SwooleBundle\Bridge\Symfony\Messenger\ResetServicePoolsBetweenM
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Messenger\ServiceResettingTransportHandler;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\ApplicationCommandResolver;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\CommandGroupRunner;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\Exception\CommandNotRunnable;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\LongRunningCommandsWorkerStartHandler;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\RaiseStopSignalOnWorkerShutdown;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\StopMessengerWorkerOnShutdown;
@@ -72,6 +73,7 @@ use SwooleBundle\SwooleBundle\Server\Runtime\HMR\StatHMR;
 use SwooleBundle\SwooleBundle\Server\TaskHandler\TaskHandler;
 use SwooleBundle\SwooleBundle\Server\WorkerHandler\HMRWorkerStartHandler;
 use SwooleBundle\SwooleBundle\Server\WorkerHandler\WorkerStartHandler;
+use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
@@ -835,11 +837,37 @@ final class SwooleExtension extends Extension
             ->setArgument('$stopSignal', new Reference(WorkerStopSignal::class))
             ->addTag('kernel.event_subscriber');
 
+        // Caught here rather than when a worker tries to resolve its first command line: without
+        // framework-bundle there is no console Application to run anything through, and a container
+        // that compiles only to fail in every task worker is worse than one that refuses to compile.
+        if (!class_exists(Application::class)) {
+            throw CommandNotRunnable::consoleUnavailable();
+        }
+
+        // Shared, one per worker. Not pooled: an Application per coroutine would have each of them
+        // reach the command loader, and ServiceLocatorTrait::get() reads its re-entry guard as a
+        // circular reference when a second coroutine arrives while the first is suspended in the
+        // factory. Shared keeps that path single-file - only the first resolve consults the loader,
+        // every later one finds the command memoized.
+        $container->register(TaskWorkerCommands::APPLICATION_SERVICE_ID, Application::class)
+            ->setPublic(false)
+            ->setAutowired(false)
+            ->setAutoconfigured(false)
+            ->setArgument('$kernel', new Reference('kernel'))
+            // The worker owns the process lifetime, not the command: a command that finished is a
+            // worker to be recycled, decided by CommandGroupRunner, and never a process that exits
+            // from under swoole.
+            ->addMethodCall('setAutoExit', [false])
+            // Failures have to come back as throwables so they can be logged with the command they
+            // came from and counted as a crashed worker, rather than rendered to stdout and swallowed.
+            ->addMethodCall('setCatchExceptions', [false])
+            ->addMethodCall('setDispatcher', [new Reference('event_dispatcher')]);
+
         $container->register(ApplicationCommandResolver::class)
             ->setPublic(false)
             ->setAutowired(false)
             ->setAutoconfigured(false)
-            ->setArgument('$kernel', new Reference('kernel'));
+            ->setArgument('$application', new Reference(TaskWorkerCommands::APPLICATION_SERVICE_ID));
 
         $container->register(StreamCommandOutputFactory::class)
             ->setPublic(false)

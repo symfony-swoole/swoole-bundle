@@ -26,11 +26,7 @@ use Symfony\Component\DependencyInjection\Definition;
  *
  * Every block of every form goes through there, so one shared renderer puts two concurrent form pages
  * on the same stack - and the one that renders a block while the other is between its push and its
- * pop reads the other request's variables:
- *
- *   FiberViber\ConcurrencyException: Cross-coroutine access detected: [property_fetch_w]
- *   Symfony\Component\Form\FormRenderer::$variableStack is owned by coroutine #76 but accessed by
- *   coroutine #75
+ * pop reads the other request's variables.
  *
  * Which is the loudest of the failures a form-rendering application sees under any real concurrency:
  * a burst of them per minute, and a 500 on every page with a form on it.

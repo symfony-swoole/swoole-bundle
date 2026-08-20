@@ -25,6 +25,7 @@ use SwooleBundle\SwooleBundle\Bridge\Symfony\Form\FormProcessor;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpClient\HttpClientProcessor;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Messenger\MessengerProcessor;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Security\SecurityProcessor;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\TaskWorkerProcessor;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Twig\TwigProcessor;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\WebProfiler\WebProfilerProcessor;
 use Symfony\Component\Config\Resource\FileResource;
@@ -63,8 +64,8 @@ final class StatefulServicesPass implements CompilerPassInterface
         'slugger',
         // The translator carries the current request's locale: LocaleAwareListener writes it on every
         // kernel.request, so one shared instance has every concurrent request overwriting the locale of
-        // all the others - a silent wrong-language bug, and a hard ConcurrencyException once fiber_viber
-        // is watching ownership. Both ids are listed for the same reason `router` and `router.default`
+        // all the others - a silent wrong-language bug. Both ids are listed for the same reason
+        // `router` and `router.default`
         // are: `translator` is an alias, and in debug it resolves to the data collector decorating the
         // real one. Optional rather than mandatory because translation can be turned off entirely and
         // applications routinely decorate or replace the translator.
@@ -97,6 +98,42 @@ final class StatefulServicesPass implements CompilerPassInterface
         // nobody intended. Both stacks balance themselves, so no resetter is needed - one instance per
         // coroutine is the whole fix.
         'security.authorization_checker',
+        // Holds when the consumer it belongs to started, in $workerStartedAt, and compares it against
+        // the timestamp `messenger:stop-workers` writes to decide whether to stop. That is per-consumer
+        // state on a service the container shares, which costs nothing while a process runs one
+        // consumer - and is wrong the moment it runs two, as a task worker command group does: the
+        // second WorkerStartedEvent overwrites the first consumer's start time, so a restart request
+        // between the two starts is answered by neither.
+        //
+        // No resetter is needed: every run stamps it on WorkerStartedEvent before anything reads it.
+        'messenger.listener.stop_worker_on_restart_signal_listener',
+        // The same shape one listener along: $collect is raised when a message is received and lowered
+        // when the worker next goes idle, so that the gc runs once per message rather than once per
+        // poll. Two consumers in one process share the latch, and the one that goes idle first clears
+        // it for the one still working, so the collection runs against a message that is not finished
+        // and skips one that is.
+        //
+        // Pooling gives each consumer its own latch. What it cannot give them is their own peak memory
+        // reading - memory_reset_peak_usage() is process-wide - so the per-message peak stays a figure
+        // for the whole process whenever a group runs more than one consumer.
+        'messenger.listener.reset_memory_usage',
+        // The middleware that holds back messages dispatched from inside a handler until the handler
+        // that dispatched them has returned. It does that with two properties of its own -
+        // $isRootDispatchCallRunning, saying whether a dispatch is already in progress, and $queue,
+        // holding what has been held back - on one instance shared by every bus in the process.
+        //
+        // One dispatch at a time is the assumption, and it holds for a console command or a single
+        // consumer. It does not hold for two consumers in one task worker, nor in fact for two http
+        // requests dispatching at once, which is the same defect this bundle exists to fix elsewhere.
+        //
+        // What it costs is quiet and hard to trace back: the second dispatch to arrive sees a root
+        // call already running and queues its message behind the first one's, so a message meant to
+        // go out when handler A returned goes out when handler B did - or, if the flush has already
+        // run, not at all.
+        //
+        // Both properties are cleared in a finally at the end of a root dispatch, so a coroutine's
+        // instance comes back to the pool empty and no resetter is needed.
+        'messenger.middleware.dispatch_after_current_bus',
     ];
 
     private const array SERVICE_RESETTING_PRIORITIES = [
@@ -134,6 +171,10 @@ final class StatefulServicesPass implements CompilerPassInterface
         ],
         MessengerProcessor::class => [
             'class' => MessengerProcessor::class,
+            'priority' => 0,
+        ],
+        TaskWorkerProcessor::class => [
+            'class' => TaskWorkerProcessor::class,
             'priority' => 0,
         ],
         WebProfilerProcessor::class => [

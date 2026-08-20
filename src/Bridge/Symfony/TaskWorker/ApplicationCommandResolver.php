@@ -4,32 +4,40 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker;
 
+use Assert\Assertion;
 use Override;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Proxy\ContextualProxy;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\Exception\CommandNotRunnable;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Command\LazyCommand;
 use Symfony\Component\Console\Input\StringInput;
-use Symfony\Component\HttpKernel\KernelInterface;
 use Throwable;
 
 /**
  * EXPERIMENTAL. Resolves command lines against the application's own console Application.
  *
- * The Application is built once per worker process, on first use rather than in the constructor: the
- * resolver itself is constructed in the master, while resolve() is only ever called after the fork, so
- * building it lazily keeps every command service - and anything it opens - on the worker's side of the
- * fork instead of being inherited from the master.
+ * The Application comes from the container and is shared, one per worker. Not pooled: giving each
+ * coroutine its own would have every one of them reach the command loader, where
+ * ServiceLocatorTrait::get() reads its own re-entry guard as a circular reference if a second
+ * coroutine arrives while the first is suspended inside the factory. Shared, only the first resolve
+ * consults the loader and the rest find the command already memoized.
  *
  * Note this never calls Application::run(). find() registers the commands by itself, so going straight
  * to the resolved command skips doRunCommand() and with it the console signal registration that would
  * be dead weight inside a swoole worker.
+ *
+ * Every resolve() has to hand back an instance of its own. Commands keep per-run state on themselves -
+ * ConsumeMessagesCommand holds the Worker it is currently running in $worker, which is what
+ * handleSignal() stops - so two coroutines sharing one would have the second run overwrite the first's,
+ * and the stop meant for one consumer would land on the other while the first could no longer be
+ * stopped at all. {@see TaskWorkerProcessor} does that half - it pools those commands and hands each
+ * instance its Application - and unwrapping the pool proxy below is the rest.
  */
+// phpcs:ignore SlevomatCodingStandard.Classes.ReadonlyClass.ClassCanBeReadonly
 final class ApplicationCommandResolver implements CommandResolver
 {
-    private ?Application $application = null;
-
-    public function __construct(private readonly KernelInterface $kernel) {}
+    public function __construct(private readonly Application $application) {}
 
     #[Override]
     public function resolve(string $commandLine): ResolvedCommand
@@ -47,8 +55,7 @@ final class ApplicationCommandResolver implements CommandResolver
 
         try {
             $command = $this->unwrap(
-                $this->application()
-                    ->find($name)
+                $this->application->find($name)
             );
         } catch (Throwable $throwable) {
             throw CommandNotRunnable::notResolvable($commandLine, $throwable);
@@ -58,7 +65,8 @@ final class ApplicationCommandResolver implements CommandResolver
     }
 
     /**
-     * Takes the real command out of the lazy wrapper Symfony hands back.
+     * Takes the real command out of the lazy wrapper Symfony hands back, and out of the pool proxy
+     * behind that.
      *
      * FrameworkBundle registers commands through a command loader, so find() almost always returns a
      * LazyCommand - and LazyCommand delegates run() but not getSubscribedSignals() or handleSignal().
@@ -66,36 +74,42 @@ final class ApplicationCommandResolver implements CommandResolver
      * delivers on shutdown lands on nothing: the command runs on until it is force-terminated, and the
      * only clue is a warning about a command that "subscribes to no signals" when it plainly does.
      *
-     * getCommand() is what LazyCommand::run() would have called anyway, and it returns a fully
-     * initialised command - application, helper set, name and definition all set.
+     * getCommand() is what LazyCommand::run() would have called anyway. It returns a fully initialised
+     * command for the first caller and, once the command is pooled, an instance short of its
+     * Application for every caller after that - which is what attachApplication() below is for.
      */
     private function unwrap(Command $command): Command
     {
-        return $command instanceof LazyCommand ? $command->getCommand() : $command;
+        if (!$command instanceof LazyCommand) {
+            return $this->contextual($command);
+        }
+
+        // Reading, never writing: getCommand() assigns LazyCommand::$command on its first call and
+        // returns it untouched on every later one, so the wrapper - which the container shares, one
+        // instance per command name however many Applications ask for it - is not written to from a
+        // second coroutine.
+        return $this->contextual($command->getCommand());
     }
 
-    private function application(): Application
+    /**
+     * Unwraps the pool proxy, in the coroutine the command is about to run in, so that the instance the
+     * proxy would forward to is the one held from here on.
+     *
+     * It matters for exactly one caller. The watchdog {@see CommandGroupRunner} puts beside each command
+     * runs in a coroutine of its own, and calls handleSignal() on the ResolvedCommand built here. Left
+     * as a proxy, that call would forward to the watchdog's own pooled instance - one that never ran
+     * anything and whose $worker is null - so the stop would land on nothing and the consumer would be
+     * force-terminated when max_wait_time expired.
+     */
+    private function contextual(Command $command): Command
     {
-        if ($this->application instanceof Application) {
-            return $this->application;
+        if (!$command instanceof ContextualProxy) {
+            return $command;
         }
 
-        if (!class_exists(Application::class)) {
-            throw CommandNotRunnable::consoleUnavailable();
-        }
+        $contextual = $command->getContextualObject();
+        Assertion::isInstanceOf($contextual, Command::class);
 
-        $application = new Application($this->kernel);
-        // The worker owns the process lifetime, not the command: a command that finished is a worker to
-        // be recycled, decided by CommandGroupRunner, and never a process that exits from under swoole.
-        $application->setAutoExit(false);
-        // Failures have to come back as throwables so they can be logged with the command they came
-        // from and counted as a crashed worker, rather than being rendered to stdout and swallowed.
-        $application->setCatchExceptions(false);
-        $application->setDispatcher(
-            // @phpstan-ignore-next-line the container is booted long before any worker starts
-            $this->kernel->getContainer()->get('event_dispatcher')
-        );
-
-        return $this->application = $application;
+        return $contextual;
     }
 }
