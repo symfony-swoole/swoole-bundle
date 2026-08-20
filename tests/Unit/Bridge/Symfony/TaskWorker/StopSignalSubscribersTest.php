@@ -9,6 +9,7 @@ use SwooleBundle\SwooleBundle\Bridge\Symfony\Event\WorkerExitedEvent;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Event\WorkerStoppedEvent;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\RaiseStopSignalOnWorkerShutdown;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\StopMessengerWorkerOnShutdown;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\WorkerRetirement;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\WorkerStopSignal;
 use Symfony\Component\Messenger\Event\WorkerRunningEvent;
 use Symfony\Component\Messenger\Worker;
@@ -18,7 +19,7 @@ final class StopSignalSubscribersTest extends TestCase
     public function testThatWorkerExitRaisesTheStopSignal(): void
     {
         $signal = new WorkerStopSignal();
-        $subscriber = new RaiseStopSignalOnWorkerShutdown($signal);
+        $subscriber = new RaiseStopSignalOnWorkerShutdown($signal, new WorkerRetirement());
 
         self::assertFalse($signal->isRaised());
 
@@ -33,7 +34,7 @@ final class StopSignalSubscribersTest extends TestCase
     public function testThatRaisingIsIdempotent(): void
     {
         $signal = new WorkerStopSignal();
-        $subscriber = new RaiseStopSignalOnWorkerShutdown($signal);
+        $subscriber = new RaiseStopSignalOnWorkerShutdown($signal, new WorkerRetirement());
 
         $subscriber->onWorkerShutdown();
         $subscriber->onWorkerShutdown();
@@ -75,12 +76,53 @@ final class StopSignalSubscribersTest extends TestCase
         (new StopMessengerWorkerOnShutdown($signal))->onWorkerRunning(new WorkerRunningEvent($worker, false));
     }
 
-    public function testThatResetClearsTheSignal(): void
+    /**
+     * The exit of a worker that is retiring so it can be replaced must not raise anything: the
+     * replacement is forked into the same generation, so a raise here would stop the commands it is
+     * about to start.
+     */
+    public function testThatARetiringWorkerRaisesNothing(): void
     {
         $signal = new WorkerStopSignal();
-        $signal->raise();
-        $signal->reset();
+        $retirement = new WorkerRetirement();
+        $retirement->retire();
+
+        (new RaiseStopSignalOnWorkerShutdown($signal, $retirement))->onWorkerShutdown();
 
         self::assertFalse($signal->isRaised());
+    }
+
+    /**
+     * What a reload looks like from the signal's side: the workers being replaced raise it for the
+     * generation they started in, and the manager has already opened the one their replacements start
+     * in.
+     */
+    public function testThatAStopRaisedByAnEarlierGenerationDoesNotReachTheNextOne(): void
+    {
+        $signal = new WorkerStopSignal();
+        $signal->enterGeneration();
+        $signal->raise();
+
+        self::assertTrue($signal->isRaised(), 'A worker must see the stop raised for its own generation.');
+
+        // The manager, on BeforeReload, followed by a replacement binding itself to what it opened.
+        $signal->newGeneration();
+        $signal->enterGeneration();
+
+        self::assertFalse($signal->isRaised());
+    }
+
+    /**
+     * The other half of the same rule: a stop raised while every live worker is in one generation - a
+     * real shutdown - has to reach all of them.
+     */
+    public function testThatAStopReachesEveryWorkerOfItsOwnGeneration(): void
+    {
+        $raiser = new WorkerStopSignal();
+        $raiser->newGeneration();
+        $raiser->enterGeneration();
+        $raiser->raise();
+
+        self::assertTrue($raiser->isRaised());
     }
 }

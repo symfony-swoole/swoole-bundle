@@ -40,6 +40,7 @@ use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\StopMessengerWorkerOnShu
 use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\StreamCommandOutputFactory;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\TaskWorkerCommands;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\WithWorkerStopSignal;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\WorkerRetirement;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\WorkerStopSignal;
 use SwooleBundle\SwooleBundle\Bridge\Tideways\Apm\Apm;
 use SwooleBundle\SwooleBundle\Bridge\Tideways\Apm\RequestDataProvider;
@@ -823,6 +824,11 @@ final class SwooleExtension extends Extension
             ->setAutowired(false)
             ->setAutoconfigured(false);
 
+        $container->register(WorkerRetirement::class)
+            ->setPublic(false)
+            ->setAutowired(false)
+            ->setAutoconfigured(false);
+
         $container->register(WithWorkerStopSignal::class)
             ->setPublic(false)
             ->setAutowired(false)
@@ -835,6 +841,7 @@ final class SwooleExtension extends Extension
             ->setAutowired(false)
             ->setAutoconfigured(false)
             ->setArgument('$stopSignal', new Reference(WorkerStopSignal::class))
+            ->setArgument('$retirement', new Reference(WorkerRetirement::class))
             ->addTag('kernel.event_subscriber');
 
         // Caught here rather than when a worker tries to resolve its first command line: without
@@ -881,6 +888,7 @@ final class SwooleExtension extends Extension
             ->setArgument('$resolver', new Reference(ApplicationCommandResolver::class))
             ->setArgument('$outputFactory', new Reference(StreamCommandOutputFactory::class))
             ->setArgument('$stopSignal', new Reference(WorkerStopSignal::class))
+            ->setArgument('$retirement', new Reference(WorkerRetirement::class))
             ->setArgument('$swoole', new Reference(Swoole::class))
             ->setArgument('$logger', new Reference('logger'))
             ->addTag('monolog.logger', [
@@ -899,6 +907,7 @@ final class SwooleExtension extends Extension
             ->setAutoconfigured(false)
             ->setArgument('$commands', new Reference(TaskWorkerCommands::class))
             ->setArgument('$runner', new Reference(CommandGroupRunner::class))
+            ->setArgument('$stopSignal', new Reference(WorkerStopSignal::class))
             ->setArgument('$coroutinesEnabled', $coroutinesEnabled)
             ->setArgument('$decorated', new Reference(LongRunningCommandsWorkerStartHandler::class . '.inner'))
             // Lower priority than HMR's decorator puts this one outermost, so the handlers it wraps have
