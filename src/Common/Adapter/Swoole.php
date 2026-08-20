@@ -8,6 +8,12 @@ interface Swoole
 {
     public function tick(int $intervalMs, callable $callbackFunction, mixed ...$params): int|bool;
 
+    /**
+     * Stops a repeating timer started by tick(). A worker holding one never sees its reactor run out of
+     * events, so it cannot exit before max_wait_time forces it to.
+     */
+    public function clearTimer(int $timerId): bool;
+
     public function cpuCoresCount(): int;
 
     public function waitGroup(int $delta = 0): WaitGroup;
