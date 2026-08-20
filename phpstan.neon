@@ -33,6 +33,13 @@ parameters:
         -
             message: '#Static method BlackfireProbe::startTransaction\(\) invoked with 1 parameter, 0 required\.#'
             path: src/Bridge/Upscale/Blackfire/Monitoring/RequestMonitoring.php
+        # Kernel::MAJOR_VERSION is a compile time constant, so on Symfony 8 the guard above this code
+        # folds to an unconditional return and everything below it reads as dead. It is live on
+        # Symfony 7, where the error is not reported at all - hence reportUnmatched.
+        -
+            identifier: deadCode.unreachable
+            path: src/Bridge/Symfony/Bundle/DependencyInjection/CompilerPass/CacheWarmupFixerPass.php
+            reportUnmatched: false
         -
             message: "#Call to function method_exists\\(\\) with 'BlackfireProbe' and 'setAttribute' will always evaluate to false.#"
             path: src/Bridge/Upscale/Blackfire/Monitoring/RequestMonitoring.php

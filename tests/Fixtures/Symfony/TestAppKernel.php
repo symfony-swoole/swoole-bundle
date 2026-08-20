@@ -37,8 +37,17 @@ use Symfony\Component\Routing\Loader\Configurator\RoutingConfigurator;
 
 final class TestAppKernel extends Kernel implements WarmableInterface
 {
+    // Symfony 8.1 moved the kernel internals into a KernelTrait that MicroKernelTrait composes, so
+    // MicroKernelTrait now carries initializeContainer() and getContainerBaseClass() of its own and
+    // they collide with the CoroutinesSupportingKernel ones. Ours have to win: they install the
+    // container modifications and the blocking container that coroutines rely on, and both still
+    // defer to the Kernel implementation MicroKernelTrait would have reached. Naming a method
+    // MicroKernelTrait does not declare is harmless, so this also compiles on Symfony 7.4 and 8.0.
     use CoroutinesSupportingKernel;
-    use MicroKernelTrait;
+    use MicroKernelTrait {
+        CoroutinesSupportingKernel::initializeContainer insteadof MicroKernelTrait;
+        CoroutinesSupportingKernel::getContainerBaseClass insteadof MicroKernelTrait;
+    }
 
     private const string CONFIG_EXTENSIONS = '.{php,xml,yaml,yml}';
 
