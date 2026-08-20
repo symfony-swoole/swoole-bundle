@@ -57,7 +57,10 @@ final class TaskWorkerHeartbeatCommand extends Command
     protected function configure(): void
     {
         $this->addArgument('slot', InputArgument::REQUIRED, 'Names the file this instance writes to')
-            ->addOption('interval', null, InputOption::VALUE_REQUIRED, 'Milliseconds between ticks', '200');
+            ->addOption('interval', null, InputOption::VALUE_REQUIRED, 'Milliseconds between ticks', '200')
+            // Stands in for --memory-limit: a command that ends by itself, so its task worker is
+            // recycled and the replacement has to start the command again.
+            ->addOption('max-ticks', null, InputOption::VALUE_REQUIRED, 'Ticks before ending (0 = never)', '0');
     }
 
     #[Override]
@@ -67,6 +70,9 @@ final class TaskWorkerHeartbeatCommand extends Command
         $slot = $input->getArgument('slot');
         /** @var string $interval */
         $interval = $input->getOption('interval');
+        /** @var string $maxTicks */
+        $maxTicks = $input->getOption('max-ticks');
+        $ticks = 0;
 
         $path = self::filePath($slot);
         file_put_contents($path, sprintf("started pid=%d\n", getmypid()));
@@ -77,6 +83,11 @@ final class TaskWorkerHeartbeatCommand extends Command
             usleep(((int) $interval) * 1000);
 
             file_put_contents($path, "tick\n", FILE_APPEND);
+            $ticks++;
+
+            if ((int) $maxTicks > 0 && $ticks >= (int) $maxTicks) {
+                break;
+            }
         }
 
         file_put_contents($path, "stopped\n", FILE_APPEND);

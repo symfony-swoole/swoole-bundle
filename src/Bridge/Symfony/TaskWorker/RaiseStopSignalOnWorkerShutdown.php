@@ -26,10 +26,18 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
  * onWorkerExit also fires more than once per shutdown, and outside any coroutine. Setting a flag is
  * both idempotent and free of anything that needs a coroutine to run in, which is the whole reason the
  * handler does nothing else.
+ *
+ * What it raises is scoped to this worker's generation, so the workers a reload is replacing cannot
+ * stop the ones replacing them.
+ *
+ * @see WorkerRetirement for the one exit that must not raise anything at all
  */
 final readonly class RaiseStopSignalOnWorkerShutdown implements EventSubscriberInterface
 {
-    public function __construct(private WorkerStopSignal $stopSignal) {}
+    public function __construct(
+        private WorkerStopSignal $stopSignal,
+        private WorkerRetirement $retirement,
+    ) {}
 
     /**
      * @return array<string, string>
@@ -44,6 +52,12 @@ final readonly class RaiseStopSignalOnWorkerShutdown implements EventSubscriberI
 
     public function onWorkerShutdown(): void
     {
+        // A worker retiring so it can be replaced is not the server going down, and raising the signal
+        // for it would stop the commands its replacement is about to start.
+        if ($this->retirement->isRetiring()) {
+            return;
+        }
+
         $this->stopSignal->raise();
     }
 }

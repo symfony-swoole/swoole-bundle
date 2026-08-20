@@ -314,6 +314,18 @@ A group that ends in under a second is treated as broken rather than finished: t
 recycled and a critical is logged. Without that, a typo in a command line would fork a replacement
 in a loop for as long as the server ran.
 
+## Reloads
+
+A reload - `swoole:server:reload`, the API server's reload, HMR, or a plain `SIGUSR1` - replaces the
+task workers along with the http ones. The commands in the workers being replaced are asked to stop
+the same way they are on shutdown, and the replacements start them again, so a reload is how you get
+new code into a consumer without stopping the server.
+
+The stop a worker raises on its way out is scoped to the generation of workers it belonged to, which
+is what keeps it from reaching the replacements. The same applies to a worker recycling itself after
+its command ended: it declares the exit a retirement, so the replacement forked into its place runs
+its command instead of being stopped by it.
+
 ## Sharing task workers with the task transport
 
 With coroutines on, a task worker running commands still serves tasks, so the
@@ -326,8 +338,10 @@ task transport.**
 
 ## Operational notes
 
-- **Turn HMR off** in a server running these. A repeating `Timer::tick` keeps a worker's reactor
-  non-empty, which stretches shutdown out to `max_wait_time`.
+- **Consider turning HMR off** in a server running these. The commands themselves survive the
+  reloads HMR triggers, but HMR's repeating `Timer::tick` keeps an http worker's reactor non-empty,
+  so those workers never exit early and every reload costs the full `max_wait_time` - which these
+  commands want set high. HMR is usable here, just slower per cycle than it is without them.
 - **Set `worker_max_wait_time`** high enough for the slowest command to finish what it is doing.
   Swoole's default is 3 seconds, after which workers are force-terminated.
 - **Output** from each command goes to the server's stdout on its own stream handle. Verbosity flags

@@ -42,6 +42,7 @@ final readonly class CommandGroupRunner implements CommandGroupExecutor
         private CommandResolver $resolver,
         private CommandOutputFactory $outputFactory,
         private WorkerStopSignal $stopSignal,
+        private WorkerRetirement $retirement,
         private Swoole $swoole,
         private LoggerInterface $logger,
         private int $stopPollIntervalMs = 100,
@@ -116,6 +117,9 @@ final readonly class CommandGroupRunner implements CommandGroupExecutor
             ['workerId' => $workerId, 'runtime' => round($runtime, 3)],
         );
 
+        // Said before the worker goes, because its own onWorkerExit is what would otherwise raise the
+        // stop signal on the generation the replacement is forked into.
+        $this->retirement->retire();
         $control->stop($workerId);
     }
 
