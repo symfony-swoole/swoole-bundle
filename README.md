@@ -122,7 +122,8 @@ Symfony integration with [Open Swoole](https://openswoole.com/) and [Swoole](htt
 -   PHP version `>= 8.3 && <= 8.5`
 -   Open Swoole PHP Extension `^v26.2.0`
 -   Swoole PHP Extension `^6.2.0`+
--   Symfony `^7.4 || 8.0.*`
+-   Symfony `^7.4 || ^8.0`
+    -   Symfony `^8.0` needs PHP `>= 8.4`, and Symfony `^8.1` needs PHP `>= 8.4.1`
 
 Additional requirements to enable specific features:
 

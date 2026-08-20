@@ -29,7 +29,7 @@ aliases:
     parameters:
       <<: *php-versions
       <<: *swooles
-      symfony-version: [ '7.4.*', '8.0.*' ]
+      symfony-version: [ '7.4.*', '8.0.*', '8.1.*' ]
       composer-build: [ 'std', 'lowest', 'latest' ]
     exclude:
       - composer-build: 'std'
@@ -88,6 +88,48 @@ aliases:
         php-version: '8.5'
         swoole: 'swoole-v6.2.2'
         symfony-version: '8.0.*'
+      # Symfony 8.1 needs PHP >= 8.4.1, so PHP 8.3 cannot run it at all
+      - composer-build: 'std'
+        php-version: '8.3'
+        swoole: 'openswoole-v26.2.0'
+        symfony-version: '8.1.*'
+      - composer-build: 'lowest'
+        php-version: '8.3'
+        swoole: 'openswoole-v26.2.0'
+        symfony-version: '8.1.*'
+      - composer-build: 'latest'
+        php-version: '8.3'
+        swoole: 'openswoole-v26.2.0'
+        symfony-version: '8.1.*'
+      - composer-build: 'std'
+        php-version: '8.3'
+        swoole: 'swoole-v6.2.2'
+        symfony-version: '8.1.*'
+      - composer-build: 'lowest'
+        php-version: '8.3'
+        swoole: 'swoole-v6.2.2'
+        symfony-version: '8.1.*'
+      - composer-build: 'latest'
+        php-version: '8.3'
+        swoole: 'swoole-v6.2.2'
+        symfony-version: '8.1.*'
+      # the locked build is pinned to the Symfony version in composer.lock
+      - composer-build: 'std'
+        php-version: '8.4'
+        swoole: 'openswoole-v26.2.0'
+        symfony-version: '8.1.*'
+      - composer-build: 'std'
+        php-version: '8.4'
+        swoole: 'swoole-v6.2.2'
+        symfony-version: '8.1.*'
+      - composer-build: 'std'
+        php-version: '8.5'
+        swoole: 'openswoole-v26.2.0'
+        symfony-version: '8.1.*'
+      - composer-build: 'std'
+        php-version: '8.5'
+        swoole: 'swoole-v6.2.2'
+        symfony-version: '8.1.*'
 
   # Remote Docker config
   - &docker-remote-version

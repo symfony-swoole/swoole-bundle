@@ -302,6 +302,24 @@ and initializations.
 The custom kernel also has to implement the `Symfony\Component\HttpKernel\CacheWarmer\WarmableInterface` interface, 
 which is used to patch the kernel container for correct functioning of the cache warmup process for coroutines usage.
 
+Since Symfony 8.1 the `Symfony\Bundle\FrameworkBundle\Kernel\MicroKernelTrait` carries `initializeContainer()` and
+`getContainerBaseClass()` of its own, which collide with the ones this trait provides. A kernel using both traits has
+to say which wins, and it has to be this one - it installs the blocking container and the container modifications
+coroutines depend on, and it still defers to the same `Kernel` implementation `MicroKernelTrait` would have reached:
+
+```php
+final class Kernel extends BaseKernel
+{
+    use CoroutinesSupportingKernel;
+    use MicroKernelTrait {
+        CoroutinesSupportingKernel::initializeContainer insteadof MicroKernelTrait;
+        CoroutinesSupportingKernel::getContainerBaseClass insteadof MicroKernelTrait;
+    }
+}
+```
+
+Naming a method `MicroKernelTrait` does not declare is harmless, so the same code compiles on Symfony 7.4 and 8.0.
+
 ### Proxification
 
 To be able to run a Symfony app with Swoole coroutines without modifications of the app, this bundle implements
