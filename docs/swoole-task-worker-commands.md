@@ -269,3 +269,19 @@ task transport.**
 
 - `symfony/framework-bundle`, which provides the console `Application` used to resolve commands.
 - `platform.coroutines.enabled: true` for more than one command per task worker.
+- **On OpenSwoole, `openswoole/core`** - which [the installation instructions](../README.md#installation)
+  already ask for, and which this is the feature that actually needs it:
+
+  ```
+  composer require openswoole/core
+  ```
+
+  A group is run behind a `WaitGroup`, and OpenSwoole keeps that class in `openswoole/core` rather
+  than in the extension. Without the package the task worker dies the moment it starts, with
+
+  ```
+  PHP Fatal error: Uncaught Error: Class "OpenSwoole\Core\Coroutine\WaitGroup" not found
+  ```
+
+  and, since a dead task worker is one the manager forks again, it repeats for as long as the server
+  runs. On swoole there is nothing to install: `Swoole\Coroutine\WaitGroup` comes with that extension.

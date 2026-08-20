@@ -54,11 +54,7 @@ final class TwigProcessor implements CompileProcessor
      * Twig is pooled - `twig` is tagged `kernel.reset` for resetGlobals(), so every coroutine renders
      * through an Environment of its own - but a shared extension puts one set of those counters behind
      * all of them. Two concurrent renders then interleave into the same stack, and fiber_viber reports
-     * the second one writing what the first owns:
-     *
-     *   FiberViber\ConcurrencyException: Cross-coroutine access detected: [property_write_preinc]
-     *   Symfony\Bundle\WebProfilerBundle\Twig\WebProfilerExtension::$stackLevel is owned by coroutine
-     *   #2275 but accessed by coroutine #2277
+     * the second one writing what the first owns.
      *
      * Which is a 500 out of whichever request lost - in dev, typically the toolbar's own stylesheet
      * route, taking the page's layout with it.

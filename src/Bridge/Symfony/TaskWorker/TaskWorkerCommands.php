@@ -17,6 +17,12 @@ namespace SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker;
 final readonly class TaskWorkerCommands
 {
     /**
+     * The console Application the resolver runs commands through, and the one every pooled command is
+     * given by {@see TaskWorkerProcessor}. Named here because both of those need to agree on it.
+     */
+    public const string APPLICATION_SERVICE_ID = 'swoole_bundle.task_worker.console_application';
+
+    /**
      * @param array<int, list<string>> $groups keyed by task worker index, not by swoole worker id
      */
     public function __construct(private array $groups) {}

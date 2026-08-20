@@ -113,7 +113,8 @@
         "upscale/swoole-blackfire": "To enable Blackfire profiling",
         "swoole-bundle/resetter-bundle": "To be able to recover Doctrine Entity Managers from errors",
         "symfony/error-handler": "To use Symfony Error Handler",
-        "swoole-bundle/z-engine": "To be able to use coroutines."
+        "swoole-bundle/z-engine": "To be able to use coroutines.",
+        "openswoole/core": "On OpenSwoole, to run long running commands in task workers (swoole.task_worker.commands). Ships OpenSwoole\\Core\\Coroutine\\WaitGroup, which the extension does not; swoole has its own and needs nothing."
     },
     "conflict": {
         "amphp/amp": "<3.1.1",

@@ -24,11 +24,7 @@ use Symfony\Component\Messenger\TraceableMessageBus;
  *
  * It is emphatically stateful: dispatch() appends to $dispatchedMessages and reset() empties it. The
  * collector's own reset() calls through to it, so the write happens on the way out of every single
- * request, and two requests tearing down at once write the same property from two coroutines:
- *
- *   FiberViber\ConcurrencyException: Cross-coroutine access detected: [property_write]
- *   Symfony\Component\Messenger\TraceableMessageBus::$dispatchedMessages is owned by coroutine #460
- *   but accessed by coroutine #462
+ * request, and two requests tearing down at once write the same property from two coroutines.
  *
  * That surfaces as a 500 during teardown of an otherwise healthy request, which for an SPA reading
  * it as a failed API call looks like being logged out.
