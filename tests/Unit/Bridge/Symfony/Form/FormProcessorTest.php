@@ -14,10 +14,12 @@ use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\Containe
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Form\FormProcessor;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Form\FormRendererResetter;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Form\TwigRendererEngineResetter;
+use SwooleBundle\SwooleBundle\Tests\Fixtures\Form\OtherConstraintValidatorFactory;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Form\OtherRendererEngine;
 use Symfony\Bridge\Twig\Form\TwigRendererEngine;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\Form\FormRenderer;
+use Symfony\Component\Validator\ContainerConstraintValidatorFactory;
 
 #[CoversClass(FormProcessor::class)]
 final class FormProcessorTest extends TestCase
@@ -26,6 +28,7 @@ final class FormProcessorTest extends TestCase
     private const string RENDERER_RESETTER_ID = 'swoole_bundle.form.renderer_resetter';
     private const string ENGINE_ID = 'twig.form.engine';
     private const string ENGINE_RESETTER_ID = 'swoole_bundle.form.twig_renderer_engine_resetter';
+    private const string VALIDATOR_FACTORY_ID = 'validator.validator_factory';
 
     public function testTheFormRendererIsPooledWithItsOwnResetter(): void
     {
@@ -136,6 +139,84 @@ final class FormProcessorTest extends TestCase
             [[]],
             $container->getDefinition(self::RENDERER_RESETTER_ID)->getTag('already.registered'),
         );
+    }
+
+    /**
+     * FormValidator is not a service - the factory builds it with `new` and memoizes it for the life of
+     * the process - so the factory is the only thing there is to pool, and pooling it is what gives each
+     * coroutine a validator of its own to write its context onto.
+     */
+    public function testTheConstraintValidatorFactoryIsPooled(): void
+    {
+        $container = $this->newContainer();
+        $container->register(self::VALIDATOR_FACTORY_ID, ContainerConstraintValidatorFactory::class);
+
+        $this->process($container);
+
+        self::assertSame(
+            [[]],
+            $container->getDefinition(self::VALIDATOR_FACTORY_ID)->getTag(ContainerConstants::TAG_STATEFUL_SERVICE),
+        );
+    }
+
+    /**
+     * No resetter: the memo holds one validator per constraint class whoever asks, and a validation
+     * writes the context it is about to use before it reads it.
+     */
+    public function testTheConstraintValidatorFactoryIsPooledWithoutAResetter(): void
+    {
+        $container = $this->newContainer();
+        $container->register(self::VALIDATOR_FACTORY_ID, ContainerConstraintValidatorFactory::class);
+
+        $this->process($container);
+
+        $tag = $container->getDefinition(self::VALIDATOR_FACTORY_ID)->getTag(ContainerConstants::TAG_STATEFUL_SERVICE);
+        self::assertArrayNotHasKey('resetter', $tag[0]);
+    }
+
+    /**
+     * Guarded on the interface, so an application building its validators some other way is pooled just
+     * the same - what matters is that whatever hands out validators does so per coroutine.
+     */
+    public function testAFactoryOfTheApplicationsOwnIsPooledToo(): void
+    {
+        $container = $this->newContainer();
+        $container->register(self::VALIDATOR_FACTORY_ID, OtherConstraintValidatorFactory::class);
+
+        $this->process($container);
+
+        self::assertSame(
+            [[]],
+            $container->getDefinition(self::VALIDATOR_FACTORY_ID)->getTag(ContainerConstants::TAG_STATEFUL_SERVICE),
+        );
+    }
+
+    /**
+     * The id is Symfony's, and something else answering to it is not a validator factory to pool.
+     */
+    public function testAServiceThatIsNotAValidatorFactoryIsLeftAlone(): void
+    {
+        $container = $this->newContainer();
+        $container->register(self::VALIDATOR_FACTORY_ID, FormRenderer::class);
+
+        $this->process($container);
+
+        self::assertSame(
+            [],
+            $container->getDefinition(self::VALIDATOR_FACTORY_ID)->getTag(ContainerConstants::TAG_STATEFUL_SERVICE),
+        );
+    }
+
+    /**
+     * An application without the validator component has no such service.
+     */
+    public function testAnApplicationWithoutValidationIsLeftAlone(): void
+    {
+        $container = $this->newContainer();
+
+        $this->process($container);
+
+        self::assertFalse($container->hasDefinition(self::VALIDATOR_FACTORY_ID));
     }
 
     private function containerWithFormRenderer(): ContainerBuilder
