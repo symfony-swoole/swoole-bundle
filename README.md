@@ -115,6 +115,8 @@ Symfony integration with [Open Swoole](https://openswoole.com/) and [Swoole](htt
 
 -   Liveness endpoint (disabled by default) on a port of its own, served by a dedicated process so that it keeps answering while every worker is busy. Projects can contribute their own checks to it. Documentation of this feature is available [here](docs/swoole-health.md).
 
+-   Console commands for running, supervising and inspecting the server, plus a `swoole:debug:service-pools` command and a `debug:container` that reports the coroutine service pools. Documentation of every command is available [here](docs/console-commands.md).
+
 ## Requirements
 
 ### Current version

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\Command;
 
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\DebugContainerRedumpPass;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices\{
     Proxifier,
     UnmanagedFactoryProxifier,
@@ -23,11 +24,14 @@ use Symfony\Component\DependencyInjection\Container;
 /**
  * Lists the services StatefulServicesPass has replaced with a pooled proxy.
  *
- * Read off the compiled container rather than off `debug:container`, which cannot see any of this:
- * FrameworkBundle dumps the debug XML from a `before removing` pass at priority -255, and
- * StatefulServicesPass runs in the same stage at -10000, so the dump is taken before a single service
- * has been proxified. What each proxifier leaves behind instead is the original definition under a
- * renamed id, and those names are what this command reports.
+ * Read off the compiled container the application is running, which is what lets this answer in any
+ * environment and without rebuilding anything - including in production, where `debug:container` has
+ * no dump to read at all. What it reports are the ids each proxifier leaves the original definition
+ * under once it has put a proxy in its place.
+ *
+ * `debug:container` covers the same ground in a debug kernel, in more detail and one service at a
+ * time, but only because DebugContainerRedumpPass rewrites the dump it reads after this pass has
+ * run. The digest below is the view that one cannot give.
  *
  * The renamed definitions are looked for among the container's service ids and its removed ids
  * together, because only one of the two sections is public. Proxifier makes the definition it wraps
@@ -36,6 +40,7 @@ use Symfony\Component\DependencyInjection\Container;
  * name but no longer answers to.
  *
  * @see StatefulServicesPass
+ * @see DebugContainerRedumpPass
  */
 final class ServicePoolsDebugCommand extends Command
 {
