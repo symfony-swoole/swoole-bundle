@@ -9,6 +9,7 @@ use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\Command\ServerStartCommand;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\Command\ServerStatusCommand;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\Command\ServerStopCommand;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\Command\ServerWatchCommand;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\Command\ServicePoolsDebugCommand;
 use SwooleBundle\SwooleBundle\Metrics\MetricsProvider;
 use SwooleBundle\SwooleBundle\Server\Api\ApiServerClientFactory;
 use SwooleBundle\SwooleBundle\Server\Config\Sockets;
@@ -26,6 +27,12 @@ return static function (ContainerConfigurator $containerConfigurator): void {
     $services = $containerConfigurator->services();
 
     $services->defaults();
+
+    $services->set(ServicePoolsDebugCommand::class)
+        ->arg('$container', service('service_container'))
+        ->tag('console.command', [
+            'command' => 'swoole:debug:service-pools',
+        ]);
 
     $services->set(ServerStatusCommand::class)
         ->arg('$sockets', service(Sockets::class))
