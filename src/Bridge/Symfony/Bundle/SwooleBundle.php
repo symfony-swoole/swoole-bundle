@@ -10,6 +10,7 @@ use SwooleBundle\SwooleBundle\Bridge\CommonSwoole\SystemSwooleFactory;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\{BlackfireMonitoringPass,
     CacheWarmupFixerPass,
     ControllerResolverPass,
+    DebugContainerRedumpPass,
     ExceptionHandlerPass,
     FinalizeDefinitionsAfterRemovalPass,
     HealthCheckPass,
@@ -39,6 +40,8 @@ final class SwooleBundle extends Bundle
         $container->addCompilerPass(new HealthCheckPass());
         $container->addCompilerPass(new ControllerResolverPass());
         $container->addCompilerPass(new StatefulServicesPass(), PassConfig::TYPE_BEFORE_REMOVING, -10000);
+        // below StatefulServicesPass, so that what it rewrites is the container with the pools in it
+        $container->addCompilerPass(new DebugContainerRedumpPass(), PassConfig::TYPE_BEFORE_REMOVING, -20000);
         $container->addCompilerPass(new FinalizeDefinitionsAfterRemovalPass(), PassConfig::TYPE_AFTER_REMOVING, -10000);
         $container->addCompilerPass(new SwooleTableStorageConfiguratorPass());
         $container->addCompilerPass(new SessionHandlerStorageConfiguratorPass());
