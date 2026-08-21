@@ -10,19 +10,50 @@ use SwooleBundle\SwooleBundle\Tests\Helper\SwooleFactoryFactory;
 
 final class SwooleSpy implements Swoole
 {
+    /**
+     * Any id will do, as long as it is an int - that is what tells the timer it has something it can
+     * clear later, where false would mean no timer was made.
+     */
+    private const int TIMER_ID = 42;
+
     private bool $registeredTick = false;
+
+    /**
+     * @var list<int>
+     */
+    private array $clearedTimerIds = [];
 
     /**
      * @var array{0: int, 1: callable}|array{}
      */
     private array $registeredTickTuple = [];
 
-    public function tick(int $intervalMs, callable $callbackFunction, mixed ...$params): int|bool
+    public function tick(int $intervalMs, callable $callbackFunction, mixed ...$params): int
     {
         $this->registeredTick = true;
         $this->registeredTickTuple = [$intervalMs, $callbackFunction];
 
+        return self::TIMER_ID;
+    }
+
+    public function clearTimer(int $timerId): bool
+    {
+        $this->clearedTimerIds[] = $timerId;
+
         return true;
+    }
+
+    /**
+     * @return list<int>
+     */
+    public function clearedTimerIds(): array
+    {
+        return $this->clearedTimerIds;
+    }
+
+    public function timerId(): int
+    {
+        return self::TIMER_ID;
     }
 
     public function cpuCoresCount(): int

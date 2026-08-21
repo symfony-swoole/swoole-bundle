@@ -68,11 +68,14 @@ use SwooleBundle\SwooleBundle\Server\RequestHandler\ExceptionHandler\ProductionE
 use SwooleBundle\SwooleBundle\Server\RequestHandler\RequestHandler;
 use SwooleBundle\SwooleBundle\Server\Runtime\Bootable;
 use SwooleBundle\SwooleBundle\Server\Runtime\HMR\HotModuleReloader;
+use SwooleBundle\SwooleBundle\Server\Runtime\HMR\HotModuleReloadTimer;
 use SwooleBundle\SwooleBundle\Server\Runtime\HMR\InotifyHMR;
 use SwooleBundle\SwooleBundle\Server\Runtime\HMR\NonReloadableFiles;
 use SwooleBundle\SwooleBundle\Server\Runtime\HMR\StatHMR;
 use SwooleBundle\SwooleBundle\Server\TaskHandler\TaskHandler;
+use SwooleBundle\SwooleBundle\Server\WorkerHandler\HMRWorkerExitHandler;
 use SwooleBundle\SwooleBundle\Server\WorkerHandler\HMRWorkerStartHandler;
+use SwooleBundle\SwooleBundle\Server\WorkerHandler\WorkerExitHandler;
 use SwooleBundle\SwooleBundle\Server\WorkerHandler\WorkerStartHandler;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
@@ -546,13 +549,27 @@ final class SwooleExtension extends Extension
                 ->setArgument('$kernelCacheDir', $container->getParameter('kernel.cache_dir'));
         }
 
+        $container->register(HotModuleReloadTimer::class)
+            ->setPublic(false)
+            ->setAutoconfigured(false)
+            ->setArgument('$swoole', new Reference(Swoole::class));
+
         $container->register(HMRWorkerStartHandler::class)
             ->setPublic(false)
             ->setAutoconfigured(false)
             ->setArgument('$hmr', new Reference(HotModuleReloader::class))
-            ->setArgument('$swoole', new Reference(Swoole::class))
+            ->setArgument('$timer', new Reference(HotModuleReloadTimer::class))
             ->setArgument('$decorated', new Reference(HMRWorkerStartHandler::class . '.inner'))
             ->setDecoratedService(WorkerStartHandler::class);
+
+        // Registered with the timer and not just alongside it: the worker that started the timer is the
+        // one that has to stop it, and it has to do so from onWorkerExit or not at all.
+        $container->register(HMRWorkerExitHandler::class)
+            ->setPublic(false)
+            ->setAutoconfigured(false)
+            ->setArgument('$timer', new Reference(HotModuleReloadTimer::class))
+            ->setArgument('$decorated', new Reference(HMRWorkerExitHandler::class . '.inner'))
+            ->setDecoratedService(WorkerExitHandler::class);
     }
 
     /**

@@ -14,6 +14,11 @@ abstract class CommonSwoole implements Swoole
         return Timer::tick($intervalMs, $callbackFunction, ...$params);
     }
 
+    public function clearTimer(int $timerId): bool
+    {
+        return Timer::clear($timerId);
+    }
+
     public function getRunningModeFor(string $modeName): int
     {
         $runningModes = $this->getRunningModes();

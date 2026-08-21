@@ -357,10 +357,9 @@ task transport.**
 
 ## Operational notes
 
-- **Consider turning HMR off** in a server running these. The commands themselves survive the
-  reloads HMR triggers, but HMR's repeating `Timer::tick` keeps an http worker's reactor non-empty,
-  so those workers never exit early and every reload costs the full `max_wait_time` - which these
-  commands want set high. HMR is usable here, just slower per cycle than it is without them.
+- **HMR can stay on.** The commands survive the reloads it triggers, and its watch timer is stopped
+  when a worker is asked to exit, so http workers still exit as soon as they go idle rather than
+  waiting out the `max_wait_time` these commands want set high.
 - **Set `worker_max_wait_time`** high enough for the slowest command to finish what it is doing.
   Swoole's default is 3 seconds, after which workers are force-terminated.
 - **Output** from each command goes to the server's stdout on its own stream handle. Verbosity flags
