@@ -206,24 +206,43 @@ would be any. Shared, one consumer's successful poll resets the count another wa
 three deadlocks spread across three consumers trip a limit meant for three in a row on one. Nothing
 warns you either way - the queue itself is fine, and what breaks is the transport's opinion of it.
 
-So `MessengerProcessor` gives each coroutine a transport of its own, the same way this bundle pools
-the other services Symfony shares.
+So `MessengerProcessor` gives each coroutine a transport of its own.
+
+### It pools the factory, not the transport
+
+A transport service cannot be pooled directly. `FrameworkExtension` defines it as
+`new Definition(TransportInterface::class)` behind a factory, and a pool proxy generated from an
+interface would implement `TransportInterface` and nothing else - while a real transport is a good
+deal more. `DoctrineTransport` is also `SetupableTransportInterface`, `MessageCountAwareInterface`,
+`ListableReceiverInterface` and `KeepaliveReceiverInterface`, each of which messenger finds with an
+`instanceof`, so a transport pooled from its declared type would have `messenger:setup-transports`
+skip it without a word.
+
+So the pooling happens one layer down, at the factory. Every service tagged
+`messenger.transport_factory` is itself tagged `swoole_bundle.unmanaged_factory`, which wraps it so
+that `createTransport()` hands back a pool proxy rather than the transport - backed by a pool that
+calls the real method with the same arguments once per coroutine.
+
+That is what makes it work through a decorator chain. Applications decorate
+`messenger.transport_factory` - to add retries, versioning, anything - and those decorators are
+stateless wrappers holding the transport below them. They are built once and stay shared, which is
+right: what they are holding is a proxy, and a proxy resolves per coroutine on every call through it.
 
 ### When it cannot, and what to do about it
 
-Transports are built by a factory behind `new Definition(TransportInterface::class)`, so the bundle
-has to work out what the concrete class will be before it can pool one: it asks each registered
-transport factory whether it handles the DSN, and takes the class from the factory's own name -
-`XTransportFactory` builds `XTransport`. Three things stop that, and in each the transport is left
-shared rather than pooled:
+What a factory builds is read off its name - `XTransportFactory` builds `XTransport`, beside it - and
+that is a convention rather than a contract, so it is checked. Three things stop it, and in each the
+factory and its transports are left shared, with a line in the build log saying which and why:
 
-- **The DSN comes from an environment variable.** A compiler pass sees a placeholder, not
-  `doctrine://`, and resolving it would bake the machine that built the container into it.
-- **The factory is one the convention does not fit,** including an application's own.
-- **The transport class is `final` or `readonly`,** so there is nothing to generate a proxy from.
+- **The factory's name does not say what it builds,** including an application's own. Name it after
+  its transport, or tag it `swoole_bundle.unmanaged_factory` yourself with the `returnType` spelled
+  out and the `factoryMethod` set to `createTransport`.
+- **The transport it builds is `final`, `readonly` or abstract,** so there is nothing for the proxy to
+  extend.
+- **The factory itself is `readonly`,** so it cannot be wrapped.
 
-`sync://` and `in-memory://` are deliberately left shared too: the first keeps nothing between calls,
-and keeping what was sent is the whole point of the second.
+`sync://` and `in-memory://` are deliberately left shared too, and quietly: the first keeps nothing
+between calls, and keeping what was sent is the whole point of the second.
 
 When a transport is left shared, give each consumer a transport of its own instead - it is one line of
 configuration each, and the queue is still shared:

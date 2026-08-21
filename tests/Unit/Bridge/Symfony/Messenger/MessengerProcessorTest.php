@@ -8,9 +8,11 @@ use Override;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices\ServiceProxifier;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServicesPass;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\ContainerConstants;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Messenger\MessengerProcessor;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Messenger\FinalTransportFactory;
+use SwooleBundle\SwooleBundle\Tests\Fixtures\Messenger\ReadOnlyTransportFactory;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Messenger\UnconventionalTransportFactory;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
@@ -25,73 +27,80 @@ use Symfony\Component\Messenger\Transport\TransportInterface;
 /**
  * The half of the processor that gives each coroutine a transport of its own.
  *
- * All of it is compile-time: which factory builds a DSN, what that factory's transport class is, and
- * whether it is one a proxy can be generated from. Nothing is instantiated, so this is a unit test
- * rather than a feature one - MessengerTaskWorkerGroupTest is what proves the pooling works.
+ * All of it is compile-time - which factory builds what, and whether that can be stood in for - so
+ * this is a unit test rather than a feature one. MessengerTaskWorkerGroupTest is what proves the
+ * pooling works.
  */
 #[CoversClass(MessengerProcessor::class)]
 final class MessengerProcessorTest extends TestCase
 {
+    private const string FACTORY_ID = 'messenger.transport.doctrine.factory';
+
     private const string TRANSPORT_ID = 'messenger.transport.default';
 
-    public function testATransportIsGivenItsConcreteClassAndPooled(): void
+    public function testAFactoryIsTaggedWithTheTransportItBuilds(): void
     {
-        $container = $this->newContainer('doctrine://default?queue_name=default');
+        $container = $this->newContainer(DoctrineTransportFactory::class);
 
         $this->process($container);
 
-        $definition = $container->getDefinition(self::TRANSPORT_ID);
-
-        self::assertSame(DoctrineTransport::class, $definition->getClass());
-        self::assertSame([[]], $definition->getTag(ContainerConstants::TAG_STATEFUL_SERVICE));
+        self::assertSame(
+            [[
+                'factoryMethod' => 'createTransport',
+                'returnType' => DoctrineTransport::class,
+            ]],
+            $container->getDefinition(self::FACTORY_ID)->getTag(ContainerConstants::TAG_UNMANAGED_FACTORY),
+        );
     }
 
     /**
-     * The reason the class has to be written at all: a proxy generated from TransportInterface answers
-     * no to every instanceof messenger discovers a transport's capabilities with.
+     * The reason the transport class has to be named at all: the pool proxy extends it, and what these
+     * factories declare returning is TransportInterface. Generated from that, the proxy would answer no
+     * to every instanceof messenger discovers a transport's capabilities with - and
+     * `messenger:setup-transports` would skip the transport without a word.
      */
-    public function testTheClassItIsGivenCarriesTheCapabilityInterfaces(): void
+    public function testTheTaggedClassCarriesTheCapabilityInterfaces(): void
     {
-        $container = $this->newContainer('doctrine://default?queue_name=default');
+        $container = $this->newContainer(DoctrineTransportFactory::class);
 
         $this->process($container);
 
-        /** @var class-string $class */
-        $class = $container->getDefinition(self::TRANSPORT_ID)->getClass();
+        /** @var array{0: array{returnType: class-string}} $tags */
+        $tags = $container->getDefinition(self::FACTORY_ID)->getTag(ContainerConstants::TAG_UNMANAGED_FACTORY);
 
-        self::assertContains(SetupableTransportInterface::class, class_implements($class));
+        self::assertContains(SetupableTransportInterface::class, class_implements($tags[0]['returnType']));
     }
 
     /**
-     * A DSN out of the environment is a placeholder here, so which transport it will be is not
-     * knowable - and resolving it would answer with the machine that compiled the container.
+     * The transports themselves are none of this processor's business, and it is worth pinning that
+     * they stay untouched: naming a concrete class on a transport definition is what an earlier version
+     * of this did, and what it named was wrong wherever `messenger.transport_factory` had been
+     * decorated - the tagged factories go on answering the DSN while something else does the building.
      */
-    public function testATransportWhoseDsnComesFromTheEnvironmentIsLeftShared(): void
+    public function testTheTransportDefinitionsAreLeftAlone(): void
     {
-        $container = new ContainerBuilder();
-        $dsn = $container->getParameterBag()->resolveValue('%env(MESSENGER_TRANSPORT_DSN)%');
-        self::assertIsString($dsn);
+        $container = $this->newContainer(DoctrineTransportFactory::class);
 
-        $this->addTransport($container, $dsn);
-        $this->addFactory($container, DoctrineTransportFactory::class);
+        $this->process($container);
+
+        $transport = $container->getDefinition(self::TRANSPORT_ID);
+
+        self::assertSame(TransportInterface::class, $transport->getClass());
+        self::assertSame([], $transport->getTag(ContainerConstants::TAG_STATEFUL_SERVICE));
+    }
+
+    public function testTheSyncTransportFactoryIsLeftShared(): void
+    {
+        $container = $this->newContainer(SyncTransportFactory::class);
 
         $this->process($container);
 
         $this->assertLeftShared($container);
     }
 
-    public function testTheSyncTransportIsLeftShared(): void
+    public function testTheInMemoryTransportFactoryIsLeftShared(): void
     {
-        $container = $this->newContainer('sync://', SyncTransportFactory::class);
-
-        $this->process($container);
-
-        $this->assertLeftShared($container);
-    }
-
-    public function testTheInMemoryTransportIsLeftShared(): void
-    {
-        $container = $this->newContainer('in-memory://', InMemoryTransportFactory::class);
+        $container = $this->newContainer(InMemoryTransportFactory::class);
 
         $this->process($container);
 
@@ -101,9 +110,9 @@ final class MessengerProcessorTest extends TestCase
     /**
      * An application's own factory, which the naming convention has no reason to fit.
      */
-    public function testATransportWhoseFactoryDoesNotFollowTheConventionIsLeftShared(): void
+    public function testAFactoryWhoseNameDoesNotSayWhatItBuildsIsLeftShared(): void
     {
-        $container = $this->newContainer('unconventional://', UnconventionalTransportFactory::class);
+        $container = $this->newContainer(UnconventionalTransportFactory::class);
 
         $this->process($container);
 
@@ -111,86 +120,134 @@ final class MessengerProcessorTest extends TestCase
     }
 
     /**
-     * Skipped rather than failing the compile: there is nothing for the proxy to extend, and a
+     * Skipped rather than failing the compile: there would be nothing for the proxy to extend, and a
      * transport that stays shared is a great deal better than a container that will not build.
      */
-    public function testAFinalTransportIsLeftShared(): void
+    public function testAFactoryBuildingAFinalTransportIsLeftShared(): void
     {
-        $container = $this->newContainer('final://', FinalTransportFactory::class);
+        $container = $this->newContainer(FinalTransportFactory::class);
 
         $this->process($container);
 
         $this->assertLeftShared($container);
     }
 
-    public function testATransportNoFactoryClaimsIsLeftShared(): void
+    public function testAReadOnlyFactoryIsLeftShared(): void
     {
-        $container = $this->newContainer('nobody-handles-this://');
+        $container = $this->newContainer(ReadOnlyTransportFactory::class);
 
         $this->process($container);
 
         $this->assertLeftShared($container);
+    }
+
+    public function testItSaysWhenAFactoryDoesNotSayWhatItBuilds(): void
+    {
+        $container = $this->newContainer(UnconventionalTransportFactory::class);
+
+        $this->process($container);
+
+        self::assertSaidWhyItIsShared($container, 'UnconventionalTransport');
+    }
+
+    public function testItSaysWhenTheTransportCannotBeExtended(): void
+    {
+        $container = $this->newContainer(FinalTransportFactory::class);
+
+        $this->process($container);
+
+        self::assertSaidWhyItIsShared($container, 'cannot be extended');
+    }
+
+    public function testItSaysWhenTheFactoryItselfCannotBeWrapped(): void
+    {
+        $container = $this->newContainer(ReadOnlyTransportFactory::class);
+
+        $this->process($container);
+
+        self::assertSaidWhyItIsShared($container, 'read-only');
     }
 
     /**
-     * A definition that already names a class was written by somebody who knew what they meant, and is
-     * not this processor's to rewrite.
+     * Left shared on purpose is not a finding, and a line about it would sit in front of the ones that
+     * are.
      */
-    public function testATransportThatAlreadyNamesItsClassIsLeftAlone(): void
+    public function testItSaysNothingAboutAFactoryThatIsSharedOnPurpose(): void
     {
-        $container = $this->newContainer('doctrine://default');
-        $container->getDefinition(self::TRANSPORT_ID)->setClass(DoctrineTransport::class);
+        $container = $this->newContainer(SyncTransportFactory::class);
 
         $this->process($container);
 
-        self::assertSame([], $container->getDefinition(self::TRANSPORT_ID)->getTag(
-            ContainerConstants::TAG_STATEFUL_SERVICE,
-        ));
+        self::assertSaidNothing($container);
+    }
+
+    public function testItSaysNothingAboutAFactoryItPooled(): void
+    {
+        $container = $this->newContainer(DoctrineTransportFactory::class);
+
+        $this->process($container);
+
+        self::assertSaidNothing($container);
     }
 
     private function assertLeftShared(ContainerBuilder $container): void
     {
-        $definition = $container->getDefinition(self::TRANSPORT_ID);
-
-        self::assertSame(TransportInterface::class, $definition->getClass());
-        self::assertSame([], $definition->getTag(ContainerConstants::TAG_STATEFUL_SERVICE));
+        self::assertSame(
+            [],
+            $container->getDefinition(self::FACTORY_ID)->getTag(ContainerConstants::TAG_UNMANAGED_FACTORY),
+        );
     }
 
     /**
-     * @param class-string $factoryClass
+     * @param non-empty-string $reason what the line has to say, beyond naming the factory
      */
-    private function newContainer(
-        string $dsn,
-        string $factoryClass = DoctrineTransportFactory::class,
-    ): ContainerBuilder {
-        $container = new ContainerBuilder();
+    private static function assertSaidWhyItIsShared(ContainerBuilder $container, string $reason): void
+    {
+        $lines = self::poolingLog($container);
 
-        $this->addTransport($container, $dsn);
-        $this->addFactory($container, $factoryClass);
-
-        return $container;
+        self::assertCount(1, $lines, 'Exactly one line, so that a build log names each factory once.');
+        self::assertStringContainsString(self::FACTORY_ID, $lines[0]);
+        self::assertStringContainsString($reason, $lines[0]);
     }
 
-    private function addTransport(ContainerBuilder $container, string $dsn): void
+    private static function assertSaidNothing(ContainerBuilder $container): void
     {
+        self::assertSame([], self::poolingLog($container));
+    }
+
+    /**
+     * @return list<string>
+     */
+    private static function poolingLog(ContainerBuilder $container): array
+    {
+        return array_values(array_filter(
+            $container->getCompiler()->getLog(),
+            static fn(string $line): bool => str_contains($line, StatefulServicesPass::class),
+        ));
+    }
+
+    /**
+     * A transport built by the factory under test, as FrameworkExtension would define it.
+     *
+     * @param class-string $factoryClass
+     */
+    private function newContainer(string $factoryClass): ContainerBuilder
+    {
+        $container = new ContainerBuilder();
+
+        $container->setDefinition(
+            self::FACTORY_ID,
+            (new Definition($factoryClass))->addTag('messenger.transport_factory'),
+        );
         $container->setDefinition(
             self::TRANSPORT_ID,
             (new Definition(TransportInterface::class))
                 ->setFactory([new Reference('messenger.transport_factory'), 'createTransport'])
-                ->setArguments([$dsn, ['transport_name' => 'default'], new Reference('messenger.default_serializer')])
+                ->setArguments(['doctrine://default', ['transport_name' => 'default'], new Reference('serializer')])
                 ->addTag('messenger.receiver', ['alias' => 'default']),
         );
-    }
 
-    /**
-     * @param class-string $factoryClass
-     */
-    private function addFactory(ContainerBuilder $container, string $factoryClass): void
-    {
-        $container->setDefinition(
-            'messenger.transport.' . $factoryClass . '.factory',
-            (new Definition($factoryClass))->addTag('messenger.transport_factory'),
-        );
+        return $container;
     }
 
     private function process(ContainerBuilder $container): void

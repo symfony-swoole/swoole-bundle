@@ -7,6 +7,7 @@ namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Messenger;
 use ReflectionClass;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices\CompileProcessor;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices\ServiceProxifier;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServicesPass;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\ContainerConstants;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\SimpleResetter;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -14,9 +15,7 @@ use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\Messenger\TraceableMessageBus;
 use Symfony\Component\Messenger\Transport\InMemory\InMemoryTransportFactory;
 use Symfony\Component\Messenger\Transport\Sync\SyncTransportFactory;
-use Symfony\Component\Messenger\Transport\TransportFactoryInterface;
 use Symfony\Component\Messenger\Transport\TransportInterface;
-use Throwable;
 
 /**
  * Gives the coroutine-unsafe parts of messenger an instance per coroutine.
@@ -57,19 +56,27 @@ final class MessengerProcessor implements CompileProcessor
     /**
      * Transports there is no point giving anyone an instance of their own, or harm in doing so.
      *
-     * The sync transport hands the message straight to the bus and keeps nothing between calls. The
-     * in-memory one is the opposite: keeping what was sent is the whole of what it is for, and a test
-     * that reads it back would find its own coroutine's instance rather than the one the code under
-     * test sent through.
+     * The sync transport hands the message straight to the bus and keeps nothing between calls, and
+     * this bundle's own task transport does the same through Server::task(). The in-memory one is the
+     * opposite: keeping what was sent is the whole of what it is for, and a test that reads it back
+     * would find its own coroutine's instance rather than the one the code under test sent through.
      */
     private const array TRANSPORT_FACTORIES_TO_LEAVE_SHARED = [
         SyncTransportFactory::class,
         InMemoryTransportFactory::class,
+        SwooleServerTaskTransportFactory::class,
     ];
+
+    /**
+     * The method a transport factory builds transports with, and the suffix its name ends in.
+     */
+    private const string TRANSPORT_FACTORY_METHOD = 'createTransport';
+
+    private const string TRANSPORT_FACTORY_SUFFIX = 'Factory';
 
     public function process(ContainerBuilder $container, ServiceProxifier $proxifier): void
     {
-        $this->poolTransports($container);
+        $this->poolTransportFactories($container);
 
         $traceableBusIds = $this->traceableBusIds($container);
 
@@ -100,13 +107,12 @@ final class MessengerProcessor implements CompileProcessor
     }
 
     /**
-     * Gives every consumer its own transport.
+     * Gives every coroutine a transport of its own, by pooling what builds them.
      *
-     * A transport is a shared service that keeps per-receive state on itself, which held while a process
-     * ran one consumer and stops holding the moment a task worker group runs several. DoctrineTransport
-     * memoizes the receiver it hands out, so all four consumers of a group poll through one
-     * DoctrineReceiver and one Connection, and the bookkeeping on those is written by whichever of them
-     * polled last.
+     * A transport keeps per-receive state on itself, which held while a process ran one consumer and
+     * stops holding the moment a task worker group runs several. DoctrineTransport memoizes the
+     * receiver it hands out, so consumers sharing one poll through a single DoctrineReceiver and
+     * Connection, and the bookkeeping on those is written by whichever of them polled last.
      *
      * DoctrineReceiver::$retryingSafetyCounter is the clearest of them, because it exists for exactly
      * the situation it is then wrong about: it counts consecutive deadlocks so that a run of them
@@ -118,179 +124,133 @@ final class MessengerProcessor implements CompileProcessor
      * The queue underneath is untouched by this and is built to be shared - the doctrine transport
      * reads with SELECT ... FOR UPDATE SKIP LOCKED, so a row still goes to exactly one consumer.
      *
-     * What stops the pool doing this on its own is the class. FrameworkExtension builds transports with
-     * `new Definition(TransportInterface::class)` behind a factory, and Proxifier skips a definition
-     * whose class is an interface - rightly, because a proxy generated from that type would implement
-     * TransportInterface and nothing else, while a real transport is a good deal more:
-     * DoctrineTransport is also SetupableTransportInterface, MessageCountAwareInterface,
-     * ListableReceiverInterface and KeepaliveReceiverInterface, and messenger finds each of those with
-     * an instanceof. Pooled from the declared type, `messenger:setup-transports` skips the transport
-     * without a word and `messenger:stats` cannot count it.
+     * **The factory is pooled, not the transport.** A transport service cannot be pooled directly:
+     * FrameworkExtension builds it with `new Definition(TransportInterface::class)` behind a factory,
+     * and a pool proxy generated from an interface would implement TransportInterface and nothing else,
+     * while a real transport is a good deal more - DoctrineTransport is also
+     * SetupableTransportInterface, MessageCountAwareInterface, ListableReceiverInterface and
+     * KeepaliveReceiverInterface, each of which messenger finds with an instanceof. Working the
+     * concrete class out from the DSN instead is what this used to do, and it is not safe: an
+     * application that decorates `messenger.transport_factory` - which is a service like any other -
+     * gets back a transport of the decorator's choosing, while the tagged factories go on answering the
+     * DSN exactly as before, so the class written onto the definition is one the instance is not.
      *
-     * So the class is worked out first and written onto the definition, and the tag follows.
+     * A factory has none of those problems. Its class is a fact rather than an inference, and
+     * {@see ContainerConstants::TAG_UNMANAGED_FACTORY} exists for precisely this shape: the tagged
+     * service is wrapped so that the named method hands back a pool proxy instead of the object,
+     * backed by a pool that calls the real method with the same arguments once per coroutine. Whatever
+     * is built on top of it - a decorator chain, one layer or five - is built once and stays shared,
+     * which is right, because a proxy resolves per coroutine on every call through it.
+     *
+     * What it builds is read off its name: XTransportFactory builds XTransport, beside it. A
+     * convention rather than a contract, so it is checked rather than trusted, and a factory it does
+     * not fit is left alone with a line in the build log saying so.
      */
-    private function poolTransports(ContainerBuilder $container): void
+    private function poolTransportFactories(ContainerBuilder $container): void
     {
-        $factoryClasses = $this->transportFactoryClasses($container);
+        // The pass this processor runs under, and only ever used to name the lines below: the compiler
+        // prefixes each with the class of the pass a message came from, and MessengerProcessor cannot
+        // be that pass itself - CompileProcessor and CompilerPassInterface both declare process(), with
+        // different signatures. A fresh instance is enough, since the class is all that is read off it.
+        $log = new StatefulServicesPass();
 
-        if ($factoryClasses === []) {
-            return;
-        }
+        foreach (array_keys($container->findTaggedServiceIds('messenger.transport_factory')) as $factoryId) {
+            $definition = $container->findDefinition($factoryId);
+            $verdict = $this->poolingVerdictFor($definition);
 
-        foreach (array_keys($container->findTaggedServiceIds('messenger.receiver')) as $transportId) {
-            $definition = $container->findDefinition($transportId);
+            if ($verdict->transportClass === null) {
+                if ($verdict->leftSharedBecause !== null) {
+                    $container->log($log, sprintf(
+                        'Transport factory "%s" is left shared, because %s. The transports it builds '
+                        . 'are shared with it, so consumers running concurrently in one worker will '
+                        . 'poll through one of them, and what each keeps about its own progress '
+                        . 'through the queue is then written by whichever polled last.',
+                        $factoryId,
+                        $verdict->leftSharedBecause,
+                    ));
+                }
 
-            // Anything else has been given a class by whoever defined it, and is either already
-            // concrete - in which case the pool needs nothing from here - or something this has no
-            // business rewriting.
-            if ($definition->getClass() !== TransportInterface::class) {
                 continue;
             }
 
-            $transportClass = $this->transportClassOf($container, $definition, $factoryClasses);
-
-            if ($transportClass === null) {
-                continue;
-            }
-
-            $definition->setClass($transportClass);
-            // Tagging rather than proxifying here: the tag is what StatefulServicesPass acts on once
-            // every compile processor has run, and doing both is refused outright by the Proxifier.
-            //
             // No resetter. A transport is not carrying a request's worth of state to be cleared between
             // uses - what it keeps is one consumer's view of one queue, and the point is that the next
             // consumer has its own rather than a cleaned copy of somebody else's.
-            $definition->addTag(ContainerConstants::TAG_STATEFUL_SERVICE);
+            $definition->addTag(ContainerConstants::TAG_UNMANAGED_FACTORY, [
+                'factoryMethod' => self::TRANSPORT_FACTORY_METHOD,
+                'returnType' => $verdict->transportClass,
+            ]);
         }
     }
 
     /**
-     * The concrete class a transport definition will turn out to be, or null if it cannot be known.
+     * Whether a transport factory can be pooled, as what, and when not, why not.
      *
-     * Two questions, and the answer to either can be no. Which factory builds this DSN is asked of the
-     * factories themselves, in priority order, rather than guessed from the scheme - a prefix table
-     * here would go stale against the bridges and would never know about an application's own factory.
-     * What that factory builds is then read off its name: XTransportFactory builds XTransport, beside
-     * it. That is a convention rather than a contract, which is why it is checked rather than trusted -
-     * the class has to exist, to be a TransportInterface, and to be something the proxy generator can
-     * extend.
-     *
-     * @param list<class-string> $factoryClasses
+     * Says why on the way out, for the reasons a developer could act on. The one that is nobody's
+     * problem stays quiet: a sync or in-memory transport is left shared on purpose, and a reason given
+     * for it would be noise in front of the ones that are not.
      */
-    private function transportClassOf(
-        ContainerBuilder $container,
-        Definition $definition,
-        array $factoryClasses,
-    ): ?string {
-        $arguments = $definition->getArguments();
-        $dsn = $arguments[0] ?? null;
+    private function poolingVerdictFor(Definition $definition): TransportPoolingVerdict
+    {
+        $factoryClass = $definition->getClass();
 
-        if (!is_string($dsn) || $this->dependsOnEnvironment($container, $dsn)) {
-            return null;
+        if ($factoryClass === null || !class_exists($factoryClass)) {
+            return TransportPoolingVerdict::leftShared('its service definition names no class to read');
         }
 
-        $options = is_array($arguments[1] ?? null) ? $arguments[1] : [];
-        $factoryClass = $this->factoryFor($factoryClasses, $dsn, $options);
-
-        if ($factoryClass === null || in_array($factoryClass, self::TRANSPORT_FACTORIES_TO_LEAVE_SHARED, true)) {
-            return null;
+        if (in_array($factoryClass, self::TRANSPORT_FACTORIES_TO_LEAVE_SHARED, true)) {
+            return TransportPoolingVerdict::sharedOnPurpose();
         }
 
-        if (!str_ends_with($factoryClass, 'Factory')) {
-            return null;
+        if (!str_ends_with($factoryClass, self::TRANSPORT_FACTORY_SUFFIX)) {
+            return TransportPoolingVerdict::leftShared(sprintf(
+                'its name does not end in "%s", so there is no telling what it builds',
+                self::TRANSPORT_FACTORY_SUFFIX,
+            ));
         }
 
-        $transportClass = substr($factoryClass, 0, -strlen('Factory'));
+        $transportClass = mb_substr($factoryClass, 0, -mb_strlen(self::TRANSPORT_FACTORY_SUFFIX));
 
         if (!class_exists($transportClass) || !is_a($transportClass, TransportInterface::class, true)) {
-            return null;
+            return TransportPoolingVerdict::leftShared(sprintf(
+                'there is no transport class "%s" beside it to say what it builds - name the factory '
+                . 'after its transport, or tag it "%s" with the returnType spelled out. Nothing to do '
+                . 'if it builds no transport of its own and only returns what another factory built, '
+                . 'since that one has a pool of its own',
+                $transportClass,
+                ContainerConstants::TAG_UNMANAGED_FACTORY,
+            ));
         }
 
         $reflection = new ReflectionClass($transportClass);
 
-        // What the proxy generator needs of it. A final or read-only transport cannot be extended, and
-        // an abstract one is not what a factory returns - none of the three is worth failing the whole
-        // compile over, so the transport simply stays shared.
+        // What the proxy generator needs of the transport it will stand in for. None of the three is
+        // worth failing the whole compile over, so the factory simply stays shared.
         if ($reflection->isFinal() || $reflection->isAbstract() || $reflection->isReadOnly()) {
-            return null;
+            return TransportPoolingVerdict::leftShared(sprintf(
+                'the transport it builds, "%s", cannot be extended to stand in for',
+                $transportClass,
+            ));
         }
 
-        return $transportClass;
-    }
+        // Wrapping a factory means generating a proxy that extends it. A final one is dealt with - the
+        // modification processor un-finals it - but a read-only class cannot be extended at all, and
+        // the Proxifier refuses it outright rather than producing something broken.
+        //
+        // Asked last, and about the factory rather than the transport, because a factory that names no
+        // transport of its own has already been answered above with something more useful to read. A
+        // dispatching factory - one that picks another tagged factory by DSN and returns what that one
+        // built - is read-only as often as not, and reporting it here would be wrong twice over: it
+        // builds no transport to share, and the factory it delegates to has a pool of its own.
+        $factoryReflection = new ReflectionClass($factoryClass);
 
-    /**
-     * Asks each factory whether it handles this DSN, in the order the composite factory would.
-     *
-     * supports() is a string test over the DSN in every implementation there is - it has to be, since
-     * the composite calls it on all of them before anything is built - so it is safe to ask here,
-     * where there is nothing to construct a factory with. The instance is made without its constructor
-     * for that reason, and a factory that turns out to need one is skipped rather than allowed to take
-     * the compile down with it.
-     *
-     * @param list<class-string> $factoryClasses
-     * @param array<string, mixed> $options
-     * @return class-string|null
-     */
-    private function factoryFor(array $factoryClasses, string $dsn, array $options): ?string
-    {
-        foreach ($factoryClasses as $factoryClass) {
-            try {
-                $factory = (new ReflectionClass($factoryClass))->newInstanceWithoutConstructor();
-
-                if (!$factory instanceof TransportFactoryInterface || !$factory->supports($dsn, $options)) {
-                    continue;
-                }
-            } catch (Throwable) {
-                continue;
-            }
-
-            return $factoryClass;
+        if ($factoryReflection->isReadOnly()) {
+            return TransportPoolingVerdict::leftShared(
+                'it is a read-only class, which cannot be wrapped to hand out pooled transports',
+            );
         }
 
-        return null;
-    }
-
-    /**
-     * The transport factories, in the order the composite one consults them.
-     *
-     * @return list<class-string>
-     */
-    private function transportFactoryClasses(ContainerBuilder $container): array
-    {
-        $byPriority = [];
-
-        foreach ($container->findTaggedServiceIds('messenger.transport_factory') as $serviceId => $tags) {
-            $class = $container->findDefinition($serviceId)->getClass();
-
-            if ($class === null || !class_exists($class)) {
-                continue;
-            }
-
-            /** @var int $priority */
-            $priority = $tags[0]['priority'] ?? 0;
-            $byPriority[$priority][] = $class;
-        }
-
-        krsort($byPriority);
-
-        return array_merge(...array_values($byPriority));
-    }
-
-    /**
-     * Whether the value is one only the running process can know.
-     *
-     * An env var reaches a compiler pass as a placeholder, so a DSN built from one says nothing about
-     * which transport it will be. Resolving it here would answer the question with the environment the
-     * container happened to be compiled in, which is the one thing a placeholder exists to avoid - so
-     * the transport stays shared instead, and an application that wants it pooled has to spell the DSN
-     * out.
-     */
-    private function dependsOnEnvironment(ContainerBuilder $container, string $value): bool
-    {
-        $usedEnvs = [];
-        $container->resolveEnvPlaceholders($value, null, $usedEnvs);
-
-        return $usedEnvs !== [];
+        return TransportPoolingVerdict::pooledAs($transportClass);
     }
 
     /**
