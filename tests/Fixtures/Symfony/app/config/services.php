@@ -49,6 +49,9 @@ return static function (ContainerConfigurator $containerConfigurator): void {
             // asks for one named messenger transport, which only the task_worker_messenger environment
             // configures - and which is a private service autowiring could not resolve anywhere.
             __DIR__ . '/../../TestBundle/Command/MessengerTransportReportCommand.php',
+            // asks for one named mail transport factory, which is a private service autowiring could
+            // not resolve, and which only exists where symfony/mailer is configured at all.
+            __DIR__ . '/../../TestBundle/Command/MailerTransportReportCommand.php',
             __DIR__ . '/../../TestBundle/HealthCheck',
             // decorates a specific handler and is registered explicitly by the coroutines environment.
             // Auto-registering it would make autoconfiguration tag it as a bootable service and autowire

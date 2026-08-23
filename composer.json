@@ -90,6 +90,7 @@
         "symfony/form": "^7.4|^8.0",
         "symfony/framework-bundle": "^7.4|^8.0",
         "symfony/http-client": "^7.4|^8.0",
+        "symfony/mailer": "^7.4|^8.0",
         "symfony/messenger": "^7.4|^8.0",
         "symfony/monolog-bridge": "^7.4|^8.0",
         "symfony/monolog-bundle": "^3.10 || ^4.0",
@@ -110,6 +111,7 @@
     "suggest": {
         "ext-inotify": "To enable HMR",
         "doctrine/orm": "For using Entity Manager Handler",
+        "symfony/mailer": "To give every coroutine a mail transport of its own, so two sends cannot interleave on one SMTP connection.",
         "symfony/messenger": "For using Symfony Messenger Swoole Task Transport.",
         "upscale/swoole-blackfire": "To enable Blackfire profiling",
         "swoole-bundle/resetter-bundle": "To be able to recover Doctrine Entity Managers from errors",
