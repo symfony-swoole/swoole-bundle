@@ -23,6 +23,7 @@ use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\StabilityChecker;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\EventDispatcher\EventDispatcherProcessor;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Form\FormProcessor;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpClient\HttpClientProcessor;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Mailer\MailerProcessor;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Messenger\MessengerProcessor;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Security\SecurityProcessor;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\TaskWorkerProcessor;
@@ -171,6 +172,10 @@ final class StatefulServicesPass implements CompilerPassInterface
         ],
         MessengerProcessor::class => [
             'class' => MessengerProcessor::class,
+            'priority' => 0,
+        ],
+        MailerProcessor::class => [
+            'class' => MailerProcessor::class,
             'priority' => 0,
         ],
         TaskWorkerProcessor::class => [

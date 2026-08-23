@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Messenger;
 
-use ReflectionClass;
-use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices\CompileProcessor;
-use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices\ServiceProxifier;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices\{
+    CompileProcessor,
+    ServiceProxifier,
+    TransportFactoryPooling,
+};
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServicesPass;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\ContainerConstants;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\SimpleResetter;
@@ -68,11 +70,9 @@ final class MessengerProcessor implements CompileProcessor
     ];
 
     /**
-     * The method a transport factory builds transports with, and the suffix its name ends in.
+     * The method a transport factory builds transports with.
      */
     private const string TRANSPORT_FACTORY_METHOD = 'createTransport';
-
-    private const string TRANSPORT_FACTORY_SUFFIX = 'Factory';
 
     public function process(ContainerBuilder $container, ServiceProxifier $proxifier): void
     {
@@ -153,10 +153,11 @@ final class MessengerProcessor implements CompileProcessor
         // be that pass itself - CompileProcessor and CompilerPassInterface both declare process(), with
         // different signatures. A fresh instance is enough, since the class is all that is read off it.
         $log = new StatefulServicesPass();
+        $pooling = new TransportFactoryPooling(TransportInterface::class, self::TRANSPORT_FACTORIES_TO_LEAVE_SHARED);
 
         foreach (array_keys($container->findTaggedServiceIds('messenger.transport_factory')) as $factoryId) {
             $definition = $container->findDefinition($factoryId);
-            $verdict = $this->poolingVerdictFor($definition);
+            $verdict = $pooling->verdictFor($definition);
 
             if ($verdict->transportClass === null) {
                 if ($verdict->leftSharedBecause !== null) {
@@ -181,76 +182,6 @@ final class MessengerProcessor implements CompileProcessor
                 'returnType' => $verdict->transportClass,
             ]);
         }
-    }
-
-    /**
-     * Whether a transport factory can be pooled, as what, and when not, why not.
-     *
-     * Says why on the way out, for the reasons a developer could act on. The one that is nobody's
-     * problem stays quiet: a sync or in-memory transport is left shared on purpose, and a reason given
-     * for it would be noise in front of the ones that are not.
-     */
-    private function poolingVerdictFor(Definition $definition): TransportPoolingVerdict
-    {
-        $factoryClass = $definition->getClass();
-
-        if ($factoryClass === null || !class_exists($factoryClass)) {
-            return TransportPoolingVerdict::leftShared('its service definition names no class to read');
-        }
-
-        if (in_array($factoryClass, self::TRANSPORT_FACTORIES_TO_LEAVE_SHARED, true)) {
-            return TransportPoolingVerdict::sharedOnPurpose();
-        }
-
-        if (!str_ends_with($factoryClass, self::TRANSPORT_FACTORY_SUFFIX)) {
-            return TransportPoolingVerdict::leftShared(sprintf(
-                'its name does not end in "%s", so there is no telling what it builds',
-                self::TRANSPORT_FACTORY_SUFFIX,
-            ));
-        }
-
-        $transportClass = mb_substr($factoryClass, 0, -mb_strlen(self::TRANSPORT_FACTORY_SUFFIX));
-
-        if (!class_exists($transportClass) || !is_a($transportClass, TransportInterface::class, true)) {
-            return TransportPoolingVerdict::leftShared(sprintf(
-                'there is no transport class "%s" beside it to say what it builds - name the factory '
-                . 'after its transport, or tag it "%s" with the returnType spelled out. Nothing to do '
-                . 'if it builds no transport of its own and only returns what another factory built, '
-                . 'since that one has a pool of its own',
-                $transportClass,
-                ContainerConstants::TAG_UNMANAGED_FACTORY,
-            ));
-        }
-
-        $reflection = new ReflectionClass($transportClass);
-
-        // What the proxy generator needs of the transport it will stand in for. None of the three is
-        // worth failing the whole compile over, so the factory simply stays shared.
-        if ($reflection->isFinal() || $reflection->isAbstract() || $reflection->isReadOnly()) {
-            return TransportPoolingVerdict::leftShared(sprintf(
-                'the transport it builds, "%s", cannot be extended to stand in for',
-                $transportClass,
-            ));
-        }
-
-        // Wrapping a factory means generating a proxy that extends it. A final one is dealt with - the
-        // modification processor un-finals it - but a read-only class cannot be extended at all, and
-        // the Proxifier refuses it outright rather than producing something broken.
-        //
-        // Asked last, and about the factory rather than the transport, because a factory that names no
-        // transport of its own has already been answered above with something more useful to read. A
-        // dispatching factory - one that picks another tagged factory by DSN and returns what that one
-        // built - is read-only as often as not, and reporting it here would be wrong twice over: it
-        // builds no transport to share, and the factory it delegates to has a pool of its own.
-        $factoryReflection = new ReflectionClass($factoryClass);
-
-        if ($factoryReflection->isReadOnly()) {
-            return TransportPoolingVerdict::leftShared(
-                'it is a read-only class, which cannot be wrapped to hand out pooled transports',
-            );
-        }
-
-        return TransportPoolingVerdict::pooledAs($transportClass);
     }
 
     /**

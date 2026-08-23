@@ -2,18 +2,19 @@
 
 declare(strict_types=1);
 
-namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Messenger;
+namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices;
 
 /**
- * What {@see MessengerProcessor} decided about one messenger transport, and why.
+ * What {@see TransportFactoryPooling} decided about one transport factory, and why.
  *
  * The why is the whole reason this is a type rather than a nullable class name. Working out whether a
  * transport can be pooled asks half a dozen questions of it, any of which can answer no, and by the
  * time the answer reaches the caller a bare null has forgotten which one did - leaving nothing to tell
  * a developer beyond that something did not happen.
  *
- * Three outcomes, not two: shared on purpose is its own answer. A sync or in-memory transport is meant
- * to stay shared, so saying so in a build log would put noise in front of the lines worth reading.
+ * Three outcomes, not two: shared on purpose is its own answer. A sync, in-memory or null transport is
+ * meant to stay shared, so saying so in a build log would put noise in front of the lines worth
+ * reading.
  */
 final readonly class TransportPoolingVerdict
 {
