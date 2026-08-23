@@ -19,6 +19,7 @@ use SwooleBundle\SwooleBundle\Server\HttpServer;
 use SwooleBundle\SwooleBundle\Server\HttpServerConfiguration;
 use SwooleBundle\SwooleBundle\Server\HttpServerFactory;
 use SwooleBundle\SwooleBundle\Server\Runtime\Bootable;
+use SwooleBundle\SwooleBundle\Server\Runtime\HMR\ContainerFreshness;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 
 use function Symfony\Component\DependencyInjection\Loader\Configurator\service;
@@ -63,6 +64,9 @@ return static function (ContainerConfigurator $containerConfigurator): void {
         ->arg('$projectDir', '%kernel.project_dir%')
         ->arg('$kernelEnvironment', '%kernel.environment%')
         ->arg('$kernelDebug', '%kernel.debug%')
+        ->arg('$cacheDir', '%kernel.cache_dir%')
+        ->arg('$freshness', service(ContainerFreshness::class))
+        ->arg('$filesystem', service('swoole_bundle.filesystem'))
         ->tag('console.command', [
             'command' => 'swoole:server:watch',
         ]);

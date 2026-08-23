@@ -7,7 +7,10 @@ namespace SwooleBundle\SwooleBundle\Tests\Unit\Bridge\Symfony\Bundle\Command;
 use Override;
 use PHPUnit\Framework\TestCase;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\Command\ServerWatchCommand;
+use SwooleBundle\SwooleBundle\Server\Runtime\HMR\ContainerFreshness;
+use Symfony\Component\Config\Resource\FileResource;
 use Symfony\Component\Console\Tester\CommandTester;
+use Symfony\Component\Filesystem\Filesystem;
 
 final class ServerWatchCommandTest extends TestCase
 {
@@ -32,6 +35,8 @@ final class ServerWatchCommandTest extends TestCase
 
     private string $projectDir;
 
+    private string $cacheDir;
+
     #[Override]
     protected function setUp(): void
     {
@@ -40,6 +45,8 @@ final class ServerWatchCommandTest extends TestCase
         }
 
         $this->projectDir = sys_get_temp_dir() . '/watch_' . uniqid('', true);
+        $this->cacheDir = $this->projectDir . '/var/cache/dev';
+        mkdir($this->cacheDir, 0o777, true);
         mkdir($this->projectDir . '/bin', 0o777, true);
         mkdir($this->projectDir . '/src', 0o777, true);
         file_put_contents($this->projectDir . '/src/App.php', self::VALID_PHP);
@@ -52,6 +59,7 @@ final class ServerWatchCommandTest extends TestCase
             @unlink($this->projectDir . $file);
         }
 
+        (new Filesystem())->remove($this->projectDir . '/var');
         @rmdir($this->projectDir . '/bin');
         @rmdir($this->projectDir . '/src');
         @rmdir($this->projectDir);
@@ -59,7 +67,7 @@ final class ServerWatchCommandTest extends TestCase
 
     public function testSubscribesToTerminationSignals(): void
     {
-        $command = new ServerWatchCommand($this->projectDir, 'dev', true);
+        $command = $this->command();
 
         self::assertSame([SIGTERM, SIGINT], $command->getSubscribedSignals());
         self::assertSame(0, $command->handleSignal(SIGTERM));
@@ -152,9 +160,117 @@ final class ServerWatchCommandTest extends TestCase
         self::assertStringNotContainsString('restarting server', $display);
     }
 
+    /**
+     * Not every application keeps its console at bin/console, and one that does not could not be
+     * supervised at all before - the path was compiled in.
+     */
+    public function testAConsoleSomewhereElseIsStartedFromWhereItActuallyIs(): void
+    {
+        $elsewhere = $this->projectDir . '/tools';
+        mkdir($elsewhere, 0o777, true);
+        file_put_contents($elsewhere . '/cli.php', self::STUB_PRELUDE . <<<'PHP'
+            $stopWatcher();
+            sleep(2);
+            PHP);
+
+        $display = $this->runWatch(console: 'tools/cli.php');
+
+        self::assertSame(1, $this->runs(), 'The console at the given path was never started.');
+        self::assertStringNotContainsString('No console at', $display);
+
+        @unlink($elsewhere . '/cli.php');
+        @rmdir($elsewhere);
+    }
+
+    /**
+     * Told to use a console that is not there, it says so rather than spawning a process that fails
+     * immediately and looks like a server crash-looping.
+     */
+    public function testAMissingConsoleIsReportedRatherThanSpawned(): void
+    {
+        $command = $this->command();
+        $tester = new CommandTester($command);
+
+        $status = $tester->execute(['--console' => 'nowhere/console', '--interval' => '100']);
+
+        self::assertSame(ServerWatchCommand::FAILURE, $status);
+        self::assertStringContainsString('No console at', $tester->getDisplay());
+    }
+
+    /**
+     * A restart is only worth the cost of a cold container when the change was one the container was
+     * built from - most restarts here are a changed class body it recorded nothing about.
+     */
+    public function testCacheIsLeftAloneWhenTheContainerStillMatchesItsSources(): void
+    {
+        $this->writeConsoleStub(self::STUB_PRELUDE . <<<'PHP'
+            if ($runs === 1) { $writeWatched("<?php\nfinal class App { public function two(): void {} }\n"); sleep(2); }
+            $stopWatcher();
+            sleep(2);
+            PHP);
+
+        $marker = $this->cacheDir . '/warmed.txt';
+        file_put_contents($marker, 'still here');
+
+        $display = $this->runWatch();
+
+        self::assertStringNotContainsString('container is stale', $display);
+        self::assertFileExists($marker, 'Nothing about the container changed, so the cache was kept.');
+    }
+
+    /**
+     * The case the whole thing exists for: a change the container was built from cannot be applied by
+     * restarting alone if the restarted process reuses what is in the cache directory.
+     */
+    public function testCacheIsClearedWhenTheContainerNoLongerMatchesItsSources(): void
+    {
+        $this->writeConsoleStub(self::STUB_PRELUDE . <<<'PHP'
+            if ($runs === 1) { $writeWatched("<?php\nfinal class App { public function two(): void {} }\n"); sleep(2); }
+            $stopWatcher();
+            sleep(2);
+            PHP);
+
+        $marker = $this->cacheDir . '/warmed.txt';
+        file_put_contents($marker, 'should not survive');
+
+        $display = $this->runWatch(withStaleContainer: true);
+
+        self::assertStringContainsString('container is stale', $display);
+        self::assertFileDoesNotExist($marker, 'The stale container and everything beside it had to go.');
+    }
+
     private function writeConsoleStub(string $body): void
     {
         file_put_contents($this->projectDir . '/bin/console', self::STUB_PRELUDE . $body);
+    }
+
+    /**
+     * @param bool $withStaleContainer whether to leave a compiled container behind that no longer
+     *                                 matches what it was built from, as a config change would
+     */
+    private function command(bool $withStaleContainer = false): ServerWatchCommand
+    {
+        $containerFile = $this->cacheDir . '/TestContainer.php';
+
+        if ($withStaleContainer) {
+            $watched = $this->cacheDir . '/tracked-config.php';
+            file_put_contents($watched, '<?php');
+            file_put_contents($containerFile, '<?php');
+            file_put_contents($containerFile . '.meta', serialize([new FileResource($watched)]));
+            $containerMtime = filemtime($containerFile);
+            self::assertIsInt($containerMtime);
+            touch($watched, $containerMtime + 1);
+            clearstatcache();
+        }
+
+        return new ServerWatchCommand(
+            $this->projectDir,
+            'dev',
+            true,
+            $this->cacheDir,
+            new ContainerFreshness($containerFile),
+            new Filesystem(),
+        );
     }
 
     private function runs(): int
@@ -162,9 +278,12 @@ final class ServerWatchCommandTest extends TestCase
         return (int) @file_get_contents($this->projectDir . '/runs');
     }
 
-    private function runWatch(int $safetyTimeout = 5): string
-    {
-        $command = new ServerWatchCommand($this->projectDir, 'dev', true);
+    private function runWatch(
+        int $safetyTimeout = 5,
+        bool $withStaleContainer = false,
+        ?string $console = null,
+    ): string {
+        $command = $this->command($withStaleContainer);
         $stop = static function () use ($command): void {
             $command->handleSignal(SIGTERM);
         };
@@ -177,7 +296,11 @@ final class ServerWatchCommandTest extends TestCase
         $tester = new CommandTester($command);
 
         try {
-            $tester->execute(['--interval' => '100', '--path' => ['src']]);
+            $tester->execute(array_filter([
+                '--interval' => '100',
+                '--path' => ['src'],
+                '--console' => $console,
+            ]));
         } finally {
             pcntl_alarm(0);
             pcntl_signal(SIGUSR1, SIG_DFL);
