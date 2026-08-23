@@ -67,10 +67,13 @@ use SwooleBundle\SwooleBundle\Server\RequestHandler\ExceptionHandler\JsonExcepti
 use SwooleBundle\SwooleBundle\Server\RequestHandler\ExceptionHandler\ProductionExceptionHandler;
 use SwooleBundle\SwooleBundle\Server\RequestHandler\RequestHandler;
 use SwooleBundle\SwooleBundle\Server\Runtime\Bootable;
+use SwooleBundle\SwooleBundle\Server\Runtime\HMR\ContainerFreshness;
 use SwooleBundle\SwooleBundle\Server\Runtime\HMR\HotModuleReloader;
 use SwooleBundle\SwooleBundle\Server\Runtime\HMR\HotModuleReloadTimer;
 use SwooleBundle\SwooleBundle\Server\Runtime\HMR\InotifyHMR;
+use SwooleBundle\SwooleBundle\Server\Runtime\HMR\NonReloadableCodeFreshness;
 use SwooleBundle\SwooleBundle\Server\Runtime\HMR\NonReloadableFiles;
+use SwooleBundle\SwooleBundle\Server\Runtime\HMR\RestartAwareHotModuleReloader;
 use SwooleBundle\SwooleBundle\Server\Runtime\HMR\StatHMR;
 use SwooleBundle\SwooleBundle\Server\TaskHandler\TaskHandler;
 use SwooleBundle\SwooleBundle\Server\WorkerHandler\HMRWorkerExitHandler;
@@ -538,16 +541,47 @@ final class SwooleExtension extends Extension
             return;
         }
 
+        // The reloader itself, under its own id: what HotModuleReloader resolves to is the wrapper
+        // below, so that everything asking for one gets the container check in front of it.
         if ($hmr['enabled'] === 'inotify') {
-            $container->register(HotModuleReloader::class, InotifyHMR::class)
+            $container->register(InotifyHMR::class)
                 ->addTag('swoole_bundle.bootable_service');
+            $watcher = InotifyHMR::class;
         }
 
         if ($hmr['enabled'] === 'stat') {
-            $container->register(HotModuleReloader::class, StatHMR::class)
+            $container->register(StatHMR::class)
                 ->addTag('swoole_bundle.bootable_service')
                 ->setArgument('$kernelCacheDir', $container->getParameter('kernel.cache_dir'));
+            $watcher = StatHMR::class;
         }
+
+        if (!isset($watcher)) {
+            return;
+        }
+
+        // Booted in the master, which is the only place its answer is right - it has to be the set of
+        // files loaded before the fork.
+        $container->register(NonReloadableCodeFreshness::class)
+            ->setPublic(false)
+            ->setAutoconfigured(false)
+            ->addTag('swoole_bundle.bootable_service')
+            ->setArgument('$kernelCacheDir', $container->getParameter('kernel.cache_dir'));
+
+        $container->register(HotModuleReloader::class, RestartAwareHotModuleReloader::class)
+            ->setPublic(false)
+            ->setAutoconfigured(false)
+            ->setArgument('$decorated', new Reference($watcher))
+            ->setArgument('$conditions', [
+                // The container first: a config change is the one a developer is most likely to be
+                // waiting on, and naming it beats naming whichever file happened to be checked first.
+                new Reference(ContainerFreshness::class),
+                new Reference(NonReloadableCodeFreshness::class),
+            ])
+            ->setArgument('$logger', new Reference('logger'))
+            ->addTag('monolog.logger', [
+                'channel' => 'swoole',
+            ]);
 
         $container->register(HotModuleReloadTimer::class)
             ->setPublic(false)

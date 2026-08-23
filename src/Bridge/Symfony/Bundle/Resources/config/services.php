@@ -99,6 +99,7 @@ use SwooleBundle\SwooleBundle\Server\RequestHandler\RequestHandler;
 use SwooleBundle\SwooleBundle\Server\Runtime\Bootable;
 use SwooleBundle\SwooleBundle\Server\Runtime\CallableBootManager;
 use SwooleBundle\SwooleBundle\Server\Runtime\CallableBootManagerFactory;
+use SwooleBundle\SwooleBundle\Server\Runtime\HMR\ContainerFreshness;
 use SwooleBundle\SwooleBundle\Server\Session\Storage;
 use SwooleBundle\SwooleBundle\Server\Session\SwooleTableStorage;
 use SwooleBundle\SwooleBundle\Server\TaskHandler\NoOpTaskFinishedHandler;
@@ -423,6 +424,12 @@ return static function (ContainerConfigurator $containerConfigurator): void {
         ->arg('$swoole', service(Swoole::class));
 
     $services->set('swoole_bundle.filesystem', Filesystem::class);
+
+    // Registered here rather than with the HMR services, because both HMR and swoole:server:watch ask
+    // it the same question and the watch command runs whether HMR is enabled or not. The path is the
+    // kernel's own two parameters, so it is where this application really writes its container.
+    $services->set(ContainerFreshness::class)
+        ->arg('$containerFile', '%kernel.cache_dir%/%kernel.container_class%.php');
 
     $services->set(Generator::class)
         ->arg('$configuration', service('swoole_bundle.service_proxy_configuration'));

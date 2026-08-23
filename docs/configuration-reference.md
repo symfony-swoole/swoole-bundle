@@ -44,7 +44,8 @@ swoole:
     #       customFileExtension: 'custom-mime/type-name'
     #       sqlite: 'application/x-sqlite3'
 
-    # enables hot module reload using inotify
+    # enables hot module reload using inotify - see docs/hot-module-reload.md for which changes a
+    # reload can apply, and what happens with a change that needs a full server restart
     hmr:
       enabled: auto
     # hmr enabled can be one of: off, (default) auto, inotify, stat, external

@@ -155,7 +155,8 @@
         "symfony/twig-bundle": "<6.4.32",
         "symfony/var-dumper": "<6.4.32",
         "symfony/var-exporter": "<6.4.26",
-        "symfony/yaml": "<6.4.30"
+        "symfony/yaml": "<6.4.30",
+        "webmozart/assert": "<1.11.0"
     },
     "autoload": {
         "files": [

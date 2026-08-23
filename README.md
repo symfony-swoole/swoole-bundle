@@ -110,6 +110,8 @@ Symfony integration with [Open Swoole](https://openswoole.com/) and [Swoole](htt
     _Note that a worker reload can only apply changes to files that were not already loaded before the workers forked - PHP cannot redeclare a class the forked worker already holds. Applications that load most of their service classes during kernel boot get little or nothing out of it._
 
     _For reliable local dev, use the [`swoole:server:watch`](docs/docker-usage.md#local-development) console command as a supervisor: it restarts the server on any watched change (with a `php -l` guard), so your edit always takes effect regardless of what was loaded before the fork._
+
+    _Some changes cannot be applied by a worker reload. This happens when the compiled container no longer matches its source files, or when the file was already loaded before the workers were created. In these cases HMR does not reload the workers. It stops and writes one log message that explains what has to be restarted. Documentation of this feature is available [here](docs/hot-module-reload.md)._
   
 -   Access logs, (disabled by default) logs are configurable is a same way as apache mod log. Documentation of this feature is available [here](docs/swoole-access-logs.md).
 
