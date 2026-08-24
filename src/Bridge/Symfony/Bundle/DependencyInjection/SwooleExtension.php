@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection;
 
 use Composer\InstalledVersions;
+use Egulias\EmailValidator\EmailValidator;
 use Exception;
 use Monolog\Formatter\LineFormatter;
 use Override;
@@ -31,6 +32,7 @@ use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpKernel\HttpKernelRequestHandler
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Messenger\ExceptionLoggingTransportHandler;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Messenger\ResetServicePoolsBetweenMessages;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Messenger\ServiceResettingTransportHandler;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Mime\MimeAddressValidatorInstaller;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\ApplicationCommandResolver;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\CommandGroupRunner;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\Exception\CommandNotRunnable;
@@ -94,6 +96,7 @@ use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
 use Symfony\Component\Messenger\Event\WorkerMessageReceivedEvent;
 use Symfony\Component\Messenger\Event\WorkerRunningEvent;
+use Symfony\Component\Mime\Address;
 use Tideways\Profiler as TidewaysProfiler;
 use Upscale\Swoole\Blackfire\Profiler as BlackfireProfiler;
 use ZEngine\Core;
@@ -213,6 +216,13 @@ use ZEngine\Core;
  */
 final class SwooleExtension extends Extension
 {
+    /**
+     * The validator every Symfony\Component\Mime\Address ends up validating through, once
+     * MimeAddressValidatorInstaller has put it there. Registered rather than reused from anywhere,
+     * because symfony/mime keeps no service for it - the class builds one for itself.
+     */
+    private const string MIME_EMAIL_VALIDATOR_ID = 'swoole_bundle.mime.email_validator';
+
     /**
      * @param array<BundleConfig> $configs
      * @throws Exception
@@ -465,6 +475,26 @@ final class SwooleExtension extends Extension
                 new Reference(ContextReleasingHttpKernelRequestHandler::class . '.inner')
             );
             $coroutineKernelHandler->setDecoratedService(RequestHandler::class, null, -1000);
+
+            // Only where the application has symfony/mime, and with it the validator Address reaches
+            // for. Both are checked: Address throws when egulias is missing, so an application can have
+            // the one without the other, and StatelessEmailValidator extends the class that would then
+            // not be there to extend.
+            if (class_exists(Address::class) && class_exists(EmailValidator::class)) {
+                // A service of its own, tagged like any other stateful one, so StatefulServicesPass
+                // gives it a pool and hands out a proxy - and the limit, the locking and the release
+                // between coroutines are configured where every other pooled service configures them.
+                $container->register(self::MIME_EMAIL_VALIDATOR_ID, EmailValidator::class)
+                    ->setPublic(false)
+                    ->setAutoconfigured(false)
+                    ->addTag(ContainerConstants::TAG_STATEFUL_SERVICE);
+
+                $container->register(MimeAddressValidatorInstaller::class)
+                    ->setPublic(false)
+                    ->setAutoconfigured(false)
+                    ->setArgument('$validator', new Reference(self::MIME_EMAIL_VALIDATOR_ID))
+                    ->addTag('swoole_bundle.bootable_service');
+            }
 
             if ($this->isDebug($container) && PHP_OS_FAMILY === 'Darwin') {
                 $container->register(DebugClassLoaderOverridingWorkerStartHandler::class)
