@@ -15,10 +15,32 @@ use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\ServicePool\ServicePoolCo
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\ServicePool\ServicePoolEntry;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\ServicePool\UnmanagedFactoryServicePool;
 use SwooleBundle\SwooleBundle\Common\Adapter\Swoole;
+use SwooleBundle\SwooleBundle\Component\Locking\Mutex;
 use SwooleBundle\SwooleBundle\Component\Locking\MutexFactory;
 
 final readonly class UnmanagedFactoryInstantiator
 {
+    /**
+     * Held for the life of the worker, and shared by every call below.
+     *
+     * Generating a proxy class is a once-per-class piece of work that both proxy factories memoize on
+     * themselves - ProxyManager on AbstractBaseFactory::$checkedClasses, this bundle's Generator on its
+     * own - and a memo written from two coroutines is a memo written twice. It is also file I/O, which
+     * is a suspension point, so a coroutine part-way through generating a class is suspended exactly
+     * where the next one arrives to generate the same one.
+     *
+     * The container has had that covered from the start: BlockingContainer serialises the first
+     * instantiation of any service it is asked for, for this reason. What it cannot cover is a service
+     * first reached some other way - Symfony's ServiceLocator, which every messenger handler and
+     * controller subscriber is resolved through, implements get() itself and never enters
+     * Container::get(). An unmanaged factory reached that way arrives here with nothing holding
+     * anything, which is how two consumers sending mail at once first showed this up.
+     *
+     * Recursive by owner, so a coroutine already inside the lock passes straight back through it.
+     * Outside a coroutine - the master, a console command - the mutex is a no-op.
+     */
+    private Mutex $instantiation;
+
     public function __construct(
         private AccessInterceptorValueHolderFactory $proxyFactory,
         private Instantiator $instantiator,
@@ -26,7 +48,10 @@ final readonly class UnmanagedFactoryInstantiator
         private MutexFactory $limitLocking,
         private MutexFactory $newInstanceLocking,
         private Swoole $swoole,
-    ) {}
+        MutexFactory $instantiationLocking,
+    ) {
+        $this->instantiation = $instantiationLocking->newMutex();
+    }
 
     /**
      * @template RealObjectType of object
@@ -97,29 +122,45 @@ final readonly class UnmanagedFactoryInstantiator
 
                     return $service;
                 };
-                // currently a separate service pool is used for each factory method of the factory, which may
-                // mess with the instances limit when same service instance is being created
-                // this might need refactoring later...
-                // unique locking key for each managed instance of the new service pool
-                $limitMutex = $this->limitLocking->newMutex();
-                $instancesLimit = $factoryConfig['limit'] ?? $globalInstancesLimit;
-                $resetter = $factoryConfig['resetter'] ?? null;
-                $initializer = $factoryConfig['initializer'] ?? null;
-                $servicePool = new UnmanagedFactoryServicePool(
-                    $factoryInstantiator,
-                    $swoole,
-                    $limitMutex,
-                    $instancesLimit,
-                    $initializer,
-                );
-                $servicePoolContainer->addPoolEntry(new ServicePoolEntry($servicePool, $resetter));
 
-                return $instantiator->newInstance($servicePool, $factoryConfig['returnType']);
+                // Everything below runs on every call to the factory method, and the last line of it
+                // generates the pool's proxy class the first time each returnType is seen.
+                $this->instantiation->acquire();
+
+                try {
+                    // currently a separate service pool is used for each factory method of the factory, which may
+                    // mess with the instances limit when same service instance is being created
+                    // this might need refactoring later...
+                    // unique locking key for each managed instance of the new service pool
+                    $limitMutex = $this->limitLocking->newMutex();
+                    $instancesLimit = $factoryConfig['limit'] ?? $globalInstancesLimit;
+                    $resetter = $factoryConfig['resetter'] ?? null;
+                    $initializer = $factoryConfig['initializer'] ?? null;
+                    $servicePool = new UnmanagedFactoryServicePool(
+                        $factoryInstantiator,
+                        $swoole,
+                        $limitMutex,
+                        $instancesLimit,
+                        $initializer,
+                    );
+                    $servicePoolContainer->addPoolEntry(new ServicePoolEntry($servicePool, $resetter));
+
+                    return $instantiator->newInstance($servicePool, $factoryConfig['returnType']);
+                } finally {
+                    $this->instantiation->release();
+                }
             };
 
             $prefixInterceptors[$factoryMethod] = $interceptor;
         }
 
-        return $this->proxyFactory->createProxy($instance, $prefixInterceptors);
+        // Generates a proxy class for the factory the first time this worker wraps one of its kind.
+        $this->instantiation->acquire();
+
+        try {
+            return $this->proxyFactory->createProxy($instance, $prefixInterceptors);
+        } finally {
+            $this->instantiation->release();
+        }
     }
 }
