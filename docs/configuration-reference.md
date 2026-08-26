@@ -151,6 +151,19 @@ swoole:
       worker_max_request_grace: ~
       # 'grace period' for worker reloading. If not set, default is worker_max_request / 2. Worker reloads
       # after 'worker_max_request + rand(0,worker_max_request_grace)' requests
+
+      dispatch_mode: ~
+      # can be one of: round_robin, fixed, preemptive, ip, uid (default: unset, swoole uses "fixed")
+      # decides how the master hands a request to a worker
+      #   - fixed: worker picked from the connection's file descriptor, so a connection is pinned to one
+      #     worker. Behind a proxy that keeps upstream connections alive, requests on the same connection
+      #     queue behind whatever that worker is busy with, even when other workers are idle
+      #   - preemptive: request goes to an idle worker. Recommended when request handling blocks, i.e.
+      #     when coroutines are off
+      #   - round_robin: request goes to the next worker in turn, busy or not
+      #   - ip / uid: worker chosen by hashing the client IP or a bound user id
+      # note: round_robin and preemptive are not hash based, so the connect and close events are treated
+      # as unsafe and are not emitted
       
       upload_tmp_dir: /tmp
       # directory for temporary files upload
