@@ -52,6 +52,7 @@ use SwooleBundle\SwooleBundle\Component\GeneratedCollection;
 use SwooleBundle\SwooleBundle\Component\Locking\Channel\ChannelMutex;
 use SwooleBundle\SwooleBundle\Component\Locking\Channel\ChannelMutexFactory;
 use SwooleBundle\SwooleBundle\Component\Locking\FirstTimeOnly\FirstTimeOnlyMutexFactory;
+use SwooleBundle\SwooleBundle\Component\Locking\RecursiveOwner\RecursiveOwnerMutexFactory;
 use SwooleBundle\SwooleBundle\Metrics\Formatter\JsonMetricsFormatter;
 use SwooleBundle\SwooleBundle\Metrics\Formatter\MetricsFormatterResolver;
 use SwooleBundle\SwooleBundle\Metrics\Formatter\OpenMetricsFormatter;
@@ -99,6 +100,7 @@ use SwooleBundle\SwooleBundle\Server\RequestHandler\RequestHandler;
 use SwooleBundle\SwooleBundle\Server\Runtime\Bootable;
 use SwooleBundle\SwooleBundle\Server\Runtime\CallableBootManager;
 use SwooleBundle\SwooleBundle\Server\Runtime\CallableBootManagerFactory;
+use SwooleBundle\SwooleBundle\Server\Runtime\HMR\ContainerFreshness;
 use SwooleBundle\SwooleBundle\Server\Session\Storage;
 use SwooleBundle\SwooleBundle\Server\Session\SwooleTableStorage;
 use SwooleBundle\SwooleBundle\Server\TaskHandler\NoOpTaskFinishedHandler;
@@ -411,6 +413,16 @@ return static function (ContainerConfigurator $containerConfigurator): void {
     $services->set('swoole_bundle.unmanaged_factory_first_time.locking', FirstTimeOnlyMutexFactory::class)
         ->arg('$wrapped', service('swoole_bundle.service_pool.locking'));
 
+    // The lock UnmanagedFactoryInstantiator generates proxy classes under. Recursive by owner, the same
+    // shape BlockingContainer uses for the first instantiation of a container service, and for the same
+    // reason - see that property's docblock for why the container's own lock does not reach this.
+    //
+    // Not the first-time-only one above: that opens permanently once released, which is right for one
+    // named factory method and wrong for a gate shared by every proxy class a worker ever generates.
+    $services->set('swoole_bundle.unmanaged_factory_instantiation.locking', RecursiveOwnerMutexFactory::class)
+        ->arg('$swoole', service(Swoole::class))
+        ->arg('$wrapped', service('swoole_bundle.service_pool.locking'));
+
     $services->set(Instantiator::class)
         ->arg('$proxyGenerator', service(Generator::class));
 
@@ -420,9 +432,16 @@ return static function (ContainerConfigurator $containerConfigurator): void {
         ->arg('$servicePoolContainer', service(ServicePoolContainer::class))
         ->arg('$limitLocking', service('swoole_bundle.service_pool.locking'))
         ->arg('$newInstanceLocking', service('swoole_bundle.unmanaged_factory_first_time.locking'))
-        ->arg('$swoole', service(Swoole::class));
+        ->arg('$swoole', service(Swoole::class))
+        ->arg('$instantiationLocking', service('swoole_bundle.unmanaged_factory_instantiation.locking'));
 
     $services->set('swoole_bundle.filesystem', Filesystem::class);
+
+    // Registered here rather than with the HMR services, because both HMR and swoole:server:watch ask
+    // it the same question and the watch command runs whether HMR is enabled or not. The path is the
+    // kernel's own two parameters, so it is where this application really writes its container.
+    $services->set(ContainerFreshness::class)
+        ->arg('$containerFile', '%kernel.cache_dir%/%kernel.container_class%.php');
 
     $services->set(Generator::class)
         ->arg('$configuration', service('swoole_bundle.service_proxy_configuration'));

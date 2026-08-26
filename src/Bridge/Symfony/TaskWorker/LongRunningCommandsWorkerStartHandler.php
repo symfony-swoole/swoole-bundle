@@ -22,6 +22,7 @@ final readonly class LongRunningCommandsWorkerStartHandler implements WorkerStar
     public function __construct(
         private TaskWorkerCommands $commands,
         private CommandGroupExecutor $runner,
+        private WorkerStopSignal $stopSignal,
         private bool $coroutinesEnabled,
         private ?WorkerStartHandler $decorated = null,
     ) {}
@@ -29,7 +30,12 @@ final readonly class LongRunningCommandsWorkerStartHandler implements WorkerStar
     #[Override]
     public function handle(Server $server, int $workerId): void
     {
-        // First, and before anything blocks: with coroutines off the call below never returns, and a
+        // Before anything else, and in http workers too - with coroutines off it is an http worker that
+        // raises the stop signal for a task worker blocked in its command, so it needs a generation of
+        // its own to raise it for.
+        $this->stopSignal->enterGeneration();
+
+        // Then, and before anything blocks: with coroutines off the call below never returns, and a
         // decorated handler left until afterwards would simply never run in a task worker.
         if ($this->decorated instanceof WorkerStartHandler) {
             $this->decorated->handle($server, $workerId);

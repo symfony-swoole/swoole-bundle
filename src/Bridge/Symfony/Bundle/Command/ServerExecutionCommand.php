@@ -105,18 +105,21 @@ abstract class ServerExecutionCommand extends Command
                 'Public directory',
                 $this->getDefaultPublicDir()
             )
+            // VALUE_IS_ARRAY, because the default is the configured list and the code below reads
+            // one. Declared as a single value these could only ever be left alone: any value passed
+            // on the command line arrived as a string and aborted the command on the assertion.
             ->addOption(
                 'trusted-hosts',
                 null,
-                InputOption::VALUE_REQUIRED,
-                'Trusted hosts',
+                InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY,
+                'Trusted hosts, comma separated or repeated',
                 $this->parameterBag->get('swoole.http_server.trusted_hosts')
             )
             ->addOption(
                 'trusted-proxies',
                 null,
-                InputOption::VALUE_REQUIRED,
-                'Trusted proxies',
+                InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY,
+                'Trusted proxies, comma separated or repeated; * trusts all',
                 $this->parameterBag->get('swoole.http_server.trusted_proxies')
             )
             ->addOption('api', null, InputOption::VALUE_NONE, 'Enable API Server')
@@ -346,20 +349,26 @@ abstract class ServerExecutionCommand extends Command
     }
 
     /**
-     * @param array<string>|string $set
+     * Flattens what the option holds into one list of entries.
+     *
+     * Every element is decoded rather than only a lone one, so that the three shapes the option can
+     * arrive in all mean the same thing: one comma separated value, the option repeated, or the two
+     * mixed. The single element case is also what the configured default looks like once an env
+     * placeholder has been resolved - `%env(TRUSTED_HOSTS)%` is normalized while it is still a
+     * placeholder, so the whole list arrives as one string inside a one element array.
+     *
+     * @param array<string> $set
      * @return array<string>
-     * @throws AssertionFailedException
      */
-    private function decodeSet(mixed $set): array
+    private function decodeSet(array $set): array
     {
-        if (is_string($set)) {
-            return decode_string_as_set($set);
+        if ($set === []) {
+            return [];
         }
 
-        if (count($set) === 1) {
-            return decode_string_as_set($set[0]);
-        }
-
-        return $set;
+        return array_merge(...array_map(
+            static fn(string $value): array => decode_string_as_set($value),
+            $set,
+        ));
     }
 }

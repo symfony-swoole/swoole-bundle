@@ -10,6 +10,7 @@ use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\Containe
 use Symfony\Bridge\Twig\Form\TwigRendererEngine;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
+use Symfony\Component\Validator\ConstraintValidatorFactoryInterface;
 
 /**
  * Gives every coroutine its own form renderer, and a way back for the one it hands in.
@@ -26,11 +27,7 @@ use Symfony\Component\DependencyInjection\Definition;
  *
  * Every block of every form goes through there, so one shared renderer puts two concurrent form pages
  * on the same stack - and the one that renders a block while the other is between its push and its
- * pop reads the other request's variables:
- *
- *   FiberViber\ConcurrencyException: Cross-coroutine access detected: [property_fetch_w]
- *   Symfony\Component\Form\FormRenderer::$variableStack is owned by coroutine #76 but accessed by
- *   coroutine #75
+ * pop reads the other request's variables.
  *
  * Which is the loudest of the failures a form-rendering application sees under any real concurrency:
  * a burst of them per minute, and a 500 on every page with a form on it.
@@ -53,6 +50,28 @@ use Symfony\Component\DependencyInjection\Definition;
  * that resolved it - for the next coroutine to render every block through. That is where the profiler
  * extension's $stackLevel kept being written across coroutines long after the extensions themselves
  * stopped being shared. See {@see TwigRendererEngineResetter}.
+ *
+ * Validating a form is the same defect one layer down, and it is the constraint validator factory that
+ * has to be pooled to fix it. FormValidator writes the context of the validation it is running onto
+ * itself - `ConstraintValidator::initialize()` is `$this->context = $context` and nothing else - and
+ * the instance it writes to is not one this bundle can reach: it is not a service, it is
+ * `new $name()` inside {@see \Symfony\Component\Validator\ContainerConstraintValidatorFactory} and
+ * kept in a memo there for the life of the process. Two concurrent form submissions therefore share
+ * one FormValidator, and a coroutine that suspends between its initialize() and its validate() -
+ * which a validator doing any I/O does - comes back to the other request's context:
+ *
+ *   FiberViber\ConcurrencyException: Cross-coroutine access detected: [property_write]
+ *   FormValidator::$context is owned by coroutine #14 but accessed by coroutine #15
+ *
+ * Pooling the factory gives each coroutine its own memo and so its own validators. Nothing is reached
+ * through the container here, so nothing else could have been pooled instead - and no resetter is
+ * needed, since the memo is one instance per constraint class whoever asks, and every validation
+ * writes the context it is about to use before reading it.
+ *
+ * The validators an application does register as services - `doctrine.orm.validator.unique` being the
+ * one Symfony ships - are a hole this does not close: the factory memoizes whatever the container
+ * hands it, so those stay as shared as the container makes them. They carry the same $context write,
+ * and pooling them belongs with whatever pools the validator layer rather than here.
  */
 final class FormProcessor implements CompileProcessor
 {
@@ -60,11 +79,34 @@ final class FormProcessor implements CompileProcessor
     private const string RENDERER_RESETTER_ID = 'swoole_bundle.form.renderer_resetter';
     private const string ENGINE_ID = 'twig.form.engine';
     private const string ENGINE_RESETTER_ID = 'swoole_bundle.form.twig_renderer_engine_resetter';
+    private const string VALIDATOR_FACTORY_ID = 'validator.validator_factory';
 
     public function process(ContainerBuilder $container, ServiceProxifier $proxifier): void
     {
         $this->poolRenderer($container);
         $this->replaceEngineResetter($container);
+        $this->poolValidatorFactory($container);
+    }
+
+    /**
+     * Guarded on the interface rather than on Symfony's own class: an application is free to build its
+     * validators some other way, and whatever it builds them with is what has to be per coroutine.
+     * Applications without the validator component have no such service and nothing to pool.
+     */
+    private function poolValidatorFactory(ContainerBuilder $container): void
+    {
+        if (!$container->hasDefinition(self::VALIDATOR_FACTORY_ID)) {
+            return;
+        }
+
+        $definition = $container->findDefinition(self::VALIDATOR_FACTORY_ID);
+        $class = $definition->getClass();
+
+        if ($class === null || !is_a($class, ConstraintValidatorFactoryInterface::class, true)) {
+            return;
+        }
+
+        $definition->addTag(ContainerConstants::TAG_STATEFUL_SERVICE);
     }
 
     private function poolRenderer(ContainerBuilder $container): void

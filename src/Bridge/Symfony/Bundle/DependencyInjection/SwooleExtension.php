@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection;
 
 use Composer\InstalledVersions;
+use Egulias\EmailValidator\EmailValidator;
 use Exception;
 use Monolog\Formatter\LineFormatter;
 use Override;
@@ -31,14 +32,17 @@ use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpKernel\HttpKernelRequestHandler
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Messenger\ExceptionLoggingTransportHandler;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Messenger\ResetServicePoolsBetweenMessages;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Messenger\ServiceResettingTransportHandler;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Mime\MimeAddressValidatorInstaller;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\ApplicationCommandResolver;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\CommandGroupRunner;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\Exception\CommandNotRunnable;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\LongRunningCommandsWorkerStartHandler;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\RaiseStopSignalOnWorkerShutdown;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\StopMessengerWorkerOnShutdown;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\StreamCommandOutputFactory;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\TaskWorkerCommands;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\WithWorkerStopSignal;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\WorkerRetirement;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\WorkerStopSignal;
 use SwooleBundle\SwooleBundle\Bridge\Tideways\Apm\Apm;
 use SwooleBundle\SwooleBundle\Bridge\Tideways\Apm\RequestDataProvider;
@@ -65,13 +69,20 @@ use SwooleBundle\SwooleBundle\Server\RequestHandler\ExceptionHandler\JsonExcepti
 use SwooleBundle\SwooleBundle\Server\RequestHandler\ExceptionHandler\ProductionExceptionHandler;
 use SwooleBundle\SwooleBundle\Server\RequestHandler\RequestHandler;
 use SwooleBundle\SwooleBundle\Server\Runtime\Bootable;
+use SwooleBundle\SwooleBundle\Server\Runtime\HMR\ContainerFreshness;
 use SwooleBundle\SwooleBundle\Server\Runtime\HMR\HotModuleReloader;
+use SwooleBundle\SwooleBundle\Server\Runtime\HMR\HotModuleReloadTimer;
 use SwooleBundle\SwooleBundle\Server\Runtime\HMR\InotifyHMR;
+use SwooleBundle\SwooleBundle\Server\Runtime\HMR\NonReloadableCodeFreshness;
 use SwooleBundle\SwooleBundle\Server\Runtime\HMR\NonReloadableFiles;
+use SwooleBundle\SwooleBundle\Server\Runtime\HMR\RestartAwareHotModuleReloader;
 use SwooleBundle\SwooleBundle\Server\Runtime\HMR\StatHMR;
 use SwooleBundle\SwooleBundle\Server\TaskHandler\TaskHandler;
+use SwooleBundle\SwooleBundle\Server\WorkerHandler\HMRWorkerExitHandler;
 use SwooleBundle\SwooleBundle\Server\WorkerHandler\HMRWorkerStartHandler;
+use SwooleBundle\SwooleBundle\Server\WorkerHandler\WorkerExitHandler;
 use SwooleBundle\SwooleBundle\Server\WorkerHandler\WorkerStartHandler;
+use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
@@ -85,6 +96,7 @@ use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
 use Symfony\Component\Messenger\Event\WorkerMessageReceivedEvent;
 use Symfony\Component\Messenger\Event\WorkerRunningEvent;
+use Symfony\Component\Mime\Address;
 use Tideways\Profiler as TidewaysProfiler;
 use Upscale\Swoole\Blackfire\Profiler as BlackfireProfiler;
 use ZEngine\Core;
@@ -204,6 +216,13 @@ use ZEngine\Core;
  */
 final class SwooleExtension extends Extension
 {
+    /**
+     * The validator every Symfony\Component\Mime\Address ends up validating through, once
+     * MimeAddressValidatorInstaller has put it there. Registered rather than reused from anywhere,
+     * because symfony/mime keeps no service for it - the class builds one for itself.
+     */
+    private const string MIME_EMAIL_VALIDATOR_ID = 'swoole_bundle.mime.email_validator';
+
     /**
      * @param array<BundleConfig> $configs
      * @throws Exception
@@ -457,6 +476,26 @@ final class SwooleExtension extends Extension
             );
             $coroutineKernelHandler->setDecoratedService(RequestHandler::class, null, -1000);
 
+            // Only where the application has symfony/mime, and with it the validator Address reaches
+            // for. Both are checked: Address throws when egulias is missing, so an application can have
+            // the one without the other, and StatelessEmailValidator extends the class that would then
+            // not be there to extend.
+            if (class_exists(Address::class) && class_exists(EmailValidator::class)) {
+                // A service of its own, tagged like any other stateful one, so StatefulServicesPass
+                // gives it a pool and hands out a proxy - and the limit, the locking and the release
+                // between coroutines are configured where every other pooled service configures them.
+                $container->register(self::MIME_EMAIL_VALIDATOR_ID, EmailValidator::class)
+                    ->setPublic(false)
+                    ->setAutoconfigured(false)
+                    ->addTag(ContainerConstants::TAG_STATEFUL_SERVICE);
+
+                $container->register(MimeAddressValidatorInstaller::class)
+                    ->setPublic(false)
+                    ->setAutoconfigured(false)
+                    ->setArgument('$validator', new Reference(self::MIME_EMAIL_VALIDATOR_ID))
+                    ->addTag('swoole_bundle.bootable_service');
+            }
+
             if ($this->isDebug($container) && PHP_OS_FAMILY === 'Darwin') {
                 $container->register(DebugClassLoaderOverridingWorkerStartHandler::class)
                     ->setDecoratedService(WorkerStartHandler::class, null, -100)
@@ -532,24 +571,69 @@ final class SwooleExtension extends Extension
             return;
         }
 
+        // The reloader itself, under its own id: what HotModuleReloader resolves to is the wrapper
+        // below, so that everything asking for one gets the container check in front of it.
         if ($hmr['enabled'] === 'inotify') {
-            $container->register(HotModuleReloader::class, InotifyHMR::class)
+            $container->register(InotifyHMR::class)
                 ->addTag('swoole_bundle.bootable_service');
+            $watcher = InotifyHMR::class;
         }
 
         if ($hmr['enabled'] === 'stat') {
-            $container->register(HotModuleReloader::class, StatHMR::class)
+            $container->register(StatHMR::class)
                 ->addTag('swoole_bundle.bootable_service')
                 ->setArgument('$kernelCacheDir', $container->getParameter('kernel.cache_dir'));
+            $watcher = StatHMR::class;
         }
+
+        if (!isset($watcher)) {
+            return;
+        }
+
+        // Booted in the master, which is the only place its answer is right - it has to be the set of
+        // files loaded before the fork.
+        $container->register(NonReloadableCodeFreshness::class)
+            ->setPublic(false)
+            ->setAutoconfigured(false)
+            ->addTag('swoole_bundle.bootable_service')
+            ->setArgument('$kernelCacheDir', $container->getParameter('kernel.cache_dir'));
+
+        $container->register(HotModuleReloader::class, RestartAwareHotModuleReloader::class)
+            ->setPublic(false)
+            ->setAutoconfigured(false)
+            ->setArgument('$decorated', new Reference($watcher))
+            ->setArgument('$conditions', [
+                // The container first: a config change is the one a developer is most likely to be
+                // waiting on, and naming it beats naming whichever file happened to be checked first.
+                new Reference(ContainerFreshness::class),
+                new Reference(NonReloadableCodeFreshness::class),
+            ])
+            ->setArgument('$logger', new Reference('logger'))
+            ->addTag('monolog.logger', [
+                'channel' => 'swoole',
+            ]);
+
+        $container->register(HotModuleReloadTimer::class)
+            ->setPublic(false)
+            ->setAutoconfigured(false)
+            ->setArgument('$swoole', new Reference(Swoole::class));
 
         $container->register(HMRWorkerStartHandler::class)
             ->setPublic(false)
             ->setAutoconfigured(false)
             ->setArgument('$hmr', new Reference(HotModuleReloader::class))
-            ->setArgument('$swoole', new Reference(Swoole::class))
+            ->setArgument('$timer', new Reference(HotModuleReloadTimer::class))
             ->setArgument('$decorated', new Reference(HMRWorkerStartHandler::class . '.inner'))
             ->setDecoratedService(WorkerStartHandler::class);
+
+        // Registered with the timer and not just alongside it: the worker that started the timer is the
+        // one that has to stop it, and it has to do so from onWorkerExit or not at all.
+        $container->register(HMRWorkerExitHandler::class)
+            ->setPublic(false)
+            ->setAutoconfigured(false)
+            ->setArgument('$timer', new Reference(HotModuleReloadTimer::class))
+            ->setArgument('$decorated', new Reference(HMRWorkerExitHandler::class . '.inner'))
+            ->setDecoratedService(WorkerExitHandler::class);
     }
 
     /**
@@ -821,6 +905,11 @@ final class SwooleExtension extends Extension
             ->setAutowired(false)
             ->setAutoconfigured(false);
 
+        $container->register(WorkerRetirement::class)
+            ->setPublic(false)
+            ->setAutowired(false)
+            ->setAutoconfigured(false);
+
         $container->register(WithWorkerStopSignal::class)
             ->setPublic(false)
             ->setAutowired(false)
@@ -833,13 +922,40 @@ final class SwooleExtension extends Extension
             ->setAutowired(false)
             ->setAutoconfigured(false)
             ->setArgument('$stopSignal', new Reference(WorkerStopSignal::class))
+            ->setArgument('$retirement', new Reference(WorkerRetirement::class))
             ->addTag('kernel.event_subscriber');
+
+        // Caught here rather than when a worker tries to resolve its first command line: without
+        // framework-bundle there is no console Application to run anything through, and a container
+        // that compiles only to fail in every task worker is worse than one that refuses to compile.
+        if (!class_exists(Application::class)) {
+            throw CommandNotRunnable::consoleUnavailable();
+        }
+
+        // Shared, one per worker. Not pooled: an Application per coroutine would have each of them
+        // reach the command loader, and ServiceLocatorTrait::get() reads its re-entry guard as a
+        // circular reference when a second coroutine arrives while the first is suspended in the
+        // factory. Shared keeps that path single-file - only the first resolve consults the loader,
+        // every later one finds the command memoized.
+        $container->register(TaskWorkerCommands::APPLICATION_SERVICE_ID, Application::class)
+            ->setPublic(false)
+            ->setAutowired(false)
+            ->setAutoconfigured(false)
+            ->setArgument('$kernel', new Reference('kernel'))
+            // The worker owns the process lifetime, not the command: a command that finished is a
+            // worker to be recycled, decided by CommandGroupRunner, and never a process that exits
+            // from under swoole.
+            ->addMethodCall('setAutoExit', [false])
+            // Failures have to come back as throwables so they can be logged with the command they
+            // came from and counted as a crashed worker, rather than rendered to stdout and swallowed.
+            ->addMethodCall('setCatchExceptions', [false])
+            ->addMethodCall('setDispatcher', [new Reference('event_dispatcher')]);
 
         $container->register(ApplicationCommandResolver::class)
             ->setPublic(false)
             ->setAutowired(false)
             ->setAutoconfigured(false)
-            ->setArgument('$kernel', new Reference('kernel'));
+            ->setArgument('$application', new Reference(TaskWorkerCommands::APPLICATION_SERVICE_ID));
 
         $container->register(StreamCommandOutputFactory::class)
             ->setPublic(false)
@@ -853,6 +969,7 @@ final class SwooleExtension extends Extension
             ->setArgument('$resolver', new Reference(ApplicationCommandResolver::class))
             ->setArgument('$outputFactory', new Reference(StreamCommandOutputFactory::class))
             ->setArgument('$stopSignal', new Reference(WorkerStopSignal::class))
+            ->setArgument('$retirement', new Reference(WorkerRetirement::class))
             ->setArgument('$swoole', new Reference(Swoole::class))
             ->setArgument('$logger', new Reference('logger'))
             ->addTag('monolog.logger', [
@@ -871,6 +988,7 @@ final class SwooleExtension extends Extension
             ->setAutoconfigured(false)
             ->setArgument('$commands', new Reference(TaskWorkerCommands::class))
             ->setArgument('$runner', new Reference(CommandGroupRunner::class))
+            ->setArgument('$stopSignal', new Reference(WorkerStopSignal::class))
             ->setArgument('$coroutinesEnabled', $coroutinesEnabled)
             ->setArgument('$decorated', new Reference(LongRunningCommandsWorkerStartHandler::class . '.inner'))
             // Lower priority than HMR's decorator puts this one outermost, so the handlers it wraps have

@@ -4,15 +4,29 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Messenger;
 
-use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices\CompileProcessor;
-use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices\ServiceProxifier;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices\{
+    CompileProcessor,
+    ServiceProxifier,
+    TransportFactoryPooling,
+};
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServicesPass;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\ContainerConstants;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\SimpleResetter;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\Messenger\TraceableMessageBus;
+use Symfony\Component\Messenger\Transport\InMemory\InMemoryTransportFactory;
+use Symfony\Component\Messenger\Transport\Sync\SyncTransportFactory;
+use Symfony\Component\Messenger\Transport\TransportInterface;
 
 /**
+ * Gives the coroutine-unsafe parts of messenger an instance per coroutine.
+ *
+ * Two of them, unrelated to each other beyond both being services messenger shares where it assumed a
+ * process does one thing at a time: the transports, and the debug wrapper around every message bus.
+ *
+ * ---
+ *
  * Pools the debug wrapper Symfony puts around every message bus when the profiler is on.
  *
  * MessengerPass decorates each bus with a TraceableMessageBus and hands that same instance to
@@ -24,11 +38,7 @@ use Symfony\Component\Messenger\TraceableMessageBus;
  *
  * It is emphatically stateful: dispatch() appends to $dispatchedMessages and reset() empties it. The
  * collector's own reset() calls through to it, so the write happens on the way out of every single
- * request, and two requests tearing down at once write the same property from two coroutines:
- *
- *   FiberViber\ConcurrencyException: Cross-coroutine access detected: [property_write]
- *   Symfony\Component\Messenger\TraceableMessageBus::$dispatchedMessages is owned by coroutine #460
- *   but accessed by coroutine #462
+ * request, and two requests tearing down at once write the same property from two coroutines.
  *
  * That surfaces as a 500 during teardown of an otherwise healthy request, which for an SPA reading
  * it as a failed API call looks like being logged out.
@@ -45,8 +55,29 @@ final class MessengerProcessor implements CompileProcessor
 {
     private const string TRACEABLE_BUS_RESETTER_ID = 'swoole_bundle.messenger.traceable_bus_resetter';
 
+    /**
+     * Transports there is no point giving anyone an instance of their own, or harm in doing so.
+     *
+     * The sync transport hands the message straight to the bus and keeps nothing between calls, and
+     * this bundle's own task transport does the same through Server::task(). The in-memory one is the
+     * opposite: keeping what was sent is the whole of what it is for, and a test that reads it back
+     * would find its own coroutine's instance rather than the one the code under test sent through.
+     */
+    private const array TRANSPORT_FACTORIES_TO_LEAVE_SHARED = [
+        SyncTransportFactory::class,
+        InMemoryTransportFactory::class,
+        SwooleServerTaskTransportFactory::class,
+    ];
+
+    /**
+     * The method a transport factory builds transports with.
+     */
+    private const string TRANSPORT_FACTORY_METHOD = 'createTransport';
+
     public function process(ContainerBuilder $container, ServiceProxifier $proxifier): void
     {
+        $this->poolTransportFactories($container);
+
         $traceableBusIds = $this->traceableBusIds($container);
 
         if ($traceableBusIds === []) {
@@ -72,6 +103,84 @@ final class MessengerProcessor implements CompileProcessor
                 ->addTag(ContainerConstants::TAG_STATEFUL_SERVICE, [
                     'resetter' => self::TRACEABLE_BUS_RESETTER_ID,
                 ]);
+        }
+    }
+
+    /**
+     * Gives every coroutine a transport of its own, by pooling what builds them.
+     *
+     * A transport keeps per-receive state on itself, which held while a process ran one consumer and
+     * stops holding the moment a task worker group runs several. DoctrineTransport memoizes the
+     * receiver it hands out, so consumers sharing one poll through a single DoctrineReceiver and
+     * Connection, and the bookkeeping on those is written by whichever of them polled last.
+     *
+     * DoctrineReceiver::$retryingSafetyCounter is the clearest of them, because it exists for exactly
+     * the situation it is then wrong about: it counts consecutive deadlocks so that a run of them
+     * becomes an error rather than a silent stall, and its own comment gives "concurrent consumers" as
+     * the reason there would be any. Shared, a successful poll by one consumer resets the count another
+     * was accumulating, and three deadlocks spread across three consumers trip a limit meant for three
+     * in a row on one - so the net both fires when nothing is stuck and fails to when something is.
+     *
+     * The queue underneath is untouched by this and is built to be shared - the doctrine transport
+     * reads with SELECT ... FOR UPDATE SKIP LOCKED, so a row still goes to exactly one consumer.
+     *
+     * **The factory is pooled, not the transport.** A transport service cannot be pooled directly:
+     * FrameworkExtension builds it with `new Definition(TransportInterface::class)` behind a factory,
+     * and a pool proxy generated from an interface would implement TransportInterface and nothing else,
+     * while a real transport is a good deal more - DoctrineTransport is also
+     * SetupableTransportInterface, MessageCountAwareInterface, ListableReceiverInterface and
+     * KeepaliveReceiverInterface, each of which messenger finds with an instanceof. Working the
+     * concrete class out from the DSN instead is what this used to do, and it is not safe: an
+     * application that decorates `messenger.transport_factory` - which is a service like any other -
+     * gets back a transport of the decorator's choosing, while the tagged factories go on answering the
+     * DSN exactly as before, so the class written onto the definition is one the instance is not.
+     *
+     * A factory has none of those problems. Its class is a fact rather than an inference, and
+     * {@see ContainerConstants::TAG_UNMANAGED_FACTORY} exists for precisely this shape: the tagged
+     * service is wrapped so that the named method hands back a pool proxy instead of the object,
+     * backed by a pool that calls the real method with the same arguments once per coroutine. Whatever
+     * is built on top of it - a decorator chain, one layer or five - is built once and stays shared,
+     * which is right, because a proxy resolves per coroutine on every call through it.
+     *
+     * What it builds is read off its name: XTransportFactory builds XTransport, beside it. A
+     * convention rather than a contract, so it is checked rather than trusted, and a factory it does
+     * not fit is left alone with a line in the build log saying so.
+     */
+    private function poolTransportFactories(ContainerBuilder $container): void
+    {
+        // The pass this processor runs under, and only ever used to name the lines below: the compiler
+        // prefixes each with the class of the pass a message came from, and MessengerProcessor cannot
+        // be that pass itself - CompileProcessor and CompilerPassInterface both declare process(), with
+        // different signatures. A fresh instance is enough, since the class is all that is read off it.
+        $log = new StatefulServicesPass();
+        $pooling = new TransportFactoryPooling(TransportInterface::class, self::TRANSPORT_FACTORIES_TO_LEAVE_SHARED);
+
+        foreach (array_keys($container->findTaggedServiceIds('messenger.transport_factory')) as $factoryId) {
+            $definition = $container->findDefinition($factoryId);
+            $verdict = $pooling->verdictFor($definition);
+
+            if ($verdict->transportClass === null) {
+                if ($verdict->leftSharedBecause !== null) {
+                    $container->log($log, sprintf(
+                        'Transport factory "%s" is left shared, because %s. The transports it builds '
+                        . 'are shared with it, so consumers running concurrently in one worker will '
+                        . 'poll through one of them, and what each keeps about its own progress '
+                        . 'through the queue is then written by whichever polled last.',
+                        $factoryId,
+                        $verdict->leftSharedBecause,
+                    ));
+                }
+
+                continue;
+            }
+
+            // No resetter. A transport is not carrying a request's worth of state to be cleared between
+            // uses - what it keeps is one consumer's view of one queue, and the point is that the next
+            // consumer has its own rather than a cleaned copy of somebody else's.
+            $definition->addTag(ContainerConstants::TAG_UNMANAGED_FACTORY, [
+                'factoryMethod' => self::TRANSPORT_FACTORY_METHOD,
+                'returnType' => $verdict->transportClass,
+            ]);
         }
     }
 

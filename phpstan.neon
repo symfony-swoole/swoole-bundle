@@ -33,6 +33,22 @@ parameters:
         -
             message: '#Static method BlackfireProbe::startTransaction\(\) invoked with 1 parameter, 0 required\.#'
             path: src/Bridge/Upscale/Blackfire/Monitoring/RequestMonitoring.php
+        # OpenSwoole declares no arginfo for Timer::clear(), so reflection reports it as taking no
+        # arguments - as it does for Timer::exists(), which plainly takes an id as well. The runtime
+        # takes the id and clears that timer alone: on OpenSwoole 26.2.0, tick() twice and clear() the
+        # first leaves the second running and returns true. Swoole declares the parameter properly and
+        # does not report this at all, which is why the ignore has to tolerate going unmatched.
+        -
+            message: '#Static method (Open)?Swoole\\Timer::clear\(\) invoked with 1 parameter, 0 required\.#'
+            path: src/Common/Adapter/CommonSwoole.php
+            reportUnmatched: false
+        # Kernel::MAJOR_VERSION is a compile time constant, so on Symfony 8 the guard above this code
+        # folds to an unconditional return and everything below it reads as dead. It is live on
+        # Symfony 7, where the error is not reported at all - hence reportUnmatched.
+        -
+            identifier: deadCode.unreachable
+            path: src/Bridge/Symfony/Bundle/DependencyInjection/CompilerPass/CacheWarmupFixerPass.php
+            reportUnmatched: false
         -
             message: "#Call to function method_exists\\(\\) with 'BlackfireProbe' and 'setAttribute' will always evaluate to false.#"
             path: src/Bridge/Upscale/Blackfire/Monitoring/RequestMonitoring.php

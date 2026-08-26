@@ -101,5 +101,6 @@ final class SwooleCommandsRegisteredTest extends ServerTestCase
         self::assertStringContainsString('swoole:server:start', $output);
         self::assertStringContainsString('swoole:server:stop', $output);
         self::assertStringContainsString('swoole:server:status', $output);
+        self::assertStringContainsString('swoole:debug:service-pools', $output);
     }
 }

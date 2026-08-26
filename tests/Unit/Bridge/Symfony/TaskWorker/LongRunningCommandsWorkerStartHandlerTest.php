@@ -7,6 +7,7 @@ namespace SwooleBundle\SwooleBundle\Tests\Unit\Bridge\Symfony\TaskWorker;
 use PHPUnit\Framework\TestCase;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\LongRunningCommandsWorkerStartHandler;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\TaskWorkerCommands;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\WorkerStopSignal;
 
 final class LongRunningCommandsWorkerStartHandlerTest extends TestCase
 {
@@ -84,6 +85,7 @@ final class LongRunningCommandsWorkerStartHandlerTest extends TestCase
         $handler = new LongRunningCommandsWorkerStartHandler(
             new TaskWorkerCommands([['a']]),
             $executor,
+            new WorkerStopSignal(),
             false,
             $decorated,
         );
@@ -105,6 +107,7 @@ final class LongRunningCommandsWorkerStartHandlerTest extends TestCase
         return new LongRunningCommandsWorkerStartHandler(
             new TaskWorkerCommands($groups),
             $executor,
+            new WorkerStopSignal(),
             $coroutinesEnabled,
         );
     }

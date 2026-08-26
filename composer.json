@@ -50,17 +50,17 @@
         "upscale/ext-swoole": "^6.2.2"
     },
     "require-dev": {
-        "ext-ffi": "^8.3",
-        "ext-intl": "*",
         "blackfire/php-sdk": "^2.5",
         "brianium/paratest": "^7.20",
-        "donatj/mock-webserver": "^2.9",
         "doctrine/dbal": "^3.7 || ^4.0",
         "doctrine/doctrine-bundle": "^2.7 || ^3.0",
         "doctrine/doctrine-migrations-bundle": "^3.2.4 || ^4.0",
         "doctrine/migrations": "^3.5",
         "doctrine/orm": "^2.17 || ^3.0",
         "doctrine/persistence": "^3.2 || ^4.0",
+        "donatj/mock-webserver": "^2.9",
+        "ext-ffi": "^8.3",
+        "ext-intl": "*",
         "friendsofphp/php-cs-fixer": "^3.94",
         "jangregor/phpstan-prophecy": "^2.3",
         "openswoole/core": "^26.2.0",
@@ -90,6 +90,7 @@
         "symfony/form": "^7.4|^8.0",
         "symfony/framework-bundle": "^7.4|^8.0",
         "symfony/http-client": "^7.4|^8.0",
+        "symfony/mailer": "^7.4|^8.0",
         "symfony/messenger": "^7.4|^8.0",
         "symfony/monolog-bridge": "^7.4|^8.0",
         "symfony/monolog-bundle": "^3.10 || ^4.0",
@@ -97,6 +98,7 @@
         "symfony/stopwatch": "^7.4|^8.0",
         "symfony/twig-bridge": "^7.4|^8.0",
         "symfony/twig-bundle": "^7.4|^8.0",
+        "symfony/validator": "^7.4|^8.0",
         "symfony/var-dumper": "^7.4|^8.0",
         "symfony/var-exporter": "^7.4|^8.0",
         "symfony/web-profiler-bundle": "^7.4|^8.0",
@@ -109,11 +111,13 @@
     "suggest": {
         "ext-inotify": "To enable HMR",
         "doctrine/orm": "For using Entity Manager Handler",
+        "symfony/mailer": "To give every coroutine a mail transport of its own, so two sends cannot interleave on one SMTP connection.",
         "symfony/messenger": "For using Symfony Messenger Swoole Task Transport.",
         "upscale/swoole-blackfire": "To enable Blackfire profiling",
         "swoole-bundle/resetter-bundle": "To be able to recover Doctrine Entity Managers from errors",
         "symfony/error-handler": "To use Symfony Error Handler",
-        "swoole-bundle/z-engine": "To be able to use coroutines."
+        "swoole-bundle/z-engine": "To be able to use coroutines.",
+        "openswoole/core": "On OpenSwoole, to run long running commands in task workers (swoole.task_worker.commands). Ships OpenSwoole\\Core\\Coroutine\\WaitGroup, which the extension does not; swoole has its own and needs nothing."
     },
     "conflict": {
         "amphp/amp": "<3.1.1",
@@ -153,7 +157,8 @@
         "symfony/twig-bundle": "<6.4.32",
         "symfony/var-dumper": "<6.4.32",
         "symfony/var-exporter": "<6.4.26",
-        "symfony/yaml": "<6.4.30"
+        "symfony/yaml": "<6.4.30",
+        "webmozart/assert": "<1.11.0"
     },
     "autoload": {
         "files": [

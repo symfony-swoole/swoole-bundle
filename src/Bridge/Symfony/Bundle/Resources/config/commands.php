@@ -9,6 +9,7 @@ use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\Command\ServerStartCommand;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\Command\ServerStatusCommand;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\Command\ServerStopCommand;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\Command\ServerWatchCommand;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\Command\ServicePoolsDebugCommand;
 use SwooleBundle\SwooleBundle\Metrics\MetricsProvider;
 use SwooleBundle\SwooleBundle\Server\Api\ApiServerClientFactory;
 use SwooleBundle\SwooleBundle\Server\Config\Sockets;
@@ -18,6 +19,7 @@ use SwooleBundle\SwooleBundle\Server\HttpServer;
 use SwooleBundle\SwooleBundle\Server\HttpServerConfiguration;
 use SwooleBundle\SwooleBundle\Server\HttpServerFactory;
 use SwooleBundle\SwooleBundle\Server\Runtime\Bootable;
+use SwooleBundle\SwooleBundle\Server\Runtime\HMR\ContainerFreshness;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 
 use function Symfony\Component\DependencyInjection\Loader\Configurator\service;
@@ -26,6 +28,12 @@ return static function (ContainerConfigurator $containerConfigurator): void {
     $services = $containerConfigurator->services();
 
     $services->defaults();
+
+    $services->set(ServicePoolsDebugCommand::class)
+        ->arg('$container', service('service_container'))
+        ->tag('console.command', [
+            'command' => 'swoole:debug:service-pools',
+        ]);
 
     $services->set(ServerStatusCommand::class)
         ->arg('$sockets', service(Sockets::class))
@@ -56,6 +64,9 @@ return static function (ContainerConfigurator $containerConfigurator): void {
         ->arg('$projectDir', '%kernel.project_dir%')
         ->arg('$kernelEnvironment', '%kernel.environment%')
         ->arg('$kernelDebug', '%kernel.debug%')
+        ->arg('$cacheDir', '%kernel.cache_dir%')
+        ->arg('$freshness', service(ContainerFreshness::class))
+        ->arg('$filesystem', service('swoole_bundle.filesystem'))
         ->tag('console.command', [
             'command' => 'swoole:server:watch',
         ]);

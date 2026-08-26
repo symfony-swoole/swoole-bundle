@@ -1,3 +1,33 @@
+# [0.33.0](https://github.com/symfony-swoole/swoole-bundle/compare/v0.32.0...v0.33.0) (2026-08-26)
+
+[Full changelog](https://github.com/symfony-swoole/swoole-bundle/compare/v0.32.0...v0.33.0)
+
+### Bug Fixes
+
+* **coroutines:** command resolver fix for commands runninng in task handler + openswoolle/core info ([#373](https://github.com/symfony-swoole/swoole-bundle/issues/373)) ([5506d63](https://github.com/symfony-swoole/swoole-bundle/commit/5506d63a14fc7e56b250b64d6f771efc8df76c11))
+* **coroutines:** constraint validator factory prepared for coroutine usage ([#382](https://github.com/symfony-swoole/swoole-bundle/issues/382)) ([cfd7dd1](https://github.com/symfony-swoole/swoole-bundle/commit/cfd7dd1bf91654c37ae1643fdc8c2c50b0d1d654))
+* **coroutines:** fixed debug mode for security auth checker and twig profilers ([#367](https://github.com/symfony-swoole/swoole-bundle/issues/367)) ([483b6c9](https://github.com/symfony-swoole/swoole-bundle/commit/483b6c97808fd9702d6eac83fd26f17de5380a79))
+* **coroutines:** fixed twg extension to work with coroutines ([#366](https://github.com/symfony-swoole/swoole-bundle/issues/366)) ([ba5eedb](https://github.com/symfony-swoole/swoole-bundle/commit/ba5eedb730ada68cff52453d7617688872fd0e8f))
+* **coroutines:** form processor and twig renderer now work with coroutines ([#370](https://github.com/symfony-swoole/swoole-bundle/issues/370)) ([1dfcc60](https://github.com/symfony-swoole/swoole-bundle/commit/1dfcc60b1bc01d3f0d24ca605ba704d3fe109e03))
+* **coroutines:** http client tracer made compatible with coroutines ([#371](https://github.com/symfony-swoole/swoole-bundle/issues/371)) ([86e9469](https://github.com/symfony-swoole/swoole-bundle/commit/86e946932e2c953dcdeee4bb8e7648fcedd54126))
+* **coroutines:** poolable email validator for coroutine usage ([#386](https://github.com/symfony-swoole/swoole-bundle/issues/386)) ([d8bb737](https://github.com/symfony-swoole/swoole-bundle/commit/d8bb7371adac9a7e9f0de49596f35c595090b4ba))
+* **coroutines:** pooling for mailer transports for coroutine usage ([#384](https://github.com/symfony-swoole/swoole-bundle/issues/384)) ([1af6cc3](https://github.com/symfony-swoole/swoole-bundle/commit/1af6cc3401e3feb8db8586477bc09f21bbc66309))
+* **coroutines:** pooling of messenger transports ([#374](https://github.com/symfony-swoole/swoole-bundle/issues/374)) ([0d67669](https://github.com/symfony-swoole/swoole-bundle/commit/0d67669d606b353960d35159d331a37e50d18907))
+* **coroutines:** unmanaged factory instantiation with locking ([#385](https://github.com/symfony-swoole/swoole-bundle/issues/385)) ([822eb6d](https://github.com/symfony-swoole/swoole-bundle/commit/822eb6d86ca7f042b854d5e96b29bab6d780966b))
+* **hmr:** hmr timer clearing on process restart/exit ([#377](https://github.com/symfony-swoole/swoole-bundle/issues/377)) ([5ee2618](https://github.com/symfony-swoole/swoole-bundle/commit/5ee26182e434aa12192a9e1d858738d9399a140b))
+* **messenger:** added specialized service resetter when running with coroutines supporting kernel ([#372](https://github.com/symfony-swoole/swoole-bundle/issues/372)) ([8f26d7f](https://github.com/symfony-swoole/swoole-bundle/commit/8f26d7fd40cdc5b6316612456d4b564be07e595a))
+* **task_worker_commands:** fixed process reload race conditions ([#376](https://github.com/symfony-swoole/swoole-bundle/issues/376)) ([6577cd7](https://github.com/symfony-swoole/swoole-bundle/commit/6577cd700a5eae318b332c864515d94e7580ac91))
+* **trusted_proxies:** fixed trusted proxies input processing + updated documentation for bundle commands ([#381](https://github.com/symfony-swoole/swoole-bundle/issues/381)) ([8c96325](https://github.com/symfony-swoole/swoole-bundle/commit/8c96325cecbfc48dc19d562970703a09f25609c8))
+
+
+### Features
+
+* **config:** add dispatch_mode paramenter management ([#387](https://github.com/symfony-swoole/swoole-bundle/issues/387)) ([ef44398](https://github.com/symfony-swoole/swoole-bundle/commit/ef44398f7d8f6929960ddc60001c2765b8269084))
+* **coroutines:** debug:container command shows service pools properly ([#380](https://github.com/symfony-swoole/swoole-bundle/issues/380)) ([55e151f](https://github.com/symfony-swoole/swoole-bundle/commit/55e151f2c1d85f24c795e3f8a8f6bb1155900ac3))
+* **coroutines:** swoole:debug:service-pools command added to show all poooled services ([#379](https://github.com/symfony-swoole/swoole-bundle/issues/379)) ([1015acb](https://github.com/symfony-swoole/swoole-bundle/commit/1015acb2e0bac042927807c93205505871b973a7))
+* **file_watch:** restart server completely with cache:clear if needed ([#383](https://github.com/symfony-swoole/swoole-bundle/issues/383)) ([b37a9e8](https://github.com/symfony-swoole/swoole-bundle/commit/b37a9e868402f4745e1fcfe24ab1ae38193ef4d0))
+* **multi_worker:** experimental ability to run multiple workers in a single open/swoole deployable unit ([#368](https://github.com/symfony-swoole/swoole-bundle/issues/368)) ([92c8f7a](https://github.com/symfony-swoole/swoole-bundle/commit/92c8f7aa2e06fe7356eb3d0eaac47c1a78b0965b))
+
 # [0.32.0](https://github.com/symfony-swoole/swoole-bundle/compare/v0.31.0...v0.32.0) (2026-08-13)
 
 [Full changelog](https://github.com/symfony-swoole/swoole-bundle/compare/v0.31.0...v0.32.0)

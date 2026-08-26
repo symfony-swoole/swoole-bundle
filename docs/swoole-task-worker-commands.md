@@ -165,6 +165,96 @@ Grouping more than one command into a single entry **requires `platform.coroutin
 rejected at compile time otherwise. Without a scheduler the one command blocks the worker and owns
 the process, so a second command in the same group could never start.
 
+## Several consumers of one queue
+
+A group may run the same consumer more than once, which is how one unit puts several workers on a busy
+queue:
+
+```yaml
+framework:
+  messenger:
+    transports:
+      default: 'doctrine://default?queue_name=default'
+
+swoole:
+  platform:
+    coroutines:
+      enabled: true
+  task_worker:
+    commands:
+      -
+        - 'messenger:consume default --memory-limit=128M'
+        - 'messenger:consume default --memory-limit=128M'
+        - 'messenger:consume default --memory-limit=128M'
+        - 'messenger:consume default --memory-limit=128M'
+```
+
+One transport, four consumers, and nothing to configure for it. The queue is built to be shared - the
+doctrine transport reads with `SELECT ... FOR UPDATE SKIP LOCKED`, so a row goes to exactly one
+consumer - and the bundle takes care of the transport, which is not.
+
+**Why the transport needs taking care of.** It is a shared service that keeps per-receive state on
+itself, which holds while a process runs one consumer and stops holding the moment it runs several.
+`DoctrineTransport` memoizes the receiver it hands out, so every consumer of the group would poll
+through one `DoctrineReceiver` and one `Connection`, and the bookkeeping on those would be written by
+whichever of them polled last.
+
+`DoctrineReceiver::$retryingSafetyCounter` is the clearest example, because it exists for exactly the
+situation it is then wrong about: it counts consecutive deadlocks so a run of them becomes an error
+rather than a silent stall, and its own comment gives "concurrent consumers" as the reason there
+would be any. Shared, one consumer's successful poll resets the count another was accumulating, and
+three deadlocks spread across three consumers trip a limit meant for three in a row on one. Nothing
+warns you either way - the queue itself is fine, and what breaks is the transport's opinion of it.
+
+So `MessengerProcessor` gives each coroutine a transport of its own.
+
+### It pools the factory, not the transport
+
+A transport service cannot be pooled directly. `FrameworkExtension` defines it as
+`new Definition(TransportInterface::class)` behind a factory, and a pool proxy generated from an
+interface would implement `TransportInterface` and nothing else - while a real transport is a good
+deal more. `DoctrineTransport` is also `SetupableTransportInterface`, `MessageCountAwareInterface`,
+`ListableReceiverInterface` and `KeepaliveReceiverInterface`, each of which messenger finds with an
+`instanceof`, so a transport pooled from its declared type would have `messenger:setup-transports`
+skip it without a word.
+
+So the pooling happens one layer down, at the factory. Every service tagged
+`messenger.transport_factory` is itself tagged `swoole_bundle.unmanaged_factory`, which wraps it so
+that `createTransport()` hands back a pool proxy rather than the transport - backed by a pool that
+calls the real method with the same arguments once per coroutine.
+
+That is what makes it work through a decorator chain. Applications decorate
+`messenger.transport_factory` - to add retries, versioning, anything - and those decorators are
+stateless wrappers holding the transport below them. They are built once and stay shared, which is
+right: what they are holding is a proxy, and a proxy resolves per coroutine on every call through it.
+
+### When it cannot, and what to do about it
+
+What a factory builds is read off its name - `XTransportFactory` builds `XTransport`, beside it - and
+that is a convention rather than a contract, so it is checked. Three things stop it, and in each the
+factory and its transports are left shared, with a line in the build log saying which and why:
+
+- **The factory's name does not say what it builds,** including an application's own. Name it after
+  its transport, or tag it `swoole_bundle.unmanaged_factory` yourself with the `returnType` spelled
+  out and the `factoryMethod` set to `createTransport`.
+- **The transport it builds is `final`, `readonly` or abstract,** so there is nothing for the proxy to
+  extend.
+- **The factory itself is `readonly`,** so it cannot be wrapped.
+
+`sync://` and `in-memory://` are deliberately left shared too, and quietly: the first keeps nothing
+between calls, and keeping what was sent is the whole point of the second.
+
+When a transport is left shared, give each consumer a transport of its own instead - it is one line of
+configuration each, and the queue is still shared:
+
+```yaml
+framework:
+  messenger:
+    transports:
+      default: '%env(MESSENGER_TRANSPORT_DSN)%'
+      default_2: '%env(MESSENGER_TRANSPORT_DSN)%'
+```
+
 ## What the two modes actually do
 
 **Coroutines on.** Each command is spawned into its own coroutine and the worker start hook returns
@@ -243,6 +333,18 @@ A group that ends in under a second is treated as broken rather than finished: t
 recycled and a critical is logged. Without that, a typo in a command line would fork a replacement
 in a loop for as long as the server ran.
 
+## Reloads
+
+A reload - `swoole:server:reload`, the API server's reload, HMR, or a plain `SIGUSR1` - replaces the
+task workers along with the http ones. The commands in the workers being replaced are asked to stop
+the same way they are on shutdown, and the replacements start them again, so a reload is how you get
+new code into a consumer without stopping the server.
+
+The stop a worker raises on its way out is scoped to the generation of workers it belonged to, which
+is what keeps it from reaching the replacements. The same applies to a worker recycling itself after
+its command ended: it declares the exit a retirement, so the replacement forked into its place runs
+its command instead of being stopped by it.
+
 ## Sharing task workers with the task transport
 
 With coroutines on, a task worker running commands still serves tasks, so the
@@ -255,8 +357,9 @@ task transport.**
 
 ## Operational notes
 
-- **Turn HMR off** in a server running these. A repeating `Timer::tick` keeps a worker's reactor
-  non-empty, which stretches shutdown out to `max_wait_time`.
+- **HMR can stay on.** The commands survive the reloads it triggers, and its watch timer is stopped
+  when a worker is asked to exit, so http workers still exit as soon as they go idle rather than
+  waiting out the `max_wait_time` these commands want set high.
 - **Set `worker_max_wait_time`** high enough for the slowest command to finish what it is doing.
   Swoole's default is 3 seconds, after which workers are force-terminated.
 - **Output** from each command goes to the server's stdout on its own stream handle. Verbosity flags
@@ -269,3 +372,19 @@ task transport.**
 
 - `symfony/framework-bundle`, which provides the console `Application` used to resolve commands.
 - `platform.coroutines.enabled: true` for more than one command per task worker.
+- **On OpenSwoole, `openswoole/core`** - which [the installation instructions](../README.md#installation)
+  already ask for, and which this is the feature that actually needs it:
+
+  ```
+  composer require openswoole/core
+  ```
+
+  A group is run behind a `WaitGroup`, and OpenSwoole keeps that class in `openswoole/core` rather
+  than in the extension. Without the package the task worker dies the moment it starts, with
+
+  ```
+  PHP Fatal error: Uncaught Error: Class "OpenSwoole\Core\Coroutine\WaitGroup" not found
+  ```
+
+  and, since a dead task worker is one the manager forks again, it repeats for as long as the server
+  runs. On swoole there is nothing to install: `Swoole\Coroutine\WaitGroup` comes with that extension.

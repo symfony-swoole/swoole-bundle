@@ -7,13 +7,16 @@ namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Messenger;
 use Exception;
 use Swoole\Server;
 use SwooleBundle\SwooleBundle\Server\TaskHandler\TaskHandler;
-use Symfony\Component\HttpKernel\DependencyInjection\ServicesResetter;
+use Symfony\Contracts\Service\ResetInterface;
 
 final readonly class ServiceResettingTransportHandler implements TaskHandler
 {
     public function __construct(
         private TaskHandler $decorated,
-        private ServicesResetter $resetter,
+        // the "services_resetter" service, hinted through the contract rather than through a concrete
+        // ServicesResetter: Symfony 8.1 moved that class from HttpKernel to DependencyInjection and left
+        // the old name behind as a deprecated subclass, so neither concrete name matches every version.
+        private ResetInterface $resetter,
     ) {}
 
     /**
