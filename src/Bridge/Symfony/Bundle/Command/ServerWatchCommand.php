@@ -7,6 +7,7 @@ namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\Command;
 use Override;
 use SwooleBundle\SwooleBundle\Server\Runtime\HMR\ContainerFreshness;
 use SwooleBundle\SwooleBundle\Server\Runtime\Watch\FileWatcher;
+use SwooleBundle\SwooleBundle\Server\Runtime\Watch\ProcessStopper;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Command\SignalableCommandInterface;
 use Symfony\Component\Console\Input\InputArgument;
@@ -24,7 +25,16 @@ final class ServerWatchCommand extends Command implements SignalableCommandInter
 
     private const int MAX_CONSECUTIVE_FAILURES = 30;
 
-    private const float STOP_TIMEOUT_S = 2.0;
+    /**
+     * How long the server is given to stop before it is taken apart by force.
+     *
+     * It has to be longer than the server's own shutdown budget, and the old two seconds were shorter
+     * than even swoole's default `max_wait_time` of three. Under load - workers mid-request - the
+     * supervisor therefore killed the master while the manager and the workers were still winding
+     * down. They were reparented to init, kept the listen socket, and the next server could not bind
+     * the port. Raise it further with --stop-timeout wherever `worker_max_wait_time` is raised.
+     */
+    private const float STOP_TIMEOUT_S = 15.0;
 
     /**
      * Where a Symfony application keeps its console, and where this looks unless told otherwise.
@@ -42,6 +52,10 @@ final class ServerWatchCommand extends Command implements SignalableCommandInter
 
     private string $console = self::DEFAULT_CONSOLE;
 
+    private float $stopTimeout = self::STOP_TIMEOUT_S;
+
+    private ?SymfonyStyle $io = null;
+
     public function __construct(
         private readonly string $projectDir,
         private readonly string $kernelEnvironment,
@@ -49,6 +63,7 @@ final class ServerWatchCommand extends Command implements SignalableCommandInter
         private readonly string $cacheDir,
         private readonly ContainerFreshness $freshness,
         private readonly Filesystem $filesystem,
+        private readonly ProcessStopper $stopper = new ProcessStopper(),
     ) {
         parent::__construct();
     }
@@ -94,6 +109,15 @@ final class ServerWatchCommand extends Command implements SignalableCommandInter
             )
             ->addOption('interval', null, InputOption::VALUE_REQUIRED, 'Poll interval in milliseconds', '1000')
             ->addOption(
+                'stop-timeout',
+                null,
+                InputOption::VALUE_REQUIRED,
+                'Seconds the server is given to stop before it is killed. Must be longer than the '
+                . 'server\'s own "worker_max_wait_time", or busy workers are killed mid-request and '
+                . 'leave the port behind them.',
+                (string) self::STOP_TIMEOUT_S,
+            )
+            ->addOption(
                 'console',
                 null,
                 InputOption::VALUE_REQUIRED,
@@ -126,6 +150,10 @@ final class ServerWatchCommand extends Command implements SignalableCommandInter
         /** @var string $console */
         $console = $input->getOption('console');
         $this->console = $console;
+        /** @var string $stopTimeout */
+        $stopTimeout = $input->getOption('stop-timeout');
+        $this->stopTimeout = max(1.0, (float) $stopTimeout);
+        $this->io = $io;
 
         if (!is_file($this->consolePath())) {
             $io->error(sprintf(
@@ -263,17 +291,33 @@ final class ServerWatchCommand extends Command implements SignalableCommandInter
         return $this->projectDir . '/' . ltrim($this->console, '/');
     }
 
+    /**
+     * Stops the server, and makes sure nothing of it is left behind.
+     *
+     * @see ProcessStopper for why stopping the master is not the same as stopping the server
+     */
     private function stopServer(): void
     {
-        if ($this->server === null) {
+        $server = $this->server;
+        $this->server = null;
+
+        if ($server === null) {
             return;
         }
 
-        if ($this->server->isRunning()) {
-            $this->server->stop(self::STOP_TIMEOUT_S);
+        $killed = $this->stopper->stop($server, $this->stopTimeout);
+
+        if ($killed === []) {
+            return;
         }
 
-        $this->server = null;
+        $this->io?->warning(sprintf(
+            '[watch] the server did not stop within %.0fs and left %d process(es) behind; they have '
+            . 'been killed. Raise --stop-timeout above the server\'s worker_max_wait_time to let it '
+            . 'shut down on its own.',
+            $this->stopTimeout,
+            count($killed),
+        ));
     }
 
     private function restartServer(OutputInterface $output): void
