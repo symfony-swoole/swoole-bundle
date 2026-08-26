@@ -30,6 +30,7 @@ use SwooleBundle\SwooleBundle\Server\Config\Sockets;
  *   worker_max_request?: int,
  *   worker_max_request_grace?: int,
  *   worker_max_wait_time?: int,
+ *   dispatch_mode?: string,
  *   enable_coroutine?: bool,
  *   task_enable_coroutine?: bool,
  *   task_use_object?: bool,
@@ -57,6 +58,7 @@ use SwooleBundle\SwooleBundle\Server\Config\Sockets;
  *    worker_max_request: int,
  *    worker_max_request_grace?: int,
  *    worker_max_wait_time?: int,
+ *    dispatch_mode?: string,
  *    enable_coroutine?: bool,
  *    task_enable_coroutine?: bool,
  *    task_use_object?: bool,
@@ -89,6 +91,7 @@ final class DefaultHttpServerConfiguration implements HttpServerConfiguration
     private const string SWOOLE_HTTP_SERVER_CONFIG_WORKER_MAX_REQUEST = 'worker_max_request';
     private const string SWOOLE_HTTP_SERVER_CONFIG_WORKER_MAX_REQUEST_GRACE = 'worker_max_request_grace';
     private const string SWOOLE_HTTP_SERVER_CONFIG_WORKER_MAX_WAIT_TIME = 'worker_max_wait_time';
+    private const string SWOOLE_HTTP_SERVER_CONFIG_DISPATCH_MODE = 'dispatch_mode';
     private const string SWOOLE_HTTP_SERVER_CONFIG_ENABLE_COROUTINE = 'enable_coroutine';
     private const string SWOOLE_HTTP_SERVER_CONFIG_MAX_COROUTINE = 'max_coroutine';
     private const string SWOOLE_HTTP_SERVER_CONFIG_TASK_ENABLE_COROUTINE = 'task_enable_coroutine';
@@ -124,8 +127,17 @@ final class DefaultHttpServerConfiguration implements HttpServerConfiguration
         self::SWOOLE_HTTP_SERVER_CONFIG_WORKER_COUNT => 'worker_num',
         self::SWOOLE_HTTP_SERVER_CONFIG_WORKER_MAX_REQUEST => 'max_request',
         self::SWOOLE_HTTP_SERVER_CONFIG_WORKER_MAX_WAIT_TIME => 'max_wait_time',
+        self::SWOOLE_HTTP_SERVER_CONFIG_DISPATCH_MODE => 'dispatch_mode',
         self::SWOOLE_HTTP_SERVER_CONFIG_USER => 'user',
         self::SWOOLE_HTTP_SERVER_CONFIG_GROUP => 'group',
+    ];
+
+    private const array SWOOLE_DISPATCH_MODES = [
+        'round_robin' => 1,
+        'fixed' => 2,
+        'preemptive' => 3,
+        'ip' => 4,
+        'uid' => 5,
     ];
 
     private const array SWOOLE_SERVE_STATIC = [
@@ -438,6 +450,16 @@ final class DefaultHttpServerConfiguration implements HttpServerConfiguration
     /**
      * @see getSwooleSettings()
      */
+    public function getSwooleDispatchMode(): ?int
+    {
+        $mode = $this->settings[self::SWOOLE_HTTP_SERVER_CONFIG_DISPATCH_MODE] ?? null;
+
+        return $mode === null ? null : self::SWOOLE_DISPATCH_MODES[$mode];
+    }
+
+    /**
+     * @see getSwooleSettings()
+     */
     public function getSwooleMaxRequest(): int
     {
         return $this->settings[self::SWOOLE_HTTP_SERVER_CONFIG_WORKER_MAX_REQUEST] ?? 0;
@@ -561,6 +583,10 @@ final class DefaultHttpServerConfiguration implements HttpServerConfiguration
         switch ($key) {
             case self::SWOOLE_HTTP_SERVER_CONFIG_SERVE_STATIC:
                 Assertion::inArray($value, array_keys(self::SWOOLE_SERVE_STATIC));
+
+                break;
+            case self::SWOOLE_HTTP_SERVER_CONFIG_DISPATCH_MODE:
+                Assertion::inArray($value, array_keys(self::SWOOLE_DISPATCH_MODES));
 
                 break;
             case self::SWOOLE_HTTP_SERVER_CONFIG_DAEMONIZE:

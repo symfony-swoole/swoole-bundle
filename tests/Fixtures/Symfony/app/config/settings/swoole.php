@@ -11,6 +11,7 @@ return static function (ContainerConfigurator $containerConfigurator): void {
         'http_server' => [
             'settings' => [
                 'upload_tmp_dir' => param('kernel.project_dir') . '/public/uploads',
+                'dispatch_mode' => 'preemptive',
             ],
         ],
     ]);

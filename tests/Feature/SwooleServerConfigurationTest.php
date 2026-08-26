@@ -45,7 +45,8 @@ final class SwooleServerConfigurationTest extends ServerTestCase
             /** @var array{
              *    body: array{
              *      server: array{
-             *        upload_tmp_dir: string
+             *        upload_tmp_dir: string,
+             *        dispatch_mode: int
              *      }
              *    }
              *  } $response
@@ -55,6 +56,7 @@ final class SwooleServerConfigurationTest extends ServerTestCase
                 '/usr/src/app/tests/Fixtures/Symfony/app/public/uploads',
                 $response['body']['server']['upload_tmp_dir'],
             );
+            $this->assertSame(3, $response['body']['server']['dispatch_mode']);
         });
     }
 }
