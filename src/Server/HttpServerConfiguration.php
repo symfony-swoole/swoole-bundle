@@ -25,6 +25,7 @@ use SwooleBundle\SwooleBundle\Server\Config\Sockets;
  *   worker_max_request: int,
  *   worker_max_request_grace?: int,
  *   worker_max_wait_time?: int,
+ *   dispatch_mode?: int|string,
  *   enable_coroutine?: bool,
  *   task_enable_coroutine?: bool,
  *   task_use_object?: bool,

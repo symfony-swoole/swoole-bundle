@@ -52,6 +52,7 @@ use SwooleBundle\SwooleBundle\Component\GeneratedCollection;
 use SwooleBundle\SwooleBundle\Component\Locking\Channel\ChannelMutex;
 use SwooleBundle\SwooleBundle\Component\Locking\Channel\ChannelMutexFactory;
 use SwooleBundle\SwooleBundle\Component\Locking\FirstTimeOnly\FirstTimeOnlyMutexFactory;
+use SwooleBundle\SwooleBundle\Component\Locking\RecursiveOwner\RecursiveOwnerMutexFactory;
 use SwooleBundle\SwooleBundle\Metrics\Formatter\JsonMetricsFormatter;
 use SwooleBundle\SwooleBundle\Metrics\Formatter\MetricsFormatterResolver;
 use SwooleBundle\SwooleBundle\Metrics\Formatter\OpenMetricsFormatter;
@@ -412,6 +413,16 @@ return static function (ContainerConfigurator $containerConfigurator): void {
     $services->set('swoole_bundle.unmanaged_factory_first_time.locking', FirstTimeOnlyMutexFactory::class)
         ->arg('$wrapped', service('swoole_bundle.service_pool.locking'));
 
+    // The lock UnmanagedFactoryInstantiator generates proxy classes under. Recursive by owner, the same
+    // shape BlockingContainer uses for the first instantiation of a container service, and for the same
+    // reason - see that property's docblock for why the container's own lock does not reach this.
+    //
+    // Not the first-time-only one above: that opens permanently once released, which is right for one
+    // named factory method and wrong for a gate shared by every proxy class a worker ever generates.
+    $services->set('swoole_bundle.unmanaged_factory_instantiation.locking', RecursiveOwnerMutexFactory::class)
+        ->arg('$swoole', service(Swoole::class))
+        ->arg('$wrapped', service('swoole_bundle.service_pool.locking'));
+
     $services->set(Instantiator::class)
         ->arg('$proxyGenerator', service(Generator::class));
 
@@ -421,7 +432,8 @@ return static function (ContainerConfigurator $containerConfigurator): void {
         ->arg('$servicePoolContainer', service(ServicePoolContainer::class))
         ->arg('$limitLocking', service('swoole_bundle.service_pool.locking'))
         ->arg('$newInstanceLocking', service('swoole_bundle.unmanaged_factory_first_time.locking'))
-        ->arg('$swoole', service(Swoole::class));
+        ->arg('$swoole', service(Swoole::class))
+        ->arg('$instantiationLocking', service('swoole_bundle.unmanaged_factory_instantiation.locking'));
 
     $services->set('swoole_bundle.filesystem', Filesystem::class);
 
