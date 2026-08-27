@@ -113,6 +113,8 @@ Symfony integration with [Open Swoole](https://openswoole.com/) and [Swoole](htt
 
     _Some changes cannot be applied by a worker reload. This happens when the compiled container no longer matches its source files, or when the file was already loaded before the workers were created. In these cases HMR does not reload the workers. It stops and writes one log message that explains what has to be restarted. Documentation of this feature is available [here](docs/hot-module-reload.md)._
   
+-   Step debugging (**experimental**), because xdebug cannot start a session on a swoole server by itself: it decides once per worker process, at fork time, so its own `start_with_request` and the `XDEBUG_SESSION` cookie it looks for never see a request - and `yes` attaches the master before it forks, which with an IDE listening leaves the server permanently half-started. The bundle opens sessions from PHP instead, per request, per worker start, or per task. Documentation of this feature is available [here](docs/swoole-xdebug.md).
+
 -   Access logs, (disabled by default) logs are configurable is a same way as apache mod log. Documentation of this feature is available [here](docs/swoole-access-logs.md).
 
 -   Liveness endpoint (disabled by default) on a port of its own, served by a dedicated process so that it keeps answering while every worker is busy. Projects can contribute their own checks to it. Documentation of this feature is available [here](docs/swoole-health.md).

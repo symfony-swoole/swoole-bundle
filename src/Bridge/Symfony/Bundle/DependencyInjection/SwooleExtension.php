@@ -52,6 +52,12 @@ use SwooleBundle\SwooleBundle\Bridge\Tideways\Apm\WithApm;
 use SwooleBundle\SwooleBundle\Bridge\Upscale\Blackfire\Profiling\ProfilerActivator;
 use SwooleBundle\SwooleBundle\Bridge\Upscale\Blackfire\Profiling\UpscaleProfilerActivator;
 use SwooleBundle\SwooleBundle\Bridge\Upscale\Blackfire\Profiling\WithProfiler;
+use SwooleBundle\SwooleBundle\Bridge\Xdebug\AttachXdebugRequestHandler;
+use SwooleBundle\SwooleBundle\Bridge\Xdebug\AttachXdebugTaskHandler;
+use SwooleBundle\SwooleBundle\Bridge\Xdebug\AttachXdebugWorkerStartHandler;
+use SwooleBundle\SwooleBundle\Bridge\Xdebug\NativeXdebugClient;
+use SwooleBundle\SwooleBundle\Bridge\Xdebug\RequestAttachMode;
+use SwooleBundle\SwooleBundle\Bridge\Xdebug\XdebugClient;
 use SwooleBundle\SwooleBundle\Common\Adapter\Swoole;
 use SwooleBundle\SwooleBundle\Server\Config\Socket;
 use SwooleBundle\SwooleBundle\Server\Config\Sockets;
@@ -131,6 +137,12 @@ use ZEngine\Core;
  * @phpstan-type PlatformConfig = array{
  *   fiber_context: array{
  *     enabled: 'auto'|'off'|'on',
+ *   },
+ *   xdebug?: array{
+ *     enabled: bool,
+ *     requests: 'off'|'trigger'|'always',
+ *     workers: bool,
+ *     tasks: bool,
  *   },
  *   coroutines: array{
  *     enabled: bool,
@@ -270,6 +282,8 @@ final class SwooleExtension extends Extension
             $fiberContext = $config['platform']['fiber_context']['enabled'];
         }
 
+        $this->configureXdebug($config['platform']['xdebug'] ?? null, $container);
+
         $swooleSettings = isset($config['platform'])
             ? $this->configurePlatform($config['platform'], $maxConcurrency, $container)
             : [];
@@ -294,6 +308,83 @@ final class SwooleExtension extends Extension
     public function getConfiguration(array $config, ContainerBuilder $container): Configuration
     {
         return Configuration::fromTreeBuilder();
+    }
+
+    /**
+     * EXPERIMENTAL. Registers the handlers that open step-debugging sessions from PHP.
+     *
+     * Deliberately not part of configurePlatform(), which returns as soon as it sees coroutines
+     * disabled: debugging is orthogonal to them, and a server without coroutines needs this just as
+     * much - more, if anything, since a blocking task worker is then the only place its commands run.
+     *
+     * Nothing here is conditional on the extension being loaded. That check belongs at runtime and is
+     * XdebugClient's; deciding it here would bake the answer into a compiled container that outlives
+     * the process it was compiled in, which is precisely what happens when a debugger is switched on
+     * by recreating a container against a warm cache.
+     *
+     * @param array{enabled: bool, requests: 'always'|'off'|'trigger', workers: bool, tasks: bool}|null $config
+     * @see \SwooleBundle\SwooleBundle\Bridge\Xdebug\XdebugClient for why PHP has to do the attaching
+     * @see docs/swoole-xdebug.md
+     */
+    private function configureXdebug(?array $config, ContainerBuilder $container): void
+    {
+        if ($config === null || !$config['enabled']) {
+            return;
+        }
+
+        $container->register(NativeXdebugClient::class)
+            ->setPublic(false)
+            ->setAutowired(false)
+            ->setAutoconfigured(false);
+
+        // Aliased rather than referenced directly, so that an application - or a test fixture - can
+        // put its own implementation behind the handlers without touching them.
+        $container->setAlias(XdebugClient::class, NativeXdebugClient::class)
+            ->setPublic(false);
+
+        $requests = RequestAttachMode::from($config['requests']);
+
+        if ($requests !== RequestAttachMode::Off) {
+            // Outermost of the whole chain, ahead of the handler that establishes the coroutine
+            // context at -1000. A session opened here is open for everything that follows without
+            // exception - the context handler, the static file server, the kernel - so a breakpoint
+            // can be put anywhere a request reaches, this bundle's own handlers included. Nothing
+            // about attaching depends on the coroutine context existing first.
+            $container->register(AttachXdebugRequestHandler::class)
+                ->setPublic(false)
+                ->setAutowired(false)
+                ->setAutoconfigured(false)
+                ->setArgument('$decorated', new Reference(AttachXdebugRequestHandler::class . '.inner'))
+                ->setArgument('$xdebug', new Reference(XdebugClient::class))
+                ->setArgument('$mode', $requests)
+                ->setDecoratedService(RequestHandler::class, null, -1100);
+        }
+
+        if ($config['workers']) {
+            // Outermost of the worker start handlers, so the session is open before any of them runs -
+            // including the one that hands a task worker its long running command and never returns.
+            $container->register(AttachXdebugWorkerStartHandler::class)
+                ->setPublic(false)
+                ->setAutowired(false)
+                ->setAutoconfigured(false)
+                ->setArgument('$xdebug', new Reference(XdebugClient::class))
+                ->setArgument('$decorated', new Reference(AttachXdebugWorkerStartHandler::class . '.inner'))
+                ->setDecoratedService(WorkerStartHandler::class, null, -1000);
+        }
+
+        if (!$config['tasks']) {
+            return;
+        }
+
+        // Inside the handler that resets services between tasks (-10000) and outside the rest, so a
+        // breakpoint sees the task the way the application will.
+        $container->register(AttachXdebugTaskHandler::class)
+            ->setPublic(false)
+            ->setAutowired(false)
+            ->setAutoconfigured(false)
+            ->setArgument('$decorated', new Reference(AttachXdebugTaskHandler::class . '.inner'))
+            ->setArgument('$xdebug', new Reference(XdebugClient::class))
+            ->setDecoratedService(TaskHandler::class, null, -9999);
     }
 
     /**
