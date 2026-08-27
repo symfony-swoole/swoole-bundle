@@ -439,6 +439,60 @@ final readonly class Configuration implements ConfigurationInterface
                                 ->end()
                             ->end()
                         ->end()
+                        // EXPERIMENTAL - see docs/swoole-xdebug.md
+                        ->arrayNode('xdebug')
+                            ->info(
+                                'EXPERIMENTAL. Opens step-debugging sessions from PHP, which is the '
+                                . 'only way to debug a swoole server: xdebug decides once per worker '
+                                . 'process, at fork time, so its own start_with_request and the '
+                                . 'XDEBUG_SESSION cookie it looks for can never see a request.'
+                            )
+                            ->addDefaultsIfNotSet()
+                            ->children()
+                                ->booleanNode('enabled')
+                                    ->info(
+                                        'Registers the attach handlers. They cost one function_exists '
+                                        . 'call where the extension is not loaded, and are guarded at '
+                                        . 'runtime rather than at compile time on purpose - a '
+                                        . 'container compiled without xdebug is reused by a process '
+                                        . 'that has it, which is what switching the debugger on by '
+                                        . 'recreating a container does.'
+                                    )
+                                    ->defaultTrue()
+                                    ->treatNullLike(false)
+                                ->end()
+                                ->enumNode('requests')
+                                    ->info(
+                                        'When an http request attaches its worker. trigger: only when '
+                                        . 'the request carries XDEBUG_SESSION or XDEBUG_TRIGGER as a '
+                                        . 'cookie or query parameter, which is what a browser '
+                                        . 'debugging extension sets.'
+                                    )
+                                    ->cannotBeEmpty()
+                                    ->defaultValue('trigger')
+                                    ->values(['off', 'trigger', 'always'])
+                                ->end()
+                                ->booleanNode('workers')
+                                    ->info(
+                                        'Attach every worker, http and task alike, as it starts. The '
+                                        . 'only way to reach code that no request runs - message '
+                                        . 'handlers, projections, long running commands, boot itself. '
+                                        . 'Unconditional, so each worker pays a connection attempt.'
+                                    )
+                                    ->defaultFalse()
+                                    ->treatNullLike(false)
+                                ->end()
+                                ->booleanNode('tasks')
+                                    ->info(
+                                        'Attach a task worker when a task arrives. Reaches message '
+                                        . 'handlers running over the task transport, and unlike '
+                                        . 'workers costs nothing while the queue is empty.'
+                                    )
+                                    ->defaultFalse()
+                                    ->treatNullLike(false)
+                                ->end()
+                            ->end()
+                        ->end()
                         ->arrayNode('coroutines')
                             ->addDefaultsIfNotSet()
                             ->children()

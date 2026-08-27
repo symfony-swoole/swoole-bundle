@@ -196,6 +196,18 @@ swoole:
   platform:
     fiber_context: 
       enabled: auto # can be one of: auto, true, false (default: auto, runtime change only works for openswoole, for swoole use ini setting to enable)
+    # EXPERIMENTAL. Opens step-debugging sessions from PHP, which is the only way to debug a swoole
+    # server: xdebug decides once per worker process, at fork time, so its own start_with_request and
+    # the XDEBUG_SESSION cookie it looks for never see a request.
+    # See docs/swoole-xdebug.md before using this.
+    xdebug:
+      enabled: true      # registers the attach handlers; they no-op where the extension is not loaded
+      requests: trigger  # can be one of: off, trigger, always. trigger = only when the request carries
+                         # XDEBUG_SESSION or XDEBUG_TRIGGER as a cookie or query parameter
+      workers: false     # attach every worker, http and task, as it starts - the only thing that
+                         # reaches code no request runs, at the cost of a connect attempt per worker
+      tasks: false       # attach a task worker when a task arrives - reaches message handlers running
+                         # over the task transport, and costs nothing while the queue is empty
     coroutines:
       enabled: false
       # default false. when enabled, swoole coroutine hooks for IO apis get activated
