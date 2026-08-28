@@ -9,6 +9,7 @@ use Override;
 use SwooleBundle\SwooleBundle\Client\HttpClient;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Command\EnqueueInsertRowsCommand;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Test\ServerTestCase;
+use SwooleBundle\SwooleBundle\Tests\Helper\TestToken;
 use Symfony\Component\Process\Process;
 
 /**
@@ -64,6 +65,21 @@ final class MessengerTaskWorkerGroupTest extends ServerTestCase
      * the drained batch is under two seconds of work - four hundred milliseconds apiece.
      */
     private const int HANDLER_SLEEP_MS = 8;
+
+    /**
+     * How long the acks of the last messages handled are given to land before what is still on the queue
+     * is taken to be what the shutdown left behind. Scaled with the parallel suite's timeout factor,
+     * since it is the loaded box that stretches the gap this covers.
+     */
+    private const float SETTLE_SECONDS = 1.0;
+
+    /**
+     * How long a stop is given before Process::stop() gives up and sends SIGKILL. Ten seconds is its own
+     * default and is what one server on an idle machine needs; a group of four consumers finishing their
+     * messages on a box running the whole suite at once needs the same room the other waits here get,
+     * and a server killed halfway through its shutdown is exactly what this test is looking for.
+     */
+    private const float STOP_TIMEOUT_SECONDS = 10.0;
 
     private const int STARTUP_TIMEOUT_SECONDS = 60;
 
@@ -127,7 +143,7 @@ final class MessengerTaskWorkerGroupTest extends ServerTestCase
         // rather than in the draining.
         $stillQueued = $this->awaitQueueDrained();
 
-        $serverRun->stop();
+        $this->stopServer($serverRun);
 
         self::assertSame(
             [],
@@ -180,8 +196,13 @@ final class MessengerTaskWorkerGroupTest extends ServerTestCase
      * Not exactly one or the other, though - messenger delivers at least once, and the ack of a message
      * that was being handled as the worker went away need not have landed, which leaves it both handled
      * and queued for redelivery. That is correct behaviour rather than a fault, and it is bounded: a
-     * consumer holds one message at a time, so at most one per consumer can be in that state. A count
-     * over that bound is a shutdown handing back work it had already finished.
+     * consumer holds one message at a time, so at most one per consumer can be in that state - counted
+     * over the consumers that ran rather than the four of one group, since a task worker that is
+     * replaced leaves the replacement's four able to be holding one each as well.
+     *
+     * The row itself says which of the two a message in both places is. Still marked delivered, and it
+     * is the row a consumer was holding. Not marked, and it is a second row for a message already
+     * finished - the message was handed back rather than left in flight, which no shutdown excuses
      *
      * Four consumers stopping at once is also where the stop path itself is under the most pressure:
      * every one of them acknowledges the stop and finishes from a coroutine of its own, and the wait
@@ -210,7 +231,7 @@ final class MessengerTaskWorkerGroupTest extends ServerTestCase
             'The group never got going, so this stopped nothing mid-flight.',
         );
 
-        $serverRun->stop();
+        $this->stopServer($serverRun);
 
         $output = $serverRun->getOutput() . $serverRun->getErrorOutput();
 
@@ -222,7 +243,11 @@ final class MessengerTaskWorkerGroupTest extends ServerTestCase
             'The server did not shut down cleanly, so the consumers were force-terminated.',
         );
 
+        // Read back to back, and before the assertions that query for themselves: a message handled and
+        // acked between the two reads is in neither count, and the pair is what "nothing was lost" is
+        // decided on below.
         $handled = $this->handledCount();
+        $stillQueued = $this->queueDepth(self::TRANSPORT);
 
         self::assertLessThan(
             self::STOP_MESSAGE_COUNT,
@@ -239,7 +264,6 @@ final class MessengerTaskWorkerGroupTest extends ServerTestCase
             $this->failedMessages(),
             'A handler threw. The messages are on the failure transport with the reason.',
         );
-        $stillQueued = $this->queueDepth(self::TRANSPORT);
         $accountedFor = $handled + $stillQueued;
 
         self::assertGreaterThanOrEqual(
@@ -253,15 +277,46 @@ final class MessengerTaskWorkerGroupTest extends ServerTestCase
                 self::STOP_MESSAGE_COUNT,
             ),
         );
-        self::assertLessThanOrEqual(
-            self::STOP_MESSAGE_COUNT + self::CONSUMER_COUNT,
-            $accountedFor,
+        // Measured rather than inferred from the sum: which messages are in both places is what the
+        // bound below is about, and the two of them fail with different things to say.
+        $handledButQueued = $this->settledHandledButStillQueued();
+
+        // A row nobody is holding - delivered_at null - carrying a message that was handled is a message
+        // put back after it was finished, which is the fault this test is named for. No shutdown
+        // excuses it, so the bound for these is none at all.
+        self::assertSame(
+            [],
+            array_values(array_filter(
+                $handledButQueued,
+                static fn(array $row): bool => $row['delivered_at'] === null,
+            )),
             sprintf(
-                'Handled %d and left %d on the queue, out of %d sent - more than the one message per '
-                . 'consumer that can be in flight was given back after being handled.',
+                'A message was put back on the queue after it had been handled. Handled %d and left %d '
+                . 'on the queue, out of %d sent.',
                 $handled,
                 $stillQueued,
                 self::STOP_MESSAGE_COUNT,
+            ),
+        );
+
+        // What is left is a message a consumer was still holding when its process went away, and a
+        // consumer holds one at a time - so the bound is one per consumer that ever ran. That is the
+        // four of the group for a run the group lived through, and four more for every further task
+        // worker the run went through, which is what the distinct pids count: a group whose commands
+        // end is replaced, and the replacement's consumers are four more that can each be holding one.
+        $consumersThatRan = $this->distinctCount('worker_pid') * self::CONSUMER_COUNT;
+
+        self::assertLessThanOrEqual(
+            $consumersThatRan,
+            count($handledButQueued),
+            sprintf(
+                'Handled %d and left %d on the queue, out of %d sent - more than the one message per '
+                . 'consumer that can be in flight was given back after being handled. Both handled and '
+                . 'queued: %s.',
+                $handled,
+                $stillQueued,
+                self::STOP_MESSAGE_COUNT,
+                implode(', ', $this->describeRows($handledButQueued)),
             ),
         );
     }
@@ -294,6 +349,14 @@ final class MessengerTaskWorkerGroupTest extends ServerTestCase
         $this->awaitConsumersReady($serverRun);
 
         return $serverRun;
+    }
+
+    /**
+     * Stops the server, with the shutdown given as long as every other wait here is.
+     */
+    private function stopServer(Process $serverRun): void
+    {
+        $serverRun->stop(self::STOP_TIMEOUT_SECONDS * TestToken::timeoutFactor());
     }
 
     /**
@@ -451,6 +514,72 @@ final class MessengerTaskWorkerGroupTest extends ServerTestCase
         );
 
         return array_map(static fn(mixed $headers): string => mb_substr((string) $headers, 0, 500), $rows);
+    }
+
+    /**
+     * The messages that are both handled and still on the queue, read once the counts have settled.
+     *
+     * A stop is read from outside the server, and a consumer that finished a message a moment before
+     * the reading has its ack still on the way - which shows here as a message in both places and is
+     * gone a moment later. So a run with anything in both is read a second time, and only what is still
+     * there is what the shutdown really left behind. Costs a wait on the unhappy path alone.
+     *
+     * @return list<array{message_id: string, coroutine_id: int, worker_pid: int, delivered_at: ?string}>
+     */
+    private function settledHandledButStillQueued(): array
+    {
+        $rows = $this->handledButStillQueued();
+
+        if ($rows === []) {
+            return $rows;
+        }
+
+        usleep((int) (self::SETTLE_SECONDS * TestToken::timeoutFactor() * 1_000_000));
+
+        return $this->handledButStillQueued();
+    }
+
+    /**
+     * The join is a LIKE over the serialized body, which is where the message id is - the ids are fixed
+     * width, so one cannot be a prefix of another.
+     *
+     * @return list<array{message_id: string, coroutine_id: int, worker_pid: int, delivered_at: ?string}>
+     */
+    private function handledButStillQueued(): array
+    {
+        /** @var list<array{message_id: string, coroutine_id: int, worker_pid: int, delivered_at: ?string}> $rows */
+        $rows = $this->connection()->fetchAllAssociative(
+            'SELECT c.message_id, c.coroutine_id, c.worker_pid, m.delivered_at FROM consumed_message c '
+            . 'JOIN messenger_messages m ON m.body LIKE CONCAT(\'%\', c.message_id, \'%\') '
+            . 'WHERE m.queue_name = ? ORDER BY c.message_id',
+            [self::TRANSPORT],
+        );
+
+        return $rows;
+    }
+
+    /**
+     * Names the rows for a failure message.
+     *
+     * delivered_at separates the two ways a handled message can still be on the queue: still set means
+     * the consumer was holding it when its process went away, and null means this is a different row
+     * from the one that was handled - the message was put back.
+     *
+     * @param list<array{message_id: string, coroutine_id: int, worker_pid: int, delivered_at: ?string}> $rows
+     * @return list<string>
+     */
+    private function describeRows(array $rows): array
+    {
+        return array_map(
+            static fn(array $row): string => sprintf(
+                '%s (consumer #%d, pid %d, %s)',
+                $row['message_id'],
+                $row['coroutine_id'],
+                $row['worker_pid'],
+                $row['delivered_at'] === null ? 'put back' : 'in delivery since ' . $row['delivered_at'],
+            ),
+            $rows,
+        );
     }
 
     /**
