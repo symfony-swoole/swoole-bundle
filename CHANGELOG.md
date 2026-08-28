@@ -1,3 +1,16 @@
+# [0.34.0](https://github.com/symfony-swoole/swoole-bundle/compare/v0.33.0...v0.34.0) (2026-08-28)
+
+[Full changelog](https://github.com/symfony-swoole/swoole-bundle/compare/v0.33.0...v0.34.0)
+
+### Bug Fixes
+
+* **watcher:** watcher ensures that old server instance is not running anymore ([#390](https://github.com/symfony-swoole/swoole-bundle/issues/390)) ([8258f93](https://github.com/symfony-swoole/swoole-bundle/commit/8258f931890c7f20638faa635c4f670c6989475d))
+
+
+### Features
+
+* **xdebug:** improved xdebug support ([#391](https://github.com/symfony-swoole/swoole-bundle/issues/391)) ([87845ea](https://github.com/symfony-swoole/swoole-bundle/commit/87845ea488a2f40d43b14174a94d215bc068ecc6))
+
 # [0.33.0](https://github.com/symfony-swoole/swoole-bundle/compare/v0.32.0...v0.33.0) (2026-08-26)
 
 [Full changelog](https://github.com/symfony-swoole/swoole-bundle/compare/v0.32.0...v0.33.0)
