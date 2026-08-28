@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Blackfire\Client;
 use SwooleBundle\SwooleBundle\Bridge\Upscale\Blackfire\Profiling\ProfilerActivator;
+use SwooleBundle\SwooleBundle\Bridge\Upscale\Blackfire\Profiling\UpscaleProfilerActivator;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Blackfire\CollectionProfiler;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Controller\CoroutinesTaskController;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\DependencyInjection\CompilerPass\{
@@ -112,6 +113,8 @@ return static function (ContainerConfigurator $containerConfigurator): void {
     $services->set(CollectionProfiler::class)
         ->arg('$client', service(Client::class));
 
-    $services->set(ProfilerActivator::class)
+    // Named with the implementation, because a service keeps its id as its class when none is given -
+    // and this id is an interface, which "lint:container" reports as a class with no constructor.
+    $services->set(ProfilerActivator::class, UpscaleProfilerActivator::class)
         ->arg('$profiler', service(CollectionProfiler::class));
 };
