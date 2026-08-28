@@ -50,6 +50,8 @@
         "upscale/ext-swoole": "^6.2.2"
     },
     "require-dev": {
+        "ext-ffi": "^8.3",
+        "ext-intl": "*",
         "blackfire/php-sdk": "^2.5",
         "brianium/paratest": "^7.20",
         "doctrine/dbal": "^3.7 || ^4.0",
@@ -59,8 +61,6 @@
         "doctrine/orm": "^2.17 || ^3.0",
         "doctrine/persistence": "^3.2 || ^4.0",
         "donatj/mock-webserver": "^2.9",
-        "ext-ffi": "^8.3",
-        "ext-intl": "*",
         "friendsofphp/php-cs-fixer": "^3.94",
         "jangregor/phpstan-prophecy": "^2.3",
         "openswoole/core": "^26.2.0",
@@ -81,7 +81,7 @@
         "slevomat/coding-standard": "^8.22",
         "squizlabs/php_codesniffer": "^4.0",
         "swoole-bundle/resetter-bundle": "^2.0",
-        "swoole-bundle/z-engine": "8.3.1|8.4.1|8.5.1",
+        "swoole-bundle/z-engine": "8.3.2|8.4.2|8.5.2",
         "swoole/ide-helper": "^6.0.0",
         "symfony/debug-bundle": "^7.4|^8.0",
         "symfony/doctrine-messenger": "^7.4|^8.0",

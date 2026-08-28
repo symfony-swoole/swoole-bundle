@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "f5a5b5dfde38e24954fada5ea7bdb1f0",
+    "content-hash": "215fe9bc0553f0aef06c66dbf8dc64a6",
     "packages": [
         {
             "name": "beberlei/assert",
@@ -10067,16 +10067,16 @@
         },
         {
             "name": "swoole-bundle/z-engine",
-            "version": "8.3.1",
+            "version": "8.3.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony-swoole/z-engine.git",
-                "reference": "ce8de9a5ab7a42407278a4b068dc370e9910784c"
+                "reference": "03fa1715e7b5f1669deabed803b1ab72ffc7fc8f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony-swoole/z-engine/zipball/ce8de9a5ab7a42407278a4b068dc370e9910784c",
-                "reference": "ce8de9a5ab7a42407278a4b068dc370e9910784c",
+                "url": "https://api.github.com/repos/symfony-swoole/z-engine/zipball/03fa1715e7b5f1669deabed803b1ab72ffc7fc8f",
+                "reference": "03fa1715e7b5f1669deabed803b1ab72ffc7fc8f",
                 "shasum": ""
             },
             "require": {
@@ -10104,9 +10104,9 @@
             ],
             "description": "Library that provides direct access to native PHP structures",
             "support": {
-                "source": "https://github.com/symfony-swoole/z-engine/tree/8.3.1"
+                "source": "https://github.com/symfony-swoole/z-engine/tree/8.3.2"
             },
-            "time": "2025-11-30T12:45:30+00:00"
+            "time": "2026-08-28T07:56:20+00:00"
         },
         {
             "name": "swoole/ide-helper",

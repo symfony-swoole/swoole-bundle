@@ -178,16 +178,30 @@ final class TaskWorkerCommandsSurviveWorkerReplacementTest extends ServerTestCas
         usleep((int) ($seconds * TestToken::timeoutFactor() * 1_000_000));
     }
 
+    /**
+     * The pid the command in $slot is running on, waited for rather than read once.
+     *
+     * The recycle case rewrites this file every couple of seconds - every replacement command opens it
+     * and writes its own "started" line - so a sample can legitimately land while there is no line in it
+     * to read. Waiting one scaled second covers that, and a command that never started still fails,
+     * only later.
+     */
     private function pidOf(string $slot): string
     {
         $path = TaskWorkerHeartbeatCommand::filePath($slot);
+        $deadline = microtime(true) + TestToken::timeoutFactor();
 
-        self::assertFileExists($path, sprintf('Command "%s" never started in a task worker.', $slot));
+        do {
+            $contents = file_exists($path) ? (string) file_get_contents($path) : '';
 
-        $contents = (string) file_get_contents($path);
-        self::assertSame(1, preg_match('/^started pid=(\d+)$/m', $contents, $matches));
+            if (preg_match('/^started pid=(\d+)$/m', $contents, $matches) === 1) {
+                return $matches[1];
+            }
 
-        return $matches[1];
+            usleep(20_000);
+        } while (microtime(true) < $deadline);
+
+        self::fail(sprintf('Command "%s" never started in a task worker.', $slot));
     }
 
     private function deleteHeartbeatFiles(): void
