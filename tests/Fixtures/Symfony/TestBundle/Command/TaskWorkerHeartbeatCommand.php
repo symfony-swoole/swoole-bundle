@@ -75,7 +75,13 @@ final class TaskWorkerHeartbeatCommand extends Command
         $ticks = 0;
 
         $path = self::filePath($slot);
-        file_put_contents($path, sprintf("started pid=%d\n", getmypid()));
+        // Written through a rename, so that a reader outside the server never catches the file between
+        // its truncation and the write. file_put_contents() does those in two steps - and with the
+        // coroutine file hook on, two steps with a yield between them - which is wide enough on a loaded
+        // build box for a test sampling the file to read it empty. A rename cannot be observed half done.
+        $startedFile = sprintf('%s.%d.tmp', $path, getmypid());
+        file_put_contents($startedFile, sprintf("started pid=%d\n", getmypid()));
+        rename($startedFile, $path);
 
         while (!$this->stopRequested) {
             // Hooked under coroutines, so this yields and lets the watchdog coroutine run; a plain
