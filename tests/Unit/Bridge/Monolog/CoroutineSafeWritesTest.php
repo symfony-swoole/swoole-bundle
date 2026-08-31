@@ -163,6 +163,106 @@ final class CoroutineSafeWritesTest extends TestCase
     }
 
     /**
+     * The counterpart to the case below: what is stripped on the way into the queue must be nothing the
+     * log was going to say.
+     *
+     * It is not, because Monolog formats before it writes - `AbstractProcessingHandler::handle()` runs the
+     * processors, sets `$record->formatted` and only then calls `write()`. The context, the extra and
+     * whatever a processor added are already rendered into that string by the time the queue sees it, and
+     * a stream handler reads nothing else. The default line format is used here on purpose: it is the one
+     * that renders both, so a record that lost them would show it.
+     */
+    public function testTheWrittenLineStillCarriesTheContextAndTheExtra(): void
+    {
+        $swoole = $this->swoole();
+        $logFile = sprintf('%s/rendered.log', $this->logDir);
+
+        $handler = new StreamHandler($logFile, Level::Debug);
+        $handler->setSwoole($swoole);
+        $handler->setFormatter(new LineFormatter());
+
+        $swoole->enableCoroutines();
+
+        try {
+            $scheduler = new Scheduler();
+            $scheduler->add(static function () use ($handler): void {
+                $handler->handle(new LogRecord(
+                    new DateTimeImmutable(),
+                    'test',
+                    Level::Warning,
+                    'something went wrong',
+                    ['order' => 'ord-42'],
+                    ['worker' => 'task-1'],
+                ));
+            });
+            $scheduler->start();
+        } finally {
+            $swoole->disableCoroutines();
+        }
+
+        $handler->close();
+
+        $line = $this->readLines($logFile)[0] ?? '';
+
+        self::assertStringContainsString('something went wrong', $line);
+        self::assertStringContainsString('ord-42', $line, 'The context was dropped instead of written.');
+        self::assertStringContainsString('task-1', $line, 'The extra was dropped instead of written.');
+        self::assertStringContainsString('test.WARNING', $line);
+    }
+
+    /**
+     * A record is released where it was logged, never where it was written.
+     *
+     * The consumer holds a payload until it pops the next one, so anything a record still references is
+     * destructed in the consumer's coroutine - and a record carries more than it looks. An exception in
+     * the context brings its trace, and PHP keeps every frame's arguments, so one failed HTTP call puts a
+     * live response in there whose destructor tears down its buffer stream and its connection state. With
+     * fiber context checking on, that is the worker gone rather than a warning.
+     *
+     * The tripwire stands in for all of it: nothing but the formatted line may reach the consumer.
+     */
+    public function testWhatARecordCarriesIsReleasedInTheCoroutineThatLoggedIt(): void
+    {
+        $swoole = $this->swoole();
+        $logFile = sprintf('%s/context.log', $this->logDir);
+
+        $handler = new StreamHandler($logFile, Level::Debug);
+        $handler->setSwoole($swoole);
+        $handler->setFormatter(new LineFormatter("%message%\n"));
+
+        $site = new DestructionSite();
+
+        $swoole->enableCoroutines();
+
+        try {
+            $scheduler = new Scheduler();
+            $scheduler->add(static function () use ($handler, $site): void {
+                $site->noteTheCoroutineLoggingHere();
+
+                $handler->handle(new LogRecord(
+                    new DateTimeImmutable(),
+                    'test',
+                    Level::Info,
+                    'carrying something with a destructor',
+                    ['tripwire' => new DestructionTripwire($site)],
+                ));
+            });
+            $scheduler->start();
+        } finally {
+            $swoole->disableCoroutines();
+        }
+
+        $handler->close();
+
+        self::assertSame(['carrying something with a destructor'], $this->readLines($logFile));
+        self::assertSame(
+            $site->loggedIn(),
+            $site->destroyedIn(),
+            'The context outlived the coroutine that logged it and was released by the write queue.',
+        );
+    }
+
+    /**
      * The rotating handler closes itself from within its own write() to trigger a rotation, which makes it
      * reenter the queue it is being consumed by.
      */

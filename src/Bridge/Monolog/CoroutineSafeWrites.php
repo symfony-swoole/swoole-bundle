@@ -64,9 +64,38 @@ trait CoroutineSafeWrites
         });
     }
 
+    /**
+     * Queues the line, and deliberately not the record that produced it.
+     *
+     * Monolog formats before it writes - `AbstractProcessingHandler::handle()` sets `$record->formatted`
+     * and only then calls this - so by here the bytes already exist and the record is of no further use
+     * to a stream handler, which reads nothing but `formatted`.
+     *
+     * That distinction is the whole of this method. A payload is held by the consumer until it pops the
+     * next one, so whatever a record still references is finally released **in the consumer's coroutine**
+     * rather than in the one that logged - and released means destructed. A record carries far more than
+     * it looks: anything logged with an exception in its context carries that exception's trace, and PHP
+     * keeps every frame's *arguments* unless `zend.exception_ignore_args` is on. One failed HTTP call is
+     * enough to put a live response in there, whose destructor then tears down its buffer stream and its
+     * connection's DNS cache from a coroutine that never made the request. With fiber context checking on
+     * that is not a warning, it is the worker gone - measured at twenty-eight dead workers in a single
+     * end-to-end run, from calls that had merely failed.
+     *
+     * Stripping the context and the extra leaves a record of scalars, an enum and a DateTimeImmutable:
+     * nothing whose destruction anybody can observe. It cannot go stale either, since the formatter has
+     * already read them.
+     *
+     * Ownership release is the other tool for handing an object between coroutines, and it cannot reach
+     * this: it works from a declared class and property, and a value sitting in an exception's trace
+     * arguments is on no property path at all.
+     */
     protected function write(LogRecord $record): void
     {
-        $this->writeQueue()->submit($record);
+        $this->writeQueue()->submit($record->with(
+            context: [],
+            extra: [],
+            formatted: $record->formatted,
+        ));
     }
 
     /**
