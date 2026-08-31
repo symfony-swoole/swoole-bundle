@@ -428,6 +428,21 @@ final readonly class Configuration implements ConfigurationInterface
                 ->end() // task_worker
                 ->arrayNode('platform')
                     ->children()
+                        ->arrayNode('logging')
+                            ->addDefaultsIfNotSet()
+                            ->children()
+                                ->booleanNode('worker_context')
+                                    ->info(
+                                        'Adds worker, cid and command to the extra of every monolog '
+                                        . 'record, so a line of a log every worker and every coroutine '
+                                        . 'writes to says which of them wrote it. Off by default, '
+                                        . 'because it changes what every log line looks like.'
+                                    )
+                                    ->defaultFalse()
+                                    ->treatNullLike(false)
+                                ->end()
+                            ->end()
+                        ->end()
                         ->arrayNode('fiber_context')
                             ->addDefaultsIfNotSet()
                             ->children()

@@ -194,6 +194,11 @@ swoole:
         - 'messenger:consume scheduling --memory-limit=170M'
         - 'app:projection:run --memory-limit=170M'
   platform:
+    # Says on every log record which worker, which coroutine and which console command wrote it, as
+    # `worker`, `cid` and `command` in the record's extra.
+    # See docs/swoole-logging-context.md.
+    logging:
+      worker_context: true # default false, since it changes what every line of an existing log looks like
     fiber_context: 
       enabled: auto # can be one of: auto, true, false (default: auto, runtime change only works for openswoole, for swoole use ini setting to enable)
     # EXPERIMENTAL. Opens step-debugging sessions from PHP, which is the only way to debug a swoole

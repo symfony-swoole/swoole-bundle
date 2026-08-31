@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Bridge\OpenSwoole;
 
+use ArrayObject;
 use OpenSwoole\Coroutine;
 use OpenSwoole\Runtime;
 use OpenSwoole\Util;
@@ -45,6 +46,21 @@ final class OpenSwoole extends CommonSwoole
     public function getCoroutineId(): int
     {
         return Coroutine::getCid();
+    }
+
+    /**
+     * @return ArrayObject<array-key, mixed>|null
+     */
+    public function getCoroutineContext(int $cid): ?ArrayObject
+    {
+        return Coroutine::getContext($cid);
+    }
+
+    public function getParentCoroutineId(int $cid): int
+    {
+        $parent = Coroutine::getPcid($cid);
+
+        return $parent > 0 ? $parent : 0;
     }
 
     /**

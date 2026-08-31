@@ -43,6 +43,7 @@ use SwooleBundle\SwooleBundle\Bridge\Symfony\Messenger\ExceptionLoggingTransport
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Messenger\ServiceResettingTransportHandler;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Router\LockingConfigCacheFactory;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Router\LockingLoader;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\RunningCommand;
 use SwooleBundle\SwooleBundle\Common\Adapter\Swoole;
 use SwooleBundle\SwooleBundle\Common\System\Extension;
 use SwooleBundle\SwooleBundle\Common\System\System;
@@ -538,6 +539,13 @@ return static function (ContainerConfigurator $containerConfigurator): void {
 
     $services->set(HttpServerFactory::class)
         ->arg('$swoole', service(Swoole::class));
+
+    // Registered whether or not any task worker commands are configured: the command a log line belongs
+    // to is asked for by anything that logs, and a console command run from a supervisor is an answer
+    // this can give without a server being involved at all.
+    $services->set(RunningCommand::class)
+        ->arg('$swoole', service(Swoole::class))
+        ->public();
 
     $services->set(LockingLoader::class)
         ->arg(

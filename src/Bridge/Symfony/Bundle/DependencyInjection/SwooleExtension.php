@@ -14,6 +14,8 @@ use RuntimeException;
 use SwooleBundle\SwooleBundle\Bridge\CommonSwoole\SystemSwooleFactory;
 use SwooleBundle\SwooleBundle\Bridge\Log\AccessLogFormatter;
 use SwooleBundle\SwooleBundle\Bridge\Log\SimpleAccessLogFormatter;
+use SwooleBundle\SwooleBundle\Bridge\Monolog\WorkerContextProcessor;
+use SwooleBundle\SwooleBundle\Bridge\Monolog\WorkerIdentity;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\EventDispatcher\DebugClassLoaderOverridingWorkerStartHandler;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\ServicePool\ServicePoolContainer;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\StabilityChecker;
@@ -22,6 +24,7 @@ use SwooleBundle\SwooleBundle\Bridge\Symfony\ErrorHandler\ErrorResponder;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\ErrorHandler\ExceptionHandlerFactory;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\ErrorHandler\SymfonyExceptionHandler;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\ErrorHandler\ThrowableHandlerFactory;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Event\WorkerStartedEvent;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation\AccessLogOnKernelTerminate;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation\CloudFrontRequestFactory;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation\RequestFactory;
@@ -38,6 +41,7 @@ use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\CommandGroupRunner;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\Exception\CommandNotRunnable;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\LongRunningCommandsWorkerStartHandler;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\RaiseStopSignalOnWorkerShutdown;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\RunningCommand;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\StopMessengerWorkerOnShutdown;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\StreamCommandOutputFactory;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\TaskWorkerCommands;
@@ -91,6 +95,7 @@ use SwooleBundle\SwooleBundle\Server\WorkerHandler\WorkerStartHandler;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\Config\FileLocator;
+use Symfony\Component\Console\ConsoleEvents;
 use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
@@ -135,6 +140,9 @@ use ZEngine\Core;
  *   commands?: array<int, list<string>>,
  * }
  * @phpstan-type PlatformConfig = array{
+ *   logging: array{
+ *     worker_context: bool,
+ *   },
  *   fiber_context: array{
  *     enabled: 'auto'|'off'|'on',
  *   },
@@ -283,6 +291,7 @@ final class SwooleExtension extends Extension
         }
 
         $this->configureXdebug($config['platform']['xdebug'] ?? null, $container);
+        $this->configureLogging($config['platform']['logging'] ?? null, $container);
 
         $swooleSettings = isset($config['platform'])
             ? $this->configurePlatform($config['platform'], $maxConcurrency, $container)
@@ -308,6 +317,57 @@ final class SwooleExtension extends Extension
     public function getConfiguration(array $config, ContainerBuilder $container): Configuration
     {
         return Configuration::fromTreeBuilder();
+    }
+
+    /**
+     * Registers the monolog processor that says which worker, coroutine and command a line came from.
+     *
+     * Not part of configurePlatform() for the same reason xdebug is not: it returns as soon as it sees
+     * coroutines disabled, and a server without them still writes one log from several processes.
+     *
+     * Off unless asked for. Everything here lands in the `extra` of every record, which the default
+     * formatter prints - so turning it on unasked would change what every line of an existing
+     * application's log looks like.
+     *
+     * @param array{worker_context: bool}|null $config
+     */
+    private function configureLogging(?array $config, ContainerBuilder $container): void
+    {
+        if ($config === null || !$config['worker_context']) {
+            return;
+        }
+
+        $container->register(WorkerIdentity::class)
+            ->setPublic(false)
+            ->setAutowired(false)
+            ->setAutoconfigured(false)
+            ->addTag('kernel.event_listener', [
+                'event' => WorkerStartedEvent::NAME,
+                'method' => 'onWorkerStarted',
+            ]);
+
+        // Both tags land on the service registered in services.php, which exists whether or not this
+        // processor does: what a task worker is running is recorded by the runner either way.
+        $container->getDefinition(RunningCommand::class)
+            ->addTag('kernel.event_listener', [
+                'event' => ConsoleEvents::COMMAND,
+                'method' => 'recordConsoleCommand',
+            ])
+            // A worker inherits the master's `swoole:server:run` through the fork, and nothing it goes
+            // on to do belongs to that command.
+            ->addTag('kernel.event_listener', [
+                'event' => WorkerStartedEvent::NAME,
+                'method' => 'forget',
+            ]);
+
+        $container->register(WorkerContextProcessor::class)
+            ->setPublic(false)
+            ->setAutowired(false)
+            ->setAutoconfigured(false)
+            ->setArgument('$worker', new Reference(WorkerIdentity::class))
+            ->setArgument('$runningCommand', new Reference(RunningCommand::class))
+            ->setArgument('$swoole', new Reference(Swoole::class))
+            ->addTag('monolog.processor');
     }
 
     /**
@@ -1061,6 +1121,7 @@ final class SwooleExtension extends Extension
             ->setArgument('$outputFactory', new Reference(StreamCommandOutputFactory::class))
             ->setArgument('$stopSignal', new Reference(WorkerStopSignal::class))
             ->setArgument('$retirement', new Reference(WorkerRetirement::class))
+            ->setArgument('$runningCommand', new Reference(RunningCommand::class))
             ->setArgument('$swoole', new Reference(Swoole::class))
             ->setArgument('$logger', new Reference('logger'))
             ->addTag('monolog.logger', [
