@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Tests\Unit\Server;
 
+use ArrayObject;
 use SwooleBundle\SwooleBundle\Common\Adapter\Swoole;
 use SwooleBundle\SwooleBundle\Common\Adapter\WaitGroup;
 use SwooleBundle\SwooleBundle\Tests\Helper\SwooleFactoryFactory;
@@ -97,6 +98,21 @@ final class SwooleSpy implements Swoole
     public function getCoroutineId(): int
     {
         return -1;
+    }
+
+    /**
+     * @return ArrayObject<array-key, mixed>|null
+     */
+    public function getCoroutineContext(int $cid): ?ArrayObject
+    {
+        // not needed for tests
+        return null;
+    }
+
+    public function getParentCoroutineId(int $cid): int
+    {
+        // not needed for tests
+        return 0;
     }
 
     /**

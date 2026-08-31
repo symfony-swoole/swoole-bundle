@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Common\Adapter;
 
+use ArrayObject;
+
 interface Swoole
 {
     public function tick(int $intervalMs, callable $callbackFunction, mixed ...$params): int|bool;
@@ -29,6 +31,24 @@ interface Swoole
     public function disableCoroutines(): void;
 
     public function getCoroutineId(): int;
+
+    /**
+     * The key-value store a coroutine carries for its own use, or null when nothing is running under
+     * that id - which is both a coroutine that has already returned and a process with no scheduler.
+     *
+     * A coroutine does not inherit its parent's store, so anything meant to be visible to the
+     * coroutines below it is found by walking up {@see self::getParentCoroutineId()} rather than by
+     * reading this one.
+     *
+     * @return ArrayObject<array-key, mixed>|null
+     */
+    public function getCoroutineContext(int $cid): ?ArrayObject;
+
+    /**
+     * The coroutine that spawned the given one, or 0 when it has no parent - which covers a top level
+     * coroutine, a cid that has already gone, and being asked outside a coroutine at all.
+     */
+    public function getParentCoroutineId(int $cid): int;
 
     /**
      * @return array<string, mixed>

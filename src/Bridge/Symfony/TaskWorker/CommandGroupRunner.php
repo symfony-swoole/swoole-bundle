@@ -43,6 +43,7 @@ final readonly class CommandGroupRunner implements CommandGroupExecutor
         private CommandOutputFactory $outputFactory,
         private WorkerStopSignal $stopSignal,
         private WorkerRetirement $retirement,
+        private RunningCommand $runningCommand,
         private Swoole $swoole,
         private LoggerInterface $logger,
         private int $stopPollIntervalMs = 100,
@@ -141,6 +142,10 @@ final readonly class CommandGroupRunner implements CommandGroupExecutor
         if ($this->swoole->getCoroutineId() > 0) {
             $this->watch($resolved, $state, $running);
         }
+
+        // Said in this coroutine, and after the watchdog has its own: a lookup reads the context of the
+        // coroutine it is asked in, walking up to here, so the two orders are the same to it.
+        $this->runningCommand->record($commandLine);
 
         try {
             $exitCode = $resolved->run($this->outputFactory->newOutput($commandLine));

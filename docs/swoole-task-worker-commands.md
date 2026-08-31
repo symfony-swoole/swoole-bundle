@@ -367,6 +367,11 @@ task transport.**
 - **Every command runs in every replica.** These are workers of a server, so scaling the deployment
   to three pods runs three copies of each configured command. That is usually what you want for a
   messenger consumer and rarely what you want for a singleton job.
+- **Telling the commands apart in the log.** A group shares one process, so the process says nothing
+  about which of its commands wrote a line - two projection runners differing only in a `--group` are
+  indistinguishable in the log without help. `platform.logging.worker_context` puts the command on
+  every record, along with the worker and the coroutine; see
+  [worker, coroutine and command on every log record](swoole-logging-context.md).
 
 ## Requirements
 

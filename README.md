@@ -117,6 +117,8 @@ Symfony integration with [Open Swoole](https://openswoole.com/) and [Swoole](htt
 
 -   Access logs, (disabled by default) logs are configurable is a same way as apache mod log. Documentation of this feature is available [here](docs/swoole-access-logs.md).
 
+-   Worker, coroutine and command on every log record (disabled by default), because a server writes one log from many processes at once and, inside each of them, from many coroutines at once - so without it nothing on a line says which request, which message or which of a task worker's commands wrote it. Documentation of this feature is available [here](docs/swoole-logging-context.md).
+
 -   Liveness endpoint (disabled by default) on a port of its own, served by a dedicated process so that it keeps answering while every worker is busy. Projects can contribute their own checks to it. Documentation of this feature is available [here](docs/swoole-health.md).
 
 -   Console commands for running, supervising and inspecting the server, plus a `swoole:debug:service-pools` command and a `debug:container` that reports the coroutine service pools. Documentation of every command is available [here](docs/console-commands.md).
