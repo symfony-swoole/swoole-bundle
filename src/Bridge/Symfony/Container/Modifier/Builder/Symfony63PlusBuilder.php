@@ -126,7 +126,8 @@ final class Symfony63PlusBuilder implements Builder
             }
             EOF;
 
-        $fs->copy($containerFile, $overriddenFile);
+        // No copy before it: dumpFile writes the whole file anyway, and a copy is a second, non-atomic
+        // write of content nobody ever reads.
         $fs->dumpFile($overriddenFile, $overriddenSource);
         $fs->dumpFile($containerFile, $newContainerSource);
         $this->overrideCachedEntrypoint($fs, $cacheDir, $containerClass, $overriddenFqcn, $isDebug);
@@ -144,7 +145,13 @@ final class Symfony63PlusBuilder implements Builder
             throw new RuntimeException(sprintf('Could not read container directory "%s".', $containerDirectory));
         }
 
-        $filteredFiles = array_filter($files, static fn(string $fileName): bool => str_starts_with($fileName, 'get'));
+        // Ending in .php as well as starting with get, because a directory being written by another process
+        // holds its temporary files too - Filesystem::dumpFile() writes `getFooService.php6ee1r0` and
+        // renames it into place - and those are gone by the time this would read them.
+        $filteredFiles = array_filter(
+            $files,
+            static fn(string $fileName): bool => str_starts_with($fileName, 'get') && str_ends_with($fileName, '.php'),
+        );
 
         foreach ($filteredFiles as $fileName) {
             $class = str_replace('.php', '', $fileName);
@@ -406,7 +413,10 @@ final class Symfony63PlusBuilder implements Builder
         $codeExtractor = new ContainerSourceCodeExtractor($origContent);
         $overriddenContent = str_replace($class, $overriddenClass, $origContent);
         $overriddenContent = str_replace('self::do(', 'static::do(', $overriddenContent);
-        $fs->rename($fullPath, $fullOverriddenPath, true);
+        // Written, not renamed into place. The rename that used to be here moved the generated factory out
+        // of the way and was then overwritten by this same dump, so its only lasting effect was a moment in
+        // which the path Symfony's container includes did not exist at all - long enough for another process
+        // to fail on it. The factory below replaces it in one atomic write instead.
         $fs->dumpFile($fullOverriddenPath, $overriddenContent);
         require_once $fullOverriddenPath;
         $reflClass = new ReflectionClass($overriddenFqcn);
