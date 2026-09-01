@@ -184,7 +184,7 @@ final class Symfony63PlusBuilder implements Builder
     private static function generateOverrideOriginalContainerLoad(): string
     {
         return <<<'EOF'
-                protected function load(string $file)
+                protected function load(string $file): mixed
                 {
                     self::$mutex->acquire();
 
