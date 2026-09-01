@@ -68,6 +68,7 @@
     <exclude name="SlevomatCodingStandard.Functions.DisallowNamedArguments"/>
     <exclude name="SlevomatCodingStandard.Operators.DisallowIncrementAndDecrementOperators"/>
     <exclude name="SlevomatCodingStandard.TypeHints.UnionTypeHintFormat"/>
+    <exclude name="SlevomatCodingStandard.Commenting.DocCommentSpacing.IncorrectLinesCountBetweenDescriptionAndAnnotations"/>
   </rule>
 
   <rule ref="SlevomatCodingStandard.Namespaces.ReferenceUsedNamesOnly">
