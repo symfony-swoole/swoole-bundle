@@ -113,7 +113,10 @@ final class SwooleServerCoroutinesTest extends ServerTestCase
                     $this->assertStringContainsString('TmpRepo was proxified.', $response['body']);
                     $this->assertStringContainsString('TmpRepo limit is 15.', $response['body']);
                     $this->assertStringContainsString('Connection limit is 12.', $response['body']);
-                    $this->assertStringContainsString('Service pool for NonShared was added.', $response['body']);
+                    $this->assertStringContainsString(
+                        'Service pool for NonShared is pooled and pool count is stable.',
+                        $response['body']
+                    );
 
                     $wg->done();
                 });
