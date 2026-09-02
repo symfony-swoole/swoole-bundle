@@ -110,7 +110,6 @@ final class Proxifier implements ServiceProxifier
         $wrappedServiceId = sprintf('%s.swoole_coop.wrapped', $serviceId);
         $svcPoolDef = $this->prepareServicePool($wrappedServiceId, $serviceDef, $serviceTags);
         $svcPoolServiceId = sprintf('%s.swoole_coop.service_pool', $serviceId);
-        $wasShared = $serviceDef->isShared();
         $proxyDef = $this->prepareProxy($svcPoolServiceId, $serviceDef);
         $this->prepareProxifiedService($serviceDef);
         $serviceDef->clearTags();
@@ -118,11 +117,6 @@ final class Proxifier implements ServiceProxifier
         $this->container->setDefinition($svcPoolServiceId, $svcPoolDef);
         $this->container->setDefinition($serviceId, $proxyDef); // proxy swap
         $this->container->setDefinition($wrappedServiceId, $serviceDef); // old service for copying
-
-        // new pools will be registered in the container on their instantiation
-        if (!$wasShared) {
-            return;
-        }
 
         $customResetter = null;
         $serviceTag = $serviceTags->findStatefulServiceTag();
@@ -188,11 +182,15 @@ final class Proxifier implements ServiceProxifier
     private function prepareServicePool(string $wrappedServiceId, Definition $serviceDef, Tags $serviceTags): Definition
     {
         $svcPoolDef = new Definition(DiServicePool::class);
-        $svcPoolDef->setShared($serviceDef->isShared());
-
-        if (!$serviceDef->isShared()) {
-            $svcPoolDef->setConfigurator([new Reference(NonSharedSvcPoolConfigurator::class), 'configure']);
-        }
+        // The pool is always one instance per worker. BaseServicePool does its own
+        // per-coroutine assignment and freePool reuse, and newServiceInstance() fetches a
+        // fresh instance from the (non-shared) wrapped service, so a shared pool already
+        // gives every coroutine its own service instance. Previously a non-shared wrapped
+        // service produced a non-shared pool with a runtime configurator that appended a
+        // fresh ServicePoolEntry to the never-pruned ServicePoolContainer on every fetch -
+        // an unbounded per-request heap leak for any non-shared stateful service
+        // (router.default, translator.default, every cache.*.traceable, ...).
+        $svcPoolDef->setShared(true);
 
         $svcPoolDef->setArgument(0, $wrappedServiceId);
         $svcPoolDef->setArgument(1, new Reference('service_container'));
