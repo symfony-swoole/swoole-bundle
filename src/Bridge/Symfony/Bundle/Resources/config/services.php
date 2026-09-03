@@ -10,8 +10,6 @@ use SwooleBundle\SwooleBundle\Bridge\CommonSwoole\SystemSwooleFactory;
 use SwooleBundle\SwooleBundle\Bridge\Doctrine\ORM\EntityManagerStabilityChecker;
 use SwooleBundle\SwooleBundle\Bridge\OpenSwoole\Metrics\MetricsProvider as OpenSwooleMetricsProvider;
 use SwooleBundle\SwooleBundle\Bridge\Swoole\Metrics\MetricsProvider as SwooleMetricsProvider;
-use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices\{
-    NonSharedSvcPoolConfigurator,};
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\EventDispatcher\EventDispatchingServerStartHandler;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\EventDispatcher\EventDispatchingWorkerErrorHandler;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\EventDispatcher\EventDispatchingWorkerExitHandler;
@@ -488,9 +486,6 @@ return static function (ContainerConfigurator $containerConfigurator): void {
 
     $services->set('kernel_proxy', Kernel::class)
         ->factory([service(KernelCloner::class), 'clone']);
-
-    $services->set(NonSharedSvcPoolConfigurator::class)
-        ->arg('$container', service(ServicePoolContainer::class));
 
     $services->set(OpenSwooleMetricsProvider::class)
         ->tag('swoole_bundle.metrics_provider', [

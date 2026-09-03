@@ -42,9 +42,15 @@ final class SleepController
     #[Route(path: '/sleep', methods: ['GET'])]
     public function index(): Response
     {
-        $firstCount = $this->servicePoolContainer->count();
-        $this->nonShared[] = $this->container->get(NonSharedExample::class);
-        $poolWasAdded = $this->servicePoolContainer->count() > $firstCount;
+        $poolCountBefore = $this->servicePoolContainer->count();
+        $nonShared = $this->container->get(NonSharedExample::class);
+        $this->nonShared[] = $nonShared;
+        // Fetch again: the old runtime configurator appended a fresh ServicePoolEntry on every fetch
+        // (an unbounded per-request leak). The pool is now registered once at compile time, so the
+        // count must not move regardless of how many times the non-shared service is pulled.
+        $this->container->get(NonSharedExample::class);
+        $nonSharedIsPooled = $nonShared instanceof ContextualProxy;
+        $poolCountStable = $this->servicePoolContainer->count() === $poolCountBefore;
 
         $this->sleepingCounter->sleepAndCount();
         $counter = $this->sleepingCounter->getCounter();
@@ -86,7 +92,8 @@ final class SleepController
                     . "Service2 limit is {$limit}. TmpRepo {$isProxified3} proxified. "
                     . "TmpRepo limit is {$limit2}. "
                     . "Connection limit is {$connlimit}.</body></html> "
-                    . 'Service pool for NonShared was ' . ($poolWasAdded ? '' : 'NOT ') . 'added.'
+                    . 'Service pool for NonShared is ' . ($nonSharedIsPooled ? 'pooled' : 'NOT pooled')
+                    . ' and pool count is ' . ($poolCountStable ? 'stable' : 'GROWING') . '.'
         );
     }
 }
