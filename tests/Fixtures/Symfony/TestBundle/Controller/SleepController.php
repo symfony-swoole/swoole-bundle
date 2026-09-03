@@ -49,7 +49,6 @@ final class SleepController
         // (an unbounded per-request leak). The pool is now registered once at compile time, so the
         // count must not move regardless of how many times the non-shared service is pulled.
         $this->container->get(NonSharedExample::class);
-        /** @phpstan-ignore-next-line */
         $nonSharedIsPooled = $nonShared instanceof ContextualProxy;
         $poolCountStable = $this->servicePoolContainer->count() === $poolCountBefore;
 
