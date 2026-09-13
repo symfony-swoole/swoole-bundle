@@ -97,13 +97,17 @@ if (version_compare(InstalledVersions::getVersion('doctrine/orm'), '3.0.0', '<')
          * @return InternalProxy<T>
          */
         #[Override]
-        public function getProxy(string $className, array $identifier): InternalProxy
+        public function getProxy(string $className, array $identifier, bool $assignIdentifiers = true): InternalProxy
         {
+            // $assignIdentifiers arrived with doctrine/orm 3.7, and a subclass may not drop a parameter its parent
+            // declares: without it the class fails to load at all on 3.7 - "Declaration of ...::getProxy() must be
+            // compatible with ...". It is optional, so the signature stays compatible with 3.0-3.6, which do not
+            // have it, and it is forwarded unconditionally, which a 3.6 factory simply ignores.
             $mutex = $this->getMutex($className);
 
             try {
                 $mutex->acquire();
-                $proxy = $this->wrapped->getProxy($className, $identifier);
+                $proxy = $this->wrapped->getProxy($className, $identifier, $assignIdentifiers);
             } finally {
                 $mutex->release();
             }

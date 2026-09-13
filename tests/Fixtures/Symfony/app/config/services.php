@@ -52,6 +52,9 @@ return static function (ContainerConfigurator $containerConfigurator): void {
             // asks for one named mail transport factory, which is a private service autowiring could
             // not resolve, and which only exists where symfony/mailer is configured at all.
             __DIR__ . '/../../TestBundle/Command/MailerTransportReportCommand.php',
+            // asks for the traced Mercure hub, which only the mercure environment builds - there is no
+            // MercureBundle in this app, so nowhere else has a HubInterface to autowire.
+            __DIR__ . '/../../TestBundle/Command/MercureTraceableHubReportCommand.php',
             __DIR__ . '/../../TestBundle/HealthCheck',
             // decorates a specific handler and is registered explicitly by the coroutines environment.
             // Auto-registering it would make autoconfiguration tag it as a bootable service and autowire
