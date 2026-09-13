@@ -24,6 +24,7 @@ use SwooleBundle\SwooleBundle\Bridge\Symfony\EventDispatcher\EventDispatcherProc
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Form\FormProcessor;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpClient\HttpClientProcessor;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Mailer\MailerProcessor;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Mercure\MercureProcessor;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Messenger\MessengerProcessor;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Security\SecurityProcessor;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\TaskWorkerProcessor;
@@ -188,6 +189,10 @@ final class StatefulServicesPass implements CompilerPassInterface
         ],
         HttpClientProcessor::class => [
             'class' => HttpClientProcessor::class,
+            'priority' => 0,
+        ],
+        MercureProcessor::class => [
+            'class' => MercureProcessor::class,
             'priority' => 0,
         ],
     ];
