@@ -32,6 +32,10 @@ HMR runs in debug mode only. If `kernel.debug` is false, the bundle ignores `hmr
 The timer runs every two seconds. It runs in HTTP workers only. A task worker that runs
 [long running commands](swoole-task-worker-commands.md) has nothing to reload.
 
+A tick is skipped while the previous one is still running. A check waits on file IO, so a slow one
+can outlast the interval, and two checks at once would share the static state of the resources they
+read.
+
 ## Which changes a reload can apply
 
 `Server::reload()` creates the workers again from the memory of the master process. So the important

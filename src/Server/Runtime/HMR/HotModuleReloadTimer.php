@@ -25,14 +25,38 @@ final class HotModuleReloadTimer
 {
     private ?int $timerId = null;
 
+    /**
+     * Whether a tick is still running, so the next one can be skipped rather than started beside it.
+     */
+    private bool $ticking = false;
+
     public function __construct(private readonly Swoole $swoole) {}
 
     /**
+     * A tick is skipped while the one before it is still running. Swoole does not wait for a timer's
+     * callback, and a poll yields on file IO - a filemtime() for every resource the compiled container
+     * was built from - so a poll that outlasts the interval would otherwise have the next one start
+     * beside it. Two polls at once share everything a poll touches: ClassExistenceResource::isFresh()
+     * alone writes a static cache and swaps a throwing autoloader in and out, and fiber viber kills the
+     * worker over the first of those.
+     *
      * @param callable(): void $onTick
      */
     public function start(int $intervalMs, callable $onTick): void
     {
-        $timerId = $this->swoole->tick($intervalMs, $onTick);
+        $timerId = $this->swoole->tick($intervalMs, function () use ($onTick): void {
+            if ($this->ticking) {
+                return;
+            }
+
+            $this->ticking = true;
+
+            try {
+                $onTick();
+            } finally {
+                $this->ticking = false;
+            }
+        });
 
         // Swoole answers with the timer's id, or false when it could not make one. Only an id can be
         // cleared later, and there is nothing useful to do about a timer that was never created -
