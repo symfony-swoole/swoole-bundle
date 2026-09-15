@@ -6,6 +6,8 @@ namespace SwooleBundle\SwooleBundle\Tests\Unit\Server\WorkerHandler;
 
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 use PHPUnit\Framework\TestCase;
+use RuntimeException;
+use SwooleBundle\SwooleBundle\Server\Runtime\HMR\HotModuleReloader;
 use SwooleBundle\SwooleBundle\Server\Runtime\HMR\HotModuleReloadTimer;
 use SwooleBundle\SwooleBundle\Server\WorkerHandler\HMRWorkerExitHandler;
 use SwooleBundle\SwooleBundle\Server\WorkerHandler\HMRWorkerStartHandler;
@@ -89,6 +91,45 @@ final class HMRWorkerStartHandlerTest extends TestCase
         self::assertCount(1, $this->swooleFacade->clearedTimerIds());
     }
 
+    /**
+     * The timer does not wait for its callback, and a poll yields on file IO, so the next tick can be
+     * fired from inside the one before it. That one is skipped rather than polling beside it.
+     */
+    public function testATickFiredWhileThePreviousOneIsStillRunningIsSkipped(): void
+    {
+        $reloader = new CountingReloader();
+        $onTick = $this->registeredTickOf($reloader);
+        $reloader->callDuringNextTick($onTick);
+
+        $onTick();
+
+        self::assertSame(1, $reloader->ticks());
+
+        $onTick();
+
+        self::assertSame(2, $reloader->ticks());
+    }
+
+    /**
+     * A failed poll must not leave the handler believing one is still running, or HMR stops for good.
+     */
+    public function testATickThatThrowsDoesNotStopTheNextOne(): void
+    {
+        $reloader = new CountingReloader();
+        $onTick = $this->registeredTickOf($reloader);
+        $reloader->throwOnNextTick();
+
+        try {
+            $onTick();
+            self::fail('The tick was expected to throw.');
+        } catch (RuntimeException) {
+        }
+
+        $onTick();
+
+        self::assertSame(2, $reloader->ticks());
+    }
+
     public function testTaskWorkerExitClearsNothing(): void
     {
         $serverMock = SwooleServerMockFactory::make(true);
@@ -104,5 +145,16 @@ final class HMRWorkerStartHandlerTest extends TestCase
     {
         $callback();
         self::assertTrue($this->hmrSpy->ticked());
+    }
+
+    private function registeredTickOf(HotModuleReloader $reloader): callable
+    {
+        $swoole = new SwooleSpy();
+        $handler = new HMRWorkerStartHandler($reloader, new HotModuleReloadTimer($swoole), 2000);
+        $handler->handle(SwooleServerMockFactory::make(), IntMother::random());
+
+        self::assertNotEmpty($swoole->registeredTickTuple());
+
+        return $swoole->registeredTickTuple()[1];
     }
 }
