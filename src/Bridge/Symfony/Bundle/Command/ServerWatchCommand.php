@@ -89,8 +89,12 @@ final class ServerWatchCommand extends Command implements SignalableCommandInter
     #[Override]
     public function handleSignal(int $signal, int|false $previousExitCode = 0): int|false
     {
+        // Only the flag. With async signals this runs between any two opcodes of whatever the loop is
+        // doing - including the middle of Process::isRunning() on this very server - so stopping the
+        // server from here closed it under a call still using it, and that call resumed into
+        // proc_get_status(null). The loop looks at the flag every 50ms and stops the server itself, on
+        // its way out, where nothing is half way through using it.
         $this->stopping = true;
-        $this->stopServer();
 
         return 0;
     }
@@ -361,14 +365,14 @@ final class ServerWatchCommand extends Command implements SignalableCommandInter
         $this->filesystem->remove($this->cacheDir);
     }
 
-    /** @phpstan-impure the signal handler can flip $stopping and drop the server while this sleeps */
+    /** @phpstan-impure the signal handler can flip $stopping while this sleeps */
     private function waitInterval(int $intervalMs): bool
     {
         $deadline = microtime(true) + ($intervalMs / 1000);
         $chunkUs = (int) min(50_000, $intervalMs * 1000);
 
         do {
-            if ($this->server === null || !$this->server->isRunning()) {
+            if ($this->stopping || $this->server === null || !$this->server->isRunning()) {
                 return false;
             }
 

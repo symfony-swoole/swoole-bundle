@@ -6,11 +6,13 @@ namespace SwooleBundle\SwooleBundle\Tests\Unit\Bridge\Symfony\Bundle\Command;
 
 use Override;
 use PHPUnit\Framework\TestCase;
+use ReflectionProperty;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\Command\ServerWatchCommand;
 use SwooleBundle\SwooleBundle\Server\Runtime\HMR\ContainerFreshness;
 use Symfony\Component\Config\Resource\FileResource;
 use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\Process\Process;
 
 final class ServerWatchCommandTest extends TestCase
 {
@@ -71,6 +73,30 @@ final class ServerWatchCommandTest extends TestCase
 
         self::assertSame([SIGTERM, SIGINT], $command->getSubscribedSignals());
         self::assertSame(0, $command->handleSignal(SIGTERM));
+    }
+
+    /**
+     * The handler runs between any two opcodes of the watch loop - with async signals, that includes the
+     * middle of Process::isRunning() on the server itself. So it may only raise the flag: a handler that
+     * stopped the server closed the process under that call, which then resumed into
+     * proc_get_status(null) and took the command down with a TypeError instead of letting it stop.
+     */
+    public function testTheSignalHandlerLeavesTheServerToTheLoop(): void
+    {
+        $command = $this->command();
+        $server = new Process(['sleep', '5']);
+        $server->start();
+        $property = new ReflectionProperty(ServerWatchCommand::class, 'server');
+        $property->setValue($command, $server);
+
+        try {
+            $command->handleSignal(SIGTERM);
+
+            self::assertSame($server, $property->getValue($command), 'The handler dropped the server.');
+            self::assertTrue($server->isRunning(), 'The handler stopped the server itself.');
+        } finally {
+            $server->stop(0);
+        }
     }
 
     public function testRestartsServerOnWatchedFileChange(): void

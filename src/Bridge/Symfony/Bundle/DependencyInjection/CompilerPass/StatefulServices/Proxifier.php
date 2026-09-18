@@ -68,8 +68,6 @@ final class Proxifier implements ServiceProxifier
             return;
         }
 
-        $this->assertServiceIsNotReadOnly($serviceId, $serviceDef);
-
         if ($tags->hasSafeStatefulServiceTag()) {
             return;
         }
@@ -215,7 +213,8 @@ final class Proxifier implements ServiceProxifier
 
         $stabilityCheckerRef = null;
 
-        if (isset($this->stabilityCheckers[$serviceClass])) {
+        // A definition without a class has no checker to look up, and PHP 8.5 deprecates null as an offset.
+        if ($serviceClass !== null && isset($this->stabilityCheckers[$serviceClass])) {
             $checkerSvcId = $this->stabilityCheckers[$serviceClass];
             $this->container->findDefinition($checkerSvcId);
             $stabilityCheckerRef = new Reference($checkerSvcId);
@@ -267,7 +266,9 @@ final class Proxifier implements ServiceProxifier
         /** @var IteratorArgument $resetters */
         $resetters = $resetterDef->getArgument(0);
         $resetterValues = $resetters->getValues();
-        $isReset = isset($resetterValues[$serviceId]) || isset($resetterValues[$serviceDef->getClass()]);
+        $serviceClass = $serviceDef->getClass();
+        $isReset = isset($resetterValues[$serviceId])
+            || ($serviceClass !== null && isset($resetterValues[$serviceClass]));
         /** @var class-string $class */
         $class = $serviceDef->getClass();
         $tags = new Tags($class, $serviceDef->getTags());
@@ -281,7 +282,6 @@ final class Proxifier implements ServiceProxifier
             return false;
         }
 
-        $this->assertServiceIsNotReadOnly($serviceId, $serviceDef);
         $factory = $serviceDef->getFactory();
 
         if (!is_array($factory)) {

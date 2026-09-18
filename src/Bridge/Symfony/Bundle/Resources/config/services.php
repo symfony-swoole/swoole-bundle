@@ -6,6 +6,7 @@ use ProxyManager\Configuration;
 use ProxyManager\Factory\AccessInterceptorValueHolderFactory;
 use ProxyManager\FileLocator\FileLocator;
 use ProxyManager\GeneratorStrategy\FileWriterGeneratorStrategy;
+use ProxyManager\Signature\SignatureGenerator;
 use SwooleBundle\SwooleBundle\Bridge\CommonSwoole\SystemSwooleFactory;
 use SwooleBundle\SwooleBundle\Bridge\Doctrine\ORM\EntityManagerStabilityChecker;
 use SwooleBundle\SwooleBundle\Bridge\OpenSwoole\Metrics\MetricsProvider as OpenSwooleMetricsProvider;
@@ -20,6 +21,8 @@ use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Proxy\FileLocatorFactory;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Proxy\Generator;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Proxy\Instantiator;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Proxy\ProxyDirectoryHandler;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Proxy\Signature\ReadonlyAwareClassSignatureGenerator;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Proxy\Signature\ReadonlyAwareSignatureChecker;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Proxy\UnmanagedFactoryInstantiator;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\ServicePool\ServicePoolContainer;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation\DefaultRequestFactory;
@@ -457,7 +460,24 @@ return static function (ContainerConfigurator $containerConfigurator): void {
         ])
         ->call('setProxiesNamespace', [
             'SwooleBundleProxy',
+        ])
+        // A readonly class can only be proxied by a readonly proxy, and a readonly proxy cannot hold the
+        // static property ProxyManager signs a proxy with - see ReadonlyAwareClassSignatureGenerator.
+        // Every other proxy, ProxyManager's own factories' included, is signed and checked as before.
+        ->call('setClassSignatureGenerator', [
+            service(ReadonlyAwareClassSignatureGenerator::class),
+        ])
+        ->call('setSignatureChecker', [
+            service(ReadonlyAwareSignatureChecker::class),
         ]);
+
+    $services->set('swoole_bundle.service_proxy_signature_generator', SignatureGenerator::class);
+
+    $services->set(ReadonlyAwareClassSignatureGenerator::class)
+        ->arg('$signatureGenerator', service('swoole_bundle.service_proxy_signature_generator'));
+
+    $services->set(ReadonlyAwareSignatureChecker::class)
+        ->arg('$signatureGenerator', service('swoole_bundle.service_proxy_signature_generator'));
 
     $services->set('swoole_bundle.repository_proxy_file_writer_generator', FileWriterGeneratorStrategy::class)
         ->arg('$fileLocator', service('swoole_bundle.repository_proxy_file_locator'));

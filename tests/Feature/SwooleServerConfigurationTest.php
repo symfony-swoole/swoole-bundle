@@ -52,8 +52,11 @@ final class SwooleServerConfigurationTest extends ServerTestCase
              *  } $response
              */
             $response = $client->send('/settings')['response'];
+            // Where the fixture app lives, rather than where it lives in the CI image: the setting is
+            // `kernel.project_dir` joined with a path, and the project dir is TestAppKernel's own
+            // directory - a checkout anywhere else reports its own.
             $this->assertEquals(
-                '/usr/src/app/tests/Fixtures/Symfony/app/public/uploads',
+                dirname(__DIR__) . '/Fixtures/Symfony/app/public/uploads',
                 $response['body']['server']['upload_tmp_dir'],
             );
             $this->assertSame(3, $response['body']['server']['dispatch_mode']);

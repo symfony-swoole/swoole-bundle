@@ -15,6 +15,7 @@ use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Service\AlwaysRe
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Service\AlwaysResetSafe;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Service\LazyGhostExample;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Service\NonSharedExample;
+use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Service\ReadonlyCurlClient;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Service\ShouldBeProxified;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Service\ShouldBeProxified2;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
@@ -52,6 +53,7 @@ return static function (ContainerConfigurator $containerConfigurator): void {
                 'max_service_instances' => 20,
                 'stateful_services' => [
                     ShouldBeProxified::class,
+                    ReadonlyCurlClient::class,
                 ],
                 'compile_processors' => [
                     [

@@ -362,6 +362,44 @@ This helps to hide and separate contextually scoped coroutine data under one ser
 it is possible to achieve a correct non-blocking workloads with coroutines within Symfony apps without 
 any code modification.
 
+#### Final and readonly services
+
+A proxy is a subclass of the service it wraps, so a service class has to be one PHP lets it extend.
+
+- **`final` classes** are proxified as well: the bundle removes the `final` flag from them at runtime (through
+  z-engine) before their proxy is loaded.
+- **`readonly` classes** are proxified by a proxy that is `readonly` itself, which is the only kind of class
+  PHP lets extend a readonly one. Nothing about the service changes - its properties stay readonly, and
+  `ReflectionClass::isReadOnly()` still answers `true` for it. A readonly proxy keeps what an ordinary proxy
+  keeps in static properties in constants instead, and reads the service's public properties by value.
+
+Readonly is not the same as stateless, which is when proxifying a readonly service is worth it. A readonly
+property can hold something mutable, and when that something is not a service of its own - a `CurlHandle`
+in an HTTP client is the typical case - the client is the only thing that can be pooled:
+
+```php
+final readonly class ApiClient
+{
+    private CurlHandle $handle;
+
+    public function __construct()
+    {
+        $this->handle = curl_init();
+    }
+}
+```
+
+Listed in `stateful_services` (or tagged `swoole_bundle.stateful_service`), each coroutine then gets an
+`ApiClient` - and a curl handle - of its own. When the mutable state a readonly service holds is a service
+that is already pooled, such as an entity manager, the readonly service is safe to share as it is and does
+not need a proxy at all.
+
+Writing a property through the proxy fails the same way it fails on the service itself, since the property
+is readonly either way. The one class that still cannot be readonly is a factory tagged
+`swoole_bundle.unmanaged_factory`: the factory is wrapped by an access interceptor that ProxyManager
+generates, and that proxy changes its own state after it is built - its interceptors are set on it one
+method at a time - which a readonly class cannot do.
+
 ### Compile processors
 
 Compile processors are project/other-bundle level extensions where it is possible to setup proxification
