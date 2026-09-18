@@ -22,12 +22,14 @@ final class MagicSet extends MagicMethodGenerator
      *
      * @template T of object
      * @param ReflectionClass<T> $originalClass
+     * @param string $isPublicProperty the condition that tells a public property of the parent by its $name
      * @throws InvalidArgumentException
      */
     public function __construct(
         ReflectionClass $originalClass,
         PropertyGenerator $servicePoolProperty,
         PublicPropertiesMap $publicProperties,
+        string $isPublicProperty,
     ) {
         parent::__construct(
             $originalClass,
@@ -40,7 +42,7 @@ final class MagicSet extends MagicMethodGenerator
         $callParent = '';
 
         if (!$publicProperties->isEmpty()) {
-            $callParent = 'if (isset(self::$' . $publicProperties->getName() . "[\$name])) {\n"
+            $callParent = 'if (' . $isPublicProperty . ") {\n"
                 . '    return ($this->' . $servicePool . '->get()->$name = $value);'
                 . "\n}\n\n";
         }

@@ -40,6 +40,10 @@ final class PublicScopeSimulator
      * @param string|null $returnPropertyName name of the property to which we want to assign the result of
      *                                              the operation. Return directly if none provided
      * @param ReflectionClass<object>|null $originalClass reflection of the original class if available
+     * @param bool $byReference whether a get or set hands back a reference to the property, which is what
+     *                          lets an indirect modification through the proxy reach the real object. Off
+     *                          for a readonly class: taking a reference to a readonly property counts as
+     *                          modifying it, so a by-reference read of one fails as a write would.
      * @psalm-param $operationType self::OPERATION_*
      * @throws InvalidArgumentException
      */
@@ -50,8 +54,9 @@ final class PublicScopeSimulator
         ?PropertyGenerator $valueHolder = null,
         ?string $returnPropertyName = null,
         ?ReflectionClass $originalClass = null,
+        bool $byReference = true,
     ): string {
-        $byRef = self::getByRefReturnValue($operationType);
+        $byRef = $byReference ? self::getByRefReturnValue($operationType) : '';
         $target = '$this';
 
         if ($valueHolder) {

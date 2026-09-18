@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Service;
 
 /**
- * cannot be readonly
+ * Deliberately not readonly: the proxy of an ordinary class is what the tests using this cover. Readonly
+ * services are covered by ReadonlyCurlClient.
  */
 // phpcs:ignore SlevomatCodingStandard.Classes.ReadonlyClass
 final class ShouldBeProxified

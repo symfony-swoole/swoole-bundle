@@ -7,6 +7,8 @@ namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Proxy\Generation;
 use InvalidArgumentException;
 use Laminas\Code\Generator\ClassGenerator;
 use Laminas\Code\Generator\MethodGenerator;
+use Laminas\Code\Generator\PropertyGenerator;
+use Laminas\Code\Generator\PropertyValueGenerator;
 use ProxyManager\Exception\InvalidProxiedClassException;
 use ProxyManager\Generator\Util\ClassGeneratorUtils;
 use ProxyManager\ProxyGenerator\Assertion\CanProxyAssertion;
@@ -27,6 +29,16 @@ use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Proxy\Generation\Property
 
 /**
  * Generator for proxies with service pool.
+ *
+ * A readonly class can only be extended by a readonly class, so its proxy is generated readonly too.
+ * That is possible because the proxy's one piece of state - the service pool - is written once, when
+ * the proxy is built, and the only other writes to it happen in __clone and __unserialize, where PHP
+ * allows a readonly property to be initialized. What a readonly class cannot have is a static property,
+ * so the public properties map becomes a constant, and the signature too, through
+ * {@see \SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Proxy\Signature\ReadonlyAwareClassSignatureGenerator}.
+ *
+ * The parent's readonly properties are unset from the class that declares them, which is the one scope
+ * PHP lets unset one - ProxyManager's own snippet already treats readonly properties that way.
  */
 final readonly class ContextualAccessForwarderGenerator implements ProxyGeneratorInterface
 {
@@ -63,10 +75,13 @@ final readonly class ContextualAccessForwarderGenerator implements ProxyGenerato
             $classGenerator->setExtendedClass($originalClass->getName());
         }
 
+        $isReadonly = $originalClass->isReadOnly();
+        $classGenerator->setReadonly($isReadonly);
+
         $publicProperties = new PublicPropertiesMap(Properties::fromReflectionClass($originalClass));
         $classGenerator->setImplementedInterfaces($interfaces);
         $classGenerator->addPropertyFromGenerator($servicePoolProperty = new ServicePoolProperty());
-        $classGenerator->addPropertyFromGenerator($publicProperties);
+        $isPublicProperty = $this->addPublicPropertiesMap($classGenerator, $publicProperties, $isReadonly);
         $closure = static function (MethodGenerator $generatedMethod) use ($originalClass, $classGenerator): void {
             ClassGeneratorUtils::addMethodIfNotFinal($originalClass, $classGenerator, $generatedMethod);
         };
@@ -82,12 +97,40 @@ final readonly class ContextualAccessForwarderGenerator implements ProxyGenerato
                     new StaticProxyConstructor($servicePoolProperty, Properties::fromReflectionClass($originalClass)),
                     new GetWrappedServicePoolValue($servicePoolProperty),
                     new GetContextualObject($servicePoolProperty),
-                    new MagicGet($originalClass, $servicePoolProperty, $publicProperties),
-                    new MagicSet($originalClass, $servicePoolProperty, $publicProperties),
+                    new MagicGet($originalClass, $servicePoolProperty, $isPublicProperty),
+                    new MagicSet($originalClass, $servicePoolProperty, $publicProperties, $isPublicProperty),
                     new MagicClone($originalClass, $servicePoolProperty),
                     new Unserialize($originalClass, $servicePoolProperty),
                 ]
             )
         );
+    }
+
+    /**
+     * Adds the map of the parent's public properties, and returns the condition the magic methods test
+     * a property name with.
+     *
+     * A static property on an ordinary proxy, as ProxyManager has always generated it, and a private
+     * constant on a readonly one. The condition differs with it: `isset()` cannot take an element of a
+     * constant, so the constant is asked with array_key_exists() instead.
+     */
+    private function addPublicPropertiesMap(
+        ClassGenerator $classGenerator,
+        PublicPropertiesMap $publicProperties,
+        bool $asConstant,
+    ): string {
+        if (!$asConstant) {
+            $classGenerator->addPropertyFromGenerator($publicProperties);
+
+            return 'isset(self::$' . $publicProperties->getName() . '[$name])';
+        }
+
+        $classGenerator->addConstantFromGenerator(new PropertyGenerator(
+            $publicProperties->getName(),
+            new PropertyValueGenerator($publicProperties->getDefaultValue()?->getValue() ?? []),
+            PropertyGenerator::FLAG_CONSTANT | PropertyGenerator::FLAG_PRIVATE,
+        ));
+
+        return '\\array_key_exists($name, self::' . $publicProperties->getName() . ')';
     }
 }
