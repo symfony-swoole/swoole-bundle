@@ -35,6 +35,18 @@ final class MessengerTaskWorkerGroupTest extends ServerTestCase
 
     private const int CONSUMER_COUNT = 4;
 
+    /**
+     * What the Doctrine transport writes over a row it has acknowledged, on MySQL, instead of deleting it.
+     *
+     * symfony/doctrine-messenger 7.4.0 and 7.4.1 did that - `ack()` and `reject()` marked the row and the
+     * next `get()` swept the marked ones away - and 7.4.2 went back to deleting it outright. The lowest
+     * build installs 7.4.0, and nothing polls after the server stops, so the last messages the group
+     * acknowledged are still there as rows. They are finished work, not work on the queue, and every
+     * reading of the queue below has to say so: counted as queued, the messages each consumer finished
+     * last look handed back after being handled, which is the fault the stop test is looking for.
+     */
+    private const string ACKNOWLEDGED_ROW = '9999-12-31 23:59:59';
+
     private const int MESSAGE_COUNT = 200;
 
     /**
@@ -489,11 +501,21 @@ final class MessengerTaskWorkerGroupTest extends ServerTestCase
         );
     }
 
+    /**
+     * A row still on the queue: waiting, or held by a consumer - anything but acknowledged.
+     *
+     * @see self::ACKNOWLEDGED_ROW
+     */
+    private static function notAcknowledged(string $column): string
+    {
+        return sprintf('(%1$s IS NULL OR %1$s <> ?)', $column);
+    }
+
     private function queueDepth(string $queueName): int
     {
         return (int) $this->connection()->fetchOne(
-            'SELECT COUNT(*) FROM messenger_messages WHERE queue_name = ?',
-            [$queueName],
+            'SELECT COUNT(*) FROM messenger_messages WHERE queue_name = ? AND ' . self::notAcknowledged('delivered_at'),
+            [$queueName, self::ACKNOWLEDGED_ROW],
         );
     }
 
@@ -509,8 +531,9 @@ final class MessengerTaskWorkerGroupTest extends ServerTestCase
     private function failedMessages(): array
     {
         $rows = $this->connection()->fetchFirstColumn(
-            'SELECT headers FROM messenger_messages WHERE queue_name = ? LIMIT 5',
-            ['failed'],
+            'SELECT headers FROM messenger_messages WHERE queue_name = ? AND ' . self::notAcknowledged('delivered_at')
+            . ' LIMIT 5',
+            ['failed', self::ACKNOWLEDGED_ROW],
         );
 
         return array_map(static fn(mixed $headers): string => mb_substr((string) $headers, 0, 500), $rows);
@@ -551,8 +574,8 @@ final class MessengerTaskWorkerGroupTest extends ServerTestCase
         $rows = $this->connection()->fetchAllAssociative(
             'SELECT c.message_id, c.coroutine_id, c.worker_pid, m.delivered_at FROM consumed_message c '
             . 'JOIN messenger_messages m ON m.body LIKE CONCAT(\'%\', c.message_id, \'%\') '
-            . 'WHERE m.queue_name = ? ORDER BY c.message_id',
-            [self::TRANSPORT],
+            . 'WHERE m.queue_name = ? AND ' . self::notAcknowledged('m.delivered_at') . ' ORDER BY c.message_id',
+            [self::TRANSPORT, self::ACKNOWLEDGED_ROW],
         );
 
         return $rows;
