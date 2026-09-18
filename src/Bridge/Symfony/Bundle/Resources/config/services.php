@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 use ProxyManager\Configuration;
-use ProxyManager\Factory\AccessInterceptorValueHolderFactory;
 use ProxyManager\FileLocator\FileLocator;
 use ProxyManager\GeneratorStrategy\FileWriterGeneratorStrategy;
 use ProxyManager\Signature\SignatureGenerator;
@@ -21,6 +20,7 @@ use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Proxy\FileLocatorFactory;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Proxy\Generator;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Proxy\Instantiator;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Proxy\ProxyDirectoryHandler;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Proxy\ReadonlyAwareAccessInterceptorValueHolderFactory;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Proxy\Signature\ReadonlyAwareClassSignatureGenerator;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Proxy\Signature\ReadonlyAwareSignatureChecker;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Proxy\UnmanagedFactoryInstantiator;
@@ -448,7 +448,10 @@ return static function (ContainerConfigurator $containerConfigurator): void {
     $services->set(Generator::class)
         ->arg('$configuration', service('swoole_bundle.service_proxy_configuration'));
 
-    $services->set('swoole_bundle.unmanaged_factory_proxy_factory', AccessInterceptorValueHolderFactory::class)
+    $services->set(
+        'swoole_bundle.unmanaged_factory_proxy_factory',
+        ReadonlyAwareAccessInterceptorValueHolderFactory::class,
+    )
         ->arg('$configuration', service('swoole_bundle.service_proxy_configuration'));
 
     $services->set('swoole_bundle.service_proxy_configuration', Configuration::class)

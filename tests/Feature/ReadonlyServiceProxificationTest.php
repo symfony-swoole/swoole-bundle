@@ -36,9 +36,43 @@ final class ReadonlyServiceProxificationTest extends ServerTestCase
         );
     }
 
+    /**
+     * The same client, made by a readonly factory tagged `swoole_bundle.unmanaged_factory` rather than
+     * registered as a service - so the factory is what the bundle wraps, with a readonly interceptor, and
+     * every client it hands out is a pooled proxy. One client is used from both coroutines, as a client
+     * held by a service would be.
+     */
+    public function testAReadonlyUnmanagedFactoryHandsOutClientsPooledPerCoroutine(): void
+    {
+        $output = $this->runConsoleCheck('test:readonly-curl-client-factory:proxy-check');
+
+        self::assertStringContainsString('Factory IS wrapped.', $output);
+        self::assertStringContainsString('Factory class is readonly.', $output);
+        // a public readonly property of the factory, read through the interceptor's __get
+        self::assertStringContainsString('Factory base URI: http://localhost', $output);
+        self::assertStringContainsString('Client IS proxified.', $output);
+        self::assertStringContainsString('Client class is readonly.', $output);
+
+        $first = self::handlesOf('A', $output);
+        $second = self::handlesOf('B', $output);
+
+        self::assertSame($first[0], $first[1], 'Coroutine A was handed a different client between two calls.');
+        self::assertSame($second[0], $second[1], 'Coroutine B was handed a different client between two calls.');
+        self::assertNotSame(
+            $first[0],
+            $second[0],
+            'Two coroutines using one client from the factory drove the same curl handle.',
+        );
+    }
+
     private function runReadonlyCurlClientProxyCheck(): string
     {
-        $process = $this->createConsoleProcess(['test:readonly-curl-client:proxy-check'], ['APP_ENV' => 'coroutines']);
+        return $this->runConsoleCheck('test:readonly-curl-client:proxy-check');
+    }
+
+    private function runConsoleCheck(string $command): string
+    {
+        $process = $this->createConsoleProcess([$command], ['APP_ENV' => 'coroutines']);
         $process->setTimeout(self::coverageEnabled() ? 30 : 15);
         $process->run();
 

@@ -231,15 +231,16 @@ right: what they are holding is a proxy, and a proxy resolves per coroutine on e
 ### When it cannot, and what to do about it
 
 What a factory builds is read off its name - `XTransportFactory` builds `XTransport`, beside it - and
-that is a convention rather than a contract, so it is checked. Three things stop it, and in each the
+that is a convention rather than a contract, so it is checked. Two things stop it, and in each the
 factory and its transports are left shared, with a line in the build log saying which and why:
 
 - **The factory's name does not say what it builds,** including an application's own. Name it after
   its transport, or tag it `swoole_bundle.unmanaged_factory` yourself with the `returnType` spelled
   out and the `factoryMethod` set to `createTransport`.
-- **The transport it builds is `final`, `readonly` or abstract,** so there is nothing for the proxy to
-  extend.
-- **The factory itself is `readonly`,** so it cannot be wrapped.
+- **The transport it builds is `final` or abstract,** so there is nothing for the proxy to extend.
+
+`readonly` is not one of them, on either side: a readonly transport is stood in for by a readonly
+proxy, and a readonly factory is wrapped by a readonly one.
 
 `sync://` and `in-memory://` are deliberately left shared too, and quietly: the first keeps nothing
 between calls, and keeping what was sent is the whole point of the second.

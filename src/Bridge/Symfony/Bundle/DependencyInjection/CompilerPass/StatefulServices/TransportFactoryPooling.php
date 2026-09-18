@@ -81,30 +81,14 @@ final readonly class TransportFactoryPooling
 
         $reflection = new ReflectionClass($transportClass);
 
-        // What the proxy generator needs of the transport it will stand in for. None of the three is
-        // worth failing the whole compile over, so the factory simply stays shared.
-        if ($reflection->isFinal() || $reflection->isAbstract() || $reflection->isReadOnly()) {
+        // What the proxy generator needs of the transport it will stand in for. Neither is worth failing
+        // the whole compile over, so the factory simply stays shared. Readonly is not among them: a
+        // readonly transport is stood in for by a readonly proxy.
+        if ($reflection->isFinal() || $reflection->isAbstract()) {
             return TransportPoolingVerdict::leftShared(sprintf(
                 'the transport it builds, "%s", cannot be extended to stand in for',
                 $transportClass,
             ));
-        }
-
-        // Wrapping a factory means generating a proxy that extends it. A final one is dealt with - the
-        // modification processor un-finals it - but a read-only class cannot be extended at all, and
-        // the Proxifier refuses it outright rather than producing something broken.
-        //
-        // Asked last, and about the factory rather than the transport, because a factory that names no
-        // transport of its own has already been answered above with something more useful to read. A
-        // dispatching factory - one that picks another tagged factory by DSN and returns what that one
-        // built - is read-only as often as not, and reporting it here would be wrong twice over: it
-        // builds no transport to share, and the factory it delegates to has a pool of its own.
-        $factoryReflection = new ReflectionClass($factoryClass);
-
-        if ($factoryReflection->isReadOnly()) {
-            return TransportPoolingVerdict::leftShared(
-                'it is a read-only class, which cannot be wrapped to hand out pooled transports',
-            );
         }
 
         return TransportPoolingVerdict::pooledAs($transportClass);

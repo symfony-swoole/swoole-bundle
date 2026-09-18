@@ -12,6 +12,9 @@ use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\Compiler
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\ContainerConstants;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Messenger\MessengerProcessor;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Messenger\FinalTransportFactory;
+use SwooleBundle\SwooleBundle\Tests\Fixtures\Messenger\ReadOnlyClassTransport;
+use SwooleBundle\SwooleBundle\Tests\Fixtures\Messenger\ReadOnlyClassTransportFactory;
+use SwooleBundle\SwooleBundle\Tests\Fixtures\Messenger\ReadOnlyTransport;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Messenger\ReadOnlyTransportFactory;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Messenger\UnconventionalTransportFactory;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -132,13 +135,40 @@ final class MessengerProcessorTest extends TestCase
         $this->assertLeftShared($container);
     }
 
-    public function testAReadOnlyFactoryIsLeftShared(): void
+    /**
+     * Wrapped by a readonly proxy, since a read-only class can only be extended by a read-only one.
+     */
+    public function testAReadOnlyFactoryIsPooled(): void
     {
         $container = $this->newContainer(ReadOnlyTransportFactory::class);
 
         $this->process($container);
 
-        $this->assertLeftShared($container);
+        self::assertSame(
+            [[
+                'factoryMethod' => 'createTransport',
+                'returnType' => ReadOnlyTransport::class,
+            ]],
+            $container->getDefinition(self::FACTORY_ID)->getTag(ContainerConstants::TAG_UNMANAGED_FACTORY),
+        );
+    }
+
+    /**
+     * The other side of it: the transport is read-only, and the pool's proxy of it is read-only too.
+     */
+    public function testAFactoryBuildingAReadOnlyTransportIsPooled(): void
+    {
+        $container = $this->newContainer(ReadOnlyClassTransportFactory::class);
+
+        $this->process($container);
+
+        self::assertSame(
+            [[
+                'factoryMethod' => 'createTransport',
+                'returnType' => ReadOnlyClassTransport::class,
+            ]],
+            $container->getDefinition(self::FACTORY_ID)->getTag(ContainerConstants::TAG_UNMANAGED_FACTORY),
+        );
     }
 
     public function testItSaysWhenAFactoryDoesNotSayWhatItBuilds(): void
@@ -159,13 +189,13 @@ final class MessengerProcessorTest extends TestCase
         self::assertSaidWhyItIsShared($container, 'cannot be extended');
     }
 
-    public function testItSaysWhenTheFactoryItselfCannotBeWrapped(): void
+    public function testItSaysNothingAboutAReadOnlyFactoryItPooled(): void
     {
         $container = $this->newContainer(ReadOnlyTransportFactory::class);
 
         $this->process($container);
 
-        self::assertSaidWhyItIsShared($container, 'read-only');
+        self::assertSaidNothing($container);
     }
 
     /**

@@ -9,11 +9,11 @@ use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Transport\TransportInterface;
 
 /**
- * Ordinary in every way - deliberately not final, so that {@see ReadOnlyTransportFactory} being
- * read-only is the only thing unusual about the pair.
+ * A read-only transport - deliberately not final, so that being read-only is the only thing about it
+ * that could stand between it and a pool.
  */
 // phpcs:ignore SlevomatCodingStandard.Classes.RequireAbstractOrFinal.ClassNeitherAbstractNorFinal
-class ReadOnlyTransport implements TransportInterface
+readonly class ReadOnlyClassTransport implements TransportInterface
 {
     #[Override]
     public function get(): iterable
