@@ -64,11 +64,33 @@ use Twig\Template;
  * around it were restored. Being a non-nullable typed property, it is unset rather than nulled, which
  * puts it back in the uninitialized state `??=` tests for.
  *
+ * ### The block chain path
+ *
+ * From symfony/twig-bridge 7.4.19 and 8.1.7, wherever Twig has `Twig\BlockChain` (3.29 and later), the
+ * engine takes a different road and never touches `$defaultThemes` or `$template` at all. It composes
+ * the themes into chains instead - and a chain is built with the engine's Environment, loads its
+ * templates through it and reads its globals on every render:
+ *
+ * ```php
+ * $inherited = $this->defaultChain ??= new BlockChain($this->environment, array_reverse($this->defaultThemes));
+ * ```
+ *
+ * The same bug in a new property: the per-view `$chains` are cleared by Symfony's reset(), but
+ * `$defaultChain` is memoized for the life of the instance, so a pooled engine would carry the first
+ * coroutine's Environment into every form rendered after it. It is nulled here, which is what `??=`
+ * rebuilds from. Both halves stay: which road an engine takes depends on the installed versions, and
+ * the properties of the other one are simply left as they were.
+ *
  * @see \SwooleBundle\SwooleBundle\Bridge\Symfony\Form\FormProcessor
  */
 final class TwigRendererEngineResetter implements Resetter
 {
     private ?ReflectionProperty $defaultThemesProperty = null;
+
+    /**
+     * False once it is known the installed engine has no block chain path to reset.
+     */
+    private ReflectionProperty|false|null $defaultChainProperty = null;
 
     /**
      * @var (Closure(TwigRendererEngine): void)|null
@@ -88,6 +110,8 @@ final class TwigRendererEngineResetter implements Resetter
         ));
 
         ($this->templateUnsetter())($service);
+
+        $this->defaultChainProperty()?->setValue($service, null);
     }
 
     /**
@@ -104,6 +128,18 @@ final class TwigRendererEngineResetter implements Resetter
     private function defaultThemesProperty(): ReflectionProperty
     {
         return $this->defaultThemesProperty ??= new ReflectionProperty(TwigRendererEngine::class, 'defaultThemes');
+    }
+
+    /**
+     * Null where the installed twig-bridge predates the block chain path, which has nothing to reset.
+     */
+    private function defaultChainProperty(): ?ReflectionProperty
+    {
+        $this->defaultChainProperty ??= property_exists(TwigRendererEngine::class, 'defaultChain')
+            ? new ReflectionProperty(TwigRendererEngine::class, 'defaultChain')
+            : false;
+
+        return $this->defaultChainProperty !== false ? $this->defaultChainProperty : null;
     }
 
     /**
