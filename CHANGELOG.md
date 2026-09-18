@@ -1,3 +1,23 @@
+# [0.35.0](https://github.com/symfony-swoole/swoole-bundle/compare/v0.34.0...v0.35.0) (2026-09-18)
+
+[Full changelog](https://github.com/symfony-swoole/swoole-bundle/compare/v0.34.0...v0.35.0)
+
+### Bug Fixes
+
+* **container:** exclusive container build when coroutines are enabled ([#399](https://github.com/symfony-swoole/swoole-bundle/issues/399)) ([79aae30](https://github.com/symfony-swoole/swoole-bundle/commit/79aae302969342ff19bc9f620bcf6e108397fa41))
+* **coroutines:** mercure bundle compatibility with coroutines ([#401](https://github.com/symfony-swoole/swoole-bundle/issues/401)) ([4306d81](https://github.com/symfony-swoole/swoole-bundle/commit/4306d81cfd120228a7179602679ddd45bd1f1210))
+* **coroutines:** stop the per-request service-pool heap leak for non-shared services ([#400](https://github.com/symfony-swoole/swoole-bundle/issues/400)) ([98890b8](https://github.com/symfony-swoole/swoole-bundle/commit/98890b8e6aa33a47ad8e7bfca5e73734c6569202))
+* **hmr:** only a single tick can be running at once ([#402](https://github.com/symfony-swoole/swoole-bundle/issues/402)) ([ba5e918](https://github.com/symfony-swoole/swoole-bundle/commit/ba5e918f06a1ed5286a80d21a16299a2871999fa))
+* **monolog:** fixed logging with contextual data ([#398](https://github.com/symfony-swoole/swoole-bundle/issues/398)) ([e83222d](https://github.com/symfony-swoole/swoole-bundle/commit/e83222d9e5e27b7bd0119196809f4a52d6fd4b19))
+* **symfony:** lint:container fix ([#396](https://github.com/symfony-swoole/swoole-bundle/issues/396)) ([f988626](https://github.com/symfony-swoole/swoole-bundle/commit/f988626be6f020647f02299511e2adbcf32e8981))
+* **tests:** fixed messenger tests to be compatible with messenger 7.4.0-7.4.15 ([#409](https://github.com/symfony-swoole/swoole-bundle/issues/409)) ([9a26c9a](https://github.com/symfony-swoole/swoole-bundle/commit/9a26c9a53e802a87955db9f1ed1fda02ebb92be2))
+* **twig:** twig 3.29 resetter fix ([#405](https://github.com/symfony-swoole/swoole-bundle/issues/405)) ([968a3a7](https://github.com/symfony-swoole/swoole-bundle/commit/968a3a764873b22110240c8b82f083c5561d7a09))
+
+
+### Features
+
+* **logger:** added monolog processor with worker context data ([#397](https://github.com/symfony-swoole/swoole-bundle/issues/397)) ([7c6e6a0](https://github.com/symfony-swoole/swoole-bundle/commit/7c6e6a0c8e9cc6d4017ed898f3b9187ef4ca5849))
+
 # [0.34.0](https://github.com/symfony-swoole/swoole-bundle/compare/v0.33.0...v0.34.0) (2026-08-28)
 
 [Full changelog](https://github.com/symfony-swoole/swoole-bundle/compare/v0.33.0...v0.34.0)
