@@ -349,7 +349,7 @@ final class Kernel extends BaseKernel
 }
 ```
 
-Naming a method `MicroKernelTrait` does not declare is harmless, so the same code compiles on Symfony 7.4 and 8.0.
+Naming a method `MicroKernelTrait` does not declare is harmless, so the same code compiles on Symfony 7.4 and 8.1.
 
 ### Proxification
 
