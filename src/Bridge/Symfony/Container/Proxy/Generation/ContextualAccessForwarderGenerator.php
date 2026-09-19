@@ -7,8 +7,6 @@ namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Proxy\Generation;
 use InvalidArgumentException;
 use Laminas\Code\Generator\ClassGenerator;
 use Laminas\Code\Generator\MethodGenerator;
-use Laminas\Code\Generator\PropertyGenerator;
-use Laminas\Code\Generator\PropertyValueGenerator;
 use ProxyManager\Exception\InvalidProxiedClassException;
 use ProxyManager\Generator\Util\ClassGeneratorUtils;
 use ProxyManager\ProxyGenerator\Assertion\CanProxyAssertion;
@@ -81,7 +79,7 @@ final readonly class ContextualAccessForwarderGenerator implements ProxyGenerato
         $publicProperties = new PublicPropertiesMap(Properties::fromReflectionClass($originalClass));
         $classGenerator->setImplementedInterfaces($interfaces);
         $classGenerator->addPropertyFromGenerator($servicePoolProperty = new ServicePoolProperty());
-        $isPublicProperty = $this->addPublicPropertiesMap($classGenerator, $publicProperties, $isReadonly);
+        $isPublicProperty = PublicPropertiesLookup::add($classGenerator, $publicProperties);
         $closure = static function (MethodGenerator $generatedMethod) use ($originalClass, $classGenerator): void {
             ClassGeneratorUtils::addMethodIfNotFinal($originalClass, $classGenerator, $generatedMethod);
         };
@@ -104,33 +102,5 @@ final readonly class ContextualAccessForwarderGenerator implements ProxyGenerato
                 ]
             )
         );
-    }
-
-    /**
-     * Adds the map of the parent's public properties, and returns the condition the magic methods test
-     * a property name with.
-     *
-     * A static property on an ordinary proxy, as ProxyManager has always generated it, and a private
-     * constant on a readonly one. The condition differs with it: `isset()` cannot take an element of a
-     * constant, so the constant is asked with array_key_exists() instead.
-     */
-    private function addPublicPropertiesMap(
-        ClassGenerator $classGenerator,
-        PublicPropertiesMap $publicProperties,
-        bool $asConstant,
-    ): string {
-        if (!$asConstant) {
-            $classGenerator->addPropertyFromGenerator($publicProperties);
-
-            return 'isset(self::$' . $publicProperties->getName() . '[$name])';
-        }
-
-        $classGenerator->addConstantFromGenerator(new PropertyGenerator(
-            $publicProperties->getName(),
-            new PropertyValueGenerator($publicProperties->getDefaultValue()?->getValue() ?? []),
-            PropertyGenerator::FLAG_CONSTANT | PropertyGenerator::FLAG_PRIVATE,
-        ));
-
-        return '\\array_key_exists($name, self::' . $publicProperties->getName() . ')';
     }
 }

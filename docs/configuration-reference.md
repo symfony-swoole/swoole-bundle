@@ -395,10 +395,13 @@ that is already pooled, such as an entity manager, the readonly service is safe 
 not need a proxy at all.
 
 Writing a property through the proxy fails the same way it fails on the service itself, since the property
-is readonly either way. The one class that still cannot be readonly is a factory tagged
-`swoole_bundle.unmanaged_factory`: the factory is wrapped by an access interceptor that ProxyManager
-generates, and that proxy changes its own state after it is built - its interceptors are set on it one
-method at a time - which a readonly class cannot do.
+is readonly either way.
+
+The same goes for a factory tagged `swoole_bundle.unmanaged_factory` and for the objects it creates.
+The factory is wrapped by an access interceptor, which for a readonly factory is readonly too; it
+keeps its wrapped object and its interceptors in one mutable state object held by its only property,
+so interceptors can still be set on it after it is built, as ProxyManager's interface allows. Each
+object the factory creates is handed out as a pooled proxy, readonly when the object's class is.
 
 ### Compile processors
 

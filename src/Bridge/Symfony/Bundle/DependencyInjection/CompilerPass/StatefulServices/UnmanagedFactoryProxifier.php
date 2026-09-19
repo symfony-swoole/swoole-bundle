@@ -44,7 +44,6 @@ final readonly class UnmanagedFactoryProxifier
     private function prepareProxifiedService(string $serviceId): Definition
     {
         $serviceDef = $this->container->findDefinition($serviceId);
-        $this->assertServiceIsNotReadOnly($serviceId, $serviceDef);
 
         /** @var class-string $className */
         $className = $serviceDef->getClass();
