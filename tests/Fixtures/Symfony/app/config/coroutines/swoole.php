@@ -16,6 +16,7 @@ use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Service\AlwaysRe
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Service\LazyGhostExample;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Service\NonSharedExample;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Service\ReadonlyCurlClient;
+use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Service\ReadonlyCurlClientFactory;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Service\ShouldBeProxified;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Service\ShouldBeProxified2;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
@@ -76,6 +77,13 @@ return static function (ContainerConfigurator $containerConfigurator): void {
     $services->defaults()
         ->autowire()
         ->autoconfigure();
+
+    // A readonly factory, wrapped so that every client it hands out is pooled one per coroutine.
+    $services->set(ReadonlyCurlClientFactory::class)
+        ->tag('swoole_bundle.unmanaged_factory', [
+            'factoryMethod' => 'create',
+            'returnType' => ReadonlyCurlClient::class,
+        ]);
 
     $services->set(ShouldBeProxified2::class)
         ->tag('swoole_bundle.stateful_service', [
