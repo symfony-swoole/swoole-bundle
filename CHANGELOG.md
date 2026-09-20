@@ -1,3 +1,11 @@
+## [0.35.1](https://github.com/symfony-swoole/swoole-bundle/compare/v0.35.0...v0.35.1) (2026-09-20)
+
+[Full changelog](https://github.com/symfony-swoole/swoole-bundle/compare/v0.35.0...v0.35.1)
+
+### Bug Fixes
+
+* **coroutines:** pooling for messenger's reset and pg notify listeners ([#416](https://github.com/symfony-swoole/swoole-bundle/issues/416)) ([c75f730](https://github.com/symfony-swoole/swoole-bundle/commit/c75f7304f7523f3cfb459d975b2cbf1af10d2dc2))
+
 # [0.35.0](https://github.com/symfony-swoole/swoole-bundle/compare/v0.34.0...v0.35.0) (2026-09-19)
 
 [Full changelog](https://github.com/symfony-swoole/swoole-bundle/compare/v0.34.0...v0.35.0)
