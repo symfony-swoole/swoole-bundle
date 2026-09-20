@@ -136,6 +136,28 @@ final class StatefulServicesPass implements CompilerPassInterface
         // Both properties are cleared in a finally at the end of a root dispatch, so a coroutine's
         // instance comes back to the pool empty and no resetter is needed.
         'messenger.middleware.dispatch_after_current_bus',
+        // Messenger's own reset listener, which holds per-consumer state from Symfony 8.1 on: every
+        // messenger:consume calls setInterval() at start-up, and a counter of its own decides which
+        // message the reset falls on. Two consumers in one task worker share both, so the second one's
+        // setInterval() is a write to the instance the first is already counting on - the interval and
+        // the count it then resets by are somebody else's.
+        //
+        // An instance per coroutine gives each consumer the two it asked for. No resetter is needed: the
+        // interval is written on every worker start, before anything reads it.
+        'messenger.listener.reset_services',
+        // The same shape, and new in Symfony 8.1 as well: DoctrineBundle registers messenger's PostgreSQL
+        // LISTEN/NOTIFY listener once per Doctrine transport, and each worker start writes onto it the
+        // connection it listens on, the deadline it waits until and the queues it waits for. Shared
+        // between two consumers, those belong to whichever started last, and the one that did not is
+        // left waiting on a connection it never asked for - or, on anything but PostgreSQL, on the
+        // nothing the listener found.
+        //
+        // On PostgreSQL pooling has one consequence worth knowing: the connections the listener waits on
+        // are not configured, they are handed to it by DoctrineTransportFactory as it builds each
+        // transport, so a coroutine's instance knows the connections built in that coroutine. A consumer
+        // that finds none waits out its idle timeout instead of a NOTIFY, which is what messenger did
+        // before 8.1 and what every consumer of a non-PostgreSQL transport does anyway.
+        'messenger.transport.doctrine.pg_notify_on_idle_listener',
     ];
 
     private const array SERVICE_RESETTING_PRIORITIES = [
