@@ -158,6 +158,28 @@ final class StatefulServicesPass implements CompilerPassInterface
         // that finds none waits out its idle timeout instead of a NOTIFY, which is what messenger did
         // before 8.1 and what every consumer of a non-PostgreSQL transport does anyway.
         'messenger.transport.doctrine.pg_notify_on_idle_listener',
+        // The listener that hands the request's locale to every locale-aware service keeps two arrays
+        // while it does it: $storedLocales, the locales to put back when a request ends, keyed by the
+        // request, and $initializedServices, the ones it has already set. Both are per request on a
+        // service the container shares, so two requests at once write each other's - which is the defect
+        // the translator two entries up is pooled for, one listener along. No resetter is needed: the
+        // stored locales are unset as each request finishes, and the initialized set is a memo that
+        // costs one setLocale() to rebuild.
+        'locale_aware_listener',
+        // The form registry, for the one property of it that is not a cache. $checkedTypes is the set of
+        // types it is resolving right now, raised on the way into resolveType() and unset on the way out,
+        // and what it is there for is to see a type that asks for itself. Two coroutines building forms
+        // at once are two resolutions writing that set, and were the write not stopped, one of them could
+        // be told its types are circular because the other is in the middle of its own.
+        'form.registry',
+        // The firewall keeps the exception listener of each request in an SplObjectStorage, registered on
+        // kernel.request and unregistered on finish_request, which is a write per request on a listener
+        // the container shares. Both ids are listed for the reason `router` and `router.default` are:
+        // with the profiler on, `security.firewall` is an alias to the traceable subclass, which holds
+        // the wrapped listeners of the request on top of that and carries `kernel.reset` - so that one
+        // is already pooled by its tag, and the plain listener, which carries no tag at all, is not.
+        'security.firewall',
+        'debug.security.firewall',
     ];
 
     private const array SERVICE_RESETTING_PRIORITIES = [

@@ -9,7 +9,9 @@ use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\Compiler
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\ContainerConstants;
 use Symfony\Bridge\Twig\Form\TwigRendererEngine;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Definition;
+use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\Validator\ConstraintValidatorFactoryInterface;
 
 /**
@@ -79,6 +81,8 @@ final class FormProcessor implements CompileProcessor
     private const string RENDERER_RESETTER_ID = 'swoole_bundle.form.renderer_resetter';
     private const string ENGINE_ID = 'twig.form.engine';
     private const string ENGINE_RESETTER_ID = 'swoole_bundle.form.twig_renderer_engine_resetter';
+    private const string ENGINE_INITIALIZER_ID = 'swoole_bundle.form.twig_renderer_engine_initializer';
+    private const string ENVIRONMENT_ID = 'twig';
     private const string VALIDATOR_FACTORY_ID = 'validator.validator_factory';
 
     public function process(ContainerBuilder $container, ServiceProxifier $proxifier): void
@@ -150,9 +154,58 @@ final class FormProcessor implements CompileProcessor
 
         $this->registerResetter($container, self::ENGINE_RESETTER_ID, TwigRendererEngineResetter::class);
 
-        $engineDefinition->addTag(ContainerConstants::TAG_STATEFUL_SERVICE, [
-            'resetter' => self::ENGINE_RESETTER_ID,
-        ]);
+        $tag = ['resetter' => self::ENGINE_RESETTER_ID];
+        $initializer = $this->registerEnvironmentInitializer($container);
+
+        if ($initializer !== null) {
+            $tag['initializer'] = $initializer;
+        }
+
+        $engineDefinition->addTag(ContainerConstants::TAG_STATEFUL_SERVICE, $tag);
+    }
+
+    /**
+     * The engine is handed the Environment of the coroutine it is assigned to, which from Twig 3.29 on is
+     * the difference between a form rendering and a 500 - {@see TwigRendererEngineEnvironmentInitializer}
+     * has the whole of why.
+     *
+     * Only where twig is going to be pooled, which is what the tags say: StatefulServicesPass proxifies
+     * what carries `kernel.reset` or this bundle's own tag, and TwigExtension only adds the former while
+     * `Environment::resetGlobals()` exists - deprecated in Twig 3.14 and gone in 4. An unpooled Environment
+     * is one object for everybody, so there is no foreign one for the engine to be holding, and the
+     * initializer would only be a reference to a pool nobody registered.
+     *
+     * The pool is named rather than looked up: `twig.swoole_coop.service_pool` is what the Proxifier
+     * registers once every compile processor has run, so at this point in the compile it does not exist
+     * yet. Left ignorable on top of the tag check, because what registers it is a later pass and nothing
+     * here can promise it: a decorated twig, for one, is pooled under the inner service's id.
+     */
+    private function registerEnvironmentInitializer(ContainerBuilder $container): ?string
+    {
+        if (!$container->hasDefinition(self::ENVIRONMENT_ID)) {
+            return null;
+        }
+
+        $environmentTags = $container->getDefinition(self::ENVIRONMENT_ID)->getTags();
+
+        if (
+            !isset($environmentTags['kernel.reset'])
+            && !isset($environmentTags[ContainerConstants::TAG_STATEFUL_SERVICE])
+        ) {
+            return null;
+        }
+
+        if (!$container->hasDefinition(self::ENGINE_INITIALIZER_ID)) {
+            $initializerDef = new Definition(TwigRendererEngineEnvironmentInitializer::class);
+            $initializerDef->setPublic(false);
+            $initializerDef->setArgument(0, new Reference(
+                sprintf('%s.swoole_coop.service_pool', self::ENVIRONMENT_ID),
+                ContainerInterface::IGNORE_ON_INVALID_REFERENCE,
+            ));
+            $container->setDefinition(self::ENGINE_INITIALIZER_ID, $initializerDef);
+        }
+
+        return self::ENGINE_INITIALIZER_ID;
     }
 
     /**
