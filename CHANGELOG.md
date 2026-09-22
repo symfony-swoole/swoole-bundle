@@ -1,3 +1,12 @@
+## [0.35.2](https://github.com/symfony-swoole/swoole-bundle/compare/v0.35.1...v0.35.2) (2026-09-22)
+
+[Full changelog](https://github.com/symfony-swoole/swoole-bundle/compare/v0.35.1...v0.35.2)
+
+### Bug Fixes
+
+* **coroutines:** three more per-request services, and forms under Twig 3.29 ([#419](https://github.com/symfony-swoole/swoole-bundle/issues/419)) ([4cdfca7](https://github.com/symfony-swoole/swoole-bundle/commit/4cdfca7501ada29d03bb47e554cd8f39bcb38477))
+* **task-worker:** commands that cannot run stop the server, non-zero ([#420](https://github.com/symfony-swoole/swoole-bundle/issues/420)) ([dd18426](https://github.com/symfony-swoole/swoole-bundle/commit/dd184260911e0f0b38acecba20bc967dd2571ab7))
+
 ## [0.35.1](https://github.com/symfony-swoole/swoole-bundle/compare/v0.35.0...v0.35.1) (2026-09-20)
 
 [Full changelog](https://github.com/symfony-swoole/swoole-bundle/compare/v0.35.0...v0.35.1)
