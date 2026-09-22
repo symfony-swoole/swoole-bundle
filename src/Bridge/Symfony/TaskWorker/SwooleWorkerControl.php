@@ -21,4 +21,10 @@ final readonly class SwooleWorkerControl implements WorkerControl
     {
         $this->server->stop($workerId);
     }
+
+    #[Override]
+    public function shutdown(): void
+    {
+        $this->server->shutdown();
+    }
 }

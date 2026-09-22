@@ -10,6 +10,7 @@ use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\Command\ServerStatusCommand;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\Command\ServerStopCommand;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\Command\ServerWatchCommand;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\Command\ServicePoolsDebugCommand;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\TaskWorkerFailure;
 use SwooleBundle\SwooleBundle\Metrics\MetricsProvider;
 use SwooleBundle\SwooleBundle\Server\Api\ApiServerClientFactory;
 use SwooleBundle\SwooleBundle\Server\Config\Sockets;
@@ -84,6 +85,9 @@ return static function (ContainerConfigurator $containerConfigurator): void {
             service('swoole_bundle.server.http_server.configurator.with_request_handler'),
         ]);
 
+    // No $taskWorkerFailure here on purpose: this command daemonizes, so the process that could return
+    // an exit code has already gone by the time the server stops, and nobody is left to read it. The
+    // foreground commands below are where it means something.
     $services->set(ServerStartCommand::class)
         ->arg('$httpServerFactory', service(HttpServerFactory::class))
         ->arg('$server', service(HttpServer::class))
@@ -116,6 +120,7 @@ return static function (ContainerConfigurator $containerConfigurator): void {
         ->arg('$serverConfigurator', service('swoole_bundle.server.http_server.configurator.for_server_run_command'))
         ->arg('$parameterBag', service('parameter_bag'))
         ->arg('$bootManager', service(Bootable::class))
+        ->arg('$taskWorkerFailure', service(TaskWorkerFailure::class)->nullOnInvalid())
         ->tag('console.command', [
             'command' => 'swoole:server:run',
         ]);
@@ -144,6 +149,7 @@ return static function (ContainerConfigurator $containerConfigurator): void {
         )
         ->arg('$parameterBag', service('parameter_bag'))
         ->arg('$bootManager', service(Bootable::class))
+        ->arg('$taskWorkerFailure', service(TaskWorkerFailure::class)->nullOnInvalid())
         ->tag('console.command', [
             'command' => 'swoole:server:profile',
         ]);

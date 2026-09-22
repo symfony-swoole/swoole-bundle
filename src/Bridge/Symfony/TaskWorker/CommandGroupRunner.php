@@ -27,6 +27,11 @@ use Throwable;
  * replacement, which runs onWorkerStart again and starts the command afresh. Stopping the worker is
  * Server::stop() and not exit(): exit() inside a coroutine raises Swoole\ExitException and the manager
  * logs the replacement as "abnormal exit, status=255", where Server::stop() recycles silently.
+ *
+ * A group that ends as fast as it starts is the one thing recycling cannot answer, since the replacement
+ * would do the same again. That ends the server instead, with {@see TaskWorkerFailure} raised so the
+ * process running it exits non-zero: a container that cannot run the work it exists for should fail
+ * where its supervisor can see it, rather than stay up serving http with a queue nobody is reading.
  */
 final readonly class CommandGroupRunner implements CommandGroupExecutor
 {
@@ -45,6 +50,7 @@ final readonly class CommandGroupRunner implements CommandGroupExecutor
         private WorkerRetirement $retirement,
         private RunningCommand $runningCommand,
         private Swoole $swoole,
+        private TaskWorkerFailure $failure,
         private LoggerInterface $logger,
         private int $stopPollIntervalMs = 100,
     ) {}
@@ -105,10 +111,17 @@ final readonly class CommandGroupRunner implements CommandGroupExecutor
         if ($runtime < self::MINIMUM_RUNTIME_SECONDS) {
             $this->logger->critical(
                 'Task worker {workerId} commands ended after {runtime}s, which is too fast to be real '
-                . 'work - not recycling the worker, because forking it again would only repeat this. '
-                . 'Check the configured command lines.',
+                . 'work - stopping the server, because forking the worker again would only repeat this. '
+                . 'Check the configured command lines. The server exits non-zero, so whatever supervises '
+                . 'this container is the one that decides whether to start it again.',
                 ['workerId' => $workerId, 'runtime' => round($runtime, 3)],
             );
+
+            // Raised before the shutdown, so the process running the server finds it there whenever it
+            // gets round to reading it - the shutdown is what ends that process's wait, not a message
+            // it could arrive ahead of.
+            $this->failure->raise();
+            $control->shutdown();
 
             return;
         }

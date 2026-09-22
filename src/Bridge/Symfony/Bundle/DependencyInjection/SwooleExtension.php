@@ -45,6 +45,7 @@ use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\RunningCommand;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\StopMessengerWorkerOnShutdown;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\StreamCommandOutputFactory;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\TaskWorkerCommands;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\TaskWorkerFailure;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\WithWorkerStopSignal;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\WorkerRetirement;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\WorkerStopSignal;
@@ -1061,6 +1062,20 @@ final class SwooleExtension extends Extension
             ->setAutowired(false)
             ->setAutoconfigured(false);
 
+        // Registered with the rest of the task worker services and nowhere else, so an application
+        // configuring no commands has no flag, no shared memory and a server:run that can only ever
+        // exit the way it always did. The commands take it nullOnInvalid for exactly that.
+        //
+        // What makes the Atomic inside it shared is that the server command holds it: the command is
+        // built, and so the flag allocated, in the process that then calls start() and forks the
+        // workers, which inherit it. A worker that built one of its own would have a flag nobody else
+        // can see - TaskWorkerCommandsUnrunnableTest is what would notice, since the exit code it
+        // asserts is read in that first process.
+        $container->register(TaskWorkerFailure::class)
+            ->setPublic(false)
+            ->setAutowired(false)
+            ->setAutoconfigured(false);
+
         $container->register(WithWorkerStopSignal::class)
             ->setPublic(false)
             ->setAutowired(false)
@@ -1123,6 +1138,7 @@ final class SwooleExtension extends Extension
             ->setArgument('$retirement', new Reference(WorkerRetirement::class))
             ->setArgument('$runningCommand', new Reference(RunningCommand::class))
             ->setArgument('$swoole', new Reference(Swoole::class))
+            ->setArgument('$failure', new Reference(TaskWorkerFailure::class))
             ->setArgument('$logger', new Reference('logger'))
             ->addTag('monolog.logger', [
                 'channel' => 'swoole',
