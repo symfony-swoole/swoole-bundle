@@ -10,6 +10,7 @@ use Exception;
 use InvalidArgumentException;
 use Override;
 use Swoole\Http\Server;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\TaskWorkerFailure;
 use SwooleBundle\SwooleBundle\Common\System\System;
 use SwooleBundle\SwooleBundle\Server\Config\Socket;
 use SwooleBundle\SwooleBundle\Server\Configurator\Configurator;
@@ -46,6 +47,7 @@ abstract class ServerExecutionCommand extends Command
         private readonly Configurator $serverConfigurator,
         protected ParameterBagInterface $parameterBag,
         private readonly Bootable $bootManager,
+        private readonly ?TaskWorkerFailure $taskWorkerFailure = null,
     ) {
         parent::__construct();
     }
@@ -177,6 +179,15 @@ abstract class ServerExecutionCommand extends Command
         }
 
         $this->startServer($this->serverConfiguration, $this->server, $io);
+
+        // start() returns when the server is down, and the one thing that can have brought it down
+        // rather than a signal is a task worker giving up on its commands. Saying so with the exit code
+        // is what lets a supervisor tell that from a stop it asked for - see TaskWorkerFailure.
+        if ($this->taskWorkerFailure?->isRaised() ?? false) {
+            $io->error('Swoole HTTP Server stopped because a task worker could not run its commands.');
+
+            return 1;
+        }
 
         return 0;
     }
