@@ -17,6 +17,11 @@ interface ContainerConstants
     public const string PARAM_COROUTINES_DOCTRINE_COMPILE_PROCESSOR_CONFIG =
         'swoole_bundle.coroutines_support.doctrine_compile_processor.config';
 
+    /**
+     * The classes the compile stripped `final` from, which every process loading the container strips again.
+     */
+    public const string PARAM_COROUTINES_FINAL_CLASSES = 'swoole_bundle.coroutines_support.final_classes';
+
     public const string PARAM_CACHE_FOLDER = 'swoole_bundle';
 
     public const string TAG_STATEFUL_SERVICE = 'swoole_bundle.stateful_service';

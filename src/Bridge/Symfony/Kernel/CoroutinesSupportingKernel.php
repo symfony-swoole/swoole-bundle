@@ -129,16 +129,9 @@ trait CoroutinesSupportingKernel
 
     private function initializeAndModifyContainer(string $cacheDir): void
     {
-        if ($this->finalClassListWentMissing($cacheDir)) {
-            $this->discardContainer();
-        }
-
-        // Inside the lock, and that is the whole point of where it sits. This reads the list of classes to
-        // strip `final` from, and on a cold cache that list is written by whichever process compiles the
-        // container. Read before the lock, every waiting process reads nothing, then loads the container the
-        // compiling process built - and dies on the first proxy in it, because the class it extends is still
-        // final: "Class SwooleBundleProxy\__PM__\... cannot extend final class ...".
-        ClassModifier::initialize($cacheDir);
+        // Before the container is compiled, if this boot compiles it: the compile strips `final` from what it
+        // proxies, through z-engine, and records the classes in the container it builds.
+        ClassModifier::initialize();
 
         parent::initializeContainer();
 
@@ -146,107 +139,42 @@ trait CoroutinesSupportingKernel
             return;
         }
 
+        $this->removeFinalFlagsFromProxiedClasses();
+
         Modifier::modifyContainer($this->container, $cacheDir, $this->isDebug());
 
-        $this->recordFinalClassesInMarker($cacheDir);
+        if (is_file($this->coroutinesMarkerPath())) {
+            return;
+        }
+
+        @touch($this->coroutinesMarkerPath());
     }
 
     /**
-     * Whether the cache holds a compiled container but not the list of classes to strip `final` from that
-     * was written beside it - and so a container no boot can use.
+     * Strips `final` from the classes the loaded container's proxies extend, before anything is instantiated from
+     * it - the first thing is the kernel proxy, straight after this boot.
      *
-     * The list is read back by every process before it instantiates anything, because the proxies the
-     * container hands out extend those classes. The container was never checked against it, and it can
-     * outlive it: a cache directory deleted while another process was compiling into it - swoole:server:watch
-     * clears it on a config change, and a console command in another container sharing the bind mount was
-     * mid-compile - keeps whatever was written after the delete, the container among it, and loses the list
-     * written before. Symfony finds that container fresh, so no boot rebuilt it, and every one of them died on
-     * the first final class it proxied:
+     * The list is in the container, and nowhere else. It used to be a cache of its own beside the container
+     * (swoole_bundle/modification), read before the container was loaded - and the two could be lost apart. A
+     * cache directory deleted while another process was compiling into it (swoole:server:watch clears it on a
+     * config change, while a console command sharing the bind mount was compiling) kept the container, written
+     * after the delete, and lost the list, written before. Symfony found the container fresh, so no boot rebuilt
+     * it, and every boot from then on died on the first final class it proxied:
      *
      *     Provided class "App\Kernel" is final and cannot be proxied
      *
-     * The marker is what makes this answerable before the container is loaded: written last, after the
-     * container, by the boot that saw both, with the list that boot found. A delete that spared the container
-     * spared the marker too, since it came later. A marker without a list - one an older version of this
-     * bundle touched, or one recording that nothing was final - says nothing, and nothing is discarded.
+     * A list that is part of the container is there whenever the container is. In the process that compiled it
+     * the classes are already stripped, and doing it again changes nothing.
      */
-    private function finalClassListWentMissing(string $cacheDir): bool
+    private function removeFinalFlagsFromProxiedClasses(): void
     {
-        if (!is_file($this->containerFilePath())) {
-            return false;
-        }
-
-        $recorded = $this->finalClassesRecordedInMarker();
-
-        if ($recorded === []) {
-            return false;
-        }
-
-        $cached = ClassModifier::cachedFinalClasses($cacheDir) ?? [];
-
-        return array_diff($recorded, $cached) !== [];
-    }
-
-    /**
-     * Deletes the compiled container, which Symfony then rebuilds in the call that follows - and the rebuild
-     * writes the list again. The proxies need nothing: they are generated when first asked for.
-     *
-     * The marker goes with it, so that a rebuild that fails leaves a cache looking like the cold one it now
-     * is, rather than one still claiming a list.
-     */
-    private function discardContainer(): void
-    {
-        @unlink($this->containerFilePath());
-        @unlink($this->coroutinesMarkerPath());
-    }
-
-    /**
-     * @return list<class-string>
-     */
-    private function finalClassesRecordedInMarker(): array
-    {
-        $contents = @file_get_contents($this->coroutinesMarkerPath());
-
-        if ($contents === false || $contents === '') {
-            return [];
-        }
-
-        $recorded = json_decode($contents, true);
-
-        if (!is_array($recorded)) {
-            return [];
-        }
-
-        /** @var list<class-string> $classes */
-        $classes = array_values(array_filter($recorded, is_string(...)));
-
-        return $classes;
-    }
-
-    /**
-     * The list as this cache holds it now - read back rather than taken from ClassModifier's memory, which
-     * outlives one kernel and would record the classes of every kernel this process has booted.
-     *
-     * Rewritten only when it changed, and through a rename, so a process reading it never sees half of one.
-     */
-    private function recordFinalClassesInMarker(string $cacheDir): void
-    {
-        $finalClasses = ClassModifier::cachedFinalClasses($cacheDir) ?? [];
-        sort($finalClasses);
-        $contents = json_encode(array_values($finalClasses), JSON_THROW_ON_ERROR);
-        $markerPath = $this->coroutinesMarkerPath();
-
-        if (@file_get_contents($markerPath) === $contents) {
+        if (!$this->container->hasParameter(ContainerConstants::PARAM_COROUTINES_FINAL_CLASSES)) {
             return;
         }
 
-        $temporaryPath = $markerPath . '.' . getmypid() . '.tmp';
-
-        if (@file_put_contents($temporaryPath, $contents) === false) {
-            return;
-        }
-
-        @rename($temporaryPath, $markerPath);
+        /** @var list<class-string> $finalClasses */
+        $finalClasses = $this->container->getParameter(ContainerConstants::PARAM_COROUTINES_FINAL_CLASSES);
+        ClassModifier::removeFinalFlagsFromClasses($finalClasses);
     }
 
     /**
@@ -285,9 +213,8 @@ trait CoroutinesSupportingKernel
 
     /**
      * Left by a boot that rewrote the container, and read by the next one to know that it should take the
-     * lock - and, holding the list of classes that boot found stripped of `final`, to know whether the cache
-     * still has that list (see finalClassListWentMissing()). Goes with the cache directory it describes: a
-     * cache:clear takes it away, and the cold boot that follows locks anyway.
+     * lock. Goes with the cache directory it describes: a cache:clear takes it away, and the cold boot that
+     * follows locks anyway.
      */
     private function coroutinesMarkerPath(): string
     {

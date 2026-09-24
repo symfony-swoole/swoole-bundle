@@ -14,23 +14,23 @@ use Symfony\Component\Process\Process;
  * Guards a boot from a cache directory that holds a compiled container but not everything that was written
  * beside it.
  *
- * With coroutines on, the compile strips `final` from every class the service pool proxies, in memory, and
- * writes the list of them to the cache (swoole_bundle/modification) for every later process to strip again
- * before it instantiates anything. The generated proxies go beside it (swoole_bundle/services). The list is
- * the part a later boot cannot do without, and the container was never checked against it: a cache directory
- * deleted while another process was compiling into it - `swoole:server:watch` clears it when a config file
- * changes, and a console command in a container sharing the same bind mount was compiling - kept the container
- * and lost the list. Every boot after that loaded the container, stripped nothing, and died on the first
- * proxy of a final class:
+ * With coroutines on, the compile strips `final` from every class the service pool proxies, in memory, and every
+ * later process has to strip the same classes again before it instantiates anything. The list of them used to be
+ * a cache of its own beside the container (swoole_bundle/modification), and the two could be lost apart: a cache
+ * directory deleted while another process was compiling into it - `swoole:server:watch` clears it when a config
+ * file changes, and a console command in a container sharing the same bind mount was compiling - kept the
+ * container and lost the list. Every boot after that loaded the container, stripped nothing, and died on the
+ * first proxy of a final class:
  *
  *     Provided class "App\Kernel" is final and cannot be proxied
  *
- * or, when the proxy files had survived and only the list had not:
+ * or, when the proxy files had survived:
  *
  *     Class SwooleBundleProxy\__PM__\...\Generated... cannot extend final class App\Kernel
  *
- * and nothing short of deleting the cache by hand brought the server back: the watcher gave up after its
- * restarts all failed, and the container was fresh, so no boot rebuilt it.
+ * and nothing short of deleting the cache by hand brought the server back. The list is in the container now, so
+ * what can still be lost beside it is what swoole_bundle/ holds - the generated proxies above all, which are
+ * generated again when first asked for.
  *
  * The fixture kernel is final, like most application kernels, and the kernel proxy exists whenever coroutines
  * are on - which is what makes an `about` enough to reproduce it.
@@ -108,12 +108,12 @@ final class ContainerBootFromPartialCacheTest extends TestCase
      */
     public static function provideLostParts(): iterable
     {
-        yield 'the list of unfinalled classes, and the proxies' => [
-            ['swoole_bundle/modification', 'swoole_bundle/services'],
+        yield 'the generated proxies' => [
+            ['swoole_bundle/services'],
         ];
 
-        yield 'the list of unfinalled classes only' => [
-            ['swoole_bundle/modification'],
+        yield 'everything the bundle writes beside the container' => [
+            ['swoole_bundle'],
         ];
     }
 
