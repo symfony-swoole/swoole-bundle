@@ -56,6 +56,26 @@ final class ClassModifier
         }
     }
 
+    /**
+     * The classes the cache directory says to strip `final` from, or null when it holds no such list - either
+     * because nothing proxied was final, or because the list is gone.
+     *
+     * @return array<class-string>|null
+     */
+    public static function cachedFinalClasses(string $cacheDir): ?array
+    {
+        $item = self::getCache($cacheDir)->getItem(self::CACHE_KEY_FINAL_CLASSES);
+
+        if (!$item->isHit()) {
+            return null;
+        }
+
+        /** @var array<class-string> $finalClasses */
+        $finalClasses = $item->get();
+
+        return $finalClasses;
+    }
+
     public static function dumpCache(?string $cacheDir = null): void
     {
         $cache = self::getCache($cacheDir);
