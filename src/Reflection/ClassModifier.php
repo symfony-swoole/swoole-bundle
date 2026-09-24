@@ -4,65 +4,30 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Reflection;
 
-use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\ContainerConstants;
-use Symfony\Component\Cache\Adapter\FilesystemAdapter;
 use ZEngine\Core;
 use ZEngine\Reflection\ReflectionClass;
 use ZEngine\Reflection\ReflectionMethod;
 
+/**
+ * Strips `final` from classes at runtime, through z-engine, so the service pool's proxies can extend them.
+ *
+ * The change is to the class in this process's memory and lasts as long as the process. So the compile does it
+ * for the classes it proxies, and records them in the container it builds
+ * (ContainerConstants::PARAM_COROUTINES_FINAL_CLASSES); every other process strips the same classes again once
+ * it has loaded that container, before it instantiates anything from it.
+ */
 final class ClassModifier
 {
-    private const string CACHE_KEY_FINAL_CLASSES = 'final_class_list';
-
-    private static FilesystemAdapter $cache;
-
-    private static string $cacheDir = '';
-
     /**
-     * @var array<class-string, class-string>
+     * What this process has stripped. z-engine's change outlives the kernel that asked for it, so a second
+     * compile in the same process - cache:clear compiles the container it warms up after the one it booted with -
+     * finds those classes no longer final, and without this would record none of them in the container it
+     * builds. That container is the one that ends up in the cache, and every process loading it would strip
+     * nothing.
+     *
+     * @var array<class-string, true>
      */
-    private static array $originalFinalClasses = [];
-
-    public static function initialize(string $cacheDir): void
-    {
-        self::initializeZEngine();
-        self::initializeCache($cacheDir);
-        self::modifyStoredFinalClasses();
-    }
-
-    /**
-     * @param class-string $className
-     */
-    public static function removeFinalFlagsFromClass(string $className): void
-    {
-        $reflClass = new ReflectionClass($className);
-
-        if (self::hasNativeParents($reflClass)) {
-            // native classes should not be final and z-engine has problems with them
-            return;
-        }
-
-        $finalMethods = $reflClass->getMethods(ReflectionMethod::IS_PUBLIC | ReflectionMethod::IS_FINAL);
-
-        if (!$reflClass->isFinal() && count($finalMethods) === 0) {
-            return;
-        }
-
-        self::$originalFinalClasses[$className] = $className;
-        $reflClass->setFinal(false);
-
-        foreach ($finalMethods as $reflMethod) {
-            $reflMethod->setFinal(false);
-        }
-    }
-
-    public static function dumpCache(?string $cacheDir = null): void
-    {
-        $cache = self::getCache($cacheDir);
-        $item = $cache->getItem(self::CACHE_KEY_FINAL_CLASSES);
-        $item->set(self::$originalFinalClasses);
-        $cache->save($item);
-    }
+    private static array $strippedClasses = [];
 
     /**
      * The kernel can be booted more than once per process (cache:clear boots a temporary kernel of
@@ -71,7 +36,7 @@ final class ClassModifier
      * callbacks installed by ReflectionFunction::redefine(), is invalidated by that and takes the
      * process down with a segmentation fault the next time it is used.
      */
-    private static function initializeZEngine(): void
+    public static function initialize(): void
     {
         if (isset(Core::$executor)) {
             return;
@@ -80,53 +45,49 @@ final class ClassModifier
         Core::init();
     }
 
-    private static function modifyStoredFinalClasses(): void
+    /**
+     * @param class-string $className
+     * @return bool whether the class is one this modifies - and so one every process that proxies it has to
+     *              modify, whether or not this call was the one to do it here
+     */
+    public static function removeFinalFlagsFromClass(string $className): bool
     {
-        $finalClasses = self::getCachedFinalClasses();
-
-        if ($finalClasses === null) {
-            return;
+        if (isset(self::$strippedClasses[$className])) {
+            return true;
         }
 
-        foreach ($finalClasses as $className) {
-            self::removeFinalFlagsFromClass($className);
+        $reflClass = new ReflectionClass($className);
+
+        if (self::hasNativeParents($reflClass)) {
+            // native classes should not be final and z-engine has problems with them
+            return false;
         }
+
+        $finalMethods = $reflClass->getMethods(ReflectionMethod::IS_PUBLIC | ReflectionMethod::IS_FINAL);
+
+        if (!$reflClass->isFinal() && count($finalMethods) === 0) {
+            return false;
+        }
+
+        $reflClass->setFinal(false);
+
+        foreach ($finalMethods as $reflMethod) {
+            $reflMethod->setFinal(false);
+        }
+
+        self::$strippedClasses[$className] = true;
+
+        return true;
     }
 
     /**
-     * @return array<class-string>|null
+     * @param iterable<class-string> $classNames
      */
-    private static function getCachedFinalClasses(): ?array
+    public static function removeFinalFlagsFromClasses(iterable $classNames): void
     {
-        $item = self::$cache->getItem(self::CACHE_KEY_FINAL_CLASSES);
-
-        if (!$item->isHit()) {
-            return null;
+        foreach ($classNames as $className) {
+            self::removeFinalFlagsFromClass($className);
         }
-
-        /** @var array<class-string> $toReturn */
-        $toReturn = $item->get();
-
-        return $toReturn;
-    }
-
-    private static function initializeCache(string $cacheDir): void
-    {
-        self::getCache($cacheDir);
-    }
-
-    private static function getCache(?string $cacheDir = null): FilesystemAdapter
-    {
-        if (self::$cacheDir === $cacheDir || $cacheDir === null) {
-            return self::$cache;
-        }
-
-        return self::$cache = new FilesystemAdapter(
-            '',
-            0,
-            $cacheDir . DIRECTORY_SEPARATOR . ContainerConstants::PARAM_CACHE_FOLDER
-                . DIRECTORY_SEPARATOR . 'modification'
-        );
     }
 
     private static function hasNativeParents(ReflectionClass $class): bool

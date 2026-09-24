@@ -129,18 +129,17 @@ trait CoroutinesSupportingKernel
 
     private function initializeAndModifyContainer(string $cacheDir): void
     {
-        // Inside the lock, and that is the whole point of where it sits. This reads the list of classes to
-        // strip `final` from, and on a cold cache that list is written by whichever process compiles the
-        // container. Read before the lock, every waiting process reads nothing, then loads the container the
-        // compiling process built - and dies on the first proxy in it, because the class it extends is still
-        // final: "Class SwooleBundleProxy\__PM__\... cannot extend final class ...".
-        ClassModifier::initialize($cacheDir);
+        // Before the container is compiled, if this boot compiles it: the compile strips `final` from what it
+        // proxies, through z-engine, and records the classes in the container it builds.
+        ClassModifier::initialize();
 
         parent::initializeContainer();
 
         if (!$this->areCoroutinesEnabled()) {
             return;
         }
+
+        $this->removeFinalFlagsFromProxiedClasses();
 
         Modifier::modifyContainer($this->container, $cacheDir, $this->isDebug());
 
@@ -149,6 +148,33 @@ trait CoroutinesSupportingKernel
         }
 
         @touch($this->coroutinesMarkerPath());
+    }
+
+    /**
+     * Strips `final` from the classes the loaded container's proxies extend, before anything is instantiated from
+     * it - the first thing is the kernel proxy, straight after this boot.
+     *
+     * The list is in the container, and nowhere else. It used to be a cache of its own beside the container
+     * (swoole_bundle/modification), read before the container was loaded - and the two could be lost apart. A
+     * cache directory deleted while another process was compiling into it (swoole:server:watch clears it on a
+     * config change, while a console command sharing the bind mount was compiling) kept the container, written
+     * after the delete, and lost the list, written before. Symfony found the container fresh, so no boot rebuilt
+     * it, and every boot from then on died on the first final class it proxied:
+     *
+     *     Provided class "App\Kernel" is final and cannot be proxied
+     *
+     * A list that is part of the container is there whenever the container is. In the process that compiled it
+     * the classes are already stripped, and doing it again changes nothing.
+     */
+    private function removeFinalFlagsFromProxiedClasses(): void
+    {
+        if (!$this->container->hasParameter(ContainerConstants::PARAM_COROUTINES_FINAL_CLASSES)) {
+            return;
+        }
+
+        /** @var list<class-string> $finalClasses */
+        $finalClasses = $this->container->getParameter(ContainerConstants::PARAM_COROUTINES_FINAL_CLASSES);
+        ClassModifier::removeFinalFlagsFromClasses($finalClasses);
     }
 
     /**
