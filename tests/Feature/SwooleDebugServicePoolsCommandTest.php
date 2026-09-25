@@ -38,6 +38,34 @@ final class SwooleDebugServicePoolsCommandTest extends ServerTestCase
         self::assertSame(1, $this->sectionCount('Unmanaged factory instantiation', $output));
     }
 
+    /**
+     * Services that keep the state of one call on themselves, which a shared instance lets two coroutines write
+     * at once: a constraint validator that is a service (its execution context), the http client's transport
+     * (its curl multi handle), and the form listener collecting passwords to hash. None of them was pooled - the
+     * validators because only the factory handing them out was, the transport because FrameworkBundle defines it
+     * by its interface, the listener because it has no reset() and no tag. The security environment, because the
+     * listener exists only where the security bundle does.
+     */
+    public function testServicesThatKeepACallsStateOnThemselvesArePooled(): void
+    {
+        $output = $this->runServicePoolsCommand(['--env=coroutines_security']);
+
+        $pooled = [
+            'validator.email',
+            'validator.not_compromised_password',
+            'http_client.transport',
+            'form.listener.password_hasher',
+        ];
+
+        foreach ($pooled as $serviceId) {
+            self::assertStringContainsString(
+                ' * ' . $serviceId . PHP_EOL,
+                $output,
+                sprintf('Expected %s to be pooled.', $serviceId),
+            );
+        }
+    }
+
     public function testFilterNarrowsTheListing(): void
     {
         $output = $this->runServicePoolsCommand(['--env=coroutines', '--filter=twig']);

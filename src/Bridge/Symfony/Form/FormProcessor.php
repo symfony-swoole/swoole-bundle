@@ -12,6 +12,7 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
+use Symfony\Component\Form\Extension\PasswordHasher\EventListener\PasswordHasherListener;
 use Symfony\Component\Validator\ConstraintValidatorFactoryInterface;
 
 /**
@@ -84,12 +85,16 @@ final class FormProcessor implements CompileProcessor
     private const string ENGINE_INITIALIZER_ID = 'swoole_bundle.form.twig_renderer_engine_initializer';
     private const string ENVIRONMENT_ID = 'twig';
     private const string VALIDATOR_FACTORY_ID = 'validator.validator_factory';
+    private const string CONSTRAINT_VALIDATOR_TAG = 'validator.constraint_validator';
+    private const string PASSWORD_HASHER_LISTENER_ID = 'form.listener.password_hasher';
 
     public function process(ContainerBuilder $container, ServiceProxifier $proxifier): void
     {
         $this->poolRenderer($container);
         $this->replaceEngineResetter($container);
         $this->poolValidatorFactory($container);
+        $this->poolConstraintValidatorServices($container);
+        $this->poolPasswordHasherListener($container);
     }
 
     /**
@@ -107,6 +112,84 @@ final class FormProcessor implements CompileProcessor
         $class = $definition->getClass();
 
         if ($class === null || !is_a($class, ConstraintValidatorFactoryInterface::class, true)) {
+            return;
+        }
+
+        $definition->addTag(ContainerConstants::TAG_STATEFUL_SERVICE);
+    }
+
+    /**
+     * The validators that are services, pooled as well as the factory that hands them out.
+     *
+     * Pooling the factory gives each coroutine its own memo of validators it builds with `new`. A validator
+     * that is a service - the email validator, which is configured; the one that asks whether a password has
+     * leaked, which is given an http client; UniqueEntity's, which is given Doctrine; anything an application
+     * registers - is not built by the factory at all: ContainerConstraintValidatorFactory fetches it from the
+     * container, and every coroutine's factory gets the same instance back. Validating writes the execution
+     * context onto that instance first (initialize()) and reads it back as it adds violations, so two coroutines
+     * validating with one of them write each other's context:
+     *
+     *   FiberViber\ConcurrencyException: Cross-coroutine access detected: [property_write]
+     *   Symfony\Component\Validator\Constraints\EmailValidator::$context is owned by coroutine #7 but
+     *   accessed by coroutine #9
+     *
+     * With no fiber_viber watching, the one that yields between the two - the leaked-password check does, on its
+     * http request - reports its violations into the other request's form.
+     *
+     * By tag rather than by name: `validator.constraint_validator` is what the validator component itself uses to
+     * find them, so it is every one of them, the application's own included.
+     */
+    private function poolConstraintValidatorServices(ContainerBuilder $container): void
+    {
+        foreach (array_keys($container->findTaggedServiceIds(self::CONSTRAINT_VALIDATOR_TAG)) as $serviceId) {
+            $definition = $container->getDefinition($serviceId);
+
+            if ($definition->hasTag(ContainerConstants::TAG_STATEFUL_SERVICE)) {
+                continue;
+            }
+
+            $definition->addTag(ContainerConstants::TAG_STATEFUL_SERVICE);
+        }
+    }
+
+    /**
+     * The listener behind PasswordType's `hash_property_path`, which collects the passwords of a submission on
+     * itself and hashes them onto the user once the root form has been submitted:
+     *
+     * ```php
+     * // registerPassword(), for every password field with the option
+     * $this->passwords[] = ['form' => ..., 'property_path' => ..., 'password' => ...];
+     * // hashPasswords(), for every root form - with the option or without it
+     * foreach ($this->passwords as $password) { ... $this->passwordHasher->hashPassword(...) ... }
+     * $this->passwords = [];
+     * ```
+     *
+     * One listener for every form of every request, and it clears its list on every root form's submit, so two
+     * coroutines submitting forms at once write the same list -
+     *
+     *   FiberViber\ConcurrencyException: Cross-coroutine access detected: [property_write]
+     *   Symfony\Component\Form\Extension\PasswordHasher\EventListener\PasswordHasherListener::$passwords is
+     *   owned by coroutine #5 but accessed by coroutine #8
+     *
+     * - which is one request's password hashed onto another request's user, or cleared by it before its own
+     * form got to hash it, and a user saved with no password at all.
+     *
+     * No resetter: hashPasswords() empties the list at the end of every root submission, so the most a
+     * submission that failed half way can leave on a pooled instance is an entry the next one clears.
+     */
+    private function poolPasswordHasherListener(ContainerBuilder $container): void
+    {
+        if (!$container->hasDefinition(self::PASSWORD_HASHER_LISTENER_ID)) {
+            return;
+        }
+
+        $definition = $container->getDefinition(self::PASSWORD_HASHER_LISTENER_ID);
+
+        if ($definition->getClass() !== PasswordHasherListener::class) {
+            return;
+        }
+
+        if ($definition->hasTag(ContainerConstants::TAG_STATEFUL_SERVICE)) {
             return;
         }
 

@@ -8,7 +8,9 @@ use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\Compiler
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices\ServiceProxifier;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\ContainerConstants;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Component\HttpClient\TraceableHttpClient;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 /**
  * Gives every coroutine its own traced http client, so the profiler's http panel belongs to the
@@ -54,9 +56,14 @@ use Symfony\Component\HttpClient\TraceableHttpClient;
  * No resetter has to be named. The class implements ResetInterface, which is StatefulServicesPass's
  * documented fallback for a pooled service that arrives without one, and reset() is exactly the right
  * way to hand the client back: it empties the traces and passes the reset on to the client it wraps.
+ *
+ * The transport at the bottom of the chain, which the paragraph above counts on being pooled, was not:
+ * see makeTheTransportPoolable().
  */
 final class HttpClientProcessor implements CompileProcessor
 {
+    private const string TRANSPORT_ID = 'http_client.transport';
+
     public function process(ContainerBuilder $container, ServiceProxifier $proxifier): void
     {
         foreach ($container->getDefinitions() as $definition) {
@@ -76,5 +83,47 @@ final class HttpClientProcessor implements CompileProcessor
 
             $definition->addTag(ContainerConstants::TAG_STATEFUL_SERVICE);
         }
+
+        $this->makeTheTransportPoolable($container);
+    }
+
+    /**
+     * Gives the transport the class it will actually have, so that it can be pooled.
+     *
+     * FrameworkBundle defines `http_client.transport` by its interface and builds it with
+     * HttpClient::create(), which picks an implementation when it runs - curl when it can. It is tagged
+     * `kernel.reset`, so the pool wants it, but a proxy has to extend a class, and the Proxifier skips a
+     * service defined by nothing but an interface. So every coroutine shared the one transport, and with it
+     * the one curl multi handle every request goes through: CurlHttpClient keeps its state on a
+     * CurlClientState, which two coroutines' requests then write at once -
+     *
+     *   FiberViber\ConcurrencyException: Cross-coroutine access detected: [property_write]
+     *   Symfony\Component\HttpClient\Internal\CurlClientState::$lastTimeout is owned by coroutine #12
+     *   but accessed by coroutine #14
+     *
+     * - which, without fiber_viber watching, is one coroutine's timeouts and pushed responses landing on
+     * another's requests.
+     *
+     * The class is what HttpClient::create() returns in the PHP compiling the container, which is the PHP that
+     * runs it: the choice depends only on which extensions are loaded. Only a transport defined exactly the
+     * way FrameworkBundle defines it is touched; one the application configured itself keeps its own class.
+     */
+    private function makeTheTransportPoolable(ContainerBuilder $container): void
+    {
+        if (!$container->hasDefinition(self::TRANSPORT_ID)) {
+            return;
+        }
+
+        $transport = $container->getDefinition(self::TRANSPORT_ID);
+
+        if ($transport->getClass() !== HttpClientInterface::class) {
+            return;
+        }
+
+        if ($transport->getFactory() !== [HttpClient::class, 'create']) {
+            return;
+        }
+
+        $transport->setClass(HttpClient::create()::class);
     }
 }

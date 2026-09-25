@@ -14,11 +14,14 @@ use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\Containe
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Form\FormProcessor;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Form\FormRendererResetter;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Form\TwigRendererEngineResetter;
+use SwooleBundle\SwooleBundle\Tests\Fixtures\Form\OtherConstraintValidator;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Form\OtherConstraintValidatorFactory;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Form\OtherRendererEngine;
 use Symfony\Bridge\Twig\Form\TwigRendererEngine;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\Form\Extension\PasswordHasher\EventListener\PasswordHasherListener;
 use Symfony\Component\Form\FormRenderer;
+use Symfony\Component\Validator\Constraints\EmailValidator;
 use Symfony\Component\Validator\ContainerConstraintValidatorFactory;
 
 #[CoversClass(FormProcessor::class)]
@@ -217,6 +220,77 @@ final class FormProcessorTest extends TestCase
         $this->process($container);
 
         self::assertFalse($container->hasDefinition(self::VALIDATOR_FACTORY_ID));
+    }
+
+    /**
+     * The validators that are services: the factory fetches them from the container, so pooling the factory
+     * alone left every coroutine writing its context onto the same instance.
+     */
+    public function testConstraintValidatorServicesArePooled(): void
+    {
+        $container = $this->newContainer();
+        $container->register('validator.email', EmailValidator::class)->addTag('validator.constraint_validator');
+        $container->register('app.validator', OtherConstraintValidator::class)
+            ->addTag('validator.constraint_validator');
+
+        $this->process($container);
+
+        foreach (['validator.email', 'app.validator'] as $serviceId) {
+            self::assertSame(
+                [[]],
+                $container->getDefinition($serviceId)->getTag(ContainerConstants::TAG_STATEFUL_SERVICE),
+                sprintf('Expected %s to be pooled.', $serviceId),
+            );
+        }
+    }
+
+    /**
+     * Pooled once: a validator the application already declared stateful keeps the one tag it has.
+     */
+    public function testAValidatorAlreadyDeclaredStatefulIsNotTaggedTwice(): void
+    {
+        $container = $this->newContainer();
+        $container->register('validator.email', EmailValidator::class)
+            ->addTag('validator.constraint_validator')
+            ->addTag(ContainerConstants::TAG_STATEFUL_SERVICE, ['limit' => 5]);
+
+        $this->process($container);
+
+        self::assertSame(
+            [['limit' => 5]],
+            $container->getDefinition('validator.email')->getTag(ContainerConstants::TAG_STATEFUL_SERVICE),
+        );
+    }
+
+    /**
+     * PasswordType's hash_property_path listener collects a submission's passwords on itself, and every root form
+     * clears them - one list for every request, unless each coroutine has its own listener.
+     */
+    public function testThePasswordHasherListenerIsPooled(): void
+    {
+        $container = $this->newContainer();
+        $container->register('form.listener.password_hasher', PasswordHasherListener::class);
+
+        $this->process($container);
+
+        self::assertSame(
+            [[]],
+            $container->getDefinition('form.listener.password_hasher')
+                ->getTag(ContainerConstants::TAG_STATEFUL_SERVICE),
+        );
+    }
+
+    public function testAListenerOfTheApplicationsOwnUnderThatNameIsLeftAlone(): void
+    {
+        $container = $this->newContainer();
+        $container->register('form.listener.password_hasher', OtherConstraintValidator::class);
+
+        $this->process($container);
+
+        self::assertFalse(
+            $container->getDefinition('form.listener.password_hasher')
+                ->hasTag(ContainerConstants::TAG_STATEFUL_SERVICE),
+        );
     }
 
     private function containerWithFormRenderer(): ContainerBuilder

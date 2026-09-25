@@ -14,7 +14,9 @@ use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\Containe
 use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpClient\HttpClientProcessor;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpClient\CurlHttpClient;
+use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Component\HttpClient\TraceableHttpClient;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 #[CoversClass(HttpClientProcessor::class)]
 final class HttpClientProcessorTest extends TestCase
@@ -133,6 +135,51 @@ final class HttpClientProcessorTest extends TestCase
             [['limit' => 5]],
             $container->getDefinition(self::DEBUG_CLIENT_ID)->getTag(ContainerConstants::TAG_STATEFUL_SERVICE),
         );
+    }
+
+    /**
+     * FrameworkBundle's transport, defined by its interface and built by HttpClient::create(): without a class
+     * of its own the Proxifier cannot extend it, and every coroutine shared it.
+     */
+    public function testTheTransportIsGivenTheClassItWillHave(): void
+    {
+        $container = $this->newContainer();
+        $container->register('http_client.transport', HttpClientInterface::class)
+            ->setFactory([HttpClient::class, 'create'])
+            ->addTag('kernel.reset', ['method' => 'reset']);
+
+        $this->process($container);
+
+        $transport = $container->getDefinition('http_client.transport');
+        self::assertSame(HttpClient::create()::class, $transport->getClass());
+        self::assertSame([HttpClient::class, 'create'], $transport->getFactory());
+        self::assertTrue($transport->hasTag('kernel.reset'), 'The tag that pools it is left as it was.');
+    }
+
+    /**
+     * A transport the application set up itself - its own factory, or its own class - is its own business.
+     */
+    public function testATransportTheApplicationDefinedIsLeftAlone(): void
+    {
+        $container = $this->newContainer();
+        $container->register('http_client.transport', HttpClientInterface::class)
+            ->setFactory([self::class, 'someOtherFactory']);
+
+        $this->process($container);
+
+        self::assertSame(
+            HttpClientInterface::class,
+            $container->getDefinition('http_client.transport')->getClass(),
+        );
+    }
+
+    public function testAContainerWithoutAnHttpClientIsLeftAlone(): void
+    {
+        $container = $this->newContainer();
+
+        $this->process($container);
+
+        self::assertFalse($container->hasDefinition('http_client.transport'));
     }
 
     private function process(ContainerBuilder $container): void
