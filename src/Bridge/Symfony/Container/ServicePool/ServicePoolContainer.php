@@ -112,6 +112,26 @@ final class ServicePoolContainer
         }
     }
 
+    /**
+     * Only the stability half of resetInCoroutine(): an instance that went bad is dropped, nothing is reset.
+     *
+     * For a messenger worker at the moment a message fails, which is before the worker is done with it: the
+     * retry, the failure transport and the failure listeners - logging included - still have to see the
+     * message's state, and the resetters would clear it (a fingers_crossed handler resetting its buffer
+     * before the failure is logged loses the very trail it exists to keep). What cannot wait is a broken
+     * instance, such as a connection the retry is about to be sent on.
+     */
+    public function discardUnstableInCoroutine(): void
+    {
+        foreach ($this->poolEntries as $poolEntry) {
+            try {
+                $poolEntry->pool->discardUnstableAssigned();
+            } catch (Throwable $throwable) {
+                $this->report('discard', $poolEntry->pool::class, $throwable);
+            }
+        }
+    }
+
     public function count(): int
     {
         return count($this->poolEntries);

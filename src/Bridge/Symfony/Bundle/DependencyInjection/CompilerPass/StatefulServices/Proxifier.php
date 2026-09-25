@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices;
 
 use Assert\Assertion;
+use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManager;
 use RuntimeException;
+use SwooleBundle\SwooleBundle\Bridge\Doctrine\DBAL\ConnectionStabilityChecker;
 use SwooleBundle\SwooleBundle\Bridge\Doctrine\ORM\EntityManagerStabilityChecker;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\ContainerConstants;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Proxy\Instantiator;
@@ -28,6 +30,7 @@ final class Proxifier implements ServiceProxifier
 
     private const array DEFAULT_STABILITY_CHECKERS = [
         EntityManager::class => EntityManagerStabilityChecker::class,
+        Connection::class => ConnectionStabilityChecker::class,
     ];
 
     /**
