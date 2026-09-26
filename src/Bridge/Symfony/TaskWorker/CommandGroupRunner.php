@@ -7,6 +7,7 @@ namespace SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker;
 use Override;
 use Psr\Log\LoggerInterface;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\CoWrapper;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\ServicePool\ServicePoolContainer;
 use SwooleBundle\SwooleBundle\Common\Adapter\Swoole;
 use Throwable;
 
@@ -52,6 +53,7 @@ final readonly class CommandGroupRunner implements CommandGroupExecutor
         private Swoole $swoole,
         private TaskWorkerFailure $failure,
         private LoggerInterface $logger,
+        private ServicePoolContainer $servicePools,
         private int $stopPollIntervalMs = 100,
     ) {}
 
@@ -80,6 +82,11 @@ final readonly class CommandGroupRunner implements CommandGroupExecutor
 
         CoWrapper::go(function () use ($control, $workerId, $waitGroup, $startedAt): void {
             $waitGroup->wait();
+            // Every command has returned and given its instances back, and this is the worker's last coroutine:
+            // the last place they can be destroyed from while what they do on the way out - a mail transport's
+            // QUIT - still can. Left to the end of the process, that is a fatal "API must be called in the
+            // coroutine" after a clean drain.
+            $this->servicePools->drain();
             $this->recycle($control, $workerId, $startedAt);
         });
     }

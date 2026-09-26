@@ -18,6 +18,8 @@ final class ServicePoolSpy implements ServicePool
 
     private int $discardUnstableAssignedCallCount = 0;
 
+    private int $drainCallCount = 0;
+
     public function __construct(
         private object $toReturnFromGet = new stdClass(),
         private ?object $assigned = null,
@@ -41,6 +43,16 @@ final class ServicePoolSpy implements ServicePool
     public function discardUnstableAssigned(): void
     {
         $this->discardUnstableAssignedCallCount++;
+    }
+
+    public function drain(): void
+    {
+        $this->drainCallCount++;
+    }
+
+    public function drainCallCount(): int
+    {
+        return $this->drainCallCount;
     }
 
     public function releaseFromCoroutineCallCount(): int

@@ -29,6 +29,13 @@ final class SwooleSpy implements Swoole
      */
     private array $registeredTickTuple = [];
 
+    /**
+     * -1 is outside any coroutine, which is where most of what this stands in for runs.
+     */
+    public function __construct(
+        private readonly int $coroutineId = -1,
+    ) {}
+
     public function tick(int $intervalMs, callable $callbackFunction, mixed ...$params): int
     {
         $this->registeredTick = true;
@@ -97,7 +104,7 @@ final class SwooleSpy implements Swoole
 
     public function getCoroutineId(): int
     {
-        return -1;
+        return $this->coroutineId;
     }
 
     /**

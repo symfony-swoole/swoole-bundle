@@ -125,6 +125,27 @@ final class ServicePoolContainer
         }
     }
 
+    /**
+     * Destroys what the pools hold for nobody, for a worker about to end - called from inside a coroutine, the
+     * last one it runs, so that what the instances do on their way out still can (see ServicePool::drain()).
+     *
+     * The calling coroutine's own instances are given back first, the way its end would give them back, so that
+     * they go too; what other coroutines still hold stays with them. Guarded like the release cycle: one pool
+     * failing to let go must not keep the others from it.
+     */
+    public function drain(): void
+    {
+        $this->releaseFromCoroutine();
+
+        foreach ($this->poolEntries as $poolEntry) {
+            try {
+                $poolEntry->pool->drain();
+            } catch (Throwable $throwable) {
+                $this->report('drain', $poolEntry->pool::class, $throwable);
+            }
+        }
+    }
+
     public function count(): int
     {
         return count($this->poolEntries);
