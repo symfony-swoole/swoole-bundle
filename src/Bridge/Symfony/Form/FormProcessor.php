@@ -138,9 +138,20 @@ final class FormProcessor implements CompileProcessor
      *
      * By tag rather than by name: `validator.constraint_validator` is what the validator component itself uses to
      * find them, so it is every one of them, the application's own included.
+     *
+     * Only where there is a validator to hand them out, which is the condition the validator component's own
+     * AddConstraintValidatorsPass stops on. The tag outlives the component: SecurityBundle registers
+     * `security.validator.user_password` whether symfony/validator is installed or not, and Symfony removes it
+     * again as unused - but tagged stateful it gets proxified first, and a class whose parent is
+     * Symfony\Component\Validator\ConstraintValidator cannot even be autoloaded without the component, so the
+     * compile dies on a fatal error instead.
      */
     private function poolConstraintValidatorServices(ContainerBuilder $container): void
     {
+        if (!$container->hasDefinition(self::VALIDATOR_FACTORY_ID)) {
+            return;
+        }
+
         foreach (array_keys($container->findTaggedServiceIds(self::CONSTRAINT_VALIDATOR_TAG)) as $serviceId) {
             $definition = $container->getDefinition($serviceId);
 
