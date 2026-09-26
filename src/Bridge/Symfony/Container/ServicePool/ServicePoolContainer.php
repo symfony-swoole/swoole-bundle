@@ -102,14 +102,7 @@ final class ServicePoolContainer
     public function resetInCoroutine(): void
     {
         $this->runResetters();
-
-        foreach ($this->poolEntries as $poolEntry) {
-            try {
-                $poolEntry->pool->discardUnstableAssigned();
-            } catch (Throwable $throwable) {
-                $this->report('discard', $poolEntry->pool::class, $throwable);
-            }
-        }
+        $this->discardUnstableInCoroutine();
     }
 
     /**
