@@ -145,6 +145,35 @@ final class ServicePoolContainerTest extends TestCase
     }
 
     /**
+     * The failure-time half: what went bad is dropped, and nothing is reset or released.
+     */
+    public function testDiscardingInCoroutineNeitherResetsNorReleases(): void
+    {
+        $resettable = new ResettableSpy();
+        $pool = new ServicePoolSpy(assigned: $resettable);
+        $container = new ServicePoolContainer([new ServicePoolEntry($pool, new SimpleResetter('reset'))]);
+
+        $container->discardUnstableInCoroutine();
+
+        self::assertSame(1, $pool->discardUnstableAssignedCallCount());
+        self::assertSame(0, $resettable->resetCallCount());
+        self::assertSame(0, $pool->releaseFromCoroutineCallCount());
+    }
+
+    public function testDiscardingInCoroutineNeverThrows(): void
+    {
+        $healthy = new ServicePoolSpy(assigned: new ResettableSpy());
+        $container = new ServicePoolContainer([
+            new ServicePoolEntry(new ThrowingServicePool()),
+            new ServicePoolEntry($healthy),
+        ]);
+
+        $container->discardUnstableInCoroutine();
+
+        self::assertSame(1, $healthy->discardUnstableAssignedCallCount());
+    }
+
+    /**
      * One service failing to reset must not cost the worker every message that follows it.
      */
     public function testTheResetCycleNeverThrows(): void

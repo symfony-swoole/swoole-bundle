@@ -6,6 +6,7 @@ namespace SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Command;
 
 use Override;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Message\InsertRow;
+use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Message\LeaveConnectionInLostTransaction;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -46,7 +47,13 @@ final class EnqueueInsertRowsCommand extends Command
     protected function configure(): void
     {
         $this->addArgument('count', InputArgument::REQUIRED, 'How many messages to send')
-            ->addOption('sleep-ms', null, InputOption::VALUE_REQUIRED, 'How long each handler sleeps', '0');
+            ->addOption('sleep-ms', null, InputOption::VALUE_REQUIRED, 'How long each handler sleeps', '0')
+            ->addOption(
+                'break-connection-first',
+                null,
+                InputOption::VALUE_NONE,
+                'Send a message ahead of the batch whose handler leaves its connection in a lost transaction',
+            );
     }
 
     #[Override]
@@ -56,6 +63,10 @@ final class EnqueueInsertRowsCommand extends Command
         $count = $input->getArgument('count');
         /** @var string $sleepMs */
         $sleepMs = $input->getOption('sleep-ms');
+
+        if ($input->getOption('break-connection-first') === true) {
+            $this->messageBus->dispatch(new LeaveConnectionInLostTransaction());
+        }
 
         for ($index = 1; $index <= (int) $count; $index++) {
             $this->messageBus->dispatch(new InsertRow(self::messageId($index), (int) $sleepMs));

@@ -22,7 +22,9 @@ declare(strict_types=1);
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Command\EnqueueInsertRowsCommand;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Command\MessengerTransportReportCommand;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Message\InsertRow;
+use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Message\LeaveConnectionInLostTransaction;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\MessageHandler\InsertRowHandler;
+use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\MessageHandler\LeaveConnectionInLostTransactionHandler;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 
 use function Symfony\Component\DependencyInjection\Loader\Configurator\service;
@@ -51,6 +53,7 @@ return static function (ContainerConfigurator $containerConfigurator): void {
             ],
             'routing' => [
                 InsertRow::class => 'default',
+                LeaveConnectionInLostTransaction::class => 'default',
             ],
         ],
     ]);
@@ -62,6 +65,9 @@ return static function (ContainerConfigurator $containerConfigurator): void {
         ->autoconfigure();
 
     $services->set(InsertRowHandler::class)
+        ->tag('messenger.message_handler');
+
+    $services->set(LeaveConnectionInLostTransactionHandler::class)
         ->tag('messenger.message_handler');
 
     $services->set(EnqueueInsertRowsCommand::class);

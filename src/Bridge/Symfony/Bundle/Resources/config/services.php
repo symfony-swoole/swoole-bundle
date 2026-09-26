@@ -7,6 +7,7 @@ use ProxyManager\FileLocator\FileLocator;
 use ProxyManager\GeneratorStrategy\FileWriterGeneratorStrategy;
 use ProxyManager\Signature\SignatureGenerator;
 use SwooleBundle\SwooleBundle\Bridge\CommonSwoole\SystemSwooleFactory;
+use SwooleBundle\SwooleBundle\Bridge\Doctrine\DBAL\ConnectionStabilityChecker;
 use SwooleBundle\SwooleBundle\Bridge\Doctrine\ORM\EntityManagerStabilityChecker;
 use SwooleBundle\SwooleBundle\Bridge\OpenSwoole\Metrics\MetricsProvider as OpenSwooleMetricsProvider;
 use SwooleBundle\SwooleBundle\Bridge\Swoole\Metrics\MetricsProvider as SwooleMetricsProvider;
@@ -499,6 +500,9 @@ return static function (ContainerConfigurator $containerConfigurator): void {
         ->arg('$poolEntries', []);
 
     $services->set(EntityManagerStabilityChecker::class)
+        ->tag('swoole_bundle.stability_checker');
+
+    $services->set(ConnectionStabilityChecker::class)
         ->tag('swoole_bundle.stability_checker');
 
     $services->set(KernelCloner::class)
