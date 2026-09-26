@@ -40,4 +40,9 @@ final readonly class ThrowingServicePool implements ServicePool
     {
         throw new RuntimeException($this->message);
     }
+
+    public function drain(): void
+    {
+        throw new RuntimeException($this->message);
+    }
 }

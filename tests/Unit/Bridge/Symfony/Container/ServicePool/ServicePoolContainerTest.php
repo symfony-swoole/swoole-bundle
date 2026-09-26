@@ -187,4 +187,44 @@ final class ServicePoolContainerTest extends TestCase
         // reaching here at all is the assertion
         self::assertSame(1, $container->count());
     }
+
+    /**
+     * The worker's last coroutine drains the pools: what it holds itself is given back first, the way its end
+     * would, and then every pool lets go of what nobody holds.
+     */
+    public function testDrainingGivesTheCallersInstancesBackAndDrainsEveryPool(): void
+    {
+        $first = new ServicePoolSpy(assigned: new ResettableSpy());
+        $second = new ServicePoolSpy();
+        $container = new ServicePoolContainer([
+            new ServicePoolEntry($first, new SimpleResetter('reset')),
+            new ServicePoolEntry($second, new SimpleResetter('reset')),
+        ]);
+
+        $container->drain();
+
+        self::assertSame(1, $first->releaseFromCoroutineCallCount());
+        self::assertSame(1, $first->drainCallCount());
+        self::assertSame(1, $second->drainCallCount());
+    }
+
+    /**
+     * Guarded like the release cycle, and for the same reason: it runs where nothing is left to catch, and one
+     * pool failing to let go must not keep the others from it.
+     */
+    public function testAFailingDrainDoesNotStopTheOtherPoolsBeingDrained(): void
+    {
+        $healthy = new ServicePoolSpy();
+        $container = new ServicePoolContainer([
+            new ServicePoolEntry(
+                new ThrowingServicePool(assigned: new ResettableSpy(), message: 'drain blew up'),
+                new SimpleResetter('reset'),
+            ),
+            new ServicePoolEntry($healthy, new SimpleResetter('reset')),
+        ]);
+
+        $container->drain();
+
+        self::assertSame(1, $healthy->drainCallCount());
+    }
 }

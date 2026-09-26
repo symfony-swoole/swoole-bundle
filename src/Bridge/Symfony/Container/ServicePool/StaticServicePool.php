@@ -42,4 +42,9 @@ final readonly class StaticServicePool implements ServicePool
     {
         // the one instance is the pool - there is nothing to replace it with
     }
+
+    public function drain(): void
+    {
+        // the one instance is the container's own service, and goes with the container
+    }
 }

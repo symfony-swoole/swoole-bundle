@@ -17,6 +17,7 @@ use SwooleBundle\SwooleBundle\Bridge\Log\SimpleAccessLogFormatter;
 use SwooleBundle\SwooleBundle\Bridge\Monolog\WorkerContextProcessor;
 use SwooleBundle\SwooleBundle\Bridge\Monolog\WorkerIdentity;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\EventDispatcher\DebugClassLoaderOverridingWorkerStartHandler;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\ServicePool\DrainServicePoolsOnWorkerExit;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\ServicePool\ServicePoolContainer;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\StabilityChecker;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\ErrorHandler\ErrorHandlerResetter;
@@ -261,6 +262,17 @@ final class SwooleExtension extends Extension
             ->addTag('swoole_bundle.server_configurator');
         $container->registerForAutoconfiguration(HealthCheck::class)
             ->addTag(ContainerConstants::TAG_HEALTH_CHECK);
+
+        // Whatever the pools hold goes while the worker's reactor is still there to run a coroutine in - see the
+        // handler. Cheap when coroutines are off: there are no pools to drain.
+        $container->register(DrainServicePoolsOnWorkerExit::class)
+            ->setPublic(false)
+            ->setAutowired(false)
+            ->setAutoconfigured(false)
+            ->setArgument('$servicePools', new Reference(ServicePoolContainer::class))
+            ->setArgument('$swoole', new Reference(Swoole::class))
+            ->setArgument('$decorated', new Reference(DrainServicePoolsOnWorkerExit::class . '.inner'))
+            ->setDecoratedService(WorkerExitHandler::class);
 
         // Not tied to the task worker: a messenger worker keeps one coroutine - or none at all - across
         // every message it handles either way, so the pools need resetting between them wherever
@@ -1140,6 +1152,7 @@ final class SwooleExtension extends Extension
             ->setArgument('$swoole', new Reference(Swoole::class))
             ->setArgument('$failure', new Reference(TaskWorkerFailure::class))
             ->setArgument('$logger', new Reference('logger'))
+            ->setArgument('$servicePools', new Reference(ServicePoolContainer::class))
             ->addTag('monolog.logger', [
                 'channel' => 'swoole',
             ]);

@@ -105,6 +105,11 @@ abstract class BaseServicePool implements ServicePool
         $this->unlockPool();
     }
 
+    public function drain(): void
+    {
+        $this->freePool = [];
+    }
+
     /**
      * @return T
      */
