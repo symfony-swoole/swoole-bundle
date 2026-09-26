@@ -229,6 +229,7 @@ final class FormProcessorTest extends TestCase
     public function testConstraintValidatorServicesArePooled(): void
     {
         $container = $this->newContainer();
+        $container->register(self::VALIDATOR_FACTORY_ID, ContainerConstraintValidatorFactory::class);
         $container->register('validator.email', EmailValidator::class)->addTag('validator.constraint_validator');
         $container->register('app.validator', OtherConstraintValidator::class)
             ->addTag('validator.constraint_validator');
@@ -250,6 +251,7 @@ final class FormProcessorTest extends TestCase
     public function testAValidatorAlreadyDeclaredStatefulIsNotTaggedTwice(): void
     {
         $container = $this->newContainer();
+        $container->register(self::VALIDATOR_FACTORY_ID, ContainerConstraintValidatorFactory::class);
         $container->register('validator.email', EmailValidator::class)
             ->addTag('validator.constraint_validator')
             ->addTag(ContainerConstants::TAG_STATEFUL_SERVICE, ['limit' => 5]);
@@ -259,6 +261,24 @@ final class FormProcessorTest extends TestCase
         self::assertSame(
             [['limit' => 5]],
             $container->getDefinition('validator.email')->getTag(ContainerConstants::TAG_STATEFUL_SERVICE),
+        );
+    }
+
+    /**
+     * SecurityBundle registers its password validator with the tag whether the validator component is installed
+     * or not. Without the component that class cannot be autoloaded, and proxifying it killed the compile.
+     */
+    public function testAValidatorIsLeftAloneWhenNothingHandsValidatorsOut(): void
+    {
+        $container = $this->newContainer();
+        $container->register('security.validator.user_password', 'App\\Missing\\UserPasswordValidator')
+            ->addTag('validator.constraint_validator');
+
+        $this->process($container);
+
+        self::assertFalse(
+            $container->getDefinition('security.validator.user_password')
+                ->hasTag(ContainerConstants::TAG_STATEFUL_SERVICE),
         );
     }
 
