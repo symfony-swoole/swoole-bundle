@@ -1,3 +1,15 @@
+## [0.35.3](https://github.com/symfony-swoole/swoole-bundle/compare/v0.35.2...v0.35.3) (2026-09-26)
+
+[Full changelog](https://github.com/symfony-swoole/swoole-bundle/compare/v0.35.2...v0.35.3)
+
+### Bug Fixes
+
+* **coroutines:** drain the service pools while a worker can still run a coroutine ([#427](https://github.com/symfony-swoole/swoole-bundle/issues/427)) ([7f9baba](https://github.com/symfony-swoole/swoole-bundle/commit/7f9babaab7b145db08395aef38deda5de9bdc13f))
+* **coroutines:** keep the list of unfinalled classes in the container ([#423](https://github.com/symfony-swoole/swoole-bundle/issues/423)) ([2f2282b](https://github.com/symfony-swoole/swoole-bundle/commit/2f2282bd58b81feace4dcd55df69339b102001d8))
+* **coroutines:** pool validator services, the http client transport and the password hasher listener ([#424](https://github.com/symfony-swoole/swoole-bundle/issues/424)) ([753a25a](https://github.com/symfony-swoole/swoole-bundle/commit/753a25aab7495a58fe6274b37fefb3430709627b))
+* **doctrine:** drop a pooled connection left inside a transaction, also when a message fails ([#425](https://github.com/symfony-swoole/swoole-bundle/issues/425)) ([27d5bcf](https://github.com/symfony-swoole/swoole-bundle/commit/27d5bcfeabf68559205eed0597433d59b41ab136))
+* **form:** pool constraint validator services only where there is a validator ([#426](https://github.com/symfony-swoole/swoole-bundle/issues/426)) ([7b85beb](https://github.com/symfony-swoole/swoole-bundle/commit/7b85beb68b551a60c5753e365c4efa142d0e8a16))
+
 ## [0.35.2](https://github.com/symfony-swoole/swoole-bundle/compare/v0.35.1...v0.35.2) (2026-09-22)
 
 [Full changelog](https://github.com/symfony-swoole/swoole-bundle/compare/v0.35.1...v0.35.2)
