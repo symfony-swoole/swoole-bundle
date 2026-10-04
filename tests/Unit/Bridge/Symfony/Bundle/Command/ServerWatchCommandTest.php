@@ -125,6 +125,30 @@ final class ServerWatchCommandTest extends TestCase
         self::assertStringContainsString('server 2 up', $display);
     }
 
+    /**
+     * What a server prints is passed on, not formatted: a log line may hold anything - a binary query
+     * parameter, say - and "<fg=...>" naming no colour would otherwise throw out of the loop supervising
+     * the server, taking the server with it.
+     */
+    public function testWhatTheServerPrintsIsPassedOnAsItIs(): void
+    {
+        $this->writeConsoleStub(<<<'PHP'
+            fwrite(STDOUT, "out <fg=nothing>as it is</> <info>kept</info>\n");
+            fwrite(STDERR, "err <bg=nothing>as it is</>\n");
+            usleep(300_000);
+            $stopWatcher();
+
+            while (true) {
+                sleep(1);
+            }
+            PHP);
+
+        $display = $this->runWatch();
+
+        self::assertStringContainsString('out <fg=nothing>as it is</> <info>kept</info>', $display);
+        self::assertStringContainsString('err <bg=nothing>as it is</>', $display);
+    }
+
     public function testRestartsServerThatDiedOnItsOwn(): void
     {
         $this->writeConsoleStub(<<<'PHP'
