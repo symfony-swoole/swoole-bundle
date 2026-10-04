@@ -269,14 +269,17 @@ final class ServerWatchCommand extends Command implements SignalableCommandInter
             ],
         );
         $process->setTimeout(null);
+        // Passed on as it is: what a server prints is not this command's to format. A log line holding a "<" - a
+        // binary query parameter is enough - is otherwise read as a style tag, and one naming no style throws, in the
+        // middle of the loop that supervises the server.
         $process->start(static function (string $type, string $buffer) use ($output): void {
             if ($type === Process::ERR && $output instanceof ConsoleOutputInterface) {
-                $output->getErrorOutput()->write($buffer);
+                $output->getErrorOutput()->write($buffer, false, OutputInterface::OUTPUT_RAW);
 
                 return;
             }
 
-            $output->write($buffer);
+            $output->write($buffer, false, OutputInterface::OUTPUT_RAW);
         });
 
         return $process;
