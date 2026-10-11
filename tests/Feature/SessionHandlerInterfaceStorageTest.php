@@ -157,6 +157,44 @@ final class SessionHandlerInterfaceStorageTest extends ServerTestCase
     }
 
     /**
+     * Looking after the handler's connection is no reason to open it: a request that uses no session opens none -
+     * and so is served where the session's database is away.
+     */
+    public function testARequestThatUsesNoSessionOpensNoConnectionForIt(): void
+    {
+        $envs = [
+            'APP_ENV' => 'session_pdo',
+            'COOKIE_LIFETIME' => 60,
+        ];
+
+        foreach (
+            [
+                ['cache:clear'],
+                ['swoole:server:start', '--host=localhost', sprintf('--port=%d', self::port())],
+            ] as $command
+        ) {
+            $process = $this->createConsoleProcess($command, $envs);
+            $process->setTimeout(10);
+            $process->disableOutput();
+            $process->run();
+
+            $this->assertProcessSucceeded($process);
+        }
+
+        $this->runAsCoroutineAndWait(function () use ($envs): void {
+            $this->deferServerStop([], $envs);
+
+            $client = HttpClient::fromDomain('localhost', self::port(), false);
+            $this->assertTrue($client->connect(self::connectTimeout(), 1, true));
+
+            $this->assertSame(200, $client->send('/')['response']['statusCode']);
+            $this->assertSame(200, $client->send('/')['response']['statusCode']);
+
+            $this->assertSame(0, $this->closeTheServersConnections());
+        });
+    }
+
+    /**
      * @return iterable<string, array{string}>
      */
     public static function pdoSessionEnvironments(): iterable
