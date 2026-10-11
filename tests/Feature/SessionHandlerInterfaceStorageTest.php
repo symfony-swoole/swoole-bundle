@@ -6,6 +6,7 @@ namespace SwooleBundle\SwooleBundle\Tests\Feature;
 
 use Doctrine\DBAL\Connection;
 use Override;
+use PHPUnit\Framework\Attributes\DataProvider;
 use SwooleBundle\SwooleBundle\Client\HttpClient;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Test\ServerTestCase;
 
@@ -101,6 +102,85 @@ final class SessionHandlerInterfaceStorageTest extends ServerTestCase
             $this->assertNotEmpty($row['data']);
             $this->assertStringContainsString('luckyNumber', $row['data']);
         });
+    }
+
+    /**
+     * A worker keeps the handler's PDO connection for longer than a database keeps an idle one: MySQL closes it
+     * after its `wait_timeout`, and a restart closes them all. The session has to be there for the next request
+     * all the same - looked after as the connection is handed to a coroutine, or, without coroutines, as the
+     * resetter bundle starts the request.
+     */
+    #[DataProvider('pdoSessionEnvironments')]
+    public function testSessionSurvivesTheDatabaseClosingTheHandlersConnection(string $environment): void
+    {
+        $envs = [
+            'APP_ENV' => $environment,
+            'COOKIE_LIFETIME' => 60,
+        ];
+
+        foreach (
+            [
+                ['cache:clear'],
+                ['doctrine:schema:drop', '--full-database', '--force'],
+                ['doctrine:migrations:migrate', '--no-interaction'],
+                ['swoole:server:start', '--host=localhost', sprintf('--port=%d', self::port())],
+            ] as $command
+        ) {
+            $process = $this->createConsoleProcess($command, $envs);
+            $process->setTimeout(10);
+            $process->disableOutput();
+            $process->run();
+
+            $this->assertProcessSucceeded($process);
+        }
+
+        $this->runAsCoroutineAndWait(function () use ($envs): void {
+            $this->deferServerStop([], $envs);
+
+            $client = HttpClient::fromDomain('localhost', self::port(), false);
+            $this->assertTrue($client->connect(self::connectTimeout(), 1, true));
+
+            $before = $client->send('/session/1')['response'];
+            $this->assertSame(200, $before['statusCode']);
+            $sessionId = $before['cookies']['SWOOLESSID'];
+
+            // Every connection the server holds to this test's database, the session handler's among them.
+            $this->assertGreaterThan(0, $this->closeTheServersConnections());
+
+            $after = $client->send('/session/2')['response'];
+
+            $this->assertSame(200, $after['statusCode']);
+            $this->assertSame($sessionId, $after['cookies']['SWOOLESSID']);
+            $this->assertSame($before['body'], $after['body']);
+            $this->assertNotNull($this->fetchSessionRow($sessionId));
+        });
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function pdoSessionEnvironments(): iterable
+    {
+        yield 'without coroutines, looked after by the resetter bundle' => ['session_pdo'];
+        yield 'with coroutines, looked after as it is handed out' => ['coroutines_session_pdo'];
+    }
+
+    /**
+     * Has the server close every connection to this test's database but the one that asks, as it does by itself
+     * to one idle for its `wait_timeout`. A parallel worker has a database of its own, and is left alone.
+     */
+    private function closeTheServersConnections(): int
+    {
+        /** @var Connection $connection */
+        $connection = self::getContainer()->get('doctrine.dbal.default_connection');
+        $ids = $connection->fetchFirstColumn(
+            'SELECT id FROM information_schema.processlist WHERE db = DATABASE() AND id <> CONNECTION_ID()',
+        );
+        foreach ($ids as $id) {
+            $connection->executeStatement('KILL ' . (int) $id);
+        }
+
+        return count($ids);
     }
 
     /**

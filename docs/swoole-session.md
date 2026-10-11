@@ -52,6 +52,34 @@ framework:
 
 When both options are configured together, the bundle replaces the default `Storage` implementation with a `SessionHandlerInterfaceStorage` adapter that delegates read/write operations to the configured handler.
 
+### Keeping the handler's PDO connection alive
+
+A worker keeps the session handler's PDO connection for as long as it lives; a database does not keep an idle connection that long. MySQL closes one after its `wait_timeout` - eight hours by default, a quiet night - and a restart of the database closes them all. The worker's next request then fails with `SQLSTATE[HY000]: General error: 2006 MySQL server has gone away`, and so does every request after it.
+
+A connection made by the bundle's factory is looked after the way Doctrine's connections are:
+
+```php
+use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation\Session\PdoSession\PdoConnectionFactory;
+use Symfony\Component\HttpFoundation\Session\Storage\Handler\PdoSessionHandler;
+
+$services->set('app.session.pdo', PDO::class)
+    ->factory([PdoConnectionFactory::class, 'newInstanceFromDsnOrUrl'])
+    ->arg('$dsnOrUrl', env('DATABASE_URL')->resolve())
+    ->tag('swoole_bundle.stateful_service'); // with coroutines: a connection a coroutine
+
+$services->set(PdoSessionHandler::class)
+    ->arg('$pdoOrDsn', service('app.session.pdo'));
+```
+
+Each such service gets an alive keeper (`PingingPDOAliveKeeper`, `swoole_bundle.session.pdo.alive_keeper.<service id>`): it asks the server `SELECT 1`, and where there is no answer constructs the connection again in place, with what it was constructed with - PDO cannot reconnect, and the object has to stay the one the handler holds. Never inside a transaction. The reconnect is logged at `info`.
+
+When it is asked depends on how the server runs:
+
+- **With coroutines**, as a pooled connection is handed to a coroutine, before the coroutine uses it: the bundle sets an `initializer` on the service's `swoole_bundle.stateful_service` tag (`PDOKeepAliveInitializer`), as it does for Doctrine's connections. A tag that names an initializer of its own is left as it is.
+- **Without coroutines**, as a request starts, by [swoole-bundle/resetter-bundle](https://github.com/symfony-swoole/resetter-bundle): the connections are given to a `ConnectionsHandler` of that bundle (`PDOPlatformAliveKeeper`), among its request cycle's initializers, beside the one it has for Doctrine. Without that bundle installed nothing looks after the connection - as nothing looks after Doctrine's.
+
+To look after a connection another way, implement `PDOAliveKeeper` and decorate the service above. A connection you construct yourself (`new PDO(...)`), and not with the factory, is yours to look after.
+
 ### Limitations
 
 Using a generic `\SessionHandlerInterface` imposes some restrictions compared to the native OpenSwoole Table storage:
