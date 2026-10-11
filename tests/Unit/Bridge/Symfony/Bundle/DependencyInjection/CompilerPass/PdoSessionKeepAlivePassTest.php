@@ -13,7 +13,9 @@ use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation\Session\PdoSession\P
 use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation\Session\PdoSession\PDOKeepAliveInitializer;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation\Session\PdoSession\PDOPlatformAliveKeeper;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation\Session\PdoSession\PingingPDOAliveKeeper;
+use Symfony\Component\DependencyInjection\Argument\ServiceClosureArgument;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
 
@@ -92,7 +94,13 @@ final class PdoSessionKeepAlivePassTest extends TestCase
         $platform = $container->getDefinition(PdoSessionKeepAlivePass::PLATFORM_ALIVE_KEEPER_SERVICE_ID);
         $this->assertSame(PDOPlatformAliveKeeper::class, $platform->getClass());
         $this->assertEquals(
-            [[self::PDO => new Reference(self::PDO)], [self::PDO => new Reference(self::ALIVE_KEEPER)]],
+            [
+                // Given once something has made it, and not made to be looked after.
+                [self::PDO => new ServiceClosureArgument(
+                    new Reference(self::PDO, ContainerInterface::IGNORE_ON_UNINITIALIZED_REFERENCE),
+                )],
+                [self::PDO => new Reference(self::ALIVE_KEEPER)],
+            ],
             $platform->getArguments(),
         );
 

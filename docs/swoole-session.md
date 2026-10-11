@@ -76,7 +76,7 @@ Each such service gets an alive keeper (`PingingPDOAliveKeeper`, `swoole_bundle.
 When it is asked depends on how the server runs:
 
 - **With coroutines**, as a pooled connection is handed to a coroutine, before the coroutine uses it: the bundle sets an `initializer` on the service's `swoole_bundle.stateful_service` tag (`PDOKeepAliveInitializer`), as it does for Doctrine's connections. A tag that names an initializer of its own is left as it is.
-- **Without coroutines**, as a request starts, by [swoole-bundle/resetter-bundle](https://github.com/symfony-swoole/resetter-bundle): the connections are given to a `ConnectionsHandler` of that bundle (`PDOPlatformAliveKeeper`), among its request cycle's initializers, beside the one it has for Doctrine. Without that bundle installed nothing looks after the connection - as nothing looks after Doctrine's.
+- **Without coroutines**, as a request starts, by [swoole-bundle/resetter-bundle](https://github.com/symfony-swoole/resetter-bundle): the connections are given to a `ConnectionsHandler` of that bundle (`PDOPlatformAliveKeeper`), among its request cycle's initializers, beside the one it has for Doctrine. Only a connection that is already open is asked: a request that uses no session opens none. Without that bundle installed nothing looks after the connection - as nothing looks after Doctrine's.
 
 To look after a connection another way, implement `PDOAliveKeeper` and decorate the service above. A connection you construct yourself (`new PDO(...)`), and not with the factory, is yours to look after.
 

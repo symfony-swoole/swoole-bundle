@@ -10,6 +10,7 @@ use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation\Session\PdoSession\P
 use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation\Session\PdoSession\PDOKeepAliveInitializer;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation\Session\PdoSession\PDOPlatformAliveKeeper;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation\Session\PdoSession\PingingPDOAliveKeeper;
+use Symfony\Component\DependencyInjection\Argument\ServiceClosureArgument;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -25,8 +26,8 @@ use Symfony\Component\DependencyInjection\Reference;
  *  - with coroutines, as a pooled connection is handed to a coroutine: an initializer on its stateful service
  *    (PDOKeepAliveInitializer), unless the service names one of its own;
  *  - without them, as a request starts, by the resetter bundle: a ConnectionsHandler of its own for them, among its
- *    request cycle's initializers. Without the resetter bundle nothing looks after a connection, as nothing does
- *    after Doctrine's.
+ *    request cycle's initializers. Only a connection something has already made: none is opened to be looked
+ *    after. Without the resetter bundle nothing looks after a connection, as nothing does after Doctrine's.
  */
 final class PdoSessionKeepAlivePass implements CompilerPassInterface
 {
@@ -63,7 +64,11 @@ final class PdoSessionKeepAlivePass implements CompilerPassInterface
                 continue;
             }
 
-            $connections[$id] = new Reference($id);
+            // Asked for as a request starts, and given only once something else has made it: a request that uses
+            // no session opens no connection for it.
+            $connections[$id] = new ServiceClosureArgument(
+                new Reference($id, ContainerInterface::IGNORE_ON_UNINITIALIZED_REFERENCE),
+            );
             $aliveKeepers[$id] = new Reference($aliveKeeperId);
         }
 

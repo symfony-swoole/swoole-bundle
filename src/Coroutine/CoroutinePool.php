@@ -85,7 +85,9 @@ final class CoroutinePool
             Coroutine::create($this->wrapCoroutine($this->resultsChannel, $coroutine));
         }
 
-        Coroutine::create($this->makeGatherResults());
+        // Gathered in the coroutine that asked, which so waits for them as run() says it does: gathered in one of
+        // its own, run() returned at once with nothing - no results, and no exception to throw.
+        ($this->makeGatherResults())();
     }
 
     private function startScheduler(): void

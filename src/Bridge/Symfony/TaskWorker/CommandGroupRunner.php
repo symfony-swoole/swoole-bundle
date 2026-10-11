@@ -75,6 +75,10 @@ final readonly class CommandGroupRunner implements CommandGroupExecutor
                     // In the finally rather than after the call: a throwable escaping runSupervised
                     // unwinds inside this coroutine and reaches nobody, and a group that never drains
                     // is a worker hung on a command that already stopped running.
+                    // Given back here and not left to the coroutine's end, which comes after the group is told:
+                    // the one waiting for the group can run first, and would drain pools the instances are not
+                    // back in yet - and the worker would go with them still to be destroyed.
+                    $this->servicePools->releaseFromCoroutine();
                     $waitGroup->done();
                 }
             });

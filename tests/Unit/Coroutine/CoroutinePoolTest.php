@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace SwooleBundle\SwooleBundle\Tests\Unit\Coroutine;
 
 use PHPUnit\Framework\TestCase;
+use RuntimeException;
+use Swoole\Coroutine\Channel;
 use SwooleBundle\SwooleBundle\Coroutine\CoroutinePool;
 
 // phpcs:disable SlevomatCodingStandard.PHP.DisallowReference.DisallowedInheritingVariableByReference
@@ -77,5 +79,47 @@ final class CoroutinePoolTest extends TestCase
 
         self::assertSame($expected1, $value1);
         self::assertSame($expected2, $value2);
+    }
+
+    public function testAPoolRunInsideACoroutineWaitsForItsCoroutines(): void
+    {
+        // What the inner pool gave the coroutine that ran it: its results, once they are all there.
+        $results = CoroutinePool::fromCoroutines(
+            static fn(): array => CoroutinePool::fromCoroutines(
+                static function (): string {
+                    // Gives way to the other coroutines, the same way on Swoole and OpenSwoole.
+                    (new Channel(1))->pop(0.01);
+
+                    return 'slow';
+                },
+                static fn(): string => 'fast',
+            )->run(),
+        )->run();
+
+        self::assertSame([['fast', 'slow']], $results);
+    }
+
+    public function testAPoolRunInsideACoroutineThrowsWhatItsCoroutineThrew(): void
+    {
+        $results = CoroutinePool::fromCoroutines(
+            static function (): string {
+                try {
+                    CoroutinePool::fromCoroutines(
+                        static function (): never {
+                            // Gives way to the other coroutines, the same way on Swoole and OpenSwoole.
+                            (new Channel(1))->pop(0.01);
+
+                            throw new RuntimeException('thrown inside');
+                        },
+                    )->run();
+                } catch (RuntimeException $exception) {
+                    return $exception->getMessage();
+                }
+
+                return 'nothing thrown';
+            },
+        )->run();
+
+        self::assertSame(['thrown inside'], $results);
     }
 }

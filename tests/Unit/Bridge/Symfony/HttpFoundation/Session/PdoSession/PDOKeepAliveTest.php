@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Tests\Unit\Bridge\Symfony\HttpFoundation\Session\PdoSession;
 
+use ArrayObject;
 use PDO;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
@@ -43,11 +44,33 @@ final class PDOKeepAliveTest extends TestCase
         $aliveKeeper = $this->aliveKeeper();
 
         (new PDOPlatformAliveKeeper(
-            ['session' => $session, 'other' => $other],
+            ['session' => static fn(): PDO => $session, 'other' => static fn(): PDO => $other],
             ['session' => $aliveKeeper, 'other' => $aliveKeeper],
         ))->keepAlive();
 
         $this->assertSame([[$session, 'session'], [$other, 'other']], $aliveKeeper->kept);
+    }
+
+    public function testAConnectionNobodyHasMadeYetIsNotMadeToBeLookedAfter(): void
+    {
+        $session = new PDO('sqlite::memory:');
+        // What the container gives: nothing before something has made the connection, and then the connection.
+        /** @var ArrayObject<string, PDO> $made */
+        $made = new ArrayObject();
+        $aliveKeeper = $this->aliveKeeper();
+        $platform = new PDOPlatformAliveKeeper(
+            ['session' => static fn(): ?PDO => $made['session'] ?? null],
+            ['session' => $aliveKeeper],
+        );
+
+        // A request that uses no session: nothing to look after, and nothing opened.
+        $platform->keepAlive();
+        $this->assertSame([], $aliveKeeper->kept);
+
+        // Once the handler has made its connection, it is looked after from the next request on.
+        $made['session'] = $session;
+        $platform->keepAlive();
+        $this->assertSame([[$session, 'session']], $aliveKeeper->kept);
     }
 
     public function testAnAliveKeeperWithoutItsConnectionSaysSo(): void
