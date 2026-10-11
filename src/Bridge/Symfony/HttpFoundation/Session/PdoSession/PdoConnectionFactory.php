@@ -14,6 +14,18 @@ final readonly class PdoConnectionFactory
     // phpcs:ignore SlevomatCodingStandard.Attributes.AttributeAndTargetSpacing
     public static function newInstanceFromDsnOrUrl(#[SensitiveParameter] string $dsnOrUrl): PDO
     {
+        return new PDO(...self::constructorArgumentsFromDsnOrUrl($dsnOrUrl));
+    }
+
+    /**
+     * What the connection of a DSN or URL is constructed with: a connection the server has closed is made again
+     * with the same (PingingPDOAliveKeeper).
+     *
+     * @return array{0: string, 1: string|null, 2: string|null, 3: array<int, mixed>}
+     */
+    // phpcs:ignore SlevomatCodingStandard.Attributes.AttributeAndTargetSpacing
+    public static function constructorArgumentsFromDsnOrUrl(#[SensitiveParameter] string $dsnOrUrl): array
+    {
         // (pdo_)?sqlite3?:///... => (pdo_)?sqlite3?://localhost/... or else the URL will be invalid
         $url = preg_replace('#^((?:pdo_)?sqlite3?):///#', '$1://localhost/', $dsnOrUrl);
 
@@ -22,7 +34,8 @@ final readonly class PdoConnectionFactory
         $params = parse_url($url);
 
         if ($params === false) {
-            return self::instantiatePDO($dsnOrUrl); // If the URL is not valid, let's assume it might be a DSN already.
+            // If the URL is not valid, let's assume it might be a DSN already.
+            return self::constructorArguments($dsnOrUrl);
         }
 
         $username = null;
@@ -84,7 +97,7 @@ final readonly class PdoConnectionFactory
                             $dsn .= 'dbname=' . $dbName . ';';
                         }
 
-                        return self::instantiatePDO($dsn, $username, $password);
+                        return self::constructorArguments($dsn, $username, $password);
                     }
                 }
                 // If "unix_socket" is not in the query, we continue with the same process as pgsql
@@ -105,11 +118,11 @@ final readonly class PdoConnectionFactory
                     $dsn .= 'dbname=' . $dbName . ';';
                 }
 
-                return self::instantiatePDO($dsn, $username, $password);
+                return self::constructorArguments($dsn, $username, $password);
             case 'sqlite':
                 Assertion::keyExists($params, 'path', 'The "path" component is required for SQLite DSN.');
 
-                return self::instantiatePDO('sqlite:' . substr($params['path'], 1), $username, $password);
+                return self::constructorArguments('sqlite:' . substr($params['path'], 1), $username, $password);
             case 'sqlsrv':
                 $dsn = 'sqlsrv:server=';
 
@@ -126,7 +139,7 @@ final readonly class PdoConnectionFactory
                     $dsn .= ';Database=' . $dbName;
                 }
 
-                return self::instantiatePDO($dsn, $username, $password);
+                return self::constructorArguments($dsn, $username, $password);
             default:
                 throw new InvalidArgumentException(
                     sprintf(
@@ -138,15 +151,15 @@ final readonly class PdoConnectionFactory
         }
     }
 
-    private static function instantiatePDO(string $dsn, ?string $username = null, ?string $password = null): PDO
-    {
-        return new PDO(
-            $dsn,
-            $username,
-            $password,
-            [
-                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-            ],
-        );
+    /**
+     * @return array{0: string, 1: string|null, 2: string|null, 3: array<int, mixed>}
+     */
+    private static function constructorArguments(
+        string $dsn,
+        ?string $username = null,
+        #[SensitiveParameter]
+        ?string $password = null,
+    ): array {
+        return [$dsn, $username, $password, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]];
     }
 }
