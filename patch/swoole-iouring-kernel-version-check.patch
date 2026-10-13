@@ -1,0 +1,37 @@
+Backport of swoole/swoole-src commit 1e018553a ("Fix io_uring kernel version check to correctly
+handle major version > 6", PR #6085), which landed on master and in the 6.3 line and was never
+backported to 6.2.
+
+Without it, a swoole built where the host kernel was 6.7 or newer aborts on a host kernel of 7.x:
+`minor` is then 0, so `minor >= 7` is false and the guard reports a kernel too old to run what the
+running kernel supports perfectly well. swoole_error() is fatal, so every process that constructs
+an Iouring dies with:
+
+    Iouring::Iouring(): The Iouring::futex_wait()/Iouring::futex_wakeup() requires `6.7` or higher Linux kernel
+
+Whether the guard is compiled in at all is decided by config.m4 against the *build* host's kernel
+(`test $KERNEL_MAJOR -eq 6`), so an image built on 6.x and run on 7.x is exactly the case that
+breaks, and it is the case CI will be in the day its builders move to a 7.x kernel.
+
+Drop this patch when the pinned swoole reaches 6.3, which carries the fix: `git apply` will fail
+loudly on the version bump rather than let a stale patch pass unnoticed.
+
+diff --git a/src/coroutine/iouring.cc b/src/coroutine/iouring.cc
+--- a/src/coroutine/iouring.cc
++++ b/src/coroutine/iouring.cc
+@@ -116,13 +116,13 @@
+     parse_kernel_version(SwooleG.uname.release, &major, &minor);
+
+ #ifdef HAVE_IOURING_FUTEX
+-    if (!(major >= 6 && minor >= 7)) {
++    if (!((major > 6) || (major == 6 && minor >= 7))) {
+         swoole_error("The Iouring::futex_wait()/Iouring::futex_wakeup() requires `6.7` or higher Linux kernel");
+     }
+ #endif
+
+ #ifdef HAVE_IOURING_FTRUNCATE
+-    if (!(major >= 6 && minor >= 9)) {
++    if (!((major > 6) || (major == 6 && minor >= 9))) {
+         swoole_error("The Iouring::ftruncate() requires `6.9` or higher Linux kernel");
+     }
+ #endif
