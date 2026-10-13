@@ -1,3 +1,15 @@
+## [0.35.4](https://github.com/symfony-swoole/swoole-bundle/compare/v0.35.3...v0.35.4) (2026-10-13)
+
+[Full changelog](https://github.com/symfony-swoole/swoole-bundle/compare/v0.35.3...v0.35.4)
+
+### Bug Fixes
+
+* **locking:** a first-time-only mutex is given back once, by the one that holds it ([#433](https://github.com/symfony-swoole/swoole-bundle/issues/433)) ([82f5849](https://github.com/symfony-swoole/swoole-bundle/commit/82f584963cc9ccff4228e669b7ce9cf4784f26a1))
+* **messenger:** Add message stamps setting to SwooleServerTaskTransportHandler ([#268](https://github.com/symfony-swoole/swoole-bundle/issues/268)) ([84ecfc6](https://github.com/symfony-swoole/swoole-bundle/commit/84ecfc6792fa13d816b975397fd984c6c2fc8904))
+* **session:** only a session connection that is already open is kept alive ([#432](https://github.com/symfony-swoole/swoole-bundle/issues/432)) ([fb6866d](https://github.com/symfony-swoole/swoole-bundle/commit/fb6866d947feed21c447b4c304e7d0d595ce9e24))
+* **session:** the PDO session connection is kept alive, as Doctrine's connections are ([#431](https://github.com/symfony-swoole/swoole-bundle/issues/431)) ([240ce36](https://github.com/symfony-swoole/swoole-bundle/commit/240ce368bd62f03bf2f081e200a6fd0bf8b2647d))
+* **watcher:** pass the server's output on as it is, not as console markup ([#430](https://github.com/symfony-swoole/swoole-bundle/issues/430)) ([2789062](https://github.com/symfony-swoole/swoole-bundle/commit/2789062bb5157c5921f957cdaad8589d9df5e13f))
+
 ## [0.35.3](https://github.com/symfony-swoole/swoole-bundle/compare/v0.35.2...v0.35.3) (2026-09-26)
 
 [Full changelog](https://github.com/symfony-swoole/swoole-bundle/compare/v0.35.2...v0.35.3)
