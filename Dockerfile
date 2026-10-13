@@ -49,12 +49,18 @@ RUN apk add --no-cache git openssl-dev liburing liburing-dev
 ARG SWOOLE_EXTENSION="openswoole"
 ARG SWOOLE_VERSION="26.2.0"
 COPY patch/ /tmp/patches/
+# One patch per extension, each explained in the patch file itself: openswoole does not compile
+# against musl without its <linux/stat.h> guard, and swoole 6.2 misreads a 7.x kernel as too old
+# to use io_uring futex ops. Neither is optional, so `git apply` runs unguarded: a patch that
+# stops applying fails the build, which is what should happen when the pinned version moves past
+# the fix it carries.
 RUN if $(echo "${SWOOLE_VERSION}" | grep -qE '^[4-9]\.[0-9]+\.[0-9]+$'); then SWOOLE_GIT_REF="v${SWOOLE_VERSION}"; else SWOOLE_GIT_REF="${SWOOLE_VERSION}"; fi && \
     if [ "$SWOOLE_EXTENSION" == "openswoole" ]; then SWOOLE_GIT_REPOSITORY="openswoole/ext-openswoole"; else SWOOLE_GIT_REPOSITORY="swoole/swoole-src"; fi && \
     if [ "$SWOOLE_EXTENSION" == "openswoole" ]; then SWOOLE_ENABLE_IO_URING="--enable-io-uring"; else SWOOLE_ENABLE_IO_URING="--enable-iouring --enable-uring-socket"; fi && \
     git clone "https://github.com/${SWOOLE_GIT_REPOSITORY}.git" --branch "${SWOOLE_GIT_REF}" --depth 1 src && \
     cd src && \
     if [ "$SWOOLE_EXTENSION" == "openswoole" ]; then git apply /tmp/patches/openswoole-musl-iouring-fix.patch; fi && \
+    if [ "$SWOOLE_EXTENSION" != "openswoole" ]; then git apply /tmp/patches/swoole-iouring-kernel-version-check.patch; fi && \
     phpize && \
     ./configure ${SWOOLE_ENABLE_IO_URING} && \
     make && \

@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "3557ab9d65e9f5e40f304fad6d01c68e",
+    "content-hash": "0a4746d40f75a82657b8993abf31418a",
     "packages": [
         {
             "name": "beberlei/assert",
@@ -2385,16 +2385,16 @@
         },
         {
             "name": "upscale/ext-swoole",
-            "version": "v6.2.2",
+            "version": "v6.2.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/upscalesoftware/ext-swoole.git",
-                "reference": "e5039aa326c788f2ce8b3eb152650e994f29a960"
+                "reference": "e7613e4f79e202d4d0d9f9c804134ab251a8e058"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/upscalesoftware/ext-swoole/zipball/e5039aa326c788f2ce8b3eb152650e994f29a960",
-                "reference": "e5039aa326c788f2ce8b3eb152650e994f29a960",
+                "url": "https://api.github.com/repos/upscalesoftware/ext-swoole/zipball/e7613e4f79e202d4d0d9f9c804134ab251a8e058",
+                "reference": "e7613e4f79e202d4d0d9f9c804134ab251a8e058",
                 "shasum": ""
             },
             "require": {
@@ -2419,9 +2419,9 @@
             ],
             "support": {
                 "issues": "https://github.com/upscalesoftware/ext-swoole/issues",
-                "source": "https://github.com/upscalesoftware/ext-swoole/tree/v6.2.2"
+                "source": "https://github.com/upscalesoftware/ext-swoole/tree/v6.2.3"
             },
-            "time": "2026-07-01T00:50:02+00:00"
+            "time": "2026-09-01T03:32:00+00:00"
         }
     ],
     "packages-dev": [
@@ -14216,7 +14216,7 @@
     },
     "platform-overrides": {
         "ext-openswoole": "v26.2.0",
-        "ext-swoole": "6.2.2"
+        "ext-swoole": "6.2.3"
     },
     "plugin-api-version": "2.9.0"
 }
