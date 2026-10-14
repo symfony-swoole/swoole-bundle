@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation\Session\PdoSession;
 
+use ErrorException;
 use PDO;
 use PDOException;
 use Psr\Log\LoggerInterface;
@@ -40,7 +41,10 @@ final readonly class PingingPDOAliveKeeper implements PDOAliveKeeper
 
         try {
             $connection->query('SELECT 1');
-        } catch (PDOException $e) {
+        } catch (ErrorException | PDOException $e) { // @phpstan-ignore catch.neverThrown (thrown by an error handler)
+            // A connection whose socket the server has reset - one kept idle overnight - says so first as a notice
+            // ("PDO::query(): Send of 13 bytes failed with errno=32 Broken pipe"), and only then as a PDOException.
+            // Symfony's debug mode turns notices into ErrorExceptions, so there the notice is what arrives here.
             $this->logger?->info(
                 sprintf("Exceptional reconnect for PDO connection '%s'", $connectionName),
                 ['exception' => $e],
