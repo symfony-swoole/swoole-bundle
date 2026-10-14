@@ -1,3 +1,11 @@
+## [0.35.5](https://github.com/symfony-swoole/swoole-bundle/compare/v0.35.4...v0.35.5) (2026-10-14)
+
+[Full changelog](https://github.com/symfony-swoole/swoole-bundle/compare/v0.35.4...v0.35.5)
+
+### Bug Fixes
+
+* **session:** a session connection whose socket broke is made again in Symfony's debug mode ([#437](https://github.com/symfony-swoole/swoole-bundle/issues/437)) ([e834786](https://github.com/symfony-swoole/swoole-bundle/commit/e83478605c77d94fe267c1c89b747f189377a901))
+
 ## [0.35.4](https://github.com/symfony-swoole/swoole-bundle/compare/v0.35.3...v0.35.4) (2026-10-13)
 
 [Full changelog](https://github.com/symfony-swoole/swoole-bundle/compare/v0.35.3...v0.35.4)
