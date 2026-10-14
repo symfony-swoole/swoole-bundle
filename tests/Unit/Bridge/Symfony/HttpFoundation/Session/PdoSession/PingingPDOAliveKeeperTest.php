@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Tests\Unit\Bridge\Symfony\HttpFoundation\Session\PdoSession;
 
+use ErrorException;
 use PDO;
 use PDOException;
 use PHPUnit\Framework\TestCase;
@@ -36,6 +37,28 @@ final class PingingPDOAliveKeeperTest extends TestCase
         // The same object, connected again - and as a session handler needs it: its statements throw.
         $this->assertNotSame($first, $this->connectionId($pdo));
         $this->assertSame(PDO::ERRMODE_EXCEPTION, $pdo->getAttribute(PDO::ATTR_ERRMODE));
+        $this->assertSame(["Exceptional reconnect for PDO connection 'session'"], $logger->messages());
+    }
+
+    /**
+     * A connection the server reset, as one kept idle for a night is, says so first as a notice from its socket -
+     * which Symfony's debug mode throws - and then as a PDOException.
+     */
+    public function testAConnectionWhoseSocketBrokeIsMadeAgainWhereNoticesAreThrown(): void
+    {
+        $pdo = new ResetPDO('sqlite::memory:', null, null, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
+        $logger = $this->logger();
+        set_error_handler(static function (int $level, string $message): never {
+            throw new ErrorException($message, 0, $level);
+        });
+
+        try {
+            (new PingingPDOAliveKeeper(['sqlite::memory:'], $logger))->keepAlive($pdo, 'session');
+        } finally {
+            restore_error_handler();
+        }
+
+        $this->assertFalse($pdo->isReset());
         $this->assertSame(["Exceptional reconnect for PDO connection 'session'"], $logger->messages());
     }
 
