@@ -243,7 +243,7 @@ final class MessengerTaskWorkerGroupTest extends ServerTestCase
             'The group never got going, so this stopped nothing mid-flight.',
         );
 
-        $this->stopServer($serverRun);
+        $stuck = $this->stopServer($serverRun);
 
         $output = $serverRun->getOutput() . $serverRun->getErrorOutput();
 
@@ -252,7 +252,7 @@ final class MessengerTaskWorkerGroupTest extends ServerTestCase
         self::assertStringContainsString(
             'Swoole HTTP Server has been successfully shutdown',
             $output,
-            'The server did not shut down cleanly, so the consumers were force-terminated.',
+            'The server did not shut down cleanly, so the consumers were force-terminated.' . $stuck,
         );
 
         // Read back to back, and before the assertions that query for themselves: a message handled and
@@ -365,10 +365,72 @@ final class MessengerTaskWorkerGroupTest extends ServerTestCase
 
     /**
      * Stops the server, with the shutdown given as long as every other wait here is.
+     *
+     * Asked to stop and waited for here rather than by Process::stop(), so that a server still running when the
+     * time is up can be looked at before it is killed: what each of its processes and their threads was blocked
+     * in, which is all a run that does not shut down leaves to go on. The answer is that, or nothing where the
+     * server stopped in time.
      */
-    private function stopServer(Process $serverRun): void
+    private function stopServer(Process $serverRun): string
     {
-        $serverRun->stop(self::STOP_TIMEOUT_SECONDS * TestToken::timeoutFactor());
+        $deadline = microtime(true) + self::STOP_TIMEOUT_SECONDS * TestToken::timeoutFactor();
+
+        if ($serverRun->isRunning()) {
+            $serverRun->signal(SIGTERM);
+        }
+
+        while ($serverRun->isRunning() && microtime(true) < $deadline) {
+            usleep(100_000);
+        }
+
+        $stuck = $serverRun->isRunning() ? $this->blockedIn((int) $serverRun->getPid()) : '';
+        $serverRun->stop(0);
+
+        return $stuck;
+    }
+
+    /**
+     * Where the server and every process under it were blocked, from /proc: each process and thread by its id,
+     * its state and the kernel function it waited in.
+     */
+    private function blockedIn(int $serverPid): string
+    {
+        $parents = [];
+        foreach (glob('/proc/[0-9]*/stat') ?: [] as $stat) {
+            $line = (string) @file_get_contents($stat);
+            // After the command in parentheses, which may hold spaces: the state, then the parent.
+            $fields = explode(' ', substr($line, (int) strrpos($line, ')') + 2));
+            $parents[(int) basename(dirname($stat))] = (int) ($fields[1] ?? 0);
+        }
+
+        $tree = [$serverPid];
+        for ($i = 0; $i < count($tree); $i++) {
+            foreach (array_keys($parents, $tree[$i], true) as $child) {
+                $tree[] = $child;
+            }
+        }
+
+        $lines = [];
+        foreach ($tree as $pid) {
+            $command = str_replace("\0", ' ', trim((string) @file_get_contents("/proc/{$pid}/cmdline")));
+            foreach (glob("/proc/{$pid}/task/[0-9]*") ?: [] as $task) {
+                $state = (string) @file_get_contents("{$task}/stat");
+                $lines[] = sprintf(
+                    '%d/%s %s in %s - %s',
+                    $pid,
+                    basename($task),
+                    substr($state, (int) strrpos($state, ')') + 2, 1),
+                    trim((string) @file_get_contents("{$task}/wchan")) ?: '-',
+                    $command,
+                );
+            }
+        }
+
+        return sprintf(
+            "\nStill running %.0fs after it was asked to stop:\n%s",
+            self::STOP_TIMEOUT_SECONDS * TestToken::timeoutFactor(),
+            implode("\n", $lines),
+        );
     }
 
     /**
