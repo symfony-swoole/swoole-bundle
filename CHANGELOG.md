@@ -1,3 +1,11 @@
+## [0.35.6](https://github.com/symfony-swoole/swoole-bundle/compare/v0.35.5...v0.35.6) (2026-10-21)
+
+[Full changelog](https://github.com/symfony-swoole/swoole-bundle/compare/v0.35.5...v0.35.6)
+
+### Bug Fixes
+
+* **task-worker:** an http worker recycled by worker_max_request no longer stops the task worker commands ([#442](https://github.com/symfony-swoole/swoole-bundle/issues/442)) ([3541674](https://github.com/symfony-swoole/swoole-bundle/commit/3541674f04d6cfa3c2c5c10d6649986dfd69f2a8))
+
 ## [0.35.5](https://github.com/symfony-swoole/swoole-bundle/compare/v0.35.4...v0.35.5) (2026-10-14)
 
 [Full changelog](https://github.com/symfony-swoole/swoole-bundle/compare/v0.35.4...v0.35.5)
