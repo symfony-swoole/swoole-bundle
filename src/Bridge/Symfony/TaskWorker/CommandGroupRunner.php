@@ -101,6 +101,19 @@ final readonly class CommandGroupRunner implements CommandGroupExecutor
     {
         $startedAt = microtime(true);
         $this->runSupervised($commandLine, new StopState());
+
+        // The command stopped because the server is going down or reloading. With coroutines on, the
+        // manager takes the worker with it from here. A blocking command is the exception: its worker
+        // returns from onWorkerStart only now, past the point where it would have handled the stop, and
+        // on swoole it then sits until max_wait_time and is force-terminated - a graceful stop that
+        // still ends in a kill. Stopping the worker is what lets it go straight away. Not a retirement:
+        // the flag is already raised, and nothing is meant to replace this worker.
+        if ($this->stopSignal->isRaised()) {
+            $control->stop($workerId);
+
+            return;
+        }
+
         $this->recycle($control, $workerId, $startedAt);
     }
 
@@ -114,7 +127,8 @@ final readonly class CommandGroupRunner implements CommandGroupExecutor
     private function recycle(WorkerControl $control, int $workerId, float $startedAt): void
     {
         if ($this->stopSignal->isRaised()) {
-            // The server is going down; the manager is already taking this worker with it.
+            // The server is going down; with coroutines on, the manager is already taking this worker
+            // with it. A blocking command never gets here in that case - runBlocking() stops its worker.
             return;
         }
 
