@@ -54,6 +54,7 @@ final readonly class CommandGroupRunner implements CommandGroupExecutor
         private TaskWorkerFailure $failure,
         private LoggerInterface $logger,
         private ServicePoolContainer $servicePools,
+        private StopCheck $stopCheck,
         private int $stopPollIntervalMs = 100,
     ) {}
 
@@ -100,6 +101,19 @@ final readonly class CommandGroupRunner implements CommandGroupExecutor
     {
         $startedAt = microtime(true);
         $this->runSupervised($commandLine, new StopState());
+
+        // The command stopped because the server is going down or reloading. With coroutines on, the
+        // manager takes the worker with it from here. A blocking command is the exception: its worker
+        // returns from onWorkerStart only now, past the point where it would have handled the stop, and
+        // on swoole it then sits until max_wait_time and is force-terminated - a graceful stop that
+        // still ends in a kill. Stopping the worker is what lets it go straight away. Not a retirement:
+        // the flag is already raised, and nothing is meant to replace this worker.
+        if ($this->stopSignal->isRaised()) {
+            $control->stop($workerId);
+
+            return;
+        }
+
         $this->recycle($control, $workerId, $startedAt);
     }
 
@@ -113,7 +127,8 @@ final readonly class CommandGroupRunner implements CommandGroupExecutor
     private function recycle(WorkerControl $control, int $workerId, float $startedAt): void
     {
         if ($this->stopSignal->isRaised()) {
-            // The server is going down; the manager is already taking this worker with it.
+            // The server is going down; with coroutines on, the manager is already taking this worker
+            // with it. A blocking command never gets here in that case - runBlocking() stops its worker.
             return;
         }
 
@@ -170,6 +185,9 @@ final readonly class CommandGroupRunner implements CommandGroupExecutor
         // Said in this coroutine, and after the watchdog has its own: a lookup reads the context of the
         // coroutine it is asked in, walking up to here, so the two orders are the same to it.
         $this->runningCommand->record($commandLine);
+        // The same goes for the group: a command that asks StopCheck rather than subscribing to a
+        // signal hears a sibling ending only through this.
+        $this->stopCheck->bind($state);
 
         try {
             $exitCode = $resolved->run($this->outputFactory->newOutput($commandLine));
@@ -217,12 +235,13 @@ final readonly class CommandGroupRunner implements CommandGroupExecutor
         }
 
         // Nothing to aim at: the command subscribes to no signals, so the only thing left that can stop
-        // it is a cooperative check of its own. StopMessengerWorkerOnShutdown is that check for
-        // messenger; anything else has to bring its own or be force-terminated at max_wait_time.
+        // it is asking StopCheck from its own loop. StopMessengerWorkerOnShutdown does that for
+        // messenger; anything else has to do it itself or be force-terminated at max_wait_time.
         $this->logger->warning(
             'Task worker command "{command}" subscribes to no signals, so it cannot be asked to stop. '
-            . 'It will be force-terminated when max_wait_time expires unless it stops itself.',
-            ['command' => $resolved->commandLine],
+            . 'It will be force-terminated when max_wait_time expires unless it asks {stopCheck} '
+            . 'between units of work and stops itself.',
+            ['command' => $resolved->commandLine, 'stopCheck' => StopCheck::class],
         );
     }
 }

@@ -148,6 +148,8 @@ swoole:
       worker_max_request: 0
       # integer >= 0, indicates the number of requests after which a worker reloads automatically
       # This can be useful to limit memory leaks
+      # Refused together with task_worker.commands while coroutines are off - see
+      # docs/swoole-task-worker-commands.md#worker_max_request
       worker_max_request_grace: ~
       # 'grace period' for worker reloading. If not set, default is worker_max_request / 2. Worker reloads
       # after 'worker_max_request + rand(0,worker_max_request_grace)' requests

@@ -9,27 +9,31 @@ use SwooleBundle\SwooleBundle\Bridge\Symfony\Event\WorkerStoppedEvent;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 /**
- * EXPERIMENTAL. Raises the shared stop flag as soon as any worker learns the server is stopping.
+ * EXPERIMENTAL. With coroutines off, raises the shared stop flag from whichever worker hears the server
+ * is stopping - which in practice means the http worker, because the task worker cannot.
  *
- * Subscribed in every worker, http and task alike, because which one hears it first depends on the mode
- * and both write the same flag.
+ * A command running with coroutines off blocks its task worker's onWorkerStart and never returns to the
+ * worker's event loop, and lifecycle callbacks are delivered through that loop. So the task worker fires
+ * neither onWorkerExit nor onWorkerStop - it hears nothing at all - and the only process that can tell
+ * the commands to stop is an http worker, writing to the shared flag the command reads from its own loop
+ * ({@see StopCheck}, or the messenger listener).
  *
- * onWorkerExit is what makes this work, and onWorkerStop is only a fallback. In a task worker running
- * commands the ordering is:
+ * Both events, because the http worker fires different ones depending on what is in its reactor:
  *
- *     4.009s onWorkerExit <- commands still running, this is the usable moment
- *     4.083s command stops
- *     4.084s onWorkerStop <- only now, because it waits for the coroutines to finish
+ *  - onWorkerStop, always - but only once its reactor has drained, so a worker holding a timer fires it
+ *    late, after max_wait_time;
+ *  - onWorkerExit, early and repeatedly - but only while something is left in the reactor, such as
+ *    HMR's timer in debug. An idle http worker never fires it.
  *
- * Waiting for onWorkerStop would mean waiting for the very thing the flag is supposed to stop.
+ * Whichever comes first raises, which is idempotent. What neither can say is why the http worker is
+ * stopping: a worker_max_request recycle fires the same callbacks. That is why worker_max_request is
+ * refused for blocking task worker commands - see {@see Exception\WorkerMaxRequestUnsupported} - rather than told
+ * apart here, where nothing makes it possible.
  *
- * onWorkerExit also fires more than once per shutdown, and outside any coroutine. Setting a flag is
- * both idempotent and free of anything that needs a coroutine to run in, which is the whole reason the
- * handler does nothing else.
+ * Fires many times per shutdown and outside any coroutine; a flag-set is idempotent and needs nothing a
+ * coroutine provides, which is why this does nothing else.
  *
- * What it raises is scoped to this worker's generation, so the workers a reload is replacing cannot
- * stop the ones replacing them.
- *
+ * @see RaiseStopSignalOnTaskWorkerExit for coroutines on, where the task worker raises for itself
  * @see WorkerRetirement for the one exit that must not raise anything at all
  */
 final readonly class RaiseStopSignalOnWorkerShutdown implements EventSubscriberInterface

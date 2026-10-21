@@ -40,9 +40,13 @@ use SwooleBundle\SwooleBundle\Bridge\Symfony\Mime\MimeAddressValidatorInstaller;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\ApplicationCommandResolver;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\CommandGroupRunner;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\Exception\CommandNotRunnable;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\Exception\WorkerMaxRequestUnsupported;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\LongRunningCommandsWorkerStartHandler;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\RaiseStopSignalOnTaskWorkerExit;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\RaiseStopSignalOnWorkerShutdown;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\RefuseMaxRequestWithBlockingCommands;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\RunningCommand;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\StopCheck;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\StopMessengerWorkerOnShutdown;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\StreamCommandOutputFactory;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\TaskWorkerCommands;
@@ -130,6 +134,7 @@ use ZEngine\Core;
  *   group: string,
  *   http_compression: bool,
  *   http_compression_level: int,
+ *   worker_max_request?: int|string,
  * }
  * @phpstan-type TaskWorkerServicesConfig = array{
  *   reset_handler: bool,
@@ -311,7 +316,11 @@ final class SwooleExtension extends Extension
             : [];
         $swooleSettings += $this->configureHttpServer($config['http_server'], $container);
         $swooleSettings += isset($config['task_worker'])
-            ? $this->configureTaskWorker($config['task_worker'], $container)
+            ? $this->configureTaskWorker(
+                $config['task_worker'],
+                $config['http_server']['settings']['worker_max_request'] ?? 0,
+                $container,
+            )
             : [];
         $this->configureSession($config['session'] ?? [], $container);
         $this->assignSwooleConfiguration($swooleSettings, $runningMode, $maxConcurrency, $fiberContext, $container);
@@ -999,10 +1008,14 @@ final class SwooleExtension extends Extension
 
     /**
      * @param TaskWorkerConfig $config
+     * @param int|string $workerMaxRequest the http workers' setting; a string while it is an env placeholder
      * @return SwooleSettings
      */
-    private function configureTaskWorker(array $config, ContainerBuilder $container): array
-    {
+    private function configureTaskWorker(
+        array $config,
+        int|string $workerMaxRequest,
+        ContainerBuilder $container,
+    ): array {
         $commandGroups = array_values($config['commands'] ?? []);
         $workerCount = $config['settings']['worker_count'] ?? null;
         $coroutinesEnabled = (bool) $container->getParameter(ContainerConstants::PARAM_COROUTINES_ENABLED);
@@ -1015,6 +1028,7 @@ final class SwooleExtension extends Extension
                 $commandGroups,
                 $workerCount,
                 $coroutinesEnabled,
+                $workerMaxRequest,
                 $container,
             );
         }
@@ -1046,9 +1060,23 @@ final class SwooleExtension extends Extension
         array $commandGroups,
         ?int $workerCount,
         bool $coroutinesEnabled,
+        int|string $workerMaxRequest,
         ContainerBuilder $container,
     ): int {
         $this->assertCommandGroupsRunnable($commandGroups, $coroutinesEnabled);
+
+        if (!$coroutinesEnabled) {
+            $this->assertNoMaxRequestForBlockingCommands($workerMaxRequest);
+
+            // The same check again before the server starts, for the value the line above could not see:
+            // an env placeholder is only a number once the server runs.
+            $container->register(RefuseMaxRequestWithBlockingCommands::class)
+                ->setPublic(false)
+                ->setAutowired(false)
+                ->setAutoconfigured(false)
+                ->setArgument('$configuration', new Reference(HttpServerConfiguration::class))
+                ->addTag('swoole_bundle.server_configurator');
+        }
 
         $required = count($commandGroups);
         $workerCount ??= $required;
@@ -1095,7 +1123,14 @@ final class SwooleExtension extends Extension
             ->setArgument('$stopSignal', new Reference(WorkerStopSignal::class))
             ->addTag('swoole_bundle.server_configurator');
 
-        $container->register(RaiseStopSignalOnWorkerShutdown::class)
+        // Who raises the stop flag depends on the mode, because it depends on who can hear the server stop.
+        // With coroutines on, the task worker is back in its event loop while its commands run and raises
+        // for itself - and http workers must not, since one recycled by worker_max_request leaves through
+        // the same callbacks. With coroutines off the task worker is blocked in its command and hears
+        // nothing, so an http worker is the only one that can.
+        $container->register(
+            $coroutinesEnabled ? RaiseStopSignalOnTaskWorkerExit::class : RaiseStopSignalOnWorkerShutdown::class,
+        )
             ->setPublic(false)
             ->setAutowired(false)
             ->setAutoconfigured(false)
@@ -1153,6 +1188,7 @@ final class SwooleExtension extends Extension
             ->setArgument('$failure', new Reference(TaskWorkerFailure::class))
             ->setArgument('$logger', new Reference('logger'))
             ->setArgument('$servicePools', new Reference(ServicePoolContainer::class))
+            ->setArgument('$stopCheck', new Reference(StopCheck::class))
             ->addTag('monolog.logger', [
                 'channel' => 'swoole',
             ]);
@@ -1181,11 +1217,30 @@ final class SwooleExtension extends Extension
                 ->setPublic(false)
                 ->setAutowired(false)
                 ->setAutoconfigured(false)
-                ->setArgument('$stopSignal', new Reference(WorkerStopSignal::class))
+                ->setArgument('$stopCheck', new Reference(StopCheck::class))
                 ->addTag('kernel.event_subscriber');
         }
 
         return $workerCount;
+    }
+
+    /**
+     * Only a number can be checked here. An env placeholder is a string until the server runs, and is
+     * left to RefuseMaxRequestWithBlockingCommands, which sees the resolved value.
+     *
+     * @throws WorkerMaxRequestUnsupported
+     */
+    private function assertNoMaxRequestForBlockingCommands(int|string $workerMaxRequest): void
+    {
+        if (is_string($workerMaxRequest) && !ctype_digit($workerMaxRequest)) {
+            return;
+        }
+
+        if ((int) $workerMaxRequest <= 0) {
+            return;
+        }
+
+        throw WorkerMaxRequestUnsupported::forBlockingCommands((int) $workerMaxRequest);
     }
 
     /**

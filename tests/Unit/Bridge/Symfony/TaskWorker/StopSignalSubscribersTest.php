@@ -7,7 +7,9 @@ namespace SwooleBundle\SwooleBundle\Tests\Unit\Bridge\Symfony\TaskWorker;
 use PHPUnit\Framework\TestCase;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Event\WorkerExitedEvent;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Event\WorkerStoppedEvent;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\RaiseStopSignalOnTaskWorkerExit;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\RaiseStopSignalOnWorkerShutdown;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\StopCheck;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\StopMessengerWorkerOnShutdown;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\WorkerRetirement;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\WorkerStopSignal;
@@ -43,10 +45,11 @@ final class StopSignalSubscribersTest extends TestCase
     }
 
     /**
-     * onWorkerExit is the one that matters: in a task worker running commands, onWorkerStop does not
-     * fire until the coroutines have ended, which is the very thing the flag exists to bring about.
+     * The coroutines-off raiser hears both, because the http worker - the only one that can raise there -
+     * fires onWorkerExit only while something is left in its reactor, and onWorkerStop only once it has
+     * drained. Whichever comes first is the notice.
      */
-    public function testThatItListensToWorkerExitAndNotOnlyWorkerStop(): void
+    public function testThatTheBlockingModeRaiserListensToBothWorkerEvents(): void
     {
         $subscribed = RaiseStopSignalOnWorkerShutdown::getSubscribedEvents();
 
@@ -61,7 +64,8 @@ final class StopSignalSubscribersTest extends TestCase
         $worker->expects(self::never())
             ->method('stop');
 
-        (new StopMessengerWorkerOnShutdown($signal))->onWorkerRunning(new WorkerRunningEvent($worker, false));
+        (new StopMessengerWorkerOnShutdown(new StopCheck(new CoroutineTreeSwoole(), $signal)))
+            ->onWorkerRunning(new WorkerRunningEvent($worker, false));
     }
 
     public function testThatMessengerWorkerIsStoppedOnceTheSignalIsRaised(): void
@@ -73,7 +77,61 @@ final class StopSignalSubscribersTest extends TestCase
         $worker->expects(self::once())
             ->method('stop');
 
-        (new StopMessengerWorkerOnShutdown($signal))->onWorkerRunning(new WorkerRunningEvent($worker, false));
+        (new StopMessengerWorkerOnShutdown(new StopCheck(new CoroutineTreeSwoole(), $signal)))
+            ->onWorkerRunning(new WorkerRunningEvent($worker, false));
+    }
+
+    /**
+     * The coroutines-on raiser: a task worker running commands is back in its event loop while they run,
+     * so its own exit is the notice, and it raises for itself.
+     */
+    public function testThatATaskWorkerExitRaisesTheStopSignalWithCoroutines(): void
+    {
+        $signal = new WorkerStopSignal();
+
+        (new RaiseStopSignalOnTaskWorkerExit($signal, new WorkerRetirement()))
+            ->onWorkerExited(new WorkerExitedEvent(TaskWorkerServerMock::make(taskworker: true), 1));
+
+        self::assertTrue($signal->isRaised());
+    }
+
+    /**
+     * The bug this raiser exists for. An http worker recycled by worker_max_request leaves through the same
+     * callbacks as one going down with the server, and fires onWorkerExit as well whenever it has a timer -
+     * HMR's in debug. Raising from it would stop every command for good while the server carried on.
+     */
+    public function testThatAnHttpWorkerExitRaisesNothingWithCoroutines(): void
+    {
+        $signal = new WorkerStopSignal();
+
+        (new RaiseStopSignalOnTaskWorkerExit($signal, new WorkerRetirement()))
+            ->onWorkerExited(new WorkerExitedEvent(TaskWorkerServerMock::make(taskworker: false), 0));
+
+        self::assertFalse($signal->isRaised());
+    }
+
+    public function testThatARetiringTaskWorkerRaisesNothingWithCoroutines(): void
+    {
+        $signal = new WorkerStopSignal();
+        $retirement = new WorkerRetirement();
+        $retirement->retire();
+
+        (new RaiseStopSignalOnTaskWorkerExit($signal, $retirement))
+            ->onWorkerExited(new WorkerExitedEvent(TaskWorkerServerMock::make(taskworker: true), 1));
+
+        self::assertFalse($signal->isRaised());
+    }
+
+    /**
+     * Only the exit: a task worker's onWorkerStop does not fire until its coroutines have ended, which is
+     * the very thing the flag exists to bring about.
+     */
+    public function testThatTheCoroutineModeRaiserListensToTheExitOnly(): void
+    {
+        self::assertSame(
+            [WorkerExitedEvent::NAME => 'onWorkerExited'],
+            RaiseStopSignalOnTaskWorkerExit::getSubscribedEvents(),
+        );
     }
 
     /**
