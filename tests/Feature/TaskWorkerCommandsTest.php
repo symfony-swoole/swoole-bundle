@@ -98,7 +98,10 @@ final class TaskWorkerCommandsTest extends ServerTestCase
             'swoole:server:run',
             '--host=localhost',
             sprintf('--port=%d', self::port()),
-        ], ['APP_ENV' => 'task_worker_commands_blocking']);
+            // Debug off, so HMR puts no timer in the http worker. With one, the http worker also fires
+            // WorkerExited, which raises the stop early and would hide the WorkerStopped raise being gone
+            // - the only one production has.
+        ], ['APP_ENV' => 'task_worker_commands_blocking', 'APP_DEBUG' => '0']);
 
         $serverRun->setTimeout(30);
         $serverRun->start();
@@ -119,10 +122,16 @@ final class TaskWorkerCommandsTest extends ServerTestCase
             'Command started but never ran its loop.',
         );
 
-        // Deliberately no assertion on a graceful stop. With coroutines off there is no watchdog to hand
-        // the command a signal, and this command has no cooperative check of its own, so it is
-        // force-terminated - which is exactly what the docs say happens.
         $serverRun->stop();
+
+        // The periodic check, end to end. With coroutines off there is no watchdog and no signal: the
+        // command stops only because the http worker raised the flag on its way out and the command read
+        // it through StopCheck from its own loop. Without that it is force-terminated, ending on a tick.
+        self::assertStringContainsString(
+            'stopped',
+            (string) file_get_contents($path),
+            'The blocking command was force-terminated rather than stopping itself through StopCheck.',
+        );
     }
 
     private function pidOf(string $slot): string

@@ -54,6 +54,7 @@ final readonly class CommandGroupRunner implements CommandGroupExecutor
         private TaskWorkerFailure $failure,
         private LoggerInterface $logger,
         private ServicePoolContainer $servicePools,
+        private StopCheck $stopCheck,
         private int $stopPollIntervalMs = 100,
     ) {}
 
@@ -170,6 +171,9 @@ final readonly class CommandGroupRunner implements CommandGroupExecutor
         // Said in this coroutine, and after the watchdog has its own: a lookup reads the context of the
         // coroutine it is asked in, walking up to here, so the two orders are the same to it.
         $this->runningCommand->record($commandLine);
+        // The same goes for the group: a command that asks StopCheck rather than subscribing to a
+        // signal hears a sibling ending only through this.
+        $this->stopCheck->bind($state);
 
         try {
             $exitCode = $resolved->run($this->outputFactory->newOutput($commandLine));
@@ -217,12 +221,13 @@ final readonly class CommandGroupRunner implements CommandGroupExecutor
         }
 
         // Nothing to aim at: the command subscribes to no signals, so the only thing left that can stop
-        // it is a cooperative check of its own. StopMessengerWorkerOnShutdown is that check for
-        // messenger; anything else has to bring its own or be force-terminated at max_wait_time.
+        // it is asking StopCheck from its own loop. StopMessengerWorkerOnShutdown does that for
+        // messenger; anything else has to do it itself or be force-terminated at max_wait_time.
         $this->logger->warning(
             'Task worker command "{command}" subscribes to no signals, so it cannot be asked to stop. '
-            . 'It will be force-terminated when max_wait_time expires unless it stops itself.',
-            ['command' => $resolved->commandLine],
+            . 'It will be force-terminated when max_wait_time expires unless it asks {stopCheck} '
+            . 'between units of work and stops itself.',
+            ['command' => $resolved->commandLine, 'stopCheck' => StopCheck::class],
         );
     }
 }

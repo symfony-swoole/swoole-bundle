@@ -24,7 +24,9 @@ return static function (ContainerConfigurator $containerConfigurator): void {
                 'worker_count' => 1,
             ],
             'commands' => [
-                'test:task-worker:heartbeat blocking',
+                // --stop-check, because with coroutines off nothing can hand the command a signal: asking
+                // StopCheck from its own loop is the only stop it can get.
+                'test:task-worker:heartbeat blocking --stop-check',
             ],
         ],
     ]);

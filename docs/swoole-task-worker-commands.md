@@ -282,13 +282,20 @@ Nothing warns you: the command simply runs until it is killed.
 So the bundle does not run commands through `Application::run()`, which is where that registration
 happens, and re-delivers the stop by hand instead:
 
-1. A worker learns the server is stopping (via `onWorkerExit`) and raises a flag in shared memory.
+1. A worker learns the server is stopping and raises a flag in shared memory. Which worker that can be
+   depends on the mode - see below.
 2. With coroutines on, a watchdog coroutine per command polls that flag every 100ms and calls the
    command's own `handleSignal(SIGTERM)`. For `messenger:consume` that reaches `Worker::stop()` -
    exactly what a real signal would have done.
-3. With coroutines off there is no watchdog, so the command has to notice for itself.
+3. Any command can also ask [`StopCheck`](#the-periodic-check-stopcheck) from its own loop. With
+   coroutines off there is no watchdog, so that - or the messenger listener doing it for
+   `messenger:consume` - is the only way a command hears the stop.
 
-`onWorkerExit` and not `onWorkerStop`, because in a task worker running commands the ordering is:
+### Who raises the flag
+
+**Coroutines on: the task worker, for itself.** A task worker running commands in coroutines is back in
+its event loop while they run, so its own `onWorkerExit` fires within milliseconds of the server being
+asked to stop:
 
 ```
 4.009s  onWorkerExit   <- commands still running, the usable moment
@@ -296,7 +303,23 @@ happens, and re-delivers the stop by hand instead:
 4.084s  onWorkerStop   <- only now, because it waits for the coroutines to finish
 ```
 
-Waiting for `onWorkerStop` would mean waiting for the very thing the flag exists to bring about.
+`onWorkerExit` and not `onWorkerStop`, because waiting for `onWorkerStop` would mean waiting for the
+very thing the flag exists to bring about.
+
+HTTP workers are deliberately left out. An HTTP worker recycled by `worker_max_request` leaves through
+the same callbacks as one going down with the server, and it fires `onWorkerExit` too whenever it has
+something left in its reactor - a timer, HMR's included. If HTTP workers raised the flag, every recycle
+would stop every command, and nothing would start them again.
+
+**Coroutines off: the HTTP worker, because the task worker cannot.** A command blocking its task worker
+keeps the worker from ever getting back to its event loop, and lifecycle callbacks are delivered through
+that loop - so the task worker hears nothing at all, `onWorkerExit` and `onWorkerStop` included. Moving
+the command into `onTask` does not change that: blocked is blocked, whichever callback it blocks in. The
+only process that hears the server stop is an HTTP worker, and it raises the flag on `onWorkerStop` - or
+earlier, on `onWorkerExit`, if it has a timer that makes it fire one.
+
+The flag is shared memory, allocated before the workers are forked, so the HTTP worker writing it and
+the command reading it from its own loop are enough - nothing has to be delivered to the blocked worker.
 
 ### What your command needs to do
 
@@ -307,13 +330,57 @@ covers `messenger:consume` and anything following the same pattern.
 `WorkerRunningEvent`, which fires between messages, so the consumer stops itself at a point where
 the message in flight has been finished and acked.
 
-**Anything else, with coroutines off,** has to bring its own cooperative check. There is no watchdog
-to hand it a signal and no event to hook, so a command that only ever returns when it feels like it
-will be force-terminated when `max_wait_time` expires. If you cannot add a check, do not run that
-command in blocking mode.
+**Anything else, with coroutines off,** has to ask [`StopCheck`](#the-periodic-check-stopcheck) from
+its own loop. There is no watchdog to hand it a signal, so a command that does not ask will be
+force-terminated when `max_wait_time` expires. If you cannot add the check, do not run that command in
+blocking mode.
 
 A command that subscribes to no signals at all is logged as a warning when the stop cannot be
 delivered, rather than failing quietly.
+
+### The periodic check: `StopCheck`
+
+`SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\StopCheck` is the one stop path that works in
+every mode, because it needs nothing from the worker but the command's own loop. Inject it and ask it
+between units of work:
+
+```php
+use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\StopCheck;
+
+final class RunProjectionsCommand extends Command
+{
+    public function __construct(
+        private readonly ProjectionEngine $engine,
+        private readonly StopCheck $stopCheck,
+    ) {
+        parent::__construct();
+    }
+
+    protected function execute(InputInterface $input, OutputInterface $output): int
+    {
+        while (!$this->stopCheck->shouldStop()) {
+            $this->engine->runOnce();
+        }
+
+        return self::SUCCESS;
+    }
+}
+```
+
+`shouldStop()` answers yes when:
+
+- the server is stopping or reloading, or
+- another command in the same task worker has ended and the group is winding down so the worker can be
+  recycled - with coroutines on, the only way a command that subscribes to no signals hears that.
+
+It is registered whether or not commands are configured, so the same command runs unchanged under a
+supervisor. There it always answers no, and stopping on `SIGTERM` is left to the command's own signal
+handling, which works outside a Swoole worker. Ask it as often as you can afford to: it is a read of
+shared memory and costs next to nothing.
+
+`messenger:consume` needs none of this - the bundle asks `StopCheck` for it on messenger's
+`WorkerRunningEvent`. A loop with an event of its own between units of work can do the same: a listener
+on that event that asks `StopCheck` and stops the loop.
 
 ## Memory limits and restarts
 
@@ -330,9 +397,21 @@ Two consequences worth planning for:
   stop and the worker is recycled once they have. That avoids killing a sibling mid-message, but it
   does mean one command's memory limit restarts its group-mates too.
 
-A group that ends in under a second is treated as broken rather than finished: the worker is not
-recycled and a critical is logged. Without that, a typo in a command line would fork a replacement
-in a loop for as long as the server ran.
+A group that ends in under a second is treated as broken rather than finished: a critical is logged and
+the server is shut down with a non-zero exit code, leaving the restart to whatever supervises the
+container. Without that, a typo in a command line would fork a replacement in a loop for as long as the
+server ran.
+
+## `worker_max_request`
+
+**With coroutines on, it is safe.** HTTP workers never raise the stop flag, so recycling them leaves the
+commands alone. Task workers are not affected by the setting at all - it recycles HTTP workers only.
+
+**With coroutines off, it is refused** - at compile time when the number is in the configuration, and
+when the server starts when it comes from an env var. A blocked task worker hears of the server stopping
+only through an HTTP worker raising the flag on its way out, and an HTTP worker recycled by
+`worker_max_request` leaves the same way: nothing it can observe tells the two apart, so every recycle
+would stop the commands for good. Enable coroutines, or set `worker_max_request` to `0`.
 
 ## Reloads
 
@@ -361,6 +440,8 @@ task transport.**
 - **HMR can stay on.** The commands survive the reloads it triggers, and its watch timer is stopped
   when a worker is asked to exit, so http workers still exit as soon as they go idle rather than
   waiting out the `max_wait_time` these commands want set high.
+- **`worker_max_request` needs coroutines** when commands are configured - see
+  [`worker_max_request`](#worker_max_request).
 - **Set `worker_max_wait_time`** high enough for the slowest command to finish what it is doing.
   Swoole's default is 3 seconds, after which workers are force-terminated.
 - **Output** from each command goes to the server's stdout on its own stream handle. Verbosity flags

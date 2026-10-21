@@ -46,6 +46,8 @@ use SwooleBundle\SwooleBundle\Bridge\Symfony\Messenger\ServiceResettingTransport
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Router\LockingConfigCacheFactory;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Router\LockingLoader;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\RunningCommand;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\StopCheck;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\WorkerStopSignal;
 use SwooleBundle\SwooleBundle\Common\Adapter\Swoole;
 use SwooleBundle\SwooleBundle\Common\System\Extension;
 use SwooleBundle\SwooleBundle\Common\System\System;
@@ -568,6 +570,13 @@ return static function (ContainerConfigurator $containerConfigurator): void {
     $services->set(RunningCommand::class)
         ->arg('$swoole', service(Swoole::class))
         ->public();
+
+    // EXPERIMENTAL. Registered whether or not task worker commands are configured, for the same reason:
+    // a command written against it has to run unchanged under a supervisor, where it answers no and the
+    // command's own signal handling does the stopping. The stop signal only exists alongside commands.
+    $services->set(StopCheck::class)
+        ->arg('$swoole', service(Swoole::class))
+        ->arg('$stopSignal', service(WorkerStopSignal::class)->nullOnInvalid());
 
     $services->set(LockingLoader::class)
         ->arg(

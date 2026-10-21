@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Command;
 
 use Override;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\StopCheck;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Test\ServerTestCase;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -23,6 +24,9 @@ use Symfony\Component\Console\Output\OutputInterface;
  *
  * Signals are subscribed for real. Nothing ever sends one inside a swoole worker - swoole owns them -
  * so handleSignal() firing at all is the evidence that the bundle re-delivered the stop by hand.
+ *
+ * With --stop-check it also asks StopCheck every tick, the way a command that cannot rely on signals
+ * is told to. That is the only stop it can get with coroutines off, where nothing hands it a signal.
  */
 #[AsCommand(
     name: 'test:task-worker:heartbeat',
@@ -33,6 +37,11 @@ final class TaskWorkerHeartbeatCommand extends Command
     public const string FILE_PREFIX = 'task-worker-heartbeat-';
 
     private bool $stopRequested = false;
+
+    public function __construct(private readonly ?StopCheck $stopCheck = null)
+    {
+        parent::__construct();
+    }
 
     public static function filePath(string $slot): string
     {
@@ -60,7 +69,8 @@ final class TaskWorkerHeartbeatCommand extends Command
             ->addOption('interval', null, InputOption::VALUE_REQUIRED, 'Milliseconds between ticks', '200')
             // Stands in for --memory-limit: a command that ends by itself, so its task worker is
             // recycled and the replacement has to start the command again.
-            ->addOption('max-ticks', null, InputOption::VALUE_REQUIRED, 'Ticks before ending (0 = never)', '0');
+            ->addOption('max-ticks', null, InputOption::VALUE_REQUIRED, 'Ticks before ending (0 = never)', '0')
+            ->addOption('stop-check', null, InputOption::VALUE_NONE, 'Also stop when StopCheck says so');
     }
 
     #[Override]
@@ -72,6 +82,7 @@ final class TaskWorkerHeartbeatCommand extends Command
         $interval = $input->getOption('interval');
         /** @var string $maxTicks */
         $maxTicks = $input->getOption('max-ticks');
+        $useStopCheck = (bool) $input->getOption('stop-check');
         $ticks = 0;
 
         $path = self::filePath($slot);
@@ -83,7 +94,7 @@ final class TaskWorkerHeartbeatCommand extends Command
         file_put_contents($startedFile, sprintf("started pid=%d\n", getmypid()));
         rename($startedFile, $path);
 
-        while (!$this->stopRequested) {
+        while (!$this->shouldStop($useStopCheck)) {
             // Hooked under coroutines, so this yields and lets the watchdog coroutine run; a plain
             // blocking sleep with coroutines off, where nothing else is running anyway.
             usleep(((int) $interval) * 1000);
@@ -100,5 +111,14 @@ final class TaskWorkerHeartbeatCommand extends Command
         $output->writeln(sprintf('Heartbeat %s stopped.', $slot));
 
         return self::SUCCESS;
+    }
+
+    private function shouldStop(bool $useStopCheck): bool
+    {
+        if ($this->stopRequested) {
+            return true;
+        }
+
+        return $useStopCheck && ($this->stopCheck?->shouldStop() ?? false);
     }
 }

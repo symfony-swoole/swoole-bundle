@@ -9,7 +9,11 @@ use PHPUnit\Framework\TestCase;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\Configuration;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\SwooleExtension;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\CommandGroupRunner;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\Exception\WorkerMaxRequestUnsupported;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\LongRunningCommandsWorkerStartHandler;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\RaiseStopSignalOnTaskWorkerExit;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\RaiseStopSignalOnWorkerShutdown;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\RefuseMaxRequestWithBlockingCommands;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\TaskWorkerCommands;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\WorkerStopSignal;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
@@ -117,6 +121,77 @@ final class TaskWorkerCommandsConfigurationTest extends TestCase
         );
     }
 
+    /**
+     * With coroutines on, task workers raise the stop flag for themselves, so http workers - which
+     * worker_max_request recycles - are kept out of it.
+     */
+    public function testThatCoroutineModeRaisesFromTaskWorkersOnly(): void
+    {
+        $container = $this->load(['commands' => ['a']], coroutinesEnabled: true);
+
+        self::assertTrue($container->hasDefinition(RaiseStopSignalOnTaskWorkerExit::class));
+        self::assertFalse($container->hasDefinition(RaiseStopSignalOnWorkerShutdown::class));
+        self::assertFalse($container->hasDefinition(RefuseMaxRequestWithBlockingCommands::class));
+    }
+
+    /**
+     * With coroutines off the task worker is blocked in its command and hears nothing, so the http worker
+     * has to be the one raising - and worker_max_request has to be watched for at start-up.
+     */
+    public function testThatBlockingModeRaisesFromAnyWorker(): void
+    {
+        $container = $this->load(['commands' => ['a']], coroutinesEnabled: false);
+
+        self::assertTrue($container->hasDefinition(RaiseStopSignalOnWorkerShutdown::class));
+        self::assertFalse($container->hasDefinition(RaiseStopSignalOnTaskWorkerExit::class));
+        self::assertTrue($container->hasDefinition(RefuseMaxRequestWithBlockingCommands::class));
+    }
+
+    /**
+     * Every recycle of an http worker would stop the blocking commands for good: the only notice they
+     * get of the server stopping is an http worker's exit, and a recycled one leaves the same way.
+     */
+    public function testThatMaxRequestWithBlockingCommandsIsRejected(): void
+    {
+        $this->expectException(WorkerMaxRequestUnsupported::class);
+        $this->expectExceptionMessage('worker_max_request is 100');
+
+        $this->load(['commands' => ['a']], coroutinesEnabled: false, httpServerSettings: [
+            'worker_max_request' => 100,
+        ]);
+    }
+
+    public function testThatMaxRequestIsAllowedWithCoroutines(): void
+    {
+        $container = $this->load(['commands' => ['a']], coroutinesEnabled: true, httpServerSettings: [
+            'worker_max_request' => 100,
+        ]);
+
+        self::assertTrue($container->hasDefinition(RaiseStopSignalOnTaskWorkerExit::class));
+    }
+
+    public function testThatMaxRequestIsAllowedWithoutCommands(): void
+    {
+        $container = $this->load(['settings' => ['worker_count' => 1]], coroutinesEnabled: false, httpServerSettings: [
+            'worker_max_request' => 100,
+        ]);
+
+        self::assertFalse($container->hasDefinition(RefuseMaxRequestWithBlockingCommands::class));
+    }
+
+    /**
+     * An env placeholder is not a number until the server runs, so the container lets it through and the
+     * configurator registered above refuses it then.
+     */
+    public function testThatAnEnvPlaceholderIsLeftToTheServer(): void
+    {
+        $container = $this->load(['commands' => ['a']], coroutinesEnabled: false, httpServerSettings: [
+            'worker_max_request' => '%env(int:WORKER_MAX_REQUEST)%',
+        ]);
+
+        self::assertTrue($container->hasDefinition(RefuseMaxRequestWithBlockingCommands::class));
+    }
+
     private function taskWorkerCount(ContainerBuilder $container): int
     {
         /** @var array<string, mixed> $settings */
@@ -140,8 +215,9 @@ final class TaskWorkerCommandsConfigurationTest extends TestCase
 
     /**
      * @param array<string, mixed> $taskWorker
+     * @param array<string, mixed> $httpServerSettings
      */
-    private function load(array $taskWorker, bool $coroutinesEnabled): ContainerBuilder
+    private function load(array $taskWorker, bool $coroutinesEnabled, array $httpServerSettings = []): ContainerBuilder
     {
         $container = new ContainerBuilder();
         $container->setParameter('kernel.cache_dir', sys_get_temp_dir());
@@ -151,6 +227,9 @@ final class TaskWorkerCommandsConfigurationTest extends TestCase
         $container->setParameter('kernel.environment', 'test');
 
         $config = [
+            'http_server' => [
+                'settings' => $httpServerSettings,
+            ],
             'task_worker' => $taskWorker,
             'platform' => [
                 'coroutines' => [
