@@ -28,14 +28,16 @@ use Throwable;
  * different coroutines, which is precisely what this queue exists to keep from happening. Such a consumer
  * waits on the channel rather than leaving the moment it runs dry, so the resource stays with the coroutine
  * that acquired it, and releases it before giving up on an idle queue. Work touching it is handed over with
- * {@see runInConsumer} instead of being done by the coroutine asking for it.
+ * {@see runInConsumer} instead of being done by the coroutine asking for it. Where something can end such a
+ * consumer later, it does not give up on an idle queue at all: see {@see ConsumerRetention}.
  */
 final class SerialQueue
 {
     public const int DEFAULT_CAPACITY = 1024;
 
     /**
-     * How long a consumer holding a resource waits on an empty queue before letting go of it and leaving.
+     * How long a consumer holding a resource waits on an empty queue before letting go of it and leaving -
+     * unless its resource is being retained, in which case it is how often it checks whether it still is.
      *
      * Waiting forever would be simpler but would also keep the coroutine alive for as long as the queue
      * exists, and a scheduler with nothing left to run but parked consumers never finishes.
@@ -72,6 +74,8 @@ final class SerialQueue
      *     Giving one pins the consumer: it waits on an empty queue instead of leaving it to the next
      *     coroutine, and releases here before it does leave.
      * @param float $idleTimeout how long a pinned consumer waits on an empty queue before releasing
+     * @param ConsumerRetention|null $retention keeps a pinned consumer from releasing on an idle queue while it
+     *     is retaining, and wakes it to release once it stops
      */
     public function __construct(
         private readonly Swoole $swoole,
@@ -79,6 +83,7 @@ final class SerialQueue
         int $capacity = self::DEFAULT_CAPACITY,
         private readonly Closure|null $consumerRelease = null,
         private readonly float $idleTimeout = self::DEFAULT_IDLE_TIMEOUT_SECONDS,
+        private readonly ConsumerRetention|null $retention = null,
     ) {
         $this->channel = new Channel($capacity);
     }
@@ -188,6 +193,30 @@ final class SerialQueue
         return $this->queued === 0;
     }
 
+    /**
+     * Wakes a pinned consumer waiting on an empty queue, so that it finds out right away whether it may still
+     * keep what it holds - which once its retention has stopped, it may not.
+     *
+     * A channel can only be pushed to from a coroutine, and a worker on its way out is not always running one
+     * when it says so.
+     */
+    public function wakeIdleConsumer(): void
+    {
+        if (!$this->consuming || !$this->isConsumerPinned()) {
+            return;
+        }
+
+        if ($this->swoole->getCoroutineId() !== self::NO_COROUTINE_CONTEXT_ID) {
+            $this->channel->push(new WakeMarker());
+
+            return;
+        }
+
+        go(function (): void {
+            $this->channel->push(new WakeMarker());
+        });
+    }
+
     private function startConsumer(): void
     {
         if (!$this->claim()) {
@@ -246,6 +275,7 @@ final class SerialQueue
 
         try {
             if ($this->isConsumerPinned()) {
+                $this->retention?->track($this);
                 $this->consumeUntilIdle();
             } else {
                 $this->consumeUntilEmpty();
@@ -277,15 +307,22 @@ final class SerialQueue
      * here that can yield - closing a file does - and a producer pushing during it would be left with a
      * claim nobody is honouring. Seeing something queued afterwards means going back to work, on a resource
      * that will be acquired again the next time it is needed.
+     *
+     * An idle queue is only given up on once its resource is no longer retained: until then the consumer keeps
+     * waiting, waking every idle timeout - or when woken - to check again.
      */
     private function consumeUntilIdle(): void
     {
         while (true) {
             $payload = $this->channel->pop($this->idleTimeout);
 
-            if ($payload !== false) {
+            if ($payload !== false && !$payload instanceof WakeMarker) {
                 $this->consume($payload);
 
+                continue;
+            }
+
+            if ($this->retention?->isRetaining() === true) {
                 continue;
             }
 

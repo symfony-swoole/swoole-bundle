@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Tests\Unit\Bridge\Monolog;
 
+use ArrayObject;
 use DateTimeImmutable;
 use Monolog\Formatter\LineFormatter;
+use Monolog\Handler\StreamHandler as OriginalStreamHandler;
 use Monolog\Level;
 use Monolog\LogRecord;
 use PHPUnit\Framework\TestCase;
+use ReflectionProperty;
 use Swoole\Coroutine\Scheduler;
 use SwooleBundle\SwooleBundle\Bridge\Monolog\RotatingFileHandler;
 use SwooleBundle\SwooleBundle\Bridge\Monolog\StreamHandler;
@@ -300,6 +303,100 @@ final class CoroutineSafeWritesTest extends TestCase
         }
 
         self::assertCount(self::LOGGING_COROUTINES * self::RECORDS_PER_COROUTINE, $lines);
+    }
+
+    /**
+     * A pooled handler is reset once per request. Closing the stream there meant opening the file again for the
+     * first line of every request.
+     */
+    public function testAResetLeavesTheStreamOpen(): void
+    {
+        $swoole = $this->swoole();
+        $logFile = sprintf('%s/reset.log', $this->logDir);
+        $handler = new StreamHandler($logFile, Level::Debug);
+        $handler->setSwoole($swoole);
+        $handler->setFormatter(new LineFormatter("%message%\n"));
+        /** @var ArrayObject<int, mixed> $streams */
+        $streams = new ArrayObject();
+
+        $swoole->enableCoroutines();
+
+        try {
+            $scheduler = new Scheduler();
+            $scheduler->add(static function () use ($handler, $streams): void {
+                $handler->handle(self::newRecord('before'));
+                // the consumer's turn to write it
+                usleep(20_000);
+                $streams[] = self::streamOf($handler);
+
+                $handler->reset();
+                $streams[] = self::streamOf($handler);
+
+                $handler->handle(self::newRecord('after'));
+                usleep(20_000);
+                $streams[] = self::streamOf($handler);
+            });
+            $scheduler->start();
+        } finally {
+            $swoole->disableCoroutines();
+        }
+
+        $handler->close();
+
+        self::assertCount(3, $streams);
+        self::assertIsResource($streams[0]);
+        self::assertSame([$streams[0], $streams[0]], [$streams[1], $streams[2]]);
+        self::assertSame(['before', 'after'], $this->readLines($logFile));
+    }
+
+    /**
+     * What closing on reset was for: a file rotated away from under the handler. Monolog's own write() picks
+     * that up, by the inode at the file's path.
+     *
+     * A new file is made in the old one's place, as a rotation does: with nothing at the path at all, Monolog
+     * asks for its inode with the warning silenced, and PHPUnit still looks for the test on the call stack of
+     * the consumer coroutine that raised it - finds none, and throws there.
+     */
+    public function testAFileMovedAwayIsOpenedAgainAtItsPath(): void
+    {
+        $swoole = $this->swoole();
+        $logFile = sprintf('%s/moved.log', $this->logDir);
+        $handler = new StreamHandler($logFile, Level::Debug);
+        $handler->setSwoole($swoole);
+        $handler->setFormatter(new LineFormatter("%message%\n"));
+
+        $swoole->enableCoroutines();
+
+        try {
+            $scheduler = new Scheduler();
+            $scheduler->add(static function () use ($handler, $logFile): void {
+                $handler->handle(self::newRecord('before'));
+                usleep(20_000);
+                // as logrotate's `create` does: moved away, and a new file made in its place
+                rename($logFile, $logFile . '.1');
+                touch($logFile);
+
+                $handler->reset();
+
+                $handler->handle(self::newRecord('after'));
+            });
+            $scheduler->start();
+        } finally {
+            $swoole->disableCoroutines();
+        }
+
+        $handler->close();
+
+        self::assertSame(['before'], $this->readLines($logFile . '.1'));
+        self::assertSame(['after'], $this->readLines($logFile));
+    }
+
+    /**
+     * The stream the handler holds, which only Monolog's own class can see.
+     */
+    private static function streamOf(StreamHandler $handler): mixed
+    {
+        return (new ReflectionProperty(OriginalStreamHandler::class, 'stream'))->getValue($handler);
     }
 
     private static function message(int $coroutine, int $record): string

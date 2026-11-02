@@ -8,6 +8,7 @@ use Closure;
 use Monolog\LogRecord;
 use SwooleBundle\SwooleBundle\Bridge\CommonSwoole\SystemSwooleFactory;
 use SwooleBundle\SwooleBundle\Common\Adapter\Swoole;
+use SwooleBundle\SwooleBundle\Component\Concurrency\ConsumerRetention;
 use SwooleBundle\SwooleBundle\Component\Concurrency\SerialQueue;
 
 /**
@@ -23,10 +24,18 @@ use SwooleBundle\SwooleBundle\Component\Concurrency\SerialQueue;
  * none of that state can be observed by anyone else and the upstream implementation is used as it is.
  *
  * The stream is opened by that consumer, which is why the queue's consumer is pinned and why closing and
- * resetting are handed over to it as well instead of being done where they are asked for. Monolog closes
- * the file on reset - deliberately, so an externally rotated file is picked up - and these handlers are
- * reset once per request, from whichever coroutine happens to be releasing the pooled instance. Closing a
+ * resetting are handed over to it as well instead of being done where they are asked for. These handlers are
+ * reset once per request, from whichever coroutine happens to be releasing the pooled instance, and closing a
  * file from a coroutine other than the one that opened it is the exact violation this trait exists to avoid.
+ *
+ * The stream outlives the request, though. Monolog closes the file on reset so that an externally rotated one
+ * is picked up, which from Monolog 3.10 on its write() does by itself: before every write it compares the
+ * inode at the file's path with the one it opened, and opens the file again once they differ - moved away,
+ * or deleted. Closing on reset on top of that only meant opening the file again for the first line of every
+ * request, and in a coroutine an open goes through the runtime's thread pool and yields. So a reset leaves
+ * the stream as it is, and it is closed by close() - or by the consumer as it leaves, which in a server
+ * worker is when the worker exits (see {@see ConsumerRetention}): a worker that serves a request only every
+ * few seconds keeps its file open, and its consumer, from one request to the next.
  *
  * As a side effect logging stops blocking the request coroutine on disk IO.
  */
@@ -41,9 +50,22 @@ trait CoroutineSafeWrites
 
     private Swoole|null $swoole = null;
 
+    private ConsumerRetention|null $consumerRetention = null;
+
+    /**
+     * Set while Monolog's own reset() runs, which ends by closing the stream - the one close() that is not
+     * passed on.
+     */
+    private bool $resetting = false;
+
     public function setSwoole(Swoole $swoole): void
     {
         $this->swoole = $swoole;
+    }
+
+    public function setConsumerRetention(ConsumerRetention $consumerRetention): void
+    {
+        $this->consumerRetention = $consumerRetention;
     }
 
     /**
@@ -53,14 +75,30 @@ trait CoroutineSafeWrites
     public function close(): void
     {
         $this->inWriteQueue(function (): void {
+            if ($this->resetting) {
+                return;
+            }
+
             parent::close();
         });
     }
 
+    /**
+     * Resets the processors as Monolog does, and keeps the stream open: see the trait's description.
+     *
+     * The flag cannot be seen by any other close(): this runs in the consumer, or where there is none, and a
+     * close() asked for anywhere else while it runs is queued up behind it.
+     */
     public function reset(): void
     {
         $this->inWriteQueue(function (): void {
-            parent::reset();
+            $this->resetting = true;
+
+            try {
+                parent::reset();
+            } finally {
+                $this->resetting = false;
+            }
         });
     }
 
@@ -131,6 +169,8 @@ trait CoroutineSafeWrites
             function (): void {
                 parent::close();
             },
+            SerialQueue::DEFAULT_IDLE_TIMEOUT_SECONDS,
+            $this->consumerRetention,
         );
     }
 }

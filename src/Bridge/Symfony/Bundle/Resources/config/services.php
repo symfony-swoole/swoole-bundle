@@ -26,6 +26,8 @@ use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Proxy\Signature\ReadonlyA
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Proxy\Signature\ReadonlyAwareSignatureChecker;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Proxy\UnmanagedFactoryInstantiator;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\ServicePool\ServicePoolContainer;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Event\WorkerExitedEvent;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Event\WorkerStartedEvent;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation\DefaultRequestFactory;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation\DefaultResponseProcessorInjector;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation\EndResponseProcessor;
@@ -52,6 +54,7 @@ use SwooleBundle\SwooleBundle\Common\Adapter\Swoole;
 use SwooleBundle\SwooleBundle\Common\System\Extension;
 use SwooleBundle\SwooleBundle\Common\System\System;
 use SwooleBundle\SwooleBundle\Component\AtomicCounter;
+use SwooleBundle\SwooleBundle\Component\Concurrency\ConsumerRetention;
 use SwooleBundle\SwooleBundle\Component\ExceptionArrayTransformer;
 use SwooleBundle\SwooleBundle\Component\GeneratedCollection;
 use SwooleBundle\SwooleBundle\Component\Locking\Channel\ChannelMutex;
@@ -591,4 +594,16 @@ return static function (ContainerConfigurator $containerConfigurator): void {
             inline_service(ChannelMutex::class)
                 ->factory([service('swoole_bundle.service_pool.locking'), 'newMutex']),
         );
+
+    // What a write queue's consumer holds - a log file - is kept from a worker's start until it begins to exit,
+    // which is what lets it go: an exiting worker waits for its coroutines.
+    $services->set(ConsumerRetention::class)
+        ->tag('kernel.event_listener', [
+            'event' => WorkerStartedEvent::NAME,
+            'method' => 'retain',
+        ])
+        ->tag('kernel.event_listener', [
+            'event' => WorkerExitedEvent::NAME,
+            'method' => 'release',
+        ]);
 };
