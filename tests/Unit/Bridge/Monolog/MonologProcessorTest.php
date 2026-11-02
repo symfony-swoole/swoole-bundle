@@ -16,6 +16,7 @@ use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\Compiler
     Proxifier,
 };
 use SwooleBundle\SwooleBundle\Common\Adapter\Swoole;
+use SwooleBundle\SwooleBundle\Component\Concurrency\ConsumerRetention;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
@@ -40,7 +41,11 @@ final class MonologProcessorTest extends TestCase
         );
     }
 
-    public function testReplacedHandlersGetTheSwooleAdapterInjected(): void
+    /**
+     * The retention is what lets a handler's write queue keep its file open while a worker runs, and close it
+     * once the worker begins to exit.
+     */
+    public function testReplacedHandlersGetTheSwooleAdapterAndTheConsumerRetentionInjected(): void
     {
         $container = new ContainerBuilder();
         $container->setDefinition('monolog.handler.main', new Definition(OriginalStreamHandler::class));
@@ -49,9 +54,11 @@ final class MonologProcessorTest extends TestCase
 
         $methodCalls = $container->getDefinition('monolog.handler.main')->getMethodCalls();
 
-        self::assertCount(1, $methodCalls);
+        self::assertCount(2, $methodCalls);
         self::assertSame('setSwoole', $methodCalls[0][0]);
         self::assertEquals([new Reference(Swoole::class)], $methodCalls[0][1]);
+        self::assertSame('setConsumerRetention', $methodCalls[1][0]);
+        self::assertEquals([new Reference(ConsumerRetention::class)], $methodCalls[1][1]);
     }
 
     public function testHandlersWritingToNoSharedStreamAreLeftAlone(): void

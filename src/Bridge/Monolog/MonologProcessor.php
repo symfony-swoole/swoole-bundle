@@ -9,6 +9,7 @@ use Monolog\Handler\StreamHandler as OriginalStreamHandler;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices\CompileProcessor;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices\ServiceProxifier;
 use SwooleBundle\SwooleBundle\Common\Adapter\Swoole;
+use SwooleBundle\SwooleBundle\Component\Concurrency\ConsumerRetention;
 use Symfony\Component\DependencyInjection\Alias;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Reference;
@@ -52,6 +53,7 @@ final class MonologProcessor implements CompileProcessor
 
             $handlerDef->setClass(self::COROUTINE_SAFE_HANDLERS[$handlerClass]);
             $handlerDef->addMethodCall('setSwoole', [new Reference(Swoole::class)]);
+            $handlerDef->addMethodCall('setConsumerRetention', [new Reference(ConsumerRetention::class)]);
         }
     }
 }

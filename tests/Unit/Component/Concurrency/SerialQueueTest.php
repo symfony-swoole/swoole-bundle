@@ -12,6 +12,7 @@ use SwooleBundle\SwooleBundle\Bridge\OpenSwoole\OpenSwoole;
 use SwooleBundle\SwooleBundle\Bridge\Swoole\Swoole as SwooleAdapter;
 use SwooleBundle\SwooleBundle\Common\Adapter\Swoole;
 use SwooleBundle\SwooleBundle\Common\System\Extension;
+use SwooleBundle\SwooleBundle\Component\Concurrency\ConsumerRetention;
 use SwooleBundle\SwooleBundle\Component\Concurrency\SerialQueue;
 
 final class SerialQueueTest extends TestCase
@@ -250,6 +251,139 @@ final class SerialQueueTest extends TestCase
                         ++$released;
                     },
                     0.05,
+                );
+
+                $queue->submit('payload');
+                usleep(200_000);
+            });
+            $scheduler->start();
+
+            self::assertSame(1, $released);
+        } finally {
+            $swoole->disableCoroutines();
+        }
+    }
+
+    /**
+     * Retained, a consumer keeps what it holds however many idle timeouts pass, and is still the coroutine that
+     * consumes what comes after the pause.
+     */
+    public function testARetainedConsumerOutlivesItsIdleTimeout(): void
+    {
+        $swoole = $this->swoole();
+        $swoole->enableCoroutines();
+
+        try {
+            $retention = new ConsumerRetention();
+            $retention->retain();
+            $ids = [];
+            $releasedWhileRetained = null;
+            $released = 0;
+
+            $scheduler = new Scheduler();
+            $scheduler->add(
+                static function () use ($swoole, $retention, &$ids, &$releasedWhileRetained, &$released): void {
+                    $queue = new SerialQueue(
+                        $swoole,
+                        static function (mixed $payload) use ($swoole, &$ids): void {
+                            $ids[$payload] = $swoole->getCoroutineId();
+                        },
+                        SerialQueue::DEFAULT_CAPACITY,
+                        static function () use (&$released): void {
+                            ++$released;
+                        },
+                        0.02,
+                        $retention,
+                    );
+
+                    $queue->submit('first');
+                    // ten idle timeouts
+                    usleep(200_000);
+                    $queue->submit('second');
+                    usleep(50_000);
+                    $releasedWhileRetained = $released;
+
+                    $retention->release();
+                },
+            );
+            $scheduler->start();
+
+            self::assertSame(0, $releasedWhileRetained);
+            self::assertSame(1, $released);
+            self::assertCount(2, $ids);
+            self::assertSame($ids['first'], $ids['second']);
+        } finally {
+            $swoole->disableCoroutines();
+        }
+    }
+
+    /**
+     * Released, a consumer lets go and leaves at once, woken: with an idle timeout of ten seconds, the scheduler
+     * would otherwise not finish before then.
+     */
+    public function testAReleasedConsumerLetsGoWithoutWaitingOutItsIdleTimeout(): void
+    {
+        $swoole = $this->swoole();
+        $swoole->enableCoroutines();
+
+        try {
+            $retention = new ConsumerRetention();
+            $retention->retain();
+            $released = 0;
+
+            $scheduler = new Scheduler();
+            $scheduler->add(static function () use ($swoole, $retention, &$released): void {
+                $queue = new SerialQueue(
+                    $swoole,
+                    static function (mixed $payload): void {},
+                    SerialQueue::DEFAULT_CAPACITY,
+                    static function () use (&$released): void {
+                        ++$released;
+                    },
+                    10.0,
+                    $retention,
+                );
+
+                $queue->submit('payload');
+                usleep(50_000);
+
+                $retention->release();
+            });
+
+            $start = hrtime(true);
+            $scheduler->start();
+            $elapsedSeconds = (hrtime(true) - $start) / 1e9;
+
+            self::assertSame(1, $released);
+            self::assertLessThan(5.0, $elapsedSeconds, 'The released consumer waited out its idle timeout.');
+        } finally {
+            $swoole->disableCoroutines();
+        }
+    }
+
+    /**
+     * Retention is only switched on in a server worker: a queue with one that is not retaining - a console
+     * command's - lets go of an idle queue as it always has.
+     */
+    public function testAConsumerWhoseRetentionIsNotRetainingReleasesOnAnIdleQueue(): void
+    {
+        $swoole = $this->swoole();
+        $swoole->enableCoroutines();
+
+        try {
+            $released = 0;
+
+            $scheduler = new Scheduler();
+            $scheduler->add(static function () use ($swoole, &$released): void {
+                $queue = new SerialQueue(
+                    $swoole,
+                    static function (mixed $payload): void {},
+                    SerialQueue::DEFAULT_CAPACITY,
+                    static function () use (&$released): void {
+                        ++$released;
+                    },
+                    0.05,
+                    new ConsumerRetention(),
                 );
 
                 $queue->submit('payload');
