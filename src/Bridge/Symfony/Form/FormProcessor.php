@@ -45,8 +45,13 @@ use Symfony\Component\Validator\ConstraintValidatorFactoryInterface;
  * pool work without touching a single template: `RuntimeLoaderPass` keys the runtime locator by the
  * definition's class, the proxy definition keeps the class of the service it replaces, and
  * `getRuntime()` therefore still resolves `Symfony\Component\Form\FormRenderer` - to the proxy, which
- * resolves per coroutine. Its resetter is not optional - see {@see FormRendererResetter} for what a
- * half-finished render leaves behind.
+ * resolves per coroutine.
+ *
+ * It needs no resetter. Since symfony/form 7.4.22 and 8.1.10 the renderer pops what a render pushed in a
+ * finally, so a block that throws - a missing block, a filter blowing up, a form theme that is not there -
+ * no longer leaves its scope on the stack for the next render of a form with the same cache key to resume
+ * from, and a renderer goes back into the pool as empty as it came out. The versions before that are what
+ * the bundle's conflict with symfony/form rules out.
  *
  * The engine then needs the other half of the same treatment: being pooled is not enough for it,
  * because the reset it comes with leaves behind the resolved form theme - and with it the Environment
@@ -79,7 +84,6 @@ use Symfony\Component\Validator\ConstraintValidatorFactoryInterface;
 final class FormProcessor implements CompileProcessor
 {
     private const string RENDERER_ID = 'twig.form.renderer';
-    private const string RENDERER_RESETTER_ID = 'swoole_bundle.form.renderer_resetter';
     private const string ENGINE_ID = 'twig.form.engine';
     private const string ENGINE_RESETTER_ID = 'swoole_bundle.form.twig_renderer_engine_resetter';
     private const string ENGINE_INITIALIZER_ID = 'swoole_bundle.form.twig_renderer_engine_initializer';
@@ -213,14 +217,10 @@ final class FormProcessor implements CompileProcessor
             return;
         }
 
-        $this->registerResetter($container, self::RENDERER_RESETTER_ID, FormRendererResetter::class);
-
         // Tagging rather than calling proxifyService(): the tag is what StatefulServicesPass acts on
         // once every compile processor has run, and doing both is refused outright by the Proxifier.
         $container->findDefinition(self::RENDERER_ID)
-            ->addTag(ContainerConstants::TAG_STATEFUL_SERVICE, [
-                'resetter' => self::RENDERER_RESETTER_ID,
-            ]);
+            ->addTag(ContainerConstants::TAG_STATEFUL_SERVICE);
     }
 
     /**

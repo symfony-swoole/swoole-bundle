@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "0a4746d40f75a82657b8993abf31418a",
+    "content-hash": "60ac22107bb68836f23e265d752d5057",
     "packages": [
         {
             "name": "beberlei/assert",
@@ -10827,16 +10827,16 @@
         },
         {
             "name": "symfony/form",
-            "version": "v7.4.16",
+            "version": "v7.4.22",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/form.git",
-                "reference": "b8a828839e0c0e6ba97d69736c92b5472198b163"
+                "reference": "cd595404e8d7c7891f11dac394ce7611537c22af"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/form/zipball/b8a828839e0c0e6ba97d69736c92b5472198b163",
-                "reference": "b8a828839e0c0e6ba97d69736c92b5472198b163",
+                "url": "https://api.github.com/repos/symfony/form/zipball/cd595404e8d7c7891f11dac394ce7611537c22af",
+                "reference": "cd595404e8d7c7891f11dac394ce7611537c22af",
                 "shasum": ""
             },
             "require": {
@@ -10906,7 +10906,7 @@
             "description": "Allows to easily create, process and reuse HTML forms",
             "homepage": "https://symfony.com",
             "support": {
-                "source": "https://github.com/symfony/form/tree/v7.4.16"
+                "source": "https://github.com/symfony/form/tree/v7.4.22"
             },
             "funding": [
                 {
@@ -10926,7 +10926,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-08-07T10:37:34+00:00"
+            "time": "2026-10-28T17:57:58+00:00"
         },
         {
             "name": "symfony/framework-bundle",

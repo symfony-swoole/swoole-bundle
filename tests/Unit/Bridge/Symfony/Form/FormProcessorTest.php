@@ -12,7 +12,6 @@ use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\Compiler
 };
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\ContainerConstants;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Form\FormProcessor;
-use SwooleBundle\SwooleBundle\Bridge\Symfony\Form\FormRendererResetter;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Form\TwigRendererEngineResetter;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Form\OtherConstraintValidator;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Form\OtherConstraintValidatorFactory;
@@ -28,24 +27,23 @@ use Symfony\Component\Validator\ContainerConstraintValidatorFactory;
 final class FormProcessorTest extends TestCase
 {
     private const string RENDERER_ID = 'twig.form.renderer';
-    private const string RENDERER_RESETTER_ID = 'swoole_bundle.form.renderer_resetter';
     private const string ENGINE_ID = 'twig.form.engine';
     private const string ENGINE_RESETTER_ID = 'swoole_bundle.form.twig_renderer_engine_resetter';
     private const string VALIDATOR_FACTORY_ID = 'validator.validator_factory';
 
-    public function testTheFormRendererIsPooledWithItsOwnResetter(): void
+    /**
+     * Pooled with no resetter: from symfony/form 7.4.22 and 8.1.10 on, the renderer clears what a render put on
+     * its stacks even when the render throws, so a renderer is handed back as empty as it was handed out.
+     */
+    public function testTheFormRendererIsPooled(): void
     {
         $container = $this->containerWithFormRenderer();
 
         $this->process($container);
 
         self::assertSame(
-            [['resetter' => self::RENDERER_RESETTER_ID]],
+            [[]],
             $container->getDefinition(self::RENDERER_ID)->getTag(ContainerConstants::TAG_STATEFUL_SERVICE),
-        );
-        self::assertSame(
-            FormRendererResetter::class,
-            $container->getDefinition(self::RENDERER_RESETTER_ID)->getClass(),
         );
     }
 
@@ -59,7 +57,7 @@ final class FormProcessorTest extends TestCase
 
         $this->process($container);
 
-        self::assertFalse($container->hasDefinition(self::RENDERER_RESETTER_ID));
+        self::assertSame([], $container->findTaggedServiceIds(ContainerConstants::TAG_STATEFUL_SERVICE));
     }
 
     /**
@@ -133,14 +131,15 @@ final class FormProcessorTest extends TestCase
     public function testTheResetterIsRegisteredOnlyOnce(): void
     {
         $container = $this->containerWithFormRenderer();
-        $container->register(self::RENDERER_RESETTER_ID, FormRendererResetter::class)
+        $container->register(self::ENGINE_ID, TwigRendererEngine::class);
+        $container->register(self::ENGINE_RESETTER_ID, TwigRendererEngineResetter::class)
             ->addTag('already.registered');
 
         $this->process($container);
 
         self::assertSame(
             [[]],
-            $container->getDefinition(self::RENDERER_RESETTER_ID)->getTag('already.registered'),
+            $container->getDefinition(self::ENGINE_RESETTER_ID)->getTag('already.registered'),
         );
     }
 
