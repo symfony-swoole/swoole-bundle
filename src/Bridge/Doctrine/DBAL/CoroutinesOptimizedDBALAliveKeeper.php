@@ -10,7 +10,7 @@ use Exception;
 use Override;
 use SwooleBundle\ResetterBundle\DBAL\Connection\DBALAliveKeeper;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Proxy\ContextualProxy;
-use WeakMap;
+use WeakReference;
 
 /**
  * Coroutine-safe replacement for {@see \SwooleBundle\ResetterBundle\DBAL\Connection\OptimizedDBALAliveKeeper}.
@@ -22,30 +22,34 @@ use WeakMap;
  *   one timestamp is shared by every connection in the pool: a ping on one connection suppresses the
  *   ping on all the others, and connections that are used rarely silently go stale;
  *
- * Both go away by keying the timestamps by connection instead. A WeakMap is used rather than an array
- * of `spl_object_id()`s because object ids are reused once an object is collected - a pooled connection
- * that gets dropped would hand its ping timestamp to whatever object takes over its id. The WeakMap
- * also drops its entry with the connection itself, so nothing has to be cleaned up by hand. It is never
- * re-assigned after the constructor, so there is no property write for fiber_viber to trip over, and its
- * own storage is internal to the engine rather than a tracked PHP property.
+ * Both go away by keying the timestamps by connection instead.
+ *
+ * Keyed by `spl_object_id()`, with a weak reference to the connection beside each timestamp. An object
+ * id is reused once its object is collected, so the id alone would let a pooled connection that gets
+ * dropped hand its timestamp to whatever object takes over the id; the weak reference tells the two
+ * apart, and an entry whose connection is gone is dropped the next time a connection is seen for the
+ * first time.
+ *
+ * Not a WeakMap, which would do all of that by itself, because the timestamps are shared by every
+ * coroutine of the worker by design, and a checker of cross-coroutine writes such as fiber_viber has to be
+ * told so. fiber_viber records a WeakMap's ownership for the map as a whole, wherever the map is held, so
+ * every coroutine after the first to ping is reported, and excluding the property holding the map does not
+ * reach it - only excluding every WeakMap of the worker would. An array is the property's own, so excluding
+ * the property is enough. Nothing between reading a timestamp and writing it can suspend a coroutine.
  */
-final readonly class CoroutinesOptimizedDBALAliveKeeper implements DBALAliveKeeper
+final class CoroutinesOptimizedDBALAliveKeeper implements DBALAliveKeeper
 {
     private const int DEFAULT_PING_INTERVAL = 0;
 
     /**
-     * @var WeakMap<Connection, int>
+     * @var array<int, array{WeakReference<Connection>, int}>
      */
-    private WeakMap $lastPingedAt;
+    private array $lastPingedAt = [];
 
     public function __construct(
-        private DBALAliveKeeper $decorated,
-        private int $pingIntervalInSeconds = self::DEFAULT_PING_INTERVAL,
-    ) {
-        /** @var WeakMap<Connection, int> $lastPingedAt */
-        $lastPingedAt = new WeakMap();
-        $this->lastPingedAt = $lastPingedAt;
-    }
+        private readonly DBALAliveKeeper $decorated,
+        private readonly int $pingIntervalInSeconds = self::DEFAULT_PING_INTERVAL,
+    ) {}
 
     /**
      * @throws Exception
@@ -80,10 +84,29 @@ final readonly class CoroutinesOptimizedDBALAliveKeeper implements DBALAliveKeep
 
     private function isPingNeeded(Connection $connection): bool
     {
-        $lastPingedAt = $this->lastPingedAt[$connection] ?? 0;
+        $id = spl_object_id($connection);
+        $lastPingedAt = 0;
+
+        if (isset($this->lastPingedAt[$id]) && $this->lastPingedAt[$id][0]->get() === $connection) {
+            $lastPingedAt = $this->lastPingedAt[$id][1];
+        } else {
+            $this->forgetCollectedConnections();
+        }
+
         $now = time();
-        $this->lastPingedAt[$connection] = $now;
+        $this->lastPingedAt[$id] = [WeakReference::create($connection), $now];
 
         return $now - $lastPingedAt >= $this->pingIntervalInSeconds;
+    }
+
+    private function forgetCollectedConnections(): void
+    {
+        foreach ($this->lastPingedAt as $id => [$connection]) {
+            if ($connection->get() !== null) {
+                continue;
+            }
+
+            unset($this->lastPingedAt[$id]);
+        }
     }
 }
