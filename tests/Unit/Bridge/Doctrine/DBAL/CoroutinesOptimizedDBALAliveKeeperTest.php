@@ -15,7 +15,7 @@ use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Proxy\ContextualProxy;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Proxy\Generator;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\ServicePool\StaticServicePool;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Doctrine\RecordingDBALAliveKeeper;
-use WeakMap;
+use WeakReference;
 
 #[CoversClass(CoroutinesOptimizedDBALAliveKeeper::class)]
 final class CoroutinesOptimizedDBALAliveKeeperTest extends TestCase
@@ -145,11 +145,26 @@ final class CoroutinesOptimizedDBALAliveKeeperTest extends TestCase
     }
 
     /**
-     * Why a WeakMap and not an array of spl_object_id()s: object ids get reused once the object behind
-     * them is gone, so a connection dropped from the pool would bequeath its ping timestamp to whatever
-     * object takes over its id next.
+     * Object ids get reused once the object behind them is gone, so an entry found under a connection's id
+     * may be a dropped connection's: the connection that took the id over has never been pinged.
      */
-    public function testTheTimestampOfADiscardedConnectionIsDroppedWithIt(): void
+    public function testAConnectionTakingOverTheIdOfADiscardedOneIsPingedAsNew(): void
+    {
+        $decorated = new RecordingDBALAliveKeeper();
+        $keeper = new CoroutinesOptimizedDBALAliveKeeper($decorated, self::LONG_INTERVAL);
+        $connection = $this->newConnection();
+        $previousHolderOfTheId = $this->newConnection();
+
+        $this->timestampsProperty()->setValue($keeper, [
+            spl_object_id($connection) => [WeakReference::create($previousHolderOfTheId), time()],
+        ]);
+
+        $keeper->keepAlive($connection, 'default');
+
+        self::assertSame(1, $decorated->pingCount());
+    }
+
+    public function testTheTimestampOfADiscardedConnectionIsDroppedOnceAnotherConnectionIsSeen(): void
     {
         $decorated = new RecordingDBALAliveKeeper();
         $keeper = new CoroutinesOptimizedDBALAliveKeeper($decorated, self::LONG_INTERVAL);
@@ -159,22 +174,29 @@ final class CoroutinesOptimizedDBALAliveKeeperTest extends TestCase
 
         self::assertCount(1, $this->timestampsOf($keeper));
 
+        // made while the first one is still alive, so that it cannot take over the first one's id
+        $nextConnection = $this->newConnection();
         $decorated->forgetRecordedPings();
         unset($connection);
+        $keeper->keepAlive($nextConnection, 'default');
 
-        self::assertCount(0, $this->timestampsOf($keeper));
+        self::assertSame([spl_object_id($nextConnection)], array_keys($this->timestampsOf($keeper)));
     }
 
     /**
-     * @return WeakMap<Connection, int>
+     * @return array<int, array{WeakReference<Connection>, int}>
      */
-    private function timestampsOf(CoroutinesOptimizedDBALAliveKeeper $keeper): WeakMap
+    private function timestampsOf(CoroutinesOptimizedDBALAliveKeeper $keeper): array
     {
-        /** @var WeakMap<Connection, int> $timestamps */
-        $timestamps = (new ReflectionProperty(CoroutinesOptimizedDBALAliveKeeper::class, 'lastPingedAt'))
-            ->getValue($keeper);
+        /** @var array<int, array{WeakReference<Connection>, int}> $timestamps */
+        $timestamps = $this->timestampsProperty()->getValue($keeper);
 
         return $timestamps;
+    }
+
+    private function timestampsProperty(): ReflectionProperty
+    {
+        return new ReflectionProperty(CoroutinesOptimizedDBALAliveKeeper::class, 'lastPingedAt');
     }
 
     private function newConnection(): Connection
