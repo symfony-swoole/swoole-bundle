@@ -4,16 +4,21 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Tests\Unit\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices;
 
+use Doctrine\DBAL\Connection;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
+use SwooleBundle\SwooleBundle\Bridge\Doctrine\DBAL\ConnectionDisposer;
+use SwooleBundle\SwooleBundle\Bridge\Doctrine\DBAL\ConnectionStabilityChecker;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\CompilerPass\StatefulServices\{
     ClassModificationProcessor,
     Proxifier,
 };
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\ContainerConstants;
+use SwooleBundle\SwooleBundle\Reflection\ClassModifier;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Service\LazyGhostExample;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Reference;
 
 #[CoversClass(Proxifier::class)]
 final class ProxifierTest extends TestCase
@@ -71,6 +76,81 @@ final class ProxifierTest extends TestCase
         $this->expectExceptionMessageMatches('/Service missing/');
 
         $this->newProxifier($container)->proxifyService(self::SERVICE_ID);
+    }
+
+    /**
+     * The pool keeps as many instances as were ever in use at once unless something says otherwise.
+     */
+    public function testAPoolHasNoIdleLimitUnlessOneIsSet(): void
+    {
+        $container = $this->newContainer();
+        $container->register(self::SERVICE_ID, LazyGhostExample::class);
+
+        $this->proxify($container);
+
+        self::assertNull($this->poolDefinitionArgument($container, 7));
+    }
+
+    public function testAPoolTakesTheGlobalIdleLimit(): void
+    {
+        $container = $this->newContainer();
+        $container->setParameter(ContainerConstants::PARAM_COROUTINES_MAX_IDLE_SVC_INSTANCES, 3);
+        $container->register(self::SERVICE_ID, LazyGhostExample::class);
+
+        $this->proxify($container);
+
+        self::assertSame(3, $this->poolDefinitionArgument($container, 7));
+    }
+
+    public function testAServicesOwnIdleLimitIsTakenOverTheGlobalOne(): void
+    {
+        $container = $this->newContainer();
+        $container->setParameter(ContainerConstants::PARAM_COROUTINES_MAX_IDLE_SVC_INSTANCES, 3);
+        $container->register(self::SERVICE_ID, LazyGhostExample::class)
+            ->addTag(ContainerConstants::TAG_STATEFUL_SERVICE, ['idle_limit' => 0]);
+
+        $this->proxify($container);
+
+        self::assertSame(0, $this->poolDefinitionArgument($container, 7));
+    }
+
+    /**
+     * A connection a pool drops is closed, so the database ends its session as soon as it is dropped.
+     */
+    public function testADbalConnectionsPoolDisposesOfItsConnectionsByClosingThem(): void
+    {
+        $container = $this->newContainer();
+        $container->register(ConnectionStabilityChecker::class, ConnectionStabilityChecker::class);
+        $container->register(ConnectionDisposer::class, ConnectionDisposer::class);
+        $container->register(self::SERVICE_ID, Connection::class);
+
+        $this->proxify($container);
+
+        self::assertEquals(new Reference(ConnectionDisposer::class), $this->poolDefinitionArgument($container, 8));
+    }
+
+    public function testAPoolOfAClassNoDisposerSupportsHasNone(): void
+    {
+        $container = $this->newContainer();
+        $container->register(self::SERVICE_ID, LazyGhostExample::class);
+
+        $this->proxify($container);
+
+        self::assertNull($this->poolDefinitionArgument($container, 8));
+    }
+
+    /**
+     * Proxifying a service strips `final` from its class, which z-engine does.
+     */
+    private function proxify(ContainerBuilder $container): void
+    {
+        ClassModifier::initialize();
+        $this->newProxifier($container)->proxifyService(self::SERVICE_ID);
+    }
+
+    private function poolDefinitionArgument(ContainerBuilder $container, int $index): mixed
+    {
+        return $container->getDefinition(self::SERVICE_ID . '.swoole_coop.service_pool')->getArgument($index);
     }
 
     private function newProxifier(ContainerBuilder $container): Proxifier

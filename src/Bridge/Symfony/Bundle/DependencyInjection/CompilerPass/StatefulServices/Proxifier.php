@@ -8,9 +8,11 @@ use Assert\Assertion;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManager;
 use RuntimeException;
+use SwooleBundle\SwooleBundle\Bridge\Doctrine\DBAL\ConnectionDisposer;
 use SwooleBundle\SwooleBundle\Bridge\Doctrine\DBAL\ConnectionStabilityChecker;
 use SwooleBundle\SwooleBundle\Bridge\Doctrine\ORM\EntityManagerStabilityChecker;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\ContainerConstants;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Disposer;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Proxy\Instantiator;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\ServicePool\DiServicePool;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\ServicePool\ServicePoolEntry;
@@ -33,6 +35,10 @@ final class Proxifier implements ServiceProxifier
         Connection::class => ConnectionStabilityChecker::class,
     ];
 
+    private const array DEFAULT_DISPOSERS = [
+        Connection::class => ConnectionDisposer::class,
+    ];
+
     /**
      * @var array<int, Definition>
      */
@@ -44,14 +50,22 @@ final class Proxifier implements ServiceProxifier
     private array $stabilityCheckers;
 
     /**
+     * @var array<class-string, class-string<Disposer>|string>
+     */
+    private array $disposers;
+
+    /**
      * @param array<class-string, class-string<StabilityChecker>|string> $stabilityCheckers
+     * @param array<class-string, class-string<Disposer>|string> $disposers
      */
     public function __construct(
         private readonly ContainerBuilder $container,
         private readonly ClassModificationProcessor $modificationProcessor,
         array $stabilityCheckers = [],
+        array $disposers = [],
     ) {
         $this->stabilityCheckers = array_merge(self::DEFAULT_STABILITY_CHECKERS, $stabilityCheckers);
+        $this->disposers = array_merge(self::DEFAULT_DISPOSERS, $disposers);
     }
 
     public function proxifyService(string $serviceId, ?string $externalResetter = null, int $resetPriority = 0): void
@@ -224,12 +238,43 @@ final class Proxifier implements ServiceProxifier
         }
 
         $svcPoolDef->setArgument(5, $stabilityCheckerRef);
+        $svcPoolDef->setArgument(
+            6,
+            $serviceTag?->getInitializer() !== null ? new Reference($serviceTag->getInitializer()) : null,
+        );
+        $svcPoolDef->setArgument(7, $serviceTag?->getIdleLimit() ?? $this->globalIdleLimit());
+        $disposerRef = null;
 
-        if ($serviceTag?->getInitializer() !== null) {
-            $svcPoolDef->setArgument(6, new Reference($serviceTag->getInitializer()));
+        if ($serviceClass !== null && isset($this->disposers[$serviceClass])) {
+            $disposerSvcId = $this->disposers[$serviceClass];
+            $this->container->findDefinition($disposerSvcId);
+            $disposerRef = new Reference($disposerSvcId);
         }
 
+        $svcPoolDef->setArgument(8, $disposerRef);
+
         return $svcPoolDef;
+    }
+
+    /**
+     * Not set where coroutines are off, or by a container built without the bundle's extension (unit tests): no limit.
+     */
+    private function globalIdleLimit(): ?int
+    {
+        if (!$this->container->hasParameter(ContainerConstants::PARAM_COROUTINES_MAX_IDLE_SVC_INSTANCES)) {
+            return null;
+        }
+
+        $idleLimit = $this->container->getParameter(ContainerConstants::PARAM_COROUTINES_MAX_IDLE_SVC_INSTANCES);
+
+        if ($idleLimit !== null && !is_int($idleLimit)) {
+            throw new UnexpectedValueException(sprintf(
+                'Parameter %s must be an integer or null',
+                ContainerConstants::PARAM_COROUTINES_MAX_IDLE_SVC_INSTANCES,
+            ));
+        }
+
+        return $idleLimit;
     }
 
     private function prepareServicePoolMutex(): Definition

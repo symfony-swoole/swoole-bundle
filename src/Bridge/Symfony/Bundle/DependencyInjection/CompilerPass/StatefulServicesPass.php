@@ -18,6 +18,7 @@ use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\Compiler
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\ContainerConstants;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Cache\CacheAdapterProcessor;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\BlockingContainer;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Disposer;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\ServicePool\ServicePoolContainer;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\StabilityChecker;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\EventDispatcher\EventDispatcherProcessor;
@@ -459,20 +460,30 @@ final class StatefulServicesPass implements CompilerPassInterface
         ContainerBuilder $container,
         ClassModificationProcessor $modificationProcessor,
     ): Proxifier {
-        $stabilityCheckerDefs = $container->findTaggedServiceIds(ContainerConstants::TAG_STABILITY_CHECKER);
-        /** @var array<class-string, class-string<StabilityChecker>|string> $stabilityCheckers */
-        $stabilityCheckers = [];
+        return new Proxifier(
+            $container,
+            $modificationProcessor,
+            $this->findPairedServices($container, ContainerConstants::TAG_STABILITY_CHECKER),
+            $this->findPairedServices($container, ContainerConstants::TAG_DISPOSER),
+        );
+    }
 
-        foreach (array_keys($stabilityCheckerDefs) as $svcId) {
-            $definition = $container->findDefinition($svcId);
-            /** @var class-string<StabilityChecker> $svcClass */
-            $svcClass = $definition->getClass();
-            /** @var class-string $supportedClass */
-            $supportedClass = call_user_func([$svcClass, 'getSupportedClass']);
-            $stabilityCheckers[$supportedClass] = $svcId;
+    /**
+     * The services of a tag, by the class each says it supports: what a pool of that class is paired with.
+     *
+     * @return array<class-string, string>
+     */
+    private function findPairedServices(ContainerBuilder $container, string $tag): array
+    {
+        $paired = [];
+
+        foreach (array_keys($container->findTaggedServiceIds($tag)) as $svcId) {
+            /** @var class-string<Disposer|StabilityChecker> $svcClass */
+            $svcClass = $container->findDefinition($svcId)->getClass();
+            $paired[$svcClass::getSupportedClass()] = $svcId;
         }
 
-        return new Proxifier($container, $modificationProcessor, $stabilityCheckers);
+        return $paired;
     }
 
     /**
