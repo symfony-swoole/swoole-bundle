@@ -110,7 +110,13 @@ final class TwigProcessor implements CompileProcessor
                 continue;
             }
 
-            $container->getDefinition($extensionId)->setShared(false);
+            // Safe, so that nothing pools it after all: the pass pools whatever is tagged kernel.reset, and since
+            // symfony/web-profiler-bundle 7.4.23 `twig.extension.webprofiler` is - for a reset() that empties the
+            // stack an exception left open. One instance per Environment leaves that stack to the Environment's
+            // coroutine, as it was before the tag.
+            $container->getDefinition($extensionId)
+                ->setShared(false)
+                ->addTag(ContainerConstants::TAG_SAFE_STATEFUL_SERVICE);
         }
     }
 }

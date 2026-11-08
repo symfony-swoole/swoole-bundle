@@ -14,7 +14,10 @@ use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\Containe
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Twig\TwigProcessor;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Twig\UnwrappingTwigDataCollector;
 use Symfony\Bridge\Twig\DataCollector\TwigDataCollector;
+use Symfony\Bundle\WebProfilerBundle\Twig\WebProfilerExtension;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Twig\Environment;
+use Twig\Extension\ProfilerExtension;
 use Twig\Profiler\Profile;
 
 #[CoversClass(TwigProcessor::class)]
@@ -82,6 +85,29 @@ final class TwigProcessorTest extends TestCase
             TwigDataCollector::class,
             $container->getDefinition(self::DATA_COLLECTOR_ID)->getClass(),
         );
+    }
+
+    /**
+     * One per Environment, and never pooled - not even once symfony/web-profiler-bundle 7.4.23 tags the web
+     * profiler's extension kernel.reset, which is what the pass pools: a pooled extension is a proxy, and Twig finds
+     * its extensions by their class.
+     */
+    public function testTheProfilerExtensionsAreOnePerEnvironmentAndKeptFromThePool(): void
+    {
+        $container = $this->newContainer();
+        $container->register('twig', Environment::class);
+        $container->register('twig.extension.profiler', ProfilerExtension::class);
+        $container->register('twig.extension.webprofiler', WebProfilerExtension::class)
+            ->addTag('kernel.reset', ['method' => 'reset']);
+
+        $this->process($container);
+
+        foreach (['twig.extension.profiler', 'twig.extension.webprofiler'] as $extensionId) {
+            $definition = $container->getDefinition($extensionId);
+
+            self::assertFalse($definition->isShared(), $extensionId);
+            self::assertTrue($definition->hasTag(ContainerConstants::TAG_SAFE_STATEFUL_SERVICE), $extensionId);
+        }
     }
 
     private function containerWithTwigProfiler(bool $withCollector): ContainerBuilder
