@@ -128,6 +128,7 @@
         "amphp/parallel": "<2.3.3",
         "amphp/process": "<2.0.3",
         "amphp/socket": "<2.3.1",
+        "doctrine/orm": ">=3.0,<3.2",
         "doctrine/persistence": "<3.4.3",
         "laravel/serializable-closure": "<2.0.9",
         "revolt/event-loop": "<1.0.8",
