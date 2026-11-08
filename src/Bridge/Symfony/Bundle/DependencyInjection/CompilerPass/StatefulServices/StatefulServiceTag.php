@@ -7,13 +7,27 @@ namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\Co
 final class StatefulServiceTag
 {
     /**
-     * @param array{limit?: int, resetter?: string, initializer?: string, reset_on_each_request?: bool} $tag
+     * @param array{
+     *     limit?: int,
+     *     idle_limit?: int,
+     *     resetter?: string,
+     *     initializer?: string,
+     *     reset_on_each_request?: bool,
+     * } $tag
      */
     public function __construct(private array $tag) {}
 
     public function getLimit(): ?int
     {
         return $this->tag['limit'] ?? null;
+    }
+
+    /**
+     * How many of the instances given back the service's pool keeps for the next coroutines; the rest are disposed of.
+     */
+    public function getIdleLimit(): ?int
+    {
+        return $this->tag['idle_limit'] ?? null;
     }
 
     public function getResetter(): ?string

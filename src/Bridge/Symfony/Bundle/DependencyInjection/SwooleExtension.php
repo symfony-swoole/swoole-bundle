@@ -17,6 +17,7 @@ use SwooleBundle\SwooleBundle\Bridge\Log\SimpleAccessLogFormatter;
 use SwooleBundle\SwooleBundle\Bridge\Monolog\WorkerContextProcessor;
 use SwooleBundle\SwooleBundle\Bridge\Monolog\WorkerIdentity;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\EventDispatcher\DebugClassLoaderOverridingWorkerStartHandler;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Disposer;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\ServicePool\DrainServicePoolsOnWorkerExit;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\ServicePool\ServicePoolContainer;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\StabilityChecker;
@@ -164,6 +165,7 @@ use ZEngine\Core;
  *     max_concurrency?: int|null,
  *     max_coroutines: int,
  *     max_service_instances?: int|null,
+ *     max_idle_service_instances?: int|null,
  *     stateful_services?: array<string>,
  *     compile_processors?: array<string>,
  *     doctrine_processor_config?: array<string, string>,
@@ -497,6 +499,10 @@ final class SwooleExtension extends Extension
         }
 
         $container->setParameter(ContainerConstants::PARAM_COROUTINES_MAX_SVC_INSTANCES, $maxServiceInstances);
+        $container->setParameter(
+            ContainerConstants::PARAM_COROUTINES_MAX_IDLE_SVC_INSTANCES,
+            $coroutineSettings['max_idle_service_instances'] ?? null,
+        );
 
         if (isset($coroutineSettings['stateful_services'])) {
             $container->setParameter(
@@ -514,6 +520,8 @@ final class SwooleExtension extends Extension
 
         $container->registerForAutoconfiguration(StabilityChecker::class)
             ->addTag(ContainerConstants::TAG_STABILITY_CHECKER);
+        $container->registerForAutoconfiguration(Disposer::class)
+            ->addTag(ContainerConstants::TAG_DISPOSER);
 
         if (isset($coroutineSettings['doctrine_processor_config'])) {
             $container->setParameter(

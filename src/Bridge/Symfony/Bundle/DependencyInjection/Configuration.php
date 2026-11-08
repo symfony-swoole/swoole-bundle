@@ -571,6 +571,27 @@ final readonly class Configuration implements ConfigurationInterface
                                     })
                                     ->end()
                                 ->end()
+                                ->scalarNode('max_idle_service_instances')
+                                    ->defaultNull()
+                                    ->validate()
+                                    ->always(static function (?int $max): ?int {
+                                        if ($max === null) {
+                                            return $max;
+                                        }
+
+                                        if ($max < 0 || $max > 100000) {
+                                            throw new InvalidConfigurationException(
+                                                sprintf(
+                                                    'Max idle service instances (%d) should be between 0 and 100000.',
+                                                    $max
+                                                )
+                                            );
+                                        }
+
+                                        return $max;
+                                    })
+                                    ->end()
+                                ->end()
                                 ->arrayNode('stateful_services')
                                     ->scalarPrototype()
                                     ->beforeNormalization()

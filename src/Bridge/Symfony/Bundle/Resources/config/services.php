@@ -7,6 +7,7 @@ use ProxyManager\FileLocator\FileLocator;
 use ProxyManager\GeneratorStrategy\FileWriterGeneratorStrategy;
 use ProxyManager\Signature\SignatureGenerator;
 use SwooleBundle\SwooleBundle\Bridge\CommonSwoole\SystemSwooleFactory;
+use SwooleBundle\SwooleBundle\Bridge\Doctrine\DBAL\ConnectionDisposer;
 use SwooleBundle\SwooleBundle\Bridge\Doctrine\DBAL\ConnectionStabilityChecker;
 use SwooleBundle\SwooleBundle\Bridge\Doctrine\ORM\EntityManagerStabilityChecker;
 use SwooleBundle\SwooleBundle\Bridge\OpenSwoole\Metrics\MetricsProvider as OpenSwooleMetricsProvider;
@@ -138,6 +139,8 @@ return static function (ContainerConfigurator $containerConfigurator): void {
     $parameters->set('swoole_bundle.coroutines_support.stability_checkers', []);
 
     $parameters->set('swoole_bundle.coroutines_support.max_service_instances', 100000);
+
+    $parameters->set('swoole_bundle.coroutines_support.max_idle_service_instances', null);
 
     $parameters->set('swoole_bundle.cache_dir_name', 'swoole_bundle');
 
@@ -509,6 +512,9 @@ return static function (ContainerConfigurator $containerConfigurator): void {
 
     $services->set(ConnectionStabilityChecker::class)
         ->tag('swoole_bundle.stability_checker');
+
+    $services->set(ConnectionDisposer::class)
+        ->tag('swoole_bundle.disposer');
 
     $services->set(KernelCloner::class)
         ->arg('$kernel', service('kernel_original'));

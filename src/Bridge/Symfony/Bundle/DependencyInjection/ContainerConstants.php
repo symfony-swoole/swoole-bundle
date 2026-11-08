@@ -10,6 +10,9 @@ interface ContainerConstants
 
     public const string PARAM_COROUTINES_MAX_SVC_INSTANCES = 'swoole_bundle.coroutines_support.max_service_instances';
 
+    public const string PARAM_COROUTINES_MAX_IDLE_SVC_INSTANCES =
+        'swoole_bundle.coroutines_support.max_idle_service_instances';
+
     public const string PARAM_COROUTINES_STATEFUL_SERVICES = 'swoole_bundle.coroutines_support.stateful_services';
 
     public const string PARAM_COROUTINES_COMPILE_PROCESSORS = 'swoole_bundle.coroutines_support.compile_processors';
@@ -33,6 +36,8 @@ interface ContainerConstants
     public const string TAG_UNMANAGED_FACTORY = 'swoole_bundle.unmanaged_factory';
 
     public const string TAG_STABILITY_CHECKER = 'swoole_bundle.stability_checker';
+
+    public const string TAG_DISPOSER = 'swoole_bundle.disposer';
 
     public const string TAG_HEALTH_CHECK = 'swoole_bundle.health_check';
 

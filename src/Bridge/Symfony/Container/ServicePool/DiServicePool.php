@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Container\ServicePool;
 
 use RuntimeException;
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Disposer;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Initializer;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\StabilityChecker;
 use SwooleBundle\SwooleBundle\Common\Adapter\Swoole;
@@ -25,8 +26,10 @@ final class DiServicePool extends BaseServicePool
         int $instancesLimit = 50,
         ?StabilityChecker $stabilityChecker = null,
         ?Initializer $initializer = null,
+        ?int $idleLimit = null,
+        ?Disposer $disposer = null,
     ) {
-        parent::__construct($swoole, $mutex, $instancesLimit, $stabilityChecker, $initializer);
+        parent::__construct($swoole, $mutex, $instancesLimit, $stabilityChecker, $initializer, $idleLimit, $disposer);
     }
 
     /**

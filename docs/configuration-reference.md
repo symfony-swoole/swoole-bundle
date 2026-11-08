@@ -235,6 +235,12 @@ swoole:
       # regarding how much coroutines can be run concurrently (e.g. 100000)
       # this number is by default equal to max_concurrency or max_coroutines, since it doesn't make sense to have
       # more stateful services than coroutines, but sometimes it might have sense to have less instances (e.g. if max_coroutines is too high)
+      max_idle_service_instances: 4
+      # default null, if not set: a pool keeps every instance given back, so a burst of concurrent requests leaves as
+      # many instances behind as it had at once, for the life of the worker - for a database connection, that many
+      # sessions open on the database server. Set, a pool keeps at most this many instances given back (0 keeps none)
+      # and drops the rest, handing each to its disposer (see Disposers below): a DBAL connection is closed.
+      # A stateful service's tag can set its own with the `idle_limit` attribute.
       stateful_services:
         - SomeStatefulServiceId
           # add stateful service ids which need to be proxified and the bundle cannot detect them alone
@@ -446,7 +452,7 @@ final class SleepingCounterCompileProcessor implements CompileProcessor
 
 ### Special tags
 
-This bundle provides 5 special tags for marking some services to be handled specially, so they can safely run 
+This bundle provides 6 special tags for marking some services to be handled specially, so they can safely run 
 in multiple coroutine contexts:
 
 - `swoole_bundle.stateful_service` - use to mark a service to be proxified
@@ -456,6 +462,7 @@ in multiple coroutine contexts:
 - `swoole_bundle.unmanaged_factory` - use to mark services which create other stateful services (-> factories) outside of the SF container context, 
   e.g. in runtime (the point is to proxify those services in runtime)
 - `swoole_bundle.stability_checker` - use this tag to mark a service as a stability checker
+- `swoole_bundle.disposer` - use this tag to mark a service as a disposer
 
 ### Resetters
 
@@ -549,6 +556,33 @@ final class EntityManagerStabilityChecker implements StabilityChecker
 When the checker returns false, the coroutine engine will forget the unstable service and will fetch a fresh instance
 from the DI container. Otherwise, the engine will mark the service instance as unused and will assign it to a coroutine 
 in the next web request.
+
+### Idle limits and disposers
+
+A service pool keeps the instances coroutines give back, for the next coroutines to use. Without a limit it keeps
+every one of them: a burst of concurrent requests leaves as many instances behind as were in use at once, for as long
+as the worker lives. For most services that is memory, but an instance can hold a session on another server - a
+database connection does - and each one kept is a session that server keeps open for nothing, until its own idle
+timeout ends it (8 hours by default for MySQL's `wait_timeout`). A few workers after a few bursts can hold more
+sessions than the database allows.
+
+`max_idle_service_instances` caps how many a pool keeps, and the `idle_limit` attribute of the stateful service tag
+sets it for one service:
+
+```yaml
+services:
+  some_stateful_service:
+    class: My\Stateful\ServiceClass
+    tags: [{ name: swoole_bundle.stateful_service, limit: 20, idle_limit: 2 }]
+```
+
+`limit` is how many instances may be in use at once, `idle_limit` how many of them are kept once they are given back.
+An instance given back to a pool that already keeps that many is dropped, and so is one its stability checker
+rejects, and one the pool drains as a worker exits. A dropped instance is handed to the disposer of its class, which
+lets go of what it holds: a disposer implements `SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Disposer`
+and is tagged `swoole_bundle.disposer` by autoconfiguration, as stability checkers are. The bundle's own,
+`ConnectionDisposer`, closes a DBAL connection, so its session on the database ends as it is dropped. A class without
+a disposer is let go of as PHP collects it.
 
 ## Opcache problems
 

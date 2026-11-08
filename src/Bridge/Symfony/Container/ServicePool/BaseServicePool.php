@@ -4,12 +4,22 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Container\ServicePool;
 
+use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Disposer;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Initializer;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\StabilityChecker;
 use SwooleBundle\SwooleBundle\Common\Adapter\Swoole;
 use SwooleBundle\SwooleBundle\Component\Locking\Mutex;
 
 /**
+ * Every coroutine that asks for the service gets an instance of its own, up to $instancesLimit at a time, and gives
+ * it back when it ends; an instance given back waits in the free pool for the next coroutine.
+ *
+ * The free pool keeps as many instances as were ever in use at once, unless $idleLimit says otherwise: a burst of
+ * concurrent requests leaves that many instances behind for the life of the worker, and where an instance holds a
+ * server's session - a database connection - each one is a session the server keeps open for nothing. With an idle
+ * limit, an instance given back to a free pool that already holds that many is dropped instead, and handed to the
+ * $disposer, which lets go of what it holds.
+ *
  * @template T of object
  * @template-implements ServicePool<T>
  */
@@ -33,6 +43,8 @@ abstract class BaseServicePool implements ServicePool
         private readonly int $instancesLimit = 50,
         private readonly ?StabilityChecker $stabilityChecker = null,
         private readonly ?Initializer $initializer = null,
+        private readonly ?int $idleLimit = null,
+        private readonly ?Disposer $disposer = null,
     ) {}
 
     /**
@@ -75,8 +87,9 @@ abstract class BaseServicePool implements ServicePool
         unset($this->assignedPool[$cId]);
         $this->assignedCount--;
 
-        if (!$this->isServiceStable($service)) {
+        if (!$this->isServiceStable($service) || $this->isFreePoolFull()) {
             $this->unlockPool();
+            $this->dispose($service);
 
             return;
         }
@@ -100,14 +113,21 @@ abstract class BaseServicePool implements ServicePool
         // deliberately not returned to the free pool - the same reasoning as the unstable branch of
         // releaseFromCoroutine(), an instance that failed the stability check must not be handed out
         // again. Dropping it here is the whole point: the next get() builds a new one.
+        $service = $this->assignedPool[$cId];
         unset($this->assignedPool[$cId]);
         $this->assignedCount--;
         $this->unlockPool();
+        $this->dispose($service);
     }
 
     public function drain(): void
     {
+        $drained = $this->freePool;
         $this->freePool = [];
+
+        foreach ($drained as $service) {
+            $this->dispose($service);
+        }
     }
 
     /**
@@ -139,6 +159,22 @@ abstract class BaseServicePool implements ServicePool
     private function isServiceStable(object $service): bool
     {
         return $this->stabilityChecker === null || $this->stabilityChecker->isStable($service);
+    }
+
+    private function isFreePoolFull(): bool
+    {
+        return $this->idleLimit !== null && count($this->freePool) >= $this->idleLimit;
+    }
+
+    /**
+     * Called once the instance is out of the pool and the pool's lock is given back, so that a disposer that throws
+     * leaves the pool as it would be had the instance been disposed of.
+     *
+     * @param T $service
+     */
+    private function dispose(object $service): void
+    {
+        $this->disposer?->dispose($service);
     }
 
     private function lockPool(): void
