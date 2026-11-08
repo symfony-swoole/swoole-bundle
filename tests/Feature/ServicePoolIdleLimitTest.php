@@ -40,9 +40,11 @@ final class ServicePoolIdleLimitTest extends ServerTestCase
 
     /**
      * How long the connections given back are waited for: a coroutine gives its connection back as it ends, a moment
-     * after its response.
+     * after its response - or, with coverage on, once the request's coverage is written, which takes each of the eight
+     * coroutines seconds under Xdebug. Waited for only until they are back.
      */
     private const float SETTLE_SECONDS = 5.0;
+    private const float SETTLE_SECONDS_WITH_COVERAGE = 90.0;
 
     #[Override]
     protected function setUp(): void
@@ -94,7 +96,7 @@ final class ServicePoolIdleLimitTest extends ServerTestCase
                 });
             }
 
-            $burst->wait(10);
+            $burst->wait(self::coverageEnabled() ? 60 : 10);
             // the test's own connection is a temporary, let go of here, inside the coroutine it was opened in
             $leftOpen = self::sessionsOnceSettled(self::database());
 
@@ -155,7 +157,8 @@ final class ServicePoolIdleLimitTest extends ServerTestCase
      */
     private static function sessionsOnceSettled(PDO $database): int
     {
-        $deadline = microtime(true) + self::SETTLE_SECONDS * TestToken::timeoutFactor();
+        $settle = self::coverageEnabled() ? self::SETTLE_SECONDS_WITH_COVERAGE : self::SETTLE_SECONDS;
+        $deadline = microtime(true) + $settle * TestToken::timeoutFactor();
 
         do {
             $sessions = self::sessions($database);
