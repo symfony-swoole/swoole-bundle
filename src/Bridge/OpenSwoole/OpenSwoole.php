@@ -9,9 +9,10 @@ use OpenSwoole\Coroutine;
 use OpenSwoole\Runtime;
 use OpenSwoole\Util;
 use SwooleBundle\SwooleBundle\Common\Adapter\CommonSwoole;
+use SwooleBundle\SwooleBundle\Common\Adapter\CoroutineYielding;
 use SwooleBundle\SwooleBundle\Common\Adapter\WaitGroup as CommonWaitGroup;
 
-final class OpenSwoole extends CommonSwoole
+final class OpenSwoole extends CommonSwoole implements CoroutineYielding
 {
     public function cpuCoresCount(): int
     {
@@ -61,6 +62,14 @@ final class OpenSwoole extends CommonSwoole
         $parent = Coroutine::getPcid($cid);
 
         return $parent > 0 ? $parent : 0;
+    }
+
+    /**
+     * OpenSwoole resumes a coroutine sleeping for no time once the others that are ready have run.
+     */
+    public function yieldToOtherCoroutines(): void
+    {
+        Coroutine::sleep(0);
     }
 
     /**
