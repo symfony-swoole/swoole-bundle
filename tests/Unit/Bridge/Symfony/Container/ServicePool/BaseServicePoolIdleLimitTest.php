@@ -14,6 +14,7 @@ use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Disposer;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\ServicePool\BaseServicePool;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\ServicePool\DiServicePool;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\StabilityChecker;
+use SwooleBundle\SwooleBundle\Common\Adapter\CoroutineYielding;
 use SwooleBundle\SwooleBundle\Common\Adapter\Swoole;
 use SwooleBundle\SwooleBundle\Component\Locking\Mutex;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -41,6 +42,11 @@ final class BaseServicePoolIdleLimitTest extends TestCase
      * @var list<object>
      */
     private array $disposed = [];
+
+    /**
+     * How many times a pool let the other coroutines run.
+     */
+    private int $yields = 0;
 
     /**
      * What a pool always did: a burst of coroutines leaves as many instances behind as it had at once.
@@ -140,6 +146,29 @@ final class BaseServicePoolIdleLimitTest extends TestCase
     }
 
     /**
+     * Where the runtime can let the others run without a timer, the coroutine taking an instance does that until the
+     * one that gave it back has ended - here two rounds, after which coroutine 1 is gone.
+     */
+    public function testACoroutineWaitingForOneOnItsWayOutYieldsUntilItIsGone(): void
+    {
+        $pool = $this->pool(idleLimit: null, onYield: function (): void {
+            $this->yields++;
+
+            if ($this->yields < 2) {
+                return;
+            }
+
+            unset($this->running[1]);
+        });
+        [$given] = $this->getInCoroutines($pool, 1);
+        $this->releaseInCoroutines($pool, 1);
+        $this->running = [1 => true];
+
+        self::assertSameInstances([$given], $this->getInCoroutines($pool, 2));
+        self::assertSame(2, $this->yields);
+    }
+
+    /**
      * @param list<object> $expected
      * @param list<object> $actual
      */
@@ -184,15 +213,24 @@ final class BaseServicePoolIdleLimitTest extends TestCase
     }
 
     /**
+     * @param (Closure(): void)|null $onYield what the runtime does when the pool lets the others run; without one the
+     *                                        runtime cannot yield
      * @return DiServicePool<stdClass>
      */
-    private function pool(?int $idleLimit): DiServicePool
+    private function pool(?int $idleLimit, ?Closure $onYield = null): DiServicePool
     {
         $container = new ContainerBuilder();
         $container->register('pooled', stdClass::class)->setShared(false)->setPublic(true);
         $container->compile();
 
-        $swoole = $this->createStub(Swoole::class);
+        $swoole = $onYield === null
+            ? $this->createStub(Swoole::class)
+            : $this->createStubForIntersectionOfInterfaces([Swoole::class, CoroutineYielding::class]);
+
+        if ($onYield !== null) {
+            $swoole->method('yieldToOtherCoroutines')->willReturnCallback($onYield);
+        }
+
         $swoole->method('getCoroutineId')->willReturnCallback(fn(): int => $this->coroutineId);
         $swoole->method('getCoroutineContext')->willReturnCallback(
             fn(int $coroutineId): ?ArrayObject => isset($this->running[$coroutineId]) ? new ArrayObject() : null,

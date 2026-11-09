@@ -7,11 +7,13 @@ namespace SwooleBundle\SwooleBundle\Bridge\Swoole;
 use ArrayObject;
 use RuntimeException;
 use Swoole\Coroutine;
+use Swoole\Event;
 use Swoole\Runtime;
 use SwooleBundle\SwooleBundle\Common\Adapter\CommonSwoole;
+use SwooleBundle\SwooleBundle\Common\Adapter\CoroutineYielding;
 use SwooleBundle\SwooleBundle\Common\Adapter\WaitGroup as CommonWaitGroup;
 
-final class Swoole extends CommonSwoole
+final class Swoole extends CommonSwoole implements CoroutineYielding
 {
     public function cpuCoresCount(): int
     {
@@ -74,6 +76,19 @@ final class Swoole extends CommonSwoole
         $parent = Coroutine::getPcid($cid);
 
         return is_int($parent) && $parent > 0 ? $parent : 0;
+    }
+
+    /**
+     * swoole will not sleep for no time ("Timer must be greater than or equal to 0.001"), so the coroutine yields and
+     * is resumed from the event loop's deferred callbacks, which run once the coroutines that are ready have.
+     */
+    public function yieldToOtherCoroutines(): void
+    {
+        $coroutineId = Coroutine::getCid();
+        Event::defer(static function () use ($coroutineId): void {
+            Coroutine::resume($coroutineId);
+        });
+        Coroutine::yield();
     }
 
     /**

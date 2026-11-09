@@ -8,6 +8,7 @@ use Swoole\Coroutine\Channel;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Disposer;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Initializer;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\StabilityChecker;
+use SwooleBundle\SwooleBundle\Common\Adapter\CoroutineYielding;
 use SwooleBundle\SwooleBundle\Common\Adapter\Swoole;
 use SwooleBundle\SwooleBundle\Component\Locking\Mutex;
 
@@ -40,8 +41,16 @@ use SwooleBundle\SwooleBundle\Component\Locking\Mutex;
 abstract class BaseServicePool implements ServicePool
 {
     /**
-     * How often a coroutine waiting for one on its way out checks whether it is gone. It has nothing left to do but
-     * give back the rest of its instances, so the first check is usually enough.
+     * How many times a coroutine waiting for one on its way out lets the others run before it falls back to checking
+     * on a timer. The one on its way out has nothing left to do but give back the rest of its instances, so the first
+     * round is usually enough; one that waits on I/O to do it - a connection's ping - is not worth spinning for.
+     */
+    private const int ENDING_COROUTINE_YIELDS = 10;
+
+    /**
+     * How often a coroutine waiting for one on its way out checks whether it is gone once it has stopped yielding,
+     * or where the runtime cannot yield without a timer. A timer costs some 15 microseconds of CPU a time, and the
+     * runtimes round it up to some 2 milliseconds, where a yield costs a few microseconds at most.
      */
     private const float ENDING_COROUTINE_CHECK_SECONDS = 0.001;
 
@@ -203,7 +212,16 @@ abstract class BaseServicePool implements ServicePool
         $givenBackBy = $this->givenBackBy[spl_object_id($service)] ?? 0;
         unset($this->givenBackBy[spl_object_id($service)]);
 
+        $yields = 0;
+
         while ($this->isStillEnding($givenBackBy)) {
+            if ($this->swoole instanceof CoroutineYielding && $yields < self::ENDING_COROUTINE_YIELDS) {
+                $yields++;
+                $this->swoole->yieldToOtherCoroutines();
+
+                continue;
+            }
+
             (new Channel(1))->pop(self::ENDING_COROUTINE_CHECK_SECONDS);
         }
 
