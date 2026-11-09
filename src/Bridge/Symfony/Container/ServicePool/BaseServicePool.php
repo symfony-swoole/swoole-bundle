@@ -24,11 +24,9 @@ use SwooleBundle\SwooleBundle\Component\Locking\Mutex;
  * An instance is given back as its coroutine ends, from a deferred callback, but that coroutine has not ended yet: it
  * goes on giving back its other instances, and any of that may wait on I/O - a connection's ping, on its way back.
  * Meanwhile the instance can be taken by another coroutine - one waiting at the limit is woken by the very release,
- * and both runtimes switch to it there and then. Code that keeps track of which coroutine an object belongs to (fiber
- * viber) then sees the next coroutine write what one still running wrote last:
- *
- *   [property_write] Doctrine\ORM\Internal\HydrationCompleteHandler::$deferredPostLoadInvocations is owned by
- *   coroutine #47 but accessed by coroutine #61
+ * and both runtimes switch to it there and then. Two coroutines that are both still running then use one instance: the
+ * next one writes what the one before it, not yet ended, wrote last - an entity manager's
+ * HydrationCompleteHandler::$deferredPostLoadInvocations, for one.
  *
  * So a coroutine takes from the free pool an instance whose coroutine has ended, and when every free one is still
  * with a coroutine on its way out, waits for that coroutine to be gone. The wait is in the coroutine taking it, which

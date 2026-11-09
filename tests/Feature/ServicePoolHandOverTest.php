@@ -27,8 +27,7 @@ use SwooleBundle\SwooleBundle\Tests\Helper\WaitingOnTheWayBackServicePool;
  * wakes a coroutine waiting for it, and both runtimes switch to that one there and then, in the middle of the
  * callback. Everything the coroutine giving back does from then on - giving back its other instances, one of
  * which may wait on I/O as a connection's ping does - it does with the instance already in another's hands,
- * while it still runs. Code that keeps track of which coroutine an object belongs to (fiber viber) sees the
- * next coroutine write what one still running wrote last.
+ * while it still runs. The next coroutine then writes to it what one still running wrote last.
  *
  * So the waiting coroutine is to get it only once the one that gave it back has ended.
  */
