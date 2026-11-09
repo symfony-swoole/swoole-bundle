@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Bridge\Symfony\Container\ServicePool;
 
+use Swoole\Coroutine\Channel;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Disposer;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\Initializer;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Container\StabilityChecker;
@@ -20,11 +21,32 @@ use SwooleBundle\SwooleBundle\Component\Locking\Mutex;
  * limit, an instance given back to a free pool that already holds that many is dropped instead, and handed to the
  * $disposer, which lets go of what it holds.
  *
+ * An instance is given back as its coroutine ends, from a deferred callback, but that coroutine has not ended yet: it
+ * goes on giving back its other instances, and any of that may wait on I/O - a connection's ping, on its way back.
+ * Meanwhile the instance can be taken by another coroutine - one waiting at the limit is woken by the very release,
+ * and both runtimes switch to it there and then. Code that keeps track of which coroutine an object belongs to (fiber
+ * viber) then sees the next coroutine write what one still running wrote last:
+ *
+ *   [property_write] Doctrine\ORM\Internal\HydrationCompleteHandler::$deferredPostLoadInvocations is owned by
+ *   coroutine #47 but accessed by coroutine #61
+ *
+ * So a coroutine takes from the free pool an instance whose coroutine has ended, and when every free one is still
+ * with a coroutine on its way out, waits for that coroutine to be gone. The wait is in the coroutine taking it, which
+ * already exists: giving back later instead, from a coroutine or a timer started once the other has ended, is what a
+ * runtime limiting how many coroutines run at once (OpenSwoole's max_concurrency) queues behind the coroutines waiting
+ * for that very instance - and none of them ever runs again.
+ *
  * @template T of object
  * @template-implements ServicePool<T>
  */
 abstract class BaseServicePool implements ServicePool
 {
+    /**
+     * How often a coroutine waiting for one on its way out checks whether it is gone. It has nothing left to do but
+     * give back the rest of its instances, so the first check is usually enough.
+     */
+    private const float ENDING_COROUTINE_CHECK_SECONDS = 0.001;
+
     private int $assignedCount = 0;
 
     /**
@@ -36,6 +58,13 @@ abstract class BaseServicePool implements ServicePool
      * @var array<int, T>
      */
     private array $assignedPool = [];
+
+    /**
+     * The coroutine each instance in the free pool was given back by, by the instance's object id.
+     *
+     * @var array<int, int>
+     */
+    private array $givenBackBy = [];
 
     public function __construct(
         private readonly Swoole $swoole,
@@ -95,6 +124,7 @@ abstract class BaseServicePool implements ServicePool
         }
 
         $this->freePool[] = $service;
+        $this->givenBackBy[spl_object_id($service)] = $cId;
         $this->unlockPool();
     }
 
@@ -124,6 +154,7 @@ abstract class BaseServicePool implements ServicePool
     {
         $drained = $this->freePool;
         $this->freePool = [];
+        $this->givenBackBy = [];
 
         foreach ($drained as $service) {
             $this->dispose($service);
@@ -140,15 +171,56 @@ abstract class BaseServicePool implements ServicePool
      */
     private function getServiceToAssign(): object
     {
-        if (!empty($this->freePool)) {
-            $assigned = array_shift($this->freePool);
-        } else {
-            $assigned = $this->newServiceInstance();
-        }
-
+        $assigned = $this->freePool === [] ? $this->newServiceInstance() : $this->takeFreeInstance();
         $this->initializer?->initialize($assigned);
 
         return $assigned;
+    }
+
+    /**
+     * One whose coroutine has ended if there is one, and otherwise the one given back first, once its coroutine has
+     * ended.
+     *
+     * @return T
+     */
+    private function takeFreeInstance(): object
+    {
+        foreach ($this->freePool as $index => $service) {
+            if ($this->isStillEnding($this->givenBackBy[spl_object_id($service)] ?? 0)) {
+                continue;
+            }
+
+            array_splice($this->freePool, $index, 1);
+            unset($this->givenBackBy[spl_object_id($service)]);
+
+            return $service;
+        }
+
+        $service = array_shift($this->freePool);
+
+        if ($service === null) {
+            return $this->newServiceInstance();
+        }
+
+        $givenBackBy = $this->givenBackBy[spl_object_id($service)] ?? 0;
+        unset($this->givenBackBy[spl_object_id($service)]);
+
+        while ($this->isStillEnding($givenBackBy)) {
+            (new Channel(1))->pop(self::ENDING_COROUTINE_CHECK_SECONDS);
+        }
+
+        return $service;
+    }
+
+    /**
+     * Whether the coroutine that gave an instance back is still running - and is not the one asking, which may take
+     * back what it gave.
+     */
+    private function isStillEnding(int $coroutineId): bool
+    {
+        return $coroutineId > 0
+            && $coroutineId !== $this->getCoroutineId()
+            && $this->swoole->getCoroutineContext($coroutineId) !== null;
     }
 
     private function getCoroutineId(): int

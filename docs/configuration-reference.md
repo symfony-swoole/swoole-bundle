@@ -584,6 +584,10 @@ and is tagged `swoole_bundle.disposer` by autoconfiguration, as stability checke
 `ConnectionDisposer`, closes a DBAL connection, so its session on the database ends as it is dropped. A class without
 a disposer is let go of as PHP collects it.
 
+A coroutine gives its instances back as it ends, but before it has ended. A coroutine taking one from the free pool
+takes one whose coroutine has ended, and when all of them are still on their way out, waits the moment it takes for one
+to be gone - so an instance is never used by two coroutines that are both still running.
+
 ## Opcache problems
 
 This bundle overrides generated Symfony container class, it renames the original container class (and corresponding filename)

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SwooleBundle\SwooleBundle\Tests\Unit\Bridge\Symfony\Container\ServicePool;
 
+use ArrayObject;
 use Closure;
 use Override;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -28,6 +29,13 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 final class BaseServicePoolIdleLimitTest extends TestCase
 {
     private int $coroutineId = 1;
+
+    /**
+     * The coroutines still running, by id.
+     *
+     * @var array<int, true>
+     */
+    private array $running = [];
 
     /**
      * @var list<object>
@@ -105,6 +113,33 @@ final class BaseServicePoolIdleLimitTest extends TestCase
     }
 
     /**
+     * A coroutine gives its instances back before it has ended, and is not to share one with the next while it runs.
+     */
+    public function testAnInstanceWhoseCoroutineHasEndedIsTakenBeforeOneStillOnItsWayOut(): void
+    {
+        $pool = $this->pool(idleLimit: null);
+        [, $ended] = $this->getInCoroutines($pool, 1, 2);
+        $this->releaseInCoroutines($pool, 1, 2);
+        $this->running = [1 => true];
+
+        self::assertSameInstances([$ended], $this->getInCoroutines($pool, 3));
+    }
+
+    /**
+     * Not a coroutine to wait for: the one asking is the one that gave it back. Waiting would mean waiting for itself,
+     * which no runtime is here to do in a unit test - so a wait would show up as an error.
+     */
+    public function testACoroutineTakesBackWhatItGaveWithoutWaitingForItself(): void
+    {
+        $pool = $this->pool(idleLimit: null);
+        [$given] = $this->getInCoroutines($pool, 1);
+        $this->releaseInCoroutines($pool, 1);
+        $this->running = [1 => true];
+
+        self::assertSameInstances([$given], $this->getInCoroutines($pool, 1));
+    }
+
+    /**
      * @param list<object> $expected
      * @param list<object> $actual
      */
@@ -159,6 +194,9 @@ final class BaseServicePoolIdleLimitTest extends TestCase
 
         $swoole = $this->createStub(Swoole::class);
         $swoole->method('getCoroutineId')->willReturnCallback(fn(): int => $this->coroutineId);
+        $swoole->method('getCoroutineContext')->willReturnCallback(
+            fn(int $coroutineId): ?ArrayObject => isset($this->running[$coroutineId]) ? new ArrayObject() : null,
+        );
 
         /** @var DiServicePool<stdClass> $pool */
         $pool = new DiServicePool(
