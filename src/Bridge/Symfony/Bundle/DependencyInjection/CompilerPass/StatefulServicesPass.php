@@ -32,6 +32,7 @@ use SwooleBundle\SwooleBundle\Bridge\Symfony\TaskWorker\TaskWorkerProcessor;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\Twig\TwigProcessor;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\WebProfiler\WebProfilerProcessor;
 use Symfony\Component\Config\Resource\FileResource;
+use Symfony\Component\DependencyInjection\Argument\AbstractArgument;
 use Symfony\Component\DependencyInjection\Argument\ServiceLocatorArgument;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -359,6 +360,10 @@ final class StatefulServicesPass implements CompilerPassInterface
                 continue;
             }
 
+            if ($this->isTemplate($container, $serviceId)) {
+                continue;
+            }
+
             if (isset($optionalServices[$serviceId]) && !$this->isOptionalServiceProxifiable($container, $serviceId)) {
                 continue;
             }
@@ -420,6 +425,41 @@ final class StatefulServicesPass implements CompilerPassInterface
     }
 
     /**
+     * Bundles that build one service per firewall - or per anything else configured more than once - register
+     * a template for the copies to be made from, and leave whatever only a copy can know as an `abstract_arg()`.
+     * SecurityBundle does it for its context listener, scheb/2fa-bundle for its provider preparation listener
+     * and its authenticator. Some mark the template abstract, many do not, and the tags on it stay where they
+     * are - a copy does not inherit them - so a `kernel.reset` on the template is enough to put its id among
+     * the services to proxify.
+     *
+     * Such a definition can never be instantiated, so there is nothing to pool. Nothing uses it either, and
+     * Symfony would remove it, but a pool built around it refers to it for real, and the container then fails
+     * to dump:
+     *
+     *     Argument N of service "scheb_two_factor.security.provider_preparation_listener" is abstract:
+     *     Firewall name.
+     *
+     * So the template is left exactly as the bundle registered it, and each copy is pooled or not by the tags
+     * on its own definition.
+     */
+    private function isTemplate(ContainerBuilder $container, string $serviceId): bool
+    {
+        $definition = $container->findDefinition($serviceId);
+
+        if ($definition->isAbstract()) {
+            return true;
+        }
+
+        foreach ($definition->getArguments() as $argument) {
+            if ($argument instanceof AbstractArgument) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * A service cannot be proxified when there is no concrete class to generate the proxy from, which happens
      * when the service definition class is an interface or when it is not known at all.
      */
@@ -449,6 +489,10 @@ final class StatefulServicesPass implements CompilerPassInterface
             }
 
             if (!$container->has($serviceId)) {
+                continue;
+            }
+
+            if ($this->isTemplate($container, $serviceId)) {
                 continue;
             }
 
