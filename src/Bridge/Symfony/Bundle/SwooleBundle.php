@@ -17,6 +17,7 @@ use SwooleBundle\SwooleBundle\Bridge\Symfony\Bundle\DependencyInjection\Compiler
     MessengerTransportFactoryPass,
     PdoSessionKeepAlivePass,
     RouterOptimizerPass,
+    SecureSessionCookiePass,
     SessionHandlerStorageConfiguratorPass,
     StatefulServicesPass,
     StreamedResponseListenerPass,
@@ -47,6 +48,7 @@ final class SwooleBundle extends Bundle
         $container->addCompilerPass(new SwooleTableStorageConfiguratorPass());
         $container->addCompilerPass(new SessionHandlerStorageConfiguratorPass());
         $container->addCompilerPass(new PdoSessionKeepAlivePass());
+        $container->addCompilerPass(new SecureSessionCookiePass());
         $container->addCompilerPass(new CacheWarmupFixerPass());
     }
 

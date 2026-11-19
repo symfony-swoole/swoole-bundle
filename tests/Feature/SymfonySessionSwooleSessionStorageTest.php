@@ -408,6 +408,69 @@ final class SymfonySessionSwooleSessionStorageTest extends ServerTestCase
         });
     }
 
+    /**
+     * framework.session.cookie_secure is `auto`, Symfony's default: the session cookie is Secure exactly when the
+     * request came over HTTPS - here, as behind a TLS-terminating proxy, by a trusted X-Forwarded-Proto. Plain
+     * HTTP on localhost keeps working, and the one HTTPS request in between leaves nothing behind in the worker
+     * for the next plain one.
+     *
+     * @see \SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation\Session\SecureSessionCookieListener
+     */
+    #[DataProvider('secureCookieEnvironmentProvider')]
+    public function testTheSessionCookieIsSecureExactlyWhenTheRequestCameOverHttps(string $env): void
+    {
+        $envs = [
+            'APP_ENV' => $env,
+            'COOKIE_LIFETIME' => 60,
+            'WORKER_COUNT' => 1,
+            // The test client is the proxy: X-Forwarded-Proto counts only from a trusted one.
+            'TRUSTED_PROXIES' => '127.0.0.1,::1',
+        ];
+        $serverStart = $this->createConsoleProcess([
+            'swoole:server:start',
+            '--host=localhost',
+            sprintf('--port=%d', self::port()),
+        ], $envs);
+
+        $serverStart->setTimeout(3);
+        $serverStart->disableOutput();
+        $serverStart->run();
+
+        $this->assertProcessSucceeded($serverStart);
+
+        $this->runAsCoroutineAndWait(function () use ($envs): void {
+            $this->deferServerStop([], $envs);
+
+            $sessionCookieOf = function (array $headers): string {
+                $client = HttpClient::fromDomain('localhost', self::port(), false);
+                $this->assertTrue($client->connect(self::connectTimeout(), 1, true));
+                $response = $client->send('/session', headers: $headers)['response'];
+                $this->assertSame(200, $response['statusCode']);
+                $this->assertArrayHasKey('set-cookie', $response['headers']);
+                $setCookie = $response['headers']['set-cookie'];
+                $this->assertIsString($setCookie);
+                $this->assertStringStartsWith('SWOOLESSID=', $setCookie);
+
+                return strtolower($setCookie);
+            };
+
+            $this->assertStringNotContainsString('; secure', $sessionCookieOf([]));
+            $this->assertStringContainsString('; secure', $sessionCookieOf(['X-Forwarded-Proto' => 'https']));
+            $this->assertStringNotContainsString('; secure', $sessionCookieOf([]));
+        });
+    }
+
+    /**
+     * @return array<string, array{string}>
+     */
+    public static function secureCookieEnvironmentProvider(): array
+    {
+        return [
+            'session' => ['session'],
+            'coroutines_session' => ['coroutines_session'],
+        ];
+    }
+
     public function testSessionDataExceedsMaxDataBytesIsRejected(): void
     {
         $cookieLifetime = 5;
