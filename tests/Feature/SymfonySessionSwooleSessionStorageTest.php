@@ -430,6 +430,9 @@ final class SymfonySessionSwooleSessionStorageTest extends ServerTestCase
             'swoole:server:start',
             '--host=localhost',
             sprintf('--port=%d', self::port()),
+            // coroutines_session and coroutines_session_pdo turn the API server on, which listens on 9200 unless
+            // told otherwise - the same port for every parallel worker. One of this worker's own keeps them apart.
+            sprintf('--api-port=%d', self::port(1)),
         ], $envs);
 
         $serverStart->setTimeout(3);
@@ -601,6 +604,9 @@ final class SymfonySessionSwooleSessionStorageTest extends ServerTestCase
             'swoole:server:start',
             '--host=localhost',
             sprintf('--port=%d', self::port()),
+            // coroutines_session and coroutines_session_pdo turn the API server on, which listens on 9200 unless
+            // told otherwise - the same port for every parallel worker. One of this worker's own keeps them apart.
+            sprintf('--api-port=%d', self::port(1)),
         ], $envs);
 
         $serverStart->setTimeout(3);

@@ -7,6 +7,7 @@ namespace SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation\Session;
 use Assert\Assertion;
 use Assert\AssertionFailedException;
 use SessionHandlerInterface;
+use SessionUpdateTimestampHandlerInterface;
 use SwooleBundle\SwooleBundle\Server\Session\Exception\LogicException;
 use SwooleBundle\SwooleBundle\Server\Session\Storage;
 
@@ -47,6 +48,28 @@ final readonly class SessionHandlerInterfaceStorage implements Storage
         Assertion::string($data, 'Storage data expected to be string, type %2$s given.');
 
         $this->withOpenHandler(function () use ($key, $data): void {
+            $this->handler->write($key, $data);
+        });
+    }
+
+    /**
+     * What PHP's own lazy_write does with a session it read and left as it was: updateTimestamp() where the handler
+     * has it - Symfony's do, and PdoSessionHandler's moves the row's expiry and leaves its data - and a write where it
+     * does not, which is all such a handler can do to keep the session from expiring.
+     *
+     * @throws AssertionFailedException
+     */
+    public function touch(string $key, mixed $data, int $ttl): void
+    {
+        Assertion::string($data, 'Storage data expected to be string, type %2$s given.');
+
+        $this->withOpenHandler(function () use ($key, $data): void {
+            if ($this->handler instanceof SessionUpdateTimestampHandlerInterface) {
+                $this->handler->updateTimestamp($key, $data);
+
+                return;
+            }
+
             $this->handler->write($key, $data);
         });
     }

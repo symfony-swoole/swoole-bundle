@@ -7,6 +7,7 @@ namespace SwooleBundle\SwooleBundle\Tests\Feature;
 use Doctrine\DBAL\Connection;
 use Override;
 use PHPUnit\Framework\Attributes\DataProvider;
+use Swoole\Coroutine;
 use SwooleBundle\SwooleBundle\Client\HttpClient;
 use SwooleBundle\SwooleBundle\Tests\Fixtures\Symfony\TestBundle\Test\ServerTestCase;
 
@@ -123,7 +124,14 @@ final class SessionHandlerInterfaceStorageTest extends ServerTestCase
                 ['cache:clear'],
                 ['doctrine:schema:drop', '--full-database', '--force'],
                 ['doctrine:migrations:migrate', '--no-interaction'],
-                ['swoole:server:start', '--host=localhost', sprintf('--port=%d', self::port())],
+                [
+                    'swoole:server:start',
+                    '--host=localhost',
+                    sprintf('--port=%d', self::port()),
+                    // The API server coroutines_session_pdo turns on listens on 9200 unless told otherwise, the
+                    // same port for every parallel worker; one of this worker's own keeps them apart.
+                    sprintf('--api-port=%d', self::port(1)),
+                ],
             ] as $command
         ) {
             $process = $this->createConsoleProcess($command, $envs);
@@ -153,6 +161,78 @@ final class SessionHandlerInterfaceStorageTest extends ServerTestCase
             $this->assertSame($sessionId, $after['cookies']['SWOOLESSID']);
             $this->assertSame($before['body'], $after['body']);
             $this->assertNotNull($this->fetchSessionRow($sessionId));
+        });
+    }
+
+    /**
+     * A request that reads the session and leaves it as it was only touches its row: PdoSessionHandler's
+     * updateTimestamp() moves the row's expiry and time, and its data stays what the last write left - what an
+     * overlapping request of the same session stored meanwhile included. One that changes it writes the row.
+     */
+    #[DataProvider('pdoSessionEnvironments')]
+    public function testAnUnchangedSessionOnlyHasItsRowsExpiryMoved(string $environment): void
+    {
+        $envs = [
+            'APP_ENV' => $environment,
+            'COOKIE_LIFETIME' => 60,
+        ];
+
+        foreach (
+            [
+                ['cache:clear'],
+                ['doctrine:schema:drop', '--full-database', '--force'],
+                ['doctrine:migrations:migrate', '--no-interaction'],
+                [
+                    'swoole:server:start',
+                    '--host=localhost',
+                    sprintf('--port=%d', self::port()),
+                    // The API server coroutines_session_pdo turns on listens on 9200 unless told otherwise, the
+                    // same port for every parallel worker; one of this worker's own keeps them apart.
+                    sprintf('--api-port=%d', self::port(1)),
+                ],
+            ] as $command
+        ) {
+            $process = $this->createConsoleProcess($command, $envs);
+            $process->setTimeout(10);
+            $process->disableOutput();
+            $process->run();
+
+            $this->assertProcessSucceeded($process);
+        }
+
+        $this->runAsCoroutineAndWait(function () use ($envs): void {
+            $this->deferServerStop([], $envs);
+
+            $client = HttpClient::fromDomain('localhost', self::port(), false);
+            $this->assertTrue($client->connect(self::connectTimeout(), 1, true));
+
+            $first = $client->send('/session/1')['response'];
+            $this->assertSame(200, $first['statusCode']);
+            $sessionId = $first['cookies']['SWOOLESSID'];
+            $written = $this->fetchSessionRow($sessionId);
+            $this->assertNotNull($written);
+
+            // The row's time is in seconds: a touch in the same second would move nothing to see.
+            Coroutine::sleep(2);
+
+            // Reads the lucky number the first request stored, and stores nothing.
+            $unchanged = $client->send('/session/2')['response'];
+            $this->assertSame(200, $unchanged['statusCode']);
+            $this->assertSame($first['body']['luckyNumber'], $unchanged['body']['luckyNumber']);
+            $touched = $this->fetchSessionRow($sessionId);
+            $this->assertNotNull($touched);
+
+            $this->assertSame($written['data'], $touched['data'], 'an unchanged session was written again');
+            $this->assertGreaterThan((int) $written['time'], (int) $touched['time']);
+            $this->assertGreaterThan((int) $written['lifetime'], (int) $touched['lifetime']);
+
+            $changed = $client->send('/session/remember/something')['response'];
+            $this->assertSame(200, $changed['statusCode']);
+            $rewritten = $this->fetchSessionRow($sessionId);
+            $this->assertNotNull($rewritten);
+
+            $this->assertNotSame($touched['data'], $rewritten['data'], 'a changed session was not written');
+            $this->assertStringContainsString('something', (string) $rewritten['data']);
         });
     }
 
