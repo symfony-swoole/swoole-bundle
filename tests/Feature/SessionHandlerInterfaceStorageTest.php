@@ -124,7 +124,14 @@ final class SessionHandlerInterfaceStorageTest extends ServerTestCase
                 ['cache:clear'],
                 ['doctrine:schema:drop', '--full-database', '--force'],
                 ['doctrine:migrations:migrate', '--no-interaction'],
-                ['swoole:server:start', '--host=localhost', sprintf('--port=%d', self::port())],
+                [
+                    'swoole:server:start',
+                    '--host=localhost',
+                    sprintf('--port=%d', self::port()),
+                    // The API server coroutines_session_pdo turns on listens on 9200 unless told otherwise, the
+                    // same port for every parallel worker; one of this worker's own keeps them apart.
+                    sprintf('--api-port=%d', self::port(1)),
+                ],
             ] as $command
         ) {
             $process = $this->createConsoleProcess($command, $envs);
@@ -175,7 +182,14 @@ final class SessionHandlerInterfaceStorageTest extends ServerTestCase
                 ['cache:clear'],
                 ['doctrine:schema:drop', '--full-database', '--force'],
                 ['doctrine:migrations:migrate', '--no-interaction'],
-                ['swoole:server:start', '--host=localhost', sprintf('--port=%d', self::port())],
+                [
+                    'swoole:server:start',
+                    '--host=localhost',
+                    sprintf('--port=%d', self::port()),
+                    // The API server coroutines_session_pdo turns on listens on 9200 unless told otherwise, the
+                    // same port for every parallel worker; one of this worker's own keeps them apart.
+                    sprintf('--api-port=%d', self::port(1)),
+                ],
             ] as $command
         ) {
             $process = $this->createConsoleProcess($command, $envs);

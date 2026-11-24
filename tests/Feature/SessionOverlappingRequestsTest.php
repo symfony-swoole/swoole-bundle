@@ -48,7 +48,14 @@ final class SessionOverlappingRequestsTest extends ServerTestCase
             $commands[] = ['doctrine:migrations:migrate', '--no-interaction'];
         }
 
-        $commands[] = ['swoole:server:start', '--host=localhost', sprintf('--port=%d', self::port())];
+        $commands[] = [
+            'swoole:server:start',
+            '--host=localhost',
+            sprintf('--port=%d', self::port()),
+            // Both environments turn the API server on, which listens on 9200 unless told otherwise - the same
+            // port for every parallel worker. One of this worker's own keeps them apart.
+            sprintf('--api-port=%d', self::port(1)),
+        ];
 
         foreach ($commands as $command) {
             $process = $this->createConsoleProcess($command, $envs);
