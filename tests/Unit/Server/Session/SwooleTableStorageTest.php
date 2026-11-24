@@ -53,4 +53,30 @@ final class SwooleTableStorageTest extends TestCase
         self::assertSame('payload', $storage->get('a-session'));
         self::assertSame(1, $storage->count());
     }
+
+    /**
+     * A touch keeps a session from expiring and leaves its data as it is - what a request of the same session wrote
+     * meanwhile included.
+     */
+    public function testTouchMovesTheExpiryAndKeepsTheData(): void
+    {
+        $table = new Table(64, 0.2);
+        $storage = new SwooleTableStorage($table, 64);
+        $storage->set('a-session', 'payload', 1);
+
+        $storage->touch('a-session', 'the touching request\'s copy', 600);
+
+        self::assertSame('payload', $storage->get('a-session'));
+        self::assertGreaterThanOrEqual(time() + 599, $table->get('a-session', 'expires_at'));
+    }
+
+    public function testTouchStoresNothingWhereNothingIsStored(): void
+    {
+        $storage = new SwooleTableStorage(new Table(64, 0.2), 64);
+
+        $storage->touch('a-session', 'payload', 600);
+
+        self::assertNull($storage->get('a-session'));
+        self::assertSame(0, $storage->count());
+    }
 }

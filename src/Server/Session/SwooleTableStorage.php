@@ -89,6 +89,24 @@ final class SwooleTableStorage implements Storage
         }
     }
 
+    /**
+     * Moves the row's expiry and nothing else: Table::set() with one column leaves the row's other columns as they
+     * are, so the data a request of the same session stored meanwhile stays.
+     *
+     * @throws AssertionFailedException
+     */
+    public function touch(string $key, mixed $data, int $ttl): void
+    {
+        Assertion::greaterThan($ttl, 0, 'Provided TTL "%s" is not a positive number.');
+
+        // A row set with its expiry alone would be a session of no data, made out of one that had already gone.
+        if (!$this->sharedMemory->exists($key)) {
+            return;
+        }
+
+        $this->sharedMemory->set($key, [self::TABLE_COLUMN_EXPIRES_AT => time() + $ttl]);
+    }
+
     public function delete(string $key): void
     {
         $this->sharedMemory->del($key);

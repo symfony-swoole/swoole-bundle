@@ -65,6 +65,33 @@ final class SessionController
     }
 
     /**
+     * Reads the session and changes nothing in it, slowly: a request still running when another of the same session
+     * stores something. usleep() yields to the other coroutines where the runtime hooks are on.
+     */
+    #[Route(path: '/session/unchanged-slowly', methods: ['GET'])]
+    public function unchangedSlowly(SessionInterface $session): JsonResponse
+    {
+        $luckyNumber = $session->get('luckyNumber');
+        usleep(2_000_000);
+
+        return new JsonResponse(['luckyNumber' => $luckyNumber]);
+    }
+
+    #[Route(path: '/session/remember/{value}', methods: ['GET'])]
+    public function remember(SessionInterface $session, string $value): JsonResponse
+    {
+        $session->set('remembered', $value);
+
+        return new JsonResponse(['remembered' => $value]);
+    }
+
+    #[Route(path: '/session/remembered', methods: ['GET'])]
+    public function remembered(SessionInterface $session): JsonResponse
+    {
+        return new JsonResponse(['remembered' => $session->get('remembered')]);
+    }
+
+    /**
      * Stores a payload intentionally larger than the session storage limit.
      * Used by tests that verify the max_data_bytes boundary is enforced.
      *

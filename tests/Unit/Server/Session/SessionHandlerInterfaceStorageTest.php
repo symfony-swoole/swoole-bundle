@@ -7,6 +7,7 @@ namespace SwooleBundle\SwooleBundle\Tests\Unit\Server\Session;
 use Assert\InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
 use SessionHandlerInterface;
+use SessionUpdateTimestampHandlerInterface;
 use stdClass;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation\Session\SessionHandlerInterfaceStorage;
 use SwooleBundle\SwooleBundle\Bridge\Symfony\HttpFoundation\Session\SwooleSessionStorage;
@@ -36,6 +37,35 @@ final class SessionHandlerInterfaceStorageTest extends TestCase
 
         $this->expectException(InvalidArgumentException::class);
         $storage->set('session-id', ['not-a-string'], 12345);
+    }
+
+    public function testTouchUpdatesTheTimestampOfAHandlerThatCan(): void
+    {
+        $handler = $this->createMockForIntersectionOfInterfaces([
+            SessionHandlerInterface::class,
+            SessionUpdateTimestampHandlerInterface::class,
+        ]);
+        $handler->expects($this->once())->method('open')->with('', SwooleSessionStorage::DEFAULT_SESSION_NAME);
+        $handler->expects($this->once())->method('updateTimestamp')->with('session-id', 'serialized-data');
+        $handler->expects($this->never())->method('write');
+        $handler->expects($this->once())->method('close');
+
+        $storage = new SessionHandlerInterfaceStorage($handler);
+        $storage->touch('session-id', 'serialized-data', 12345);
+    }
+
+    /**
+     * What PHP's own lazy_write does with such a handler: it has no other way to keep the session from expiring.
+     */
+    public function testTouchWritesThroughAHandlerThatCannotUpdateATimestamp(): void
+    {
+        $handler = $this->createMock(SessionHandlerInterface::class);
+        $handler->expects($this->once())->method('open')->with('', SwooleSessionStorage::DEFAULT_SESSION_NAME);
+        $handler->expects($this->once())->method('write')->with('session-id', 'serialized-data');
+        $handler->expects($this->once())->method('close');
+
+        $storage = new SessionHandlerInterfaceStorage($handler);
+        $storage->touch('session-id', 'serialized-data', 12345);
     }
 
     public function testDeleteDelegatesToDestroy(): void
